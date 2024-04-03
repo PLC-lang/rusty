@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/vm.rs`."><title>vm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/vm.rs`."><title>vm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fancy_regex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -901,7 +903,7 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the &quot;Software&quot;), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -910,7 +912,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -936,38 +938,38 @@
 //! A very simple program for the regex `a`:
 //!
 //! ```text
-//! 0: Lit(&quot;a&quot;)
+//! 0: Lit("a")
 //! 1: End
 //! ```
 //!
 //! The `Split` instruction causes execution to split into two threads. The first thread is executed
 //! with the current string index. If it fails, we reset the string index and resume execution with
-//! the second thread. That is what &quot;backtracking&quot; refers to. In order to do that, we keep a stack
+//! the second thread. That is what "backtracking" refers to. In order to do that, we keep a stack
 //! of threads (PC and IX) to try.
 //!
 //! Example program for the regex `ab|ac`:
 //!
 //! ```text
 //! 0: Split(1, 4)
-//! 1: Lit(&quot;a&quot;)
-//! 2: Lit(&quot;b&quot;)
+//! 1: Lit("a")
+//! 2: Lit("b")
 //! 3: Jmp(6)
-//! 4: Lit(&quot;a&quot;)
-//! 5: Lit(&quot;c&quot;)
+//! 4: Lit("a")
+//! 5: Lit("c")
 //! 6: End
 //! ```
 //!
 //! The `Jmp` instruction causes execution to jump to the specified instruction. In the example it
 //! is needed to separate the two threads.
 //!
-//! Let&#39;s step through execution with that program for the input `ac`:
+//! Let's step through execution with that program for the input `ac`:
 //!
-//! 1. We&#39;re at PC 0 and IX 0
+//! 1. We're at PC 0 and IX 0
 //! 2. `Split(1, 4)` means we save a thread with PC 4 and IX 0 for trying later
-//! 3. Continue at `Lit(&quot;a&quot;)` which matches, so we advance IX to 1
-//! 4. `Lit(&quot;b&quot;)` doesn&#39;t match at IX 1 (`&quot;b&quot; != &quot;c&quot;`), so the thread fails
+//! 3. Continue at `Lit("a")` which matches, so we advance IX to 1
+//! 4. `Lit("b")` doesn't match at IX 1 (`"b" != "c"`), so the thread fails
 //! 5. We continue with the previously saved thread at PC 4 and IX 0 (backtracking)
-//! 6. Both `Lit(&quot;a&quot;)` and `Lit(&quot;c&quot;)` match and we reach `End` -&gt; successful match (index 0 to 2)
+//! 6. Both `Lit("a")` and `Lit("c")` match and we reach `End` -&gt; successful match (index 0 to 2)
 
 </span><span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>std::collections::BTreeSet;
@@ -982,9 +984,9 @@
 <span class="doccomment">/// Enable tracing of VM execution. Only for debugging/investigating.
 </span><span class="kw">const </span>OPTION_TRACE: u32 = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
 <span class="doccomment">/// When iterating over all matches within a text (e.g. with `find_iter`), empty matches need to be
-/// handled specially. If we kept matching at the same position, we&#39;d never stop. So what we do
-/// after we&#39;ve had an empty match, is to advance the position where matching is attempted.
-/// If `\G` is used in the pattern, that means it no longer matches. If we didn&#39;t tell the VM about
+/// handled specially. If we kept matching at the same position, we'd never stop. So what we do
+/// after we've had an empty match, is to advance the position where matching is attempted.
+/// If `\G` is used in the pattern, that means it no longer matches. If we didn't tell the VM about
 /// the fact that we skipped because of an empty match, it would still treat `\G` as matching. So
 /// this option is for communicating that to the VM. Phew.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>OPTION_SKIPPED_EMPTY_MATCH: u32 = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
@@ -1077,12 +1079,12 @@
         <span class="doccomment">/// The same regex but matching an additional character on the left.
         ///
         /// E.g. if `inner` is `^\b`, `inner1` is `^(?s:.)\b`. Why do we need this? Because `\b`
-        /// needs to know the previous character to work correctly. Let&#39;s say we&#39;re currently at the
-        /// second character of the string `xy`. Should `\b` match there? No. But if we&#39;d run `^\b`
+        /// needs to know the previous character to work correctly. Let's say we're currently at the
+        /// second character of the string `xy`. Should `\b` match there? No. But if we'd run `^\b`
         /// against `y`, it would match (incorrect). To do the right thing, we run `^(?s:.)\b`
         /// against `xy`, which does not match.
         ///
-        /// We only need this for regexes that &quot;look left&quot;, i.e. need to know what the previous
+        /// We only need this for regexes that "look left", i.e. need to know what the previous
         /// character was.
         </span>inner1: <span class="prelude-ty">Option</span>&lt;Box&lt;Regex&gt;&gt;,
         <span class="doccomment">/// The first group number that this regex captures (if it contains groups)
@@ -1112,7 +1114,7 @@
     <span class="attr">#[doc(hidden)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>debug_print(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">for </span>(i, insn) <span class="kw">in </span><span class="self">self</span>.body.iter().enumerate() {
-            <span class="macro">println!</span>(<span class="string">&quot;{:3}: {:?}&quot;</span>, i, insn);
+            <span class="macro">println!</span>(<span class="string">"{:3}: {:?}"</span>, i, insn);
         }
     }
 }
@@ -1174,7 +1176,7 @@
             <span class="kw">let </span>nsave = <span class="self">self</span>.nsave;
             <span class="self">self</span>.stack.push(Branch { pc, ix, nsave });
             <span class="self">self</span>.nsave = <span class="number">0</span>;
-            <span class="self">self</span>.trace_stack(<span class="string">&quot;push&quot;</span>);
+            <span class="self">self</span>.trace_stack(<span class="string">"push"</span>);
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Error::RuntimeError(RuntimeError::StackOverflow))
@@ -1189,7 +1191,7 @@
         }
         <span class="kw">let </span>Branch { pc, ix, nsave } = <span class="self">self</span>.stack.pop().unwrap();
         <span class="self">self</span>.nsave = nsave;
-        <span class="self">self</span>.trace_stack(<span class="string">&quot;pop&quot;</span>);
+        <span class="self">self</span>.trace_stack(<span class="string">"pop"</span>);
         (pc, ix)
     }
 
@@ -1210,7 +1212,7 @@
         <span class="self">self</span>.saves[slot] = val;
 
         <span class="kw">if </span><span class="self">self</span>.options &amp; OPTION_TRACE != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;saves: {:?}&quot;</span>, <span class="self">self</span>.saves);
+            <span class="macro">println!</span>(<span class="string">"saves: {:?}"</span>, <span class="self">self</span>.saves);
         }
     }
 
@@ -1260,7 +1262,7 @@
             <span class="comment">// no backtrack branches to discard, all good
             </span><span class="kw">return</span>;
         }
-        <span class="comment">// start and end indexes of old saves for the branch we&#39;re cutting to
+        <span class="comment">// start and end indexes of old saves for the branch we're cutting to
         </span><span class="kw">let </span>(oldsave_start, oldsave_end) = {
             <span class="kw">let </span><span class="kw-2">mut </span>end = <span class="self">self</span>.oldsave.len() - <span class="self">self</span>.nsave;
             <span class="kw">for </span><span class="kw-2">&amp;</span>Branch { nsave, .. } <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.stack[count + <span class="number">1</span>..] {
@@ -1270,18 +1272,18 @@
             (start, end)
         };
         <span class="kw">let </span><span class="kw-2">mut </span>saved = BTreeSet::new();
-        <span class="comment">// keep all the old saves of our branch (they&#39;re all for different slots)
+        <span class="comment">// keep all the old saves of our branch (they're all for different slots)
         </span><span class="kw">for </span><span class="kw-2">&amp;</span>Save { slot, .. } <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.oldsave[oldsave_start..oldsave_end] {
             saved.insert(slot);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>oldsave_ix = oldsave_end;
-        <span class="comment">// for other old saves, keep them only if they&#39;re for a slot that we haven&#39;t saved yet
+        <span class="comment">// for other old saves, keep them only if they're for a slot that we haven't saved yet
         </span><span class="kw">for </span>ix <span class="kw">in </span>oldsave_end..<span class="self">self</span>.oldsave.len() {
             <span class="kw">let </span>Save { slot, .. } = <span class="self">self</span>.oldsave[ix];
             <span class="kw">let </span>new_slot = saved.insert(slot);
             <span class="kw">if </span>new_slot {
                 <span class="comment">// put the save we want to keep (ix) after the ones we already have (oldsave_ix)
-                // note that it&#39;s fine if the indexes are the same (then swapping is a no-op)
+                // note that it's fine if the indexes are the same (then swapping is a no-op)
                 </span><span class="self">self</span>.oldsave.swap(oldsave_ix, ix);
                 oldsave_ix += <span class="number">1</span>;
             }
@@ -1294,7 +1296,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>trace_stack(<span class="kw-2">&amp;</span><span class="self">self</span>, operation: <span class="kw-2">&amp;</span>str) {
         <span class="kw">if </span><span class="self">self</span>.options &amp; OPTION_TRACE != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;stack after {}: {:?}&quot;</span>, operation, <span class="self">self</span>.stack);
+            <span class="macro">println!</span>(<span class="string">"stack after {}: {:?}"</span>, operation, <span class="self">self</span>.stack);
         }
     }
 }
@@ -1307,7 +1309,7 @@
 </span><span class="kw">fn </span>matches_literal(s: <span class="kw-2">&amp;</span>str, ix: usize, end: usize, literal: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="comment">// Compare as bytes because the literal might be a single byte char whereas ix
     // points to a multibyte char. Comparing with str would result in an error like
-    // &quot;byte index N is not a char boundary&quot;.
+    // "byte index N is not a char boundary".
     </span>end &lt;= s.len() &amp;&amp; <span class="kw-2">&amp;</span>s.as_bytes()[ix..end] == literal.as_bytes()
 }
 
@@ -1332,16 +1334,16 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;usize&gt;&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(prog.n_saves, MAX_STACK, option_flags);
     <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;pos\tinstruction&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"pos\tinstruction"</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>backtrack_count = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>pc = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>ix = pos;
     <span class="kw">loop </span>{
         <span class="comment">// break from this loop to fail, causes stack to pop
-        </span><span class="lifetime">&#39;fail</span>: <span class="kw">loop </span>{
+        </span><span class="lifetime">'fail</span>: <span class="kw">loop </span>{
             <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
-                <span class="macro">println!</span>(<span class="string">&quot;{}\t{} {:?}&quot;</span>, ix, pc, prog.body[pc]);
+                <span class="macro">println!</span>(<span class="string">"{}\t{} {:?}"</span>, ix, pc, prog.body[pc]);
             }
             <span class="kw">match </span>prog.body[pc] {
                 Insn::End =&gt; {
@@ -1350,7 +1352,7 @@
                     // optimize that.
                     //state.saves[1] = ix;
                     </span><span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
-                        <span class="macro">println!</span>(<span class="string">&quot;saves: {:?}&quot;</span>, state.saves);
+                        <span class="macro">println!</span>(<span class="string">"saves: {:?}"</span>, state.saves);
                     }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>slot1) = state.saves.get(<span class="number">1</span>) {
                         <span class="comment">// With some features like keep out (\K), the match start can be after
@@ -1365,20 +1367,20 @@
                     <span class="kw">if </span>ix &lt; s.len() {
                         ix += codepoint_len_at(s, ix);
                     } <span class="kw">else </span>{
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                 }
                 Insn::AnyNoNL =&gt; {
-                    <span class="kw">if </span>ix &lt; s.len() &amp;&amp; s.as_bytes()[ix] != <span class="string">b&#39;\n&#39; </span>{
+                    <span class="kw">if </span>ix &lt; s.len() &amp;&amp; s.as_bytes()[ix] != <span class="string">b'\n' </span>{
                         ix += codepoint_len_at(s, ix);
                     } <span class="kw">else </span>{
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                 }
                 Insn::Lit(<span class="kw-2">ref </span>val) =&gt; {
                     <span class="kw">let </span>ix_end = ix + val.len();
                     <span class="kw">if </span>!matches_literal(s, ix, ix_end, val) {
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     ix = ix_end;
                 }
@@ -1437,7 +1439,7 @@
                     <span class="kw">let </span>repcount = state.get(repeat);
                     <span class="kw">if </span>repcount &gt; lo &amp;&amp; state.get(check) == ix {
                         <span class="comment">// prevent zero-length match on repeat
-                        </span><span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        </span><span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     state.save(repeat, repcount + <span class="number">1</span>);
                     <span class="kw">if </span>repcount &gt;= lo {
@@ -1454,7 +1456,7 @@
                     <span class="kw">let </span>repcount = state.get(repeat);
                     <span class="kw">if </span>repcount &gt; lo &amp;&amp; state.get(check) == ix {
                         <span class="comment">// prevent zero-length match on repeat
-                        </span><span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        </span><span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     state.save(repeat, repcount + <span class="number">1</span>);
                     <span class="kw">if </span>repcount &gt;= lo {
@@ -1467,52 +1469,52 @@
                 Insn::GoBack(count) =&gt; {
                     <span class="kw">for _ in </span><span class="number">0</span>..count {
                         <span class="kw">if </span>ix == <span class="number">0 </span>{
-                            <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                            <span class="kw">break </span><span class="lifetime">'fail</span>;
                         }
                         ix = prev_codepoint_ix(s, ix);
                     }
                 }
                 Insn::FailNegativeLookAround =&gt; {
                     <span class="comment">// Reaching this instruction means that the body of the
-                    // look-around matched. Because it&#39;s a *negative* look-around,
+                    // look-around matched. Because it's a *negative* look-around,
                     // that means the look-around itself should fail (not match).
                     // But before, we need to discard all the states that have
-                    // been pushed with the look-around, because we don&#39;t want to
+                    // been pushed with the look-around, because we don't want to
                     // explore them.
                     </span><span class="kw">loop </span>{
                         <span class="kw">let </span>(popped_pc, <span class="kw">_</span>) = state.pop();
                         <span class="kw">if </span>popped_pc == pc + <span class="number">1 </span>{
-                            <span class="comment">// We&#39;ve reached the state that would jump us to
+                            <span class="comment">// We've reached the state that would jump us to
                             // after the look-around (in case the look-around
                             // succeeded). That means we popped enough states.
                             </span><span class="kw">break</span>;
                         }
                     }
-                    <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                    <span class="kw">break </span><span class="lifetime">'fail</span>;
                 }
                 Insn::Backref(slot) =&gt; {
                     <span class="kw">let </span>lo = state.get(slot);
                     <span class="kw">if </span>lo == usize::MAX {
-                        <span class="comment">// Referenced group hasn&#39;t matched, so the backref doesn&#39;t match either
-                        </span><span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="comment">// Referenced group hasn't matched, so the backref doesn't match either
+                        </span><span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     <span class="kw">let </span>hi = state.get(slot + <span class="number">1</span>);
                     <span class="kw">if </span>hi == usize::MAX {
-                        <span class="comment">// Referenced group hasn&#39;t matched, so the backref doesn&#39;t match either
-                        </span><span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="comment">// Referenced group hasn't matched, so the backref doesn't match either
+                        </span><span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     <span class="kw">let </span>ref_text = <span class="kw-2">&amp;</span>s[lo..hi];
                     <span class="kw">let </span>ix_end = ix + ref_text.len();
                     <span class="kw">if </span>!matches_literal(s, ix, ix_end, ref_text) {
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                     ix = ix_end;
                 }
                 Insn::BackrefExistsCondition(group) =&gt; {
                     <span class="kw">let </span>lo = state.get(group * <span class="number">2</span>);
                     <span class="kw">if </span>lo == usize::MAX {
-                        <span class="comment">// Referenced group hasn&#39;t matched, so the backref doesn&#39;t match either
-                        </span><span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="comment">// Referenced group hasn't matched, so the backref doesn't match either
+                        </span><span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                 }
                 Insn::BeginAtomic =&gt; {
@@ -1531,7 +1533,7 @@
                             ix += codepoint_len_at(s, ix);
                         }
                     } <span class="kw">else </span>{
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                 }
                 Insn::Delegate {
@@ -1540,10 +1542,10 @@
                     start_group,
                     end_group,
                 } =&gt; {
-                    <span class="comment">// Note: Why can&#39;t we use `find_at` or `captures_read_at` here instead of the
+                    <span class="comment">// Note: Why can't we use `find_at` or `captures_read_at` here instead of the
                     // `inner1` regex? We only want to match at the current location, so our regexes
                     // need to have an anchor: `^foo` (without `^`, it would match `foo` anywhere).
-                    // But regex like `^foo` won&#39;t match in `bar foo` with `find_at(s, 4)` because
+                    // But regex like `^foo` won't match in `bar foo` with `find_at(s, 4)` because
                     // `^` only matches at the beginning of the text.
                     </span><span class="kw">let </span>re = <span class="kw">match </span><span class="kw-2">*</span>inner1 {
                         <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>inner1) <span class="kw">if </span>ix &gt; <span class="number">0 </span>=&gt; {
@@ -1556,7 +1558,7 @@
                         <span class="comment">// No groups, so we can use `find` which is faster than `captures_read`
                         </span><span class="kw">match </span>re.find(<span class="kw-2">&amp;</span>s[ix..]) {
                             <span class="prelude-val">Some</span>(m) =&gt; ix += m.end(),
-                            <span class="kw">_ </span>=&gt; <span class="kw">break </span><span class="lifetime">&#39;fail</span>,
+                            <span class="kw">_ </span>=&gt; <span class="kw">break </span><span class="lifetime">'fail</span>,
                         }
                     } <span class="kw">else </span>{
                         <span class="kw">let </span><span class="kw-2">mut </span>locations = re.capture_locations();
@@ -1573,22 +1575,22 @@
                             }
                             ix += m.end();
                         } <span class="kw">else </span>{
-                            <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                            <span class="kw">break </span><span class="lifetime">'fail</span>;
                         }
                     }
                 }
                 Insn::ContinueFromPreviousMatchEnd =&gt; {
                     <span class="kw">if </span>ix &gt; pos || option_flags &amp; OPTION_SKIPPED_EMPTY_MATCH != <span class="number">0 </span>{
-                        <span class="kw">break </span><span class="lifetime">&#39;fail</span>;
+                        <span class="kw">break </span><span class="lifetime">'fail</span>;
                     }
                 }
             }
             pc += <span class="number">1</span>;
         }
         <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;fail&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"fail"</span>);
         }
-        <span class="comment">// &quot;break &#39;fail&quot; goes here
+        <span class="comment">// "break 'fail" goes here
         </span><span class="kw">if </span>state.stack.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -1744,7 +1746,7 @@
             .max()
             .unwrap_or(<span class="number">0</span>);
         <span class="kw">if </span>slots == <span class="number">0 </span>{
-            <span class="comment">// No point checking if there&#39;s no save instructions
+            <span class="comment">// No point checking if there's no save instructions
             </span><span class="kw">return </span><span class="bool-val">true</span>;
         }
 
@@ -1760,7 +1762,7 @@
         <span class="kw">for </span>operation <span class="kw">in </span>operations {
             <span class="kw">match </span>operation {
                 Operation::Push =&gt; {
-                    <span class="comment">// We&#39;re not checking pc and ix later, so don&#39;t bother
+                    <span class="comment">// We're not checking pc and ix later, so don't bother
                     // putting in random values.
                     </span>stack.push((<span class="number">0</span>, <span class="number">0</span>, saves.clone()));
                     state.push(<span class="number">0</span>, <span class="number">0</span>).unwrap();

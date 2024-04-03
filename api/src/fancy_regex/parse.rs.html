@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fancy_regex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1732,7 +1734,7 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the &quot;Software&quot;), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -1741,7 +1743,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -1783,16 +1785,16 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
-    re: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, <span class="comment">// source
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Parser&lt;<span class="lifetime">'a</span>&gt; {
+    re: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="comment">// source
     </span>backrefs: BitSet,
     flags: u32,
     named_groups: NamedGroups,
     numeric_backrefs: bool,
-    curr_group: usize, <span class="comment">// need to keep track of which group number we&#39;re parsing
+    curr_group: usize, <span class="comment">// need to keep track of which group number we're parsing
 </span>}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Parser&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Parse the regex and return an expression (AST) and a bit set with the indexes of groups
     /// that are referenced by backrefs.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(re: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ExprTree&gt; {
@@ -1801,7 +1803,7 @@
         <span class="kw">if </span>ix &lt; re.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                 ix,
-                ParseError::GeneralParseError(<span class="string">&quot;end of string not reached&quot;</span>.to_string()),
+                ParseError::GeneralParseError(<span class="string">"end of string not reached"</span>.to_string()),
             ));
         }
         <span class="prelude-val">Ok</span>(ExprTree {
@@ -1811,7 +1813,7 @@
         })
     }
 
-    <span class="kw">fn </span>new(re: <span class="kw-2">&amp;</span>str) -&gt; Parser&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>new(re: <span class="kw-2">&amp;</span>str) -&gt; Parser&lt;<span class="lifetime">'_</span>&gt; {
         Parser {
             re,
             backrefs: Default::default(),
@@ -1825,9 +1827,9 @@
     <span class="kw">fn </span>parse_re(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ix: usize, depth: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, Expr)&gt; {
         <span class="kw">let </span>(ix, child) = <span class="self">self</span>.parse_branch(ix, depth)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>ix = <span class="self">self</span>.optional_whitespace(ix)<span class="question-mark">?</span>;
-        <span class="kw">if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&#39;|&#39;</span>) {
+        <span class="kw">if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">'|'</span>) {
             <span class="kw">let </span><span class="kw-2">mut </span>children = <span class="macro">vec!</span>[child];
-            <span class="kw">while </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&#39;|&#39;</span>) {
+            <span class="kw">while </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">'|'</span>) {
                 ix += <span class="number">1</span>;
                 <span class="kw">let </span>(next, child) = <span class="self">self</span>.parse_branch(ix, depth)<span class="question-mark">?</span>;
                 children.push(child);
@@ -1835,7 +1837,7 @@
             }
             <span class="kw">return </span><span class="prelude-val">Ok</span>((ix, Expr::Alt(children)));
         }
-        <span class="comment">// can&#39;t have numeric backrefs and named backrefs
+        <span class="comment">// can't have numeric backrefs and named backrefs
         </span><span class="kw">if </span><span class="self">self</span>.numeric_backrefs &amp;&amp; !<span class="self">self</span>.named_groups.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CompileError(CompileError::NamedBackrefOnly));
         }
@@ -1868,10 +1870,10 @@
         <span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() {
             <span class="comment">// fail when child is empty?
             </span><span class="kw">let </span>(lo, hi) = <span class="kw">match </span><span class="self">self</span>.re.as_bytes()[ix] {
-                <span class="string">b&#39;?&#39; </span>=&gt; (<span class="number">0</span>, <span class="number">1</span>),
-                <span class="string">b&#39;*&#39; </span>=&gt; (<span class="number">0</span>, usize::MAX),
-                <span class="string">b&#39;+&#39; </span>=&gt; (<span class="number">1</span>, usize::MAX),
-                <span class="string">b&#39;{&#39; </span>=&gt; {
+                <span class="string">b'?' </span>=&gt; (<span class="number">0</span>, <span class="number">1</span>),
+                <span class="string">b'*' </span>=&gt; (<span class="number">0</span>, usize::MAX),
+                <span class="string">b'+' </span>=&gt; (<span class="number">1</span>, usize::MAX),
+                <span class="string">b'{' </span>=&gt; {
                     <span class="kw">match </span><span class="self">self</span>.parse_repeat(ix) {
                         <span class="prelude-val">Ok</span>((next, lo, hi)) =&gt; {
                             ix = next - <span class="number">1</span>;
@@ -1891,7 +1893,7 @@
             ix += <span class="number">1</span>;
             ix = <span class="self">self</span>.optional_whitespace(ix)<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>greedy = <span class="bool-val">true</span>;
-            <span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; <span class="self">self</span>.re.as_bytes()[ix] == <span class="string">b&#39;?&#39; </span>{
+            <span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; <span class="self">self</span>.re.as_bytes()[ix] == <span class="string">b'?' </span>{
                 greedy = <span class="bool-val">false</span>;
                 ix += <span class="number">1</span>;
             }
@@ -1902,7 +1904,7 @@
                 hi,
                 greedy,
             };
-            <span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; <span class="self">self</span>.re.as_bytes()[ix] == <span class="string">b&#39;+&#39; </span>{
+            <span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; <span class="self">self</span>.re.as_bytes()[ix] == <span class="string">b'+' </span>{
                 ix += <span class="number">1</span>;
                 node = Expr::AtomicGroup(Box::new(node));
             }
@@ -1925,13 +1927,13 @@
 
     <span class="comment">// ix, lo, hi
     </span><span class="kw">fn </span>parse_repeat(<span class="kw-2">&amp;</span><span class="self">self</span>, ix: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize, usize)&gt; {
-        <span class="kw">let </span>ix = <span class="self">self</span>.optional_whitespace(ix + <span class="number">1</span>)<span class="question-mark">?</span>; <span class="comment">// skip opening &#39;{&#39;
+        <span class="kw">let </span>ix = <span class="self">self</span>.optional_whitespace(ix + <span class="number">1</span>)<span class="question-mark">?</span>; <span class="comment">// skip opening '{'
         </span><span class="kw">let </span>bytes = <span class="self">self</span>.re.as_bytes();
         <span class="kw">if </span>ix == <span class="self">self</span>.re.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidRepeat));
         }
         <span class="kw">let </span><span class="kw-2">mut </span>end = ix;
-        <span class="kw">let </span>lo = <span class="kw">if </span>bytes[ix] == <span class="string">b&#39;,&#39; </span>{
+        <span class="kw">let </span>lo = <span class="kw">if </span>bytes[ix] == <span class="string">b',' </span>{
             <span class="number">0
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>((next, lo)) = parse_decimal(<span class="self">self</span>.re, ix) {
             end = next;
@@ -1945,9 +1947,9 @@
         }
         end = ix;
         <span class="kw">let </span>hi = <span class="kw">match </span>bytes[ix] {
-            <span class="string">b&#39;}&#39; </span>=&gt; lo,
-            <span class="string">b&#39;,&#39; </span>=&gt; {
-                end = <span class="self">self</span>.optional_whitespace(ix + <span class="number">1</span>)<span class="question-mark">?</span>; <span class="comment">// past &#39;,&#39;
+            <span class="string">b'}' </span>=&gt; lo,
+            <span class="string">b',' </span>=&gt; {
+                end = <span class="self">self</span>.optional_whitespace(ix + <span class="number">1</span>)<span class="question-mark">?</span>; <span class="comment">// past ','
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>((next, hi)) = parse_decimal(<span class="self">self</span>.re, end) {
                     end = next;
                     hi
@@ -1958,7 +1960,7 @@
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidRepeat)),
         };
         <span class="kw">let </span>ix = <span class="self">self</span>.optional_whitespace(end)<span class="question-mark">?</span>; <span class="comment">// past hi number
-        </span><span class="kw">if </span>ix == <span class="self">self</span>.re.len() || bytes[ix] != <span class="string">b&#39;}&#39; </span>{
+        </span><span class="kw">if </span>ix == <span class="self">self</span>.re.len() || bytes[ix] != <span class="string">b'}' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidRepeat));
         }
         <span class="prelude-val">Ok</span>((ix + <span class="number">1</span>, lo, hi))
@@ -1970,13 +1972,13 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>((ix, Expr::Empty));
         }
         <span class="kw">match </span><span class="self">self</span>.re.as_bytes()[ix] {
-            <span class="string">b&#39;.&#39; </span>=&gt; <span class="prelude-val">Ok</span>((
+            <span class="string">b'.' </span>=&gt; <span class="prelude-val">Ok</span>((
                 ix + <span class="number">1</span>,
                 Expr::Any {
                     newline: <span class="self">self</span>.flag(FLAG_DOTNL),
                 },
             )),
-            <span class="string">b&#39;^&#39; </span>=&gt; <span class="prelude-val">Ok</span>((
+            <span class="string">b'^' </span>=&gt; <span class="prelude-val">Ok</span>((
                 ix + <span class="number">1</span>,
                 <span class="kw">if </span><span class="self">self</span>.flag(FLAG_MULTI) {
                     Expr::StartLine
@@ -1984,7 +1986,7 @@
                     Expr::StartText
                 },
             )),
-            <span class="string">b&#39;$&#39; </span>=&gt; <span class="prelude-val">Ok</span>((
+            <span class="string">b'$' </span>=&gt; <span class="prelude-val">Ok</span>((
                 ix + <span class="number">1</span>,
                 <span class="kw">if </span><span class="self">self</span>.flag(FLAG_MULTI) {
                     Expr::EndLine
@@ -1992,16 +1994,16 @@
                     Expr::EndText
                 },
             )),
-            <span class="string">b&#39;(&#39; </span>=&gt; <span class="self">self</span>.parse_group(ix, depth),
-            <span class="string">b&#39;\\&#39; </span>=&gt; {
+            <span class="string">b'(' </span>=&gt; <span class="self">self</span>.parse_group(ix, depth),
+            <span class="string">b'\\' </span>=&gt; {
                 <span class="kw">let </span>(next, expr) = <span class="self">self</span>.parse_escape(ix)<span class="question-mark">?</span>;
                 <span class="kw">if let </span>Expr::Backref(group) = expr {
                     <span class="self">self</span>.backrefs.insert(group);
                 }
                 <span class="prelude-val">Ok</span>((next, expr))
             }
-            <span class="string">b&#39;+&#39; </span>| <span class="string">b&#39;*&#39; </span>| <span class="string">b&#39;?&#39; </span>| <span class="string">b&#39;|&#39; </span>| <span class="string">b&#39;)&#39; </span>=&gt; <span class="prelude-val">Ok</span>((ix, Expr::Empty)),
-            <span class="string">b&#39;[&#39; </span>=&gt; <span class="self">self</span>.parse_class(ix),
+            <span class="string">b'+' </span>| <span class="string">b'*' </span>| <span class="string">b'?' </span>| <span class="string">b'|' </span>| <span class="string">b')' </span>=&gt; <span class="prelude-val">Ok</span>((ix, Expr::Empty)),
+            <span class="string">b'[' </span>=&gt; <span class="self">self</span>.parse_class(ix),
             b =&gt; {
                 <span class="comment">// TODO: maybe want to match multiple codepoints?
                 </span><span class="kw">let </span>next = ix + codepoint_len(b);
@@ -2034,7 +2036,7 @@
                 ParseError::InvalidGroupNameBackref(id.to_string()),
             ))
         } <span class="kw">else </span>{
-            <span class="comment">// in this case the name can&#39;t be parsed
+            <span class="comment">// in this case the name can't be parsed
             </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidGroupName))
         }
     }
@@ -2061,24 +2063,24 @@
         <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">1</span>;
         <span class="kw">if </span>is_digit(b) {
             <span class="kw">return </span><span class="self">self</span>.parse_numbered_backref(ix + <span class="number">1</span>);
-        } <span class="kw">else if </span>b == <span class="string">b&#39;k&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'k' </span>{
             <span class="comment">// Named backref: \k&lt;name&gt;
-            </span><span class="kw">return </span><span class="self">self</span>.parse_named_backref(ix + <span class="number">2</span>, <span class="string">&quot;&lt;&quot;</span>, <span class="string">&quot;&gt;&quot;</span>);
-        } <span class="kw">else if </span>b == <span class="string">b&#39;A&#39; </span>|| b == <span class="string">b&#39;z&#39; </span>|| b == <span class="string">b&#39;b&#39; </span>|| b == <span class="string">b&#39;B&#39; </span>{
+            </span><span class="kw">return </span><span class="self">self</span>.parse_named_backref(ix + <span class="number">2</span>, <span class="string">"&lt;"</span>, <span class="string">"&gt;"</span>);
+        } <span class="kw">else if </span>b == <span class="string">b'A' </span>|| b == <span class="string">b'z' </span>|| b == <span class="string">b'b' </span>|| b == <span class="string">b'B' </span>{
             size = <span class="number">0</span>;
-        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b&#39;d&#39;
-            </span>|| (b | <span class="number">32</span>) == <span class="string">b&#39;s&#39;
-            </span>|| (b | <span class="number">32</span>) == <span class="string">b&#39;w&#39;
-            </span>|| b == <span class="string">b&#39;a&#39;
-            </span>|| b == <span class="string">b&#39;f&#39;
-            </span>|| b == <span class="string">b&#39;n&#39;
-            </span>|| b == <span class="string">b&#39;r&#39;
-            </span>|| b == <span class="string">b&#39;t&#39;
-            </span>|| b == <span class="string">b&#39;v&#39;
+        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b'd'
+            </span>|| (b | <span class="number">32</span>) == <span class="string">b's'
+            </span>|| (b | <span class="number">32</span>) == <span class="string">b'w'
+            </span>|| b == <span class="string">b'a'
+            </span>|| b == <span class="string">b'f'
+            </span>|| b == <span class="string">b'n'
+            </span>|| b == <span class="string">b'r'
+            </span>|| b == <span class="string">b't'
+            </span>|| b == <span class="string">b'v'
         </span>{
             <span class="comment">// size = 1
-        </span>} <span class="kw">else if </span>b == <span class="string">b&#39;e&#39; </span>{
-            <span class="kw">let </span>inner = String::from(<span class="string">r&quot;\x1B&quot;</span>);
+        </span>} <span class="kw">else if </span>b == <span class="string">b'e' </span>{
+            <span class="kw">let </span>inner = String::from(<span class="string">r"\x1B"</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>((
                 end,
                 Expr::Delegate {
@@ -2087,11 +2089,11 @@
                     casei: <span class="bool-val">false</span>,
                 },
             ));
-        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b&#39;h&#39; </span>{
-            <span class="kw">let </span>s = <span class="kw">if </span>b == <span class="string">b&#39;h&#39; </span>{
-                <span class="string">&quot;[0-9A-Fa-f]&quot;
+        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b'h' </span>{
+            <span class="kw">let </span>s = <span class="kw">if </span>b == <span class="string">b'h' </span>{
+                <span class="string">"[0-9A-Fa-f]"
             </span>} <span class="kw">else </span>{
-                <span class="string">&quot;[^0-9A-Fa-f]&quot;
+                <span class="string">"[^0-9A-Fa-f]"
             </span>};
             <span class="kw">let </span>inner = String::from(s);
             <span class="kw">return </span><span class="prelude-val">Ok</span>((
@@ -2102,43 +2104,43 @@
                     casei: <span class="bool-val">false</span>,
                 },
             ));
-        } <span class="kw">else if </span>b == <span class="string">b&#39;x&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'x' </span>{
             <span class="kw">return </span><span class="self">self</span>.parse_hex(end, <span class="number">2</span>);
-        } <span class="kw">else if </span>b == <span class="string">b&#39;u&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'u' </span>{
             <span class="kw">return </span><span class="self">self</span>.parse_hex(end, <span class="number">4</span>);
-        } <span class="kw">else if </span>b == <span class="string">b&#39;U&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'U' </span>{
             <span class="kw">return </span><span class="self">self</span>.parse_hex(end, <span class="number">8</span>);
-        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b&#39;p&#39; </span>{
+        } <span class="kw">else if </span>(b | <span class="number">32</span>) == <span class="string">b'p' </span>{
             <span class="comment">// allow whitespace?
             </span><span class="kw">if </span>end == <span class="self">self</span>.re.len() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                     ix,
-                    ParseError::InvalidEscape(<span class="string">&quot;\\p must be followed by a unicode name&quot;</span>.to_string()),
+                    ParseError::InvalidEscape(<span class="string">"\\p must be followed by a unicode name"</span>.to_string()),
                 ));
             }
             <span class="kw">let </span>b = bytes[end];
             end += codepoint_len(b);
-            <span class="kw">if </span>b == <span class="string">b&#39;{&#39; </span>{
+            <span class="kw">if </span>b == <span class="string">b'{' </span>{
                 <span class="kw">loop </span>{
                     <span class="kw">if </span>end == <span class="self">self</span>.re.len() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::UnclosedUnicodeName));
                     }
                     <span class="kw">let </span>b = bytes[end];
-                    <span class="kw">if </span>b == <span class="string">b&#39;}&#39; </span>{
+                    <span class="kw">if </span>b == <span class="string">b'}' </span>{
                         end += <span class="number">1</span>;
                         <span class="kw">break</span>;
                     }
                     end += codepoint_len(b);
                 }
             }
-        } <span class="kw">else if </span>b == <span class="string">b&#39;K&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'K' </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>((end, Expr::KeepOut));
-        } <span class="kw">else if </span>b == <span class="string">b&#39;G&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'G' </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>((end, Expr::ContinueFromPreviousMatchEnd));
-        } <span class="kw">else if </span><span class="string">b&#39;a&#39; </span>&lt;= (b | <span class="number">32</span>) &amp;&amp; (b | <span class="number">32</span>) &lt;= <span class="string">b&#39;z&#39; </span>{
+        } <span class="kw">else if </span><span class="string">b'a' </span>&lt;= (b | <span class="number">32</span>) &amp;&amp; (b | <span class="number">32</span>) &lt;= <span class="string">b'z' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                 ix,
-                ParseError::InvalidEscape(<span class="macro">format!</span>(<span class="string">&quot;\\{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">1</span>..end])),
+                ParseError::InvalidEscape(<span class="macro">format!</span>(<span class="string">"\\{}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">1</span>..end])),
             ));
         } <span class="kw">else if </span><span class="number">0x20 </span>&lt;= b &amp;&amp; b &lt;= <span class="number">0x7f </span>{
             <span class="comment">// printable ASCII (including space, see issue #29)
@@ -2156,7 +2158,7 @@
         ))
     }
 
-    <span class="comment">// ix points after &#39;\x&#39;, eg to &#39;A0&#39; or &#39;{12345}&#39;, or after `\u` or `\U`
+    <span class="comment">// ix points after '\x', eg to 'A0' or '{12345}', or after `\u` or `\U`
     </span><span class="kw">fn </span>parse_hex(<span class="kw-2">&amp;</span><span class="self">self</span>, ix: usize, digits: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, Expr)&gt; {
         <span class="kw">if </span>ix &gt;= <span class="self">self</span>.re.len() {
             <span class="comment">// Incomplete escape sequence
@@ -2169,7 +2171,7 @@
         {
             <span class="kw">let </span>end = ix + digits;
             (end, <span class="kw-2">&amp;</span><span class="self">self</span>.re[ix..end])
-        } <span class="kw">else if </span>b == <span class="string">b&#39;{&#39; </span>{
+        } <span class="kw">else if </span>b == <span class="string">b'{' </span>{
             <span class="kw">let </span>starthex = ix + <span class="number">1</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>endhex = starthex;
             <span class="kw">loop </span>{
@@ -2177,7 +2179,7 @@
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidHex));
                 }
                 <span class="kw">let </span>b = bytes[endhex];
-                <span class="kw">if </span>endhex &gt; starthex &amp;&amp; b == <span class="string">b&#39;}&#39; </span>{
+                <span class="kw">if </span>endhex &gt; starthex &amp;&amp; b == <span class="string">b'}' </span>{
                     <span class="kw">break</span>;
                 }
                 <span class="kw">if </span>is_hex_digit(b) &amp;&amp; endhex &lt; starthex + <span class="number">8 </span>{
@@ -2208,20 +2210,20 @@
 
     <span class="kw">fn </span>parse_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ix: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, Expr)&gt; {
         <span class="kw">let </span>bytes = <span class="self">self</span>.re.as_bytes();
-        <span class="kw">let </span><span class="kw-2">mut </span>ix = ix + <span class="number">1</span>; <span class="comment">// skip opening &#39;[&#39;
+        <span class="kw">let </span><span class="kw-2">mut </span>ix = ix + <span class="number">1</span>; <span class="comment">// skip opening '['
         </span><span class="kw">let </span><span class="kw-2">mut </span>class = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>nest = <span class="number">1</span>;
-        class.push(<span class="string">&#39;[&#39;</span>);
+        class.push(<span class="string">'['</span>);
 
         <span class="comment">// Negated character class
-        </span><span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; bytes[ix] == <span class="string">b&#39;^&#39; </span>{
-            class.push(<span class="string">&#39;^&#39;</span>);
+        </span><span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; bytes[ix] == <span class="string">b'^' </span>{
+            class.push(<span class="string">'^'</span>);
             ix += <span class="number">1</span>;
         }
 
         <span class="comment">// `]` does not have to be escaped after opening `[` or `[^`
-        </span><span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; bytes[ix] == <span class="string">b&#39;]&#39; </span>{
-            class.push(<span class="string">&#39;]&#39;</span>);
+        </span><span class="kw">if </span>ix &lt; <span class="self">self</span>.re.len() &amp;&amp; bytes[ix] == <span class="string">b']' </span>{
+            class.push(<span class="string">']'</span>);
             ix += <span class="number">1</span>;
         }
 
@@ -2230,7 +2232,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidClass));
             }
             <span class="kw">let </span>end = <span class="kw">match </span>bytes[ix] {
-                <span class="string">b&#39;\\&#39; </span>=&gt; {
+                <span class="string">b'\\' </span>=&gt; {
                     <span class="kw">if </span>ix + <span class="number">1 </span>== <span class="self">self</span>.re.len() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidClass));
                     }
@@ -2250,17 +2252,17 @@
                     }
                     end
                 }
-                <span class="string">b&#39;[&#39; </span>=&gt; {
+                <span class="string">b'[' </span>=&gt; {
                     nest += <span class="number">1</span>;
-                    class.push(<span class="string">&#39;[&#39;</span>);
+                    class.push(<span class="string">'['</span>);
                     ix + <span class="number">1
                 </span>}
-                <span class="string">b&#39;]&#39; </span>=&gt; {
+                <span class="string">b']' </span>=&gt; {
                     nest -= <span class="number">1</span>;
                     <span class="kw">if </span>nest == <span class="number">0 </span>{
                         <span class="kw">break</span>;
                     }
-                    class.push(<span class="string">&#39;]&#39;</span>);
+                    class.push(<span class="string">']'</span>);
                     ix + <span class="number">1
                 </span>}
                 b =&gt; {
@@ -2271,8 +2273,8 @@
             };
             ix = end;
         }
-        class.push(<span class="string">&#39;]&#39;</span>);
-        <span class="kw">let </span>ix = ix + <span class="number">1</span>; <span class="comment">// skip closing &#39;]&#39;
+        class.push(<span class="string">']'</span>);
+        <span class="kw">let </span>ix = ix + <span class="number">1</span>; <span class="comment">// skip closing ']'
         </span><span class="prelude-val">Ok</span>((
             ix,
             Expr::Delegate {
@@ -2289,40 +2291,40 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::RecursionExceeded));
         }
         <span class="kw">let </span>ix = <span class="self">self</span>.optional_whitespace(ix + <span class="number">1</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>(la, skip) = <span class="kw">if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?=&quot;</span>) {
+        <span class="kw">let </span>(la, skip) = <span class="kw">if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?="</span>) {
             (<span class="prelude-val">Some</span>(LookAhead), <span class="number">2</span>)
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?!&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?!"</span>) {
             (<span class="prelude-val">Some</span>(LookAheadNeg), <span class="number">2</span>)
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?&lt;=&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?&lt;="</span>) {
             (<span class="prelude-val">Some</span>(LookBehind), <span class="number">3</span>)
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?&lt;!&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?&lt;!"</span>) {
             (<span class="prelude-val">Some</span>(LookBehindNeg), <span class="number">3</span>)
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?&lt;&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?&lt;"</span>) {
             <span class="comment">// Named capture group using Oniguruma syntax: (?&lt;name&gt;...)
             </span><span class="self">self</span>.curr_group += <span class="number">1</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((id, skip)) = parse_id(<span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">1</span>..], <span class="string">&quot;&lt;&quot;</span>, <span class="string">&quot;&gt;&quot;</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((id, skip)) = parse_id(<span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">1</span>..], <span class="string">"&lt;"</span>, <span class="string">"&gt;"</span>) {
                 <span class="self">self</span>.named_groups.insert(id.to_string(), <span class="self">self</span>.curr_group);
                 (<span class="prelude-val">None</span>, skip + <span class="number">1</span>)
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidGroupName));
             }
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?P&lt;&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?P&lt;"</span>) {
             <span class="comment">// Named capture group using Python syntax: (?P&lt;name&gt;...)
             </span><span class="self">self</span>.curr_group += <span class="number">1</span>; <span class="comment">// this is a capture group
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((id, skip)) = parse_id(<span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">2</span>..], <span class="string">&quot;&lt;&quot;</span>, <span class="string">&quot;&gt;&quot;</span>) {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>((id, skip)) = parse_id(<span class="kw-2">&amp;</span><span class="self">self</span>.re[ix + <span class="number">2</span>..], <span class="string">"&lt;"</span>, <span class="string">"&gt;"</span>) {
                 <span class="self">self</span>.named_groups.insert(id.to_string(), <span class="self">self</span>.curr_group);
                 (<span class="prelude-val">None</span>, skip + <span class="number">2</span>)
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::InvalidGroupName));
             }
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?P=&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?P="</span>) {
             <span class="comment">// Backref using Python syntax: (?P=name)
-            </span><span class="kw">return </span><span class="self">self</span>.parse_named_backref(ix + <span class="number">3</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;)&quot;</span>);
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?&gt;&quot;</span>) {
+            </span><span class="kw">return </span><span class="self">self</span>.parse_named_backref(ix + <span class="number">3</span>, <span class="string">""</span>, <span class="string">")"</span>);
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?&gt;"</span>) {
             (<span class="prelude-val">None</span>, <span class="number">2</span>)
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&quot;?(&quot;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">"?("</span>) {
             <span class="kw">return </span><span class="self">self</span>.parse_conditional(ix + <span class="number">2</span>, depth);
-        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">&#39;?&#39;</span>) {
+        } <span class="kw">else if </span><span class="self">self</span>.re[ix..].starts_with(<span class="string">'?'</span>) {
             <span class="kw">return </span><span class="self">self</span>.parse_flags(ix, depth);
         } <span class="kw">else </span>{
             <span class="self">self</span>.curr_group += <span class="number">1</span>; <span class="comment">// this is a capture group
@@ -2343,10 +2345,10 @@
         <span class="kw">let </span>ix = <span class="self">self</span>.optional_whitespace(ix)<span class="question-mark">?</span>;
         <span class="kw">if </span>ix == <span class="self">self</span>.re.len() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::UnclosedOpenParen));
-        } <span class="kw">else if </span><span class="self">self</span>.re.as_bytes()[ix] != <span class="string">b&#39;)&#39; </span>{
+        } <span class="kw">else if </span><span class="self">self</span>.re.as_bytes()[ix] != <span class="string">b')' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                 ix,
-                ParseError::GeneralParseError(<span class="string">&quot;expected close paren&quot;</span>.to_string()),
+                ParseError::GeneralParseError(<span class="string">"expected close paren"</span>.to_string()),
             ));
         }
         <span class="prelude-val">Ok</span>(ix + <span class="number">1</span>)
@@ -2358,7 +2360,7 @@
 
         <span class="kw">fn </span>unknown_flag(re: <span class="kw-2">&amp;</span>str, start: usize, end: usize) -&gt; Error {
             <span class="kw">let </span>after_end = end + codepoint_len(re.as_bytes()[end]);
-            <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;(?{}&quot;</span>, <span class="kw-2">&amp;</span>re[start..after_end]);
+            <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"(?{}"</span>, <span class="kw-2">&amp;</span>re[start..after_end]);
             Error::ParseError(start, ParseError::UnknownFlag(s))
         }
 
@@ -2372,29 +2374,29 @@
             }
             <span class="kw">let </span>b = <span class="self">self</span>.re.as_bytes()[ix];
             <span class="kw">match </span>b {
-                <span class="string">b&#39;i&#39; </span>=&gt; <span class="self">self</span>.update_flag(FLAG_CASEI, neg),
-                <span class="string">b&#39;m&#39; </span>=&gt; <span class="self">self</span>.update_flag(FLAG_MULTI, neg),
-                <span class="string">b&#39;s&#39; </span>=&gt; <span class="self">self</span>.update_flag(FLAG_DOTNL, neg),
-                <span class="string">b&#39;U&#39; </span>=&gt; <span class="self">self</span>.update_flag(FLAG_SWAP_GREED, neg),
-                <span class="string">b&#39;x&#39; </span>=&gt; <span class="self">self</span>.update_flag(FLAG_IGNORE_SPACE, neg),
-                <span class="string">b&#39;u&#39; </span>=&gt; {
+                <span class="string">b'i' </span>=&gt; <span class="self">self</span>.update_flag(FLAG_CASEI, neg),
+                <span class="string">b'm' </span>=&gt; <span class="self">self</span>.update_flag(FLAG_MULTI, neg),
+                <span class="string">b's' </span>=&gt; <span class="self">self</span>.update_flag(FLAG_DOTNL, neg),
+                <span class="string">b'U' </span>=&gt; <span class="self">self</span>.update_flag(FLAG_SWAP_GREED, neg),
+                <span class="string">b'x' </span>=&gt; <span class="self">self</span>.update_flag(FLAG_IGNORE_SPACE, neg),
+                <span class="string">b'u' </span>=&gt; {
                     <span class="kw">if </span>neg {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::NonUnicodeUnsupported));
                     }
                 }
-                <span class="string">b&#39;-&#39; </span>=&gt; {
+                <span class="string">b'-' </span>=&gt; {
                     <span class="kw">if </span>neg {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(unknown_flag(<span class="self">self</span>.re, start, ix));
                     }
                     neg = <span class="bool-val">true</span>;
                 }
-                <span class="string">b&#39;)&#39; </span>=&gt; {
+                <span class="string">b')' </span>=&gt; {
                     <span class="kw">if </span>ix == start || neg &amp;&amp; ix == start + <span class="number">1 </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(unknown_flag(<span class="self">self</span>.re, start, ix));
                     }
                     <span class="kw">return </span><span class="prelude-val">Ok</span>((ix + <span class="number">1</span>, Expr::Empty));
                 }
-                <span class="string">b&#39;:&#39; </span>=&gt; {
+                <span class="string">b':' </span>=&gt; {
                     <span class="kw">if </span>neg &amp;&amp; ix == start + <span class="number">1 </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(unknown_flag(<span class="self">self</span>.re, start, ix));
                     }
@@ -2402,10 +2404,10 @@
                     <span class="kw">let </span>(ix, child) = <span class="self">self</span>.parse_re(ix, depth)<span class="question-mark">?</span>;
                     <span class="kw">if </span>ix == <span class="self">self</span>.re.len() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::UnclosedOpenParen));
-                    } <span class="kw">else if </span><span class="self">self</span>.re.as_bytes()[ix] != <span class="string">b&#39;)&#39; </span>{
+                    } <span class="kw">else if </span><span class="self">self</span>.re.as_bytes()[ix] != <span class="string">b')' </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                             ix,
-                            ParseError::GeneralParseError(<span class="string">&quot;expected close paren&quot;</span>.to_string()),
+                            ParseError::GeneralParseError(<span class="string">"expected close paren"</span>.to_string()),
                         ));
                     };
                     <span class="self">self</span>.flags = oldflags;
@@ -2427,10 +2429,10 @@
         </span><span class="kw">let </span>b = bytes[ix];
         <span class="kw">let </span>(<span class="kw-2">mut </span>next, condition) = <span class="kw">if </span>is_digit(b) {
             <span class="self">self</span>.parse_numbered_backref(ix)<span class="question-mark">?
-        </span>} <span class="kw">else if </span>b == <span class="string">b&#39;\&#39;&#39; </span>{
-            <span class="self">self</span>.parse_named_backref(ix, <span class="string">&quot;&#39;&quot;</span>, <span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?
-        </span>} <span class="kw">else if </span>b == <span class="string">b&#39;&lt;&#39; </span>{
-            <span class="self">self</span>.parse_named_backref(ix, <span class="string">&quot;&lt;&quot;</span>, <span class="string">&quot;&gt;&quot;</span>)<span class="question-mark">?
+        </span>} <span class="kw">else if </span>b == <span class="string">b'\'' </span>{
+            <span class="self">self</span>.parse_named_backref(ix, <span class="string">"'"</span>, <span class="string">"'"</span>)<span class="question-mark">?
+        </span>} <span class="kw">else if </span>b == <span class="string">b'&lt;' </span>{
+            <span class="self">self</span>.parse_named_backref(ix, <span class="string">"&lt;"</span>, <span class="string">"&gt;"</span>)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
             <span class="self">self</span>.parse_re(ix, depth)<span class="question-mark">?
         </span>};
@@ -2444,7 +2446,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(
                     end,
                     ParseError::GeneralParseError(
-                        <span class="string">&quot;expected conditional to be a backreference or at least an expression for when the condition is true&quot;</span>.to_string()
+                        <span class="string">"expected conditional to be a backreference or at least an expression for when the condition is true"</span>.to_string()
                     )
                 ));
             }
@@ -2456,13 +2458,13 @@
             </span>if_true = alternatives.remove(<span class="number">0</span>);
             <span class="comment">// if there is only one alternative left, take it out the Expr::Alt
             </span><span class="kw">if </span>alternatives.len() == <span class="number">1 </span>{
-                if_false = alternatives.pop().expect(<span class="string">&quot;expected 2 alternatives&quot;</span>);
+                if_false = alternatives.pop().expect(<span class="string">"expected 2 alternatives"</span>);
             } <span class="kw">else </span>{
                 <span class="comment">// otherwise the remaining branches become the false branch
                 </span>if_false = Expr::Alt(alternatives);
             }
         } <span class="kw">else </span>{
-            <span class="comment">// there is only one branch - the truth branch. i.e. &quot;if&quot; without &quot;else&quot;
+            <span class="comment">// there is only one branch - the truth branch. i.e. "if" without "else"
             </span>if_true = child;
         }
         <span class="kw">let </span>inner_condition = <span class="kw">if let </span>Expr::Backref(group) = condition {
@@ -2504,25 +2506,25 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(ix);
             }
             <span class="kw">match </span>bytes[ix] {
-                <span class="string">b&#39;#&#39; </span><span class="kw">if </span><span class="self">self</span>.flag(FLAG_IGNORE_SPACE) =&gt; {
-                    <span class="kw">match </span>bytes[ix..].iter().position(|<span class="kw-2">&amp;</span>c| c == <span class="string">b&#39;\n&#39;</span>) {
+                <span class="string">b'#' </span><span class="kw">if </span><span class="self">self</span>.flag(FLAG_IGNORE_SPACE) =&gt; {
+                    <span class="kw">match </span>bytes[ix..].iter().position(|<span class="kw-2">&amp;</span>c| c == <span class="string">b'\n'</span>) {
                         <span class="prelude-val">Some</span>(x) =&gt; ix += x + <span class="number">1</span>,
                         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.re.len()),
                     }
                 }
-                <span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span><span class="kw">if </span><span class="self">self</span>.flag(FLAG_IGNORE_SPACE) =&gt; ix += <span class="number">1</span>,
-                <span class="string">b&#39;(&#39; </span><span class="kw">if </span>bytes[ix..].starts_with(<span class="string">b&quot;(?#&quot;</span>) =&gt; {
+                <span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span><span class="kw">if </span><span class="self">self</span>.flag(FLAG_IGNORE_SPACE) =&gt; ix += <span class="number">1</span>,
+                <span class="string">b'(' </span><span class="kw">if </span>bytes[ix..].starts_with(<span class="string">b"(?#"</span>) =&gt; {
                     ix += <span class="number">3</span>;
                     <span class="kw">loop </span>{
                         <span class="kw">if </span>ix &gt;= <span class="self">self</span>.re.len() {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ParseError(ix, ParseError::UnclosedOpenParen));
                         }
                         <span class="kw">match </span>bytes[ix] {
-                            <span class="string">b&#39;)&#39; </span>=&gt; {
+                            <span class="string">b')' </span>=&gt; {
                                 ix += <span class="number">1</span>;
                                 <span class="kw">break</span>;
                             }
-                            <span class="string">b&#39;\\&#39; </span>=&gt; ix += <span class="number">2</span>,
+                            <span class="string">b'\\' </span>=&gt; ix += <span class="number">2</span>,
                             <span class="kw">_ </span>=&gt; ix += <span class="number">1</span>,
                         }
                     }
@@ -2545,7 +2547,7 @@
 <span class="doccomment">/// Attempts to parse an identifier between the specified opening and closing
 /// delimiters.  On success, returns `Some((id, skip))`, where `skip` is how much
 /// of the string was used.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_id&lt;<span class="lifetime">&#39;a</span>&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, open: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str, close: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, usize)&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_id&lt;<span class="lifetime">'a</span>&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, open: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>str, close: <span class="kw-2">&amp;</span><span class="lifetime">'_ </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, usize)&gt; {
     <span class="macro">debug_assert!</span>(!close.starts_with(is_id_char));
 
     <span class="kw">if </span>!s.starts_with(open) {
@@ -2569,15 +2571,15 @@
 }
 
 <span class="kw">fn </span>is_id_char(c: char) -&gt; bool {
-    c.is_alphanumeric() || c == <span class="string">&#39;_&#39;
+    c.is_alphanumeric() || c == <span class="string">'_'
 </span>}
 
 <span class="kw">fn </span>is_digit(b: u8) -&gt; bool {
-    <span class="string">b&#39;0&#39; </span>&lt;= b &amp;&amp; b &lt;= <span class="string">b&#39;9&#39;
+    <span class="string">b'0' </span>&lt;= b &amp;&amp; b &lt;= <span class="string">b'9'
 </span>}
 
 <span class="kw">fn </span>is_hex_digit(b: u8) -&gt; bool {
-    is_digit(b) || (<span class="string">b&#39;a&#39; </span>&lt;= (b | <span class="number">32</span>) &amp;&amp; (b | <span class="number">32</span>) &lt;= <span class="string">b&#39;f&#39;</span>)
+    is_digit(b) || (<span class="string">b'a' </span>&lt;= (b | <span class="number">32</span>) &amp;&amp; (b | <span class="number">32</span>) &lt;= <span class="string">b'f'</span>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_literal(s: <span class="kw-2">&amp;</span>str) -&gt; Expr {
@@ -2598,73 +2600,73 @@
         Expr::parse_tree(s).unwrap().expr
     }
 
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;track_caller&quot;</span>, track_caller)]
+    <span class="attr">#[cfg_attr(feature = <span class="string">"track_caller"</span>, track_caller)]
     </span><span class="kw">fn </span>fail(s: <span class="kw-2">&amp;</span>str) {
         <span class="macro">assert!</span>(Expr::parse_tree(s).is_err());
     }
 
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;track_caller&quot;</span>, track_caller)]
+    <span class="attr">#[cfg_attr(feature = <span class="string">"track_caller"</span>, track_caller)]
     </span><span class="kw">fn </span>assert_error(re: <span class="kw-2">&amp;</span>str, expected_error: <span class="kw-2">&amp;</span>str) {
         <span class="kw">let </span>result = Expr::parse_tree(re);
         <span class="macro">assert!</span>(result.is_err());
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, result.err().unwrap()), expected_error);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}"</span>, result.err().unwrap()), expected_error);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>empty() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;&quot;</span>), Expr::Empty);
+        <span class="macro">assert_eq!</span>(p(<span class="string">""</span>), Expr::Empty);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>any() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;.&quot;</span>), Expr::Any { newline: <span class="bool-val">false </span>});
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?s:.)&quot;</span>), Expr::Any { newline: <span class="bool-val">true </span>});
+        <span class="macro">assert_eq!</span>(p(<span class="string">"."</span>), Expr::Any { newline: <span class="bool-val">false </span>});
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?s:.)"</span>), Expr::Any { newline: <span class="bool-val">true </span>});
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>start_text() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;^&quot;</span>), Expr::StartText);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"^"</span>), Expr::StartText);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>end_text() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;$&quot;</span>), Expr::EndText);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"$"</span>), Expr::EndText);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>literal() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;a&quot;</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"a"</span>), make_literal(<span class="string">"a"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>literal_special() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;}&quot;</span>), make_literal(<span class="string">&quot;}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;]&quot;</span>), make_literal(<span class="string">&quot;]&quot;</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"}"</span>), make_literal(<span class="string">"}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"]"</span>), make_literal(<span class="string">"]"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_id_test() {
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;foo.&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Some</span>((<span class="string">&quot;foo&quot;</span>, <span class="number">3</span>)));
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;{foo}&quot;</span>, <span class="string">&quot;{&quot;</span>, <span class="string">&quot;}&quot;</span>), <span class="prelude-val">Some</span>((<span class="string">&quot;foo&quot;</span>, <span class="number">5</span>)));
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;{foo.&quot;</span>, <span class="string">&quot;{&quot;</span>, <span class="string">&quot;}&quot;</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;{foo&quot;</span>, <span class="string">&quot;{&quot;</span>, <span class="string">&quot;}&quot;</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;{&quot;</span>, <span class="string">&quot;}&quot;</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(parse_id(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">"foo."</span>, <span class="string">""</span>, <span class="string">""</span>), <span class="prelude-val">Some</span>((<span class="string">"foo"</span>, <span class="number">3</span>)));
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">"{foo}"</span>, <span class="string">"{"</span>, <span class="string">"}"</span>), <span class="prelude-val">Some</span>((<span class="string">"foo"</span>, <span class="number">5</span>)));
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">"{foo."</span>, <span class="string">"{"</span>, <span class="string">"}"</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">"{foo"</span>, <span class="string">"{"</span>, <span class="string">"}"</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">"{}"</span>, <span class="string">"{"</span>, <span class="string">"}"</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(parse_id(<span class="string">""</span>, <span class="string">""</span>, <span class="string">""</span>), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>literal_unescaped_opening_curly() {
         <span class="comment">// `{` in position where quantifier is not allowed results in literal `{`
-        </span><span class="macro">assert_eq!</span>(p(<span class="string">&quot;{&quot;</span>), make_literal(<span class="string">&quot;{&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;({)&quot;</span>), Expr::Group(Box::new(make_literal(<span class="string">&quot;{&quot;</span>),)));
+        </span><span class="macro">assert_eq!</span>(p(<span class="string">"{"</span>), make_literal(<span class="string">"{"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"({)"</span>), Expr::Group(Box::new(make_literal(<span class="string">"{"</span>),)));
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a|{&quot;</span>),
-            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;{&quot;</span>),])
+            p(<span class="string">"a|{"</span>),
+            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"{"</span>),])
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;{{2}&quot;</span>),
+            p(<span class="string">"{{2}"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;{&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"{"</span>)),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">true
@@ -2674,33 +2676,33 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>literal_escape() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\&#39;&quot;</span>), make_literal(<span class="string">&quot;&#39;&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\\&quot;&quot;</span>), make_literal(<span class="string">&quot;\&quot;&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\ &quot;</span>), make_literal(<span class="string">&quot; &quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\xA0&quot;</span>), make_literal(<span class="string">&quot;\u{A0}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\x{1F4A9}&quot;</span>), make_literal(<span class="string">&quot;\u{1F4A9}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\x{000000B7}&quot;</span>), make_literal(<span class="string">&quot;\u{B7}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\u21D2&quot;</span>), make_literal(<span class="string">&quot;\u{21D2}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\u{21D2}&quot;</span>), make_literal(<span class="string">&quot;\u{21D2}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\u21D2x&quot;</span>), p(<span class="string">&quot;\u{21D2}x&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\U0001F60A&quot;</span>), make_literal(<span class="string">&quot;\u{1F60A}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;\\U{0001F60A}&quot;</span>), make_literal(<span class="string">&quot;\u{1F60A}&quot;</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\'"</span>), make_literal(<span class="string">"'"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\\""</span>), make_literal(<span class="string">"\""</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\ "</span>), make_literal(<span class="string">" "</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\xA0"</span>), make_literal(<span class="string">"\u{A0}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\x{1F4A9}"</span>), make_literal(<span class="string">"\u{1F4A9}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\x{000000B7}"</span>), make_literal(<span class="string">"\u{B7}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\u21D2"</span>), make_literal(<span class="string">"\u{21D2}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\u{21D2}"</span>), make_literal(<span class="string">"\u{21D2}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\u21D2x"</span>), p(<span class="string">"\u{21D2}x"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\U0001F60A"</span>), make_literal(<span class="string">"\u{1F60A}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"\\U{0001F60A}"</span>), make_literal(<span class="string">"\u{1F60A}"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hex_escape() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\h&quot;</span>),
+            p(<span class="string">"\\h"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;[0-9A-Fa-f]&quot;</span>),
+                inner: String::from(<span class="string">"[0-9A-Fa-f]"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\H&quot;</span>),
+            p(<span class="string">"\\H"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;[^0-9A-Fa-f]&quot;</span>),
+                inner: String::from(<span class="string">"[^0-9A-Fa-f]"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
@@ -2710,60 +2712,60 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_escape() {
         assert_error(
-            <span class="string">&quot;\\&quot;</span>,
-            <span class="string">&quot;Parsing error at position 0: Backslash without following character&quot;</span>,
+            <span class="string">"\\"</span>,
+            <span class="string">"Parsing error at position 0: Backslash without following character"</span>,
         );
-        assert_error(<span class="string">&quot;\\q&quot;</span>, <span class="string">&quot;Parsing error at position 0: Invalid escape: \\q&quot;</span>);
-        assert_error(<span class="string">&quot;\\xAG&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\xA&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\x{}&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\x{AG}&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\x{42&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
+        assert_error(<span class="string">"\\q"</span>, <span class="string">"Parsing error at position 0: Invalid escape: \\q"</span>);
+        assert_error(<span class="string">"\\xAG"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\xA"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\x{}"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\x{AG}"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\x{42"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
         assert_error(
-            <span class="string">&quot;\\x{D800}&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Invalid codepoint for hex or unicode escape&quot;</span>,
+            <span class="string">"\\x{D800}"</span>,
+            <span class="string">"Parsing error at position 2: Invalid codepoint for hex or unicode escape"</span>,
         );
         assert_error(
-            <span class="string">&quot;\\x{110000}&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Invalid codepoint for hex or unicode escape&quot;</span>,
+            <span class="string">"\\x{110000}"</span>,
+            <span class="string">"Parsing error at position 2: Invalid codepoint for hex or unicode escape"</span>,
         );
-        assert_error(<span class="string">&quot;\\u123&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\u123x&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
-        assert_error(<span class="string">&quot;\\u{}&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
+        assert_error(<span class="string">"\\u123"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\u123x"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
+        assert_error(<span class="string">"\\u{}"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
         assert_error(
-            <span class="string">&quot;\\U1234567&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>,
+            <span class="string">"\\U1234567"</span>,
+            <span class="string">"Parsing error at position 2: Invalid hex escape"</span>,
         );
-        assert_error(<span class="string">&quot;\\U{}&quot;</span>, <span class="string">&quot;Parsing error at position 2: Invalid hex escape&quot;</span>);
+        assert_error(<span class="string">"\\U{}"</span>, <span class="string">"Parsing error at position 2: Invalid hex escape"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>concat() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;ab&quot;</span>),
-            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;b&quot;</span>),])
+            p(<span class="string">"ab"</span>),
+            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"b"</span>),])
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>alt() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a|b&quot;</span>),
-            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;b&quot;</span>),])
+            p(<span class="string">"a|b"</span>),
+            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"b"</span>),])
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>group() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(a)&quot;</span>), Expr::Group(Box::new(make_literal(<span class="string">&quot;a&quot;</span>),)));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(a)"</span>), Expr::Group(Box::new(make_literal(<span class="string">"a"</span>),)));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>group_repeat() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(a){2}&quot;</span>),
+            p(<span class="string">"(a){2}"</span>),
             Expr::Repeat {
-                child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;a&quot;</span>)))),
+                child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"a"</span>)))),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">true
@@ -2774,36 +2776,36 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>repeat() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2,42}&quot;</span>),
+            p(<span class="string">"a{2,42}"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">42</span>,
                 greedy: <span class="bool-val">true
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2,}&quot;</span>),
+            p(<span class="string">"a{2,}"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: usize::MAX,
                 greedy: <span class="bool-val">true
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2}&quot;</span>),
+            p(<span class="string">"a{2}"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">true
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{,2}&quot;</span>),
+            p(<span class="string">"a{,2}"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">0</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">true
@@ -2811,36 +2813,36 @@
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2,42}?&quot;</span>),
+            p(<span class="string">"a{2,42}?"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">42</span>,
                 greedy: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2,}?&quot;</span>),
+            p(<span class="string">"a{2,}?"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: usize::MAX,
                 greedy: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{2}?&quot;</span>),
+            p(<span class="string">"a{2}?"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">2</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{,2}?&quot;</span>),
+            p(<span class="string">"a{,2}?"</span>),
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">0</span>,
                 hi: <span class="number">2</span>,
                 greedy: <span class="bool-val">false
@@ -2852,24 +2854,24 @@
     </span><span class="kw">fn </span>invalid_repeat() {
         <span class="comment">// Invalid repeat syntax results in literal
         </span><span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{&quot;</span>),
-            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;{&quot;</span>),])
+            p(<span class="string">"a{"</span>),
+            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"{"</span>),])
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{6&quot;</span>),
+            p(<span class="string">"a{6"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
-                make_literal(<span class="string">&quot;a&quot;</span>),
-                make_literal(<span class="string">&quot;{&quot;</span>),
-                make_literal(<span class="string">&quot;6&quot;</span>),
+                make_literal(<span class="string">"a"</span>),
+                make_literal(<span class="string">"{"</span>),
+                make_literal(<span class="string">"6"</span>),
             ])
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a{6,&quot;</span>),
+            p(<span class="string">"a{6,"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
-                make_literal(<span class="string">&quot;a&quot;</span>),
-                make_literal(<span class="string">&quot;{&quot;</span>),
-                make_literal(<span class="string">&quot;6&quot;</span>),
-                make_literal(<span class="string">&quot;,&quot;</span>),
+                make_literal(<span class="string">"a"</span>),
+                make_literal(<span class="string">"{"</span>),
+                make_literal(<span class="string">"6"</span>),
+                make_literal(<span class="string">","</span>),
             ])
         );
     }
@@ -2877,17 +2879,17 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>delegate_zero() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\b&quot;</span>),
+            p(<span class="string">"\\b"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\b&quot;</span>),
+                inner: String::from(<span class="string">"\\b"</span>),
                 size: <span class="number">0</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\B&quot;</span>),
+            p(<span class="string">"\\B"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\B&quot;</span>),
+                inner: String::from(<span class="string">"\\B"</span>),
                 size: <span class="number">0</span>,
                 casei: <span class="bool-val">false
             </span>}
@@ -2897,41 +2899,41 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>delegate_named_group() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\p{Greek}&quot;</span>),
+            p(<span class="string">"\\p{Greek}"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\p{Greek}&quot;</span>),
+                inner: String::from(<span class="string">"\\p{Greek}"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\pL&quot;</span>),
+            p(<span class="string">"\\pL"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\pL&quot;</span>),
+                inner: String::from(<span class="string">"\\pL"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\P{Greek}&quot;</span>),
+            p(<span class="string">"\\P{Greek}"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\P{Greek}&quot;</span>),
+                inner: String::from(<span class="string">"\\P{Greek}"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\PL&quot;</span>),
+            p(<span class="string">"\\PL"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\PL&quot;</span>),
+                inner: String::from(<span class="string">"\\PL"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">false
             </span>}
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?i)\\p{Ll}&quot;</span>),
+            p(<span class="string">"(?i)\\p{Ll}"</span>),
             Expr::Delegate {
-                inner: String::from(<span class="string">&quot;\\p{Ll}&quot;</span>),
+                inner: String::from(<span class="string">"\\p{Ll}"</span>),
                 size: <span class="number">1</span>,
                 casei: <span class="bool-val">true
             </span>}
@@ -2941,7 +2943,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>backref() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(.)\\1&quot;</span>),
+            p(<span class="string">"(.)\\1"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Group(Box::new(Expr::Any { newline: <span class="bool-val">false </span>})),
                 Expr::Backref(<span class="number">1</span>),
@@ -2952,7 +2954,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>named_backref() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?&lt;i&gt;.)\\k&lt;i&gt;&quot;</span>),
+            p(<span class="string">"(?&lt;i&gt;.)\\k&lt;i&gt;"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Group(Box::new(Expr::Any { newline: <span class="bool-val">false </span>})),
                 Expr::Backref(<span class="number">1</span>),
@@ -2963,47 +2965,47 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>lookaround() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?=a)&quot;</span>),
-            Expr::LookAround(Box::new(make_literal(<span class="string">&quot;a&quot;</span>)), LookAhead)
+            p(<span class="string">"(?=a)"</span>),
+            Expr::LookAround(Box::new(make_literal(<span class="string">"a"</span>)), LookAhead)
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?!a)&quot;</span>),
-            Expr::LookAround(Box::new(make_literal(<span class="string">&quot;a&quot;</span>)), LookAheadNeg)
+            p(<span class="string">"(?!a)"</span>),
+            Expr::LookAround(Box::new(make_literal(<span class="string">"a"</span>)), LookAheadNeg)
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?&lt;=a)&quot;</span>),
-            Expr::LookAround(Box::new(make_literal(<span class="string">&quot;a&quot;</span>)), LookBehind)
+            p(<span class="string">"(?&lt;=a)"</span>),
+            Expr::LookAround(Box::new(make_literal(<span class="string">"a"</span>)), LookBehind)
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?&lt;!a)&quot;</span>),
-            Expr::LookAround(Box::new(make_literal(<span class="string">&quot;a&quot;</span>)), LookBehindNeg)
+            p(<span class="string">"(?&lt;!a)"</span>),
+            Expr::LookAround(Box::new(make_literal(<span class="string">"a"</span>)), LookBehindNeg)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>shy_group() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?:ab)c&quot;</span>),
+            p(<span class="string">"(?:ab)c"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
-                Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;b&quot;</span>),]),
-                make_literal(<span class="string">&quot;c&quot;</span>),
+                Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"b"</span>),]),
+                make_literal(<span class="string">"c"</span>),
             ])
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_state() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?s).&quot;</span>), Expr::Any { newline: <span class="bool-val">true </span>});
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?s:(?-s:.))&quot;</span>), Expr::Any { newline: <span class="bool-val">false </span>});
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?s)."</span>), Expr::Any { newline: <span class="bool-val">true </span>});
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?s:(?-s:.))"</span>), Expr::Any { newline: <span class="bool-val">false </span>});
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?s:.).&quot;</span>),
+            p(<span class="string">"(?s:.)."</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Any { newline: <span class="bool-val">true </span>},
                 Expr::Any { newline: <span class="bool-val">false </span>},
             ])
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?:(?s).).&quot;</span>),
+            p(<span class="string">"(?:(?s).)."</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Any { newline: <span class="bool-val">true </span>},
                 Expr::Any { newline: <span class="bool-val">false </span>},
@@ -3013,41 +3015,41 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_multiline() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;^&quot;</span>), Expr::StartText);
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?m:^)&quot;</span>), Expr::StartLine);
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;$&quot;</span>), Expr::EndText);
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?m:$)&quot;</span>), Expr::EndLine);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"^"</span>), Expr::StartText);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?m:^)"</span>), Expr::StartLine);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"$"</span>), Expr::EndText);
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?m:$)"</span>), Expr::EndLine);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>flag_swap_greed() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;a*&quot;</span>), p(<span class="string">&quot;(?U:a*?)&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;a*?&quot;</span>), p(<span class="string">&quot;(?U:a*)&quot;</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"a*"</span>), p(<span class="string">"(?U:a*?)"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"a*?"</span>), p(<span class="string">"(?U:a*)"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_flags() {
-        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">&quot;(?&quot;</span>).is_err());
-        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">&quot;(?)&quot;</span>).is_err());
-        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">&quot;(?-)&quot;</span>).is_err());
-        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">&quot;(?-:a)&quot;</span>).is_err());
-        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">&quot;(?q:a)&quot;</span>).is_err());
+        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">"(?"</span>).is_err());
+        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">"(?)"</span>).is_err());
+        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">"(?-)"</span>).is_err());
+        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">"(?-:a)"</span>).is_err());
+        <span class="macro">assert!</span>(Expr::parse_tree(<span class="string">"(?q:a)"</span>).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>lifetime() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;\\&#39;[a-zA-Z_][a-zA-Z0-9_]*(?!\\&#39;)\\b&quot;</span>),
+            p(<span class="string">"\\'[a-zA-Z_][a-zA-Z0-9_]*(?!\\')\\b"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
-                make_literal(<span class="string">&quot;&#39;&quot;</span>),
+                make_literal(<span class="string">"'"</span>),
                 Expr::Delegate {
-                    inner: String::from(<span class="string">&quot;[a-zA-Z_]&quot;</span>),
+                    inner: String::from(<span class="string">"[a-zA-Z_]"</span>),
                     size: <span class="number">1</span>,
                     casei: <span class="bool-val">false
                 </span>},
                 Expr::Repeat {
                     child: Box::new(Expr::Delegate {
-                        inner: String::from(<span class="string">&quot;[a-zA-Z0-9_]&quot;</span>),
+                        inner: String::from(<span class="string">"[a-zA-Z0-9_]"</span>),
                         size: <span class="number">1</span>,
                         casei: <span class="bool-val">false
                     </span>}),
@@ -3055,9 +3057,9 @@
                     hi: usize::MAX,
                     greedy: <span class="bool-val">true
                 </span>},
-                Expr::LookAround(Box::new(make_literal(<span class="string">&quot;&#39;&quot;</span>)), LookAheadNeg),
+                Expr::LookAround(Box::new(make_literal(<span class="string">"'"</span>)), LookAheadNeg),
                 Expr::Delegate {
-                    inner: String::from(<span class="string">&quot;\\b&quot;</span>),
+                    inner: String::from(<span class="string">"\\b"</span>),
                     size: <span class="number">0</span>,
                     casei: <span class="bool-val">false
                 </span>}
@@ -3067,71 +3069,71 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ignore_whitespace() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: )&quot;</span>), p(<span class="string">&quot;&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x) | &quot;</span>), p(<span class="string">&quot;|&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a )&quot;</span>), p(<span class="string">&quot;a&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a # ) bobby tables\n b )&quot;</span>), p(<span class="string">&quot;ab&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a | b )&quot;</span>), p(<span class="string">&quot;a|b&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: ( a b ) )&quot;</span>), p(<span class="string">&quot;(ab)&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a + )&quot;</span>), p(<span class="string">&quot;a+&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a {2} )&quot;</span>), p(<span class="string">&quot;a{2}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a { 2 } )&quot;</span>), p(<span class="string">&quot;a{2}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a { 2 , } )&quot;</span>), p(<span class="string">&quot;a{2,}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a { , 2 } )&quot;</span>), p(<span class="string">&quot;a{,2}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a { 2 , 3 } )&quot;</span>), p(<span class="string">&quot;a{2,3}&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a { 2 , 3 } ? )&quot;</span>), p(<span class="string">&quot;a{2,3}?&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: ( ? i : . ) )&quot;</span>), p(<span class="string">&quot;(?i:.)&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: ( ?= a ) )&quot;</span>), p(<span class="string">&quot;(?=a)&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: [ ] )&quot;</span>), p(<span class="string">&quot;[ ]&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: [ ^] )&quot;</span>), p(<span class="string">&quot;[ ^]&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: [a - z] )&quot;</span>), p(<span class="string">&quot;[a - z]&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: [ \\] \\\\] )&quot;</span>), p(<span class="string">&quot;[ \\] \\\\]&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a\\ b )&quot;</span>), p(<span class="string">&quot;a b&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?x: a (?-x:#) b )&quot;</span>), p(<span class="string">&quot;a#b&quot;</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: )"</span>), p(<span class="string">""</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x) | "</span>), p(<span class="string">"|"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a )"</span>), p(<span class="string">"a"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a # ) bobby tables\n b )"</span>), p(<span class="string">"ab"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a | b )"</span>), p(<span class="string">"a|b"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: ( a b ) )"</span>), p(<span class="string">"(ab)"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a + )"</span>), p(<span class="string">"a+"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a {2} )"</span>), p(<span class="string">"a{2}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a { 2 } )"</span>), p(<span class="string">"a{2}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a { 2 , } )"</span>), p(<span class="string">"a{2,}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a { , 2 } )"</span>), p(<span class="string">"a{,2}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a { 2 , 3 } )"</span>), p(<span class="string">"a{2,3}"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a { 2 , 3 } ? )"</span>), p(<span class="string">"a{2,3}?"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: ( ? i : . ) )"</span>), p(<span class="string">"(?i:.)"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: ( ?= a ) )"</span>), p(<span class="string">"(?=a)"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: [ ] )"</span>), p(<span class="string">"[ ]"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: [ ^] )"</span>), p(<span class="string">"[ ^]"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: [a - z] )"</span>), p(<span class="string">"[a - z]"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: [ \\] \\\\] )"</span>), p(<span class="string">"[ \\] \\\\]"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a\\ b )"</span>), p(<span class="string">"a b"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?x: a (?-x:#) b )"</span>), p(<span class="string">"a#b"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>comments() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?# comment)&quot;</span>), p(<span class="string">&quot;ab&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?#)&quot;</span>), p(<span class="string">&quot;ab&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;(?# comment 1)(?# comment 2)ab&quot;</span>), p(<span class="string">&quot;ab&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?# comment \))c&quot;</span>), p(<span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?# comment \\)c&quot;</span>), p(<span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?# comment ()c&quot;</span>), p(<span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq!</span>(p(<span class="string">r&quot;ab(?# comment)*&quot;</span>), p(<span class="string">&quot;ab*&quot;</span>));
-        fail(<span class="string">r&quot;ab(?# comment&quot;</span>);
-        fail(<span class="string">r&quot;ab(?# comment\&quot;</span>);
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?# comment)"</span>), p(<span class="string">"ab"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?#)"</span>), p(<span class="string">"ab"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"(?# comment 1)(?# comment 2)ab"</span>), p(<span class="string">"ab"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?# comment \))c"</span>), p(<span class="string">"abc"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?# comment \\)c"</span>), p(<span class="string">"abc"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?# comment ()c"</span>), p(<span class="string">"abc"</span>));
+        <span class="macro">assert_eq!</span>(p(<span class="string">r"ab(?# comment)*"</span>), p(<span class="string">"ab*"</span>));
+        fail(<span class="string">r"ab(?# comment"</span>);
+        fail(<span class="string">r"ab(?# comment\"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>atomic_group() {
-        <span class="macro">assert_eq!</span>(p(<span class="string">&quot;(?&gt;a)&quot;</span>), Expr::AtomicGroup(Box::new(make_literal(<span class="string">&quot;a&quot;</span>))));
+        <span class="macro">assert_eq!</span>(p(<span class="string">"(?&gt;a)"</span>), Expr::AtomicGroup(Box::new(make_literal(<span class="string">"a"</span>))));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>possessive() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a++&quot;</span>),
+            p(<span class="string">"a++"</span>),
             Expr::AtomicGroup(Box::new(Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">1</span>,
                 hi: usize::MAX,
                 greedy: <span class="bool-val">true
             </span>}))
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a*+&quot;</span>),
+            p(<span class="string">"a*+"</span>),
             Expr::AtomicGroup(Box::new(Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">0</span>,
                 hi: usize::MAX,
                 greedy: <span class="bool-val">true
             </span>}))
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a?+&quot;</span>),
+            p(<span class="string">"a?+"</span>),
             Expr::AtomicGroup(Box::new(Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo: <span class="number">0</span>,
                 hi: <span class="number">1</span>,
                 greedy: <span class="bool-val">true
@@ -3142,120 +3144,120 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_backref() {
         <span class="comment">// only syntactic tests; see similar test in analyze module
-        </span>fail(<span class="string">&quot;.\\12345678&quot;</span>); <span class="comment">// unreasonably large number
-        </span>fail(<span class="string">&quot;.\\c&quot;</span>); <span class="comment">// not decimal
+        </span>fail(<span class="string">".\\12345678"</span>); <span class="comment">// unreasonably large number
+        </span>fail(<span class="string">".\\c"</span>); <span class="comment">// not decimal
     </span>}
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_group_name_backref() {
         assert_error(
-            <span class="string">&quot;\\k&lt;id&gt;(?&lt;id&gt;.)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Invalid group name in back reference: id&quot;</span>,
+            <span class="string">"\\k&lt;id&gt;(?&lt;id&gt;.)"</span>,
+            <span class="string">"Parsing error at position 2: Invalid group name in back reference: id"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>named_backref_only() {
-        assert_error(<span class="string">&quot;(?&lt;id&gt;.)\\1&quot;</span>, <span class="string">&quot;Error compiling regex: Numbered backref/call not allowed because named group was used, use a named backref instead&quot;</span>);
-        assert_error(<span class="string">&quot;(a)\\1(?&lt;name&gt;b)&quot;</span>, <span class="string">&quot;Error compiling regex: Numbered backref/call not allowed because named group was used, use a named backref instead&quot;</span>);
+        assert_error(<span class="string">"(?&lt;id&gt;.)\\1"</span>, <span class="string">"Error compiling regex: Numbered backref/call not allowed because named group was used, use a named backref instead"</span>);
+        assert_error(<span class="string">"(a)\\1(?&lt;name&gt;b)"</span>, <span class="string">"Error compiling regex: Numbered backref/call not allowed because named group was used, use a named backref instead"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_group_name() {
         assert_error(
-            <span class="string">&quot;(?&lt;id)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 1: Could not parse group name&quot;</span>,
+            <span class="string">"(?&lt;id)"</span>,
+            <span class="string">"Parsing error at position 1: Could not parse group name"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?&lt;&gt;)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 1: Could not parse group name&quot;</span>,
+            <span class="string">"(?&lt;&gt;)"</span>,
+            <span class="string">"Parsing error at position 1: Could not parse group name"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?&lt;#&gt;)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 1: Could not parse group name&quot;</span>,
+            <span class="string">"(?&lt;#&gt;)"</span>,
+            <span class="string">"Parsing error at position 1: Could not parse group name"</span>,
         );
         assert_error(
-            <span class="string">&quot;\\kxxx&lt;id&gt;&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Could not parse group name&quot;</span>,
+            <span class="string">"\\kxxx&lt;id&gt;"</span>,
+            <span class="string">"Parsing error at position 2: Could not parse group name"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unknown_flag() {
         assert_error(
-            <span class="string">&quot;(?-:a)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Unknown group flag: (?-:&quot;</span>,
+            <span class="string">"(?-:a)"</span>,
+            <span class="string">"Parsing error at position 2: Unknown group flag: (?-:"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Unknown group flag: (?)&quot;</span>,
+            <span class="string">"(?)"</span>,
+            <span class="string">"Parsing error at position 2: Unknown group flag: (?)"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?--)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Unknown group flag: (?--&quot;</span>,
+            <span class="string">"(?--)"</span>,
+            <span class="string">"Parsing error at position 2: Unknown group flag: (?--"</span>,
         );
-        <span class="comment">// Check that we don&#39;t split on char boundary
+        <span class="comment">// Check that we don't split on char boundary
         </span>assert_error(
-            <span class="string">&quot;(?\u{1F60A})&quot;</span>,
-            <span class="string">&quot;Parsing error at position 2: Unknown group flag: (?\u{1F60A}&quot;</span>,
+            <span class="string">"(?\u{1F60A})"</span>,
+            <span class="string">"Parsing error at position 2: Unknown group flag: (?\u{1F60A}"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>no_quantifiers_on_lookarounds() {
         assert_error(
-            <span class="string">&quot;(?=hello)+&quot;</span>,
-            <span class="string">&quot;Parsing error at position 9: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?=hello)+"</span>,
+            <span class="string">"Parsing error at position 9: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?&lt;!hello)*&quot;</span>,
-            <span class="string">&quot;Parsing error at position 10: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?&lt;!hello)*"</span>,
+            <span class="string">"Parsing error at position 10: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?&lt;=hello){2,3}&quot;</span>,
-            <span class="string">&quot;Parsing error at position 14: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?&lt;=hello){2,3}"</span>,
+            <span class="string">"Parsing error at position 14: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?!hello)?&quot;</span>,
-            <span class="string">&quot;Parsing error at position 9: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?!hello)?"</span>,
+            <span class="string">"Parsing error at position 9: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;^?&quot;</span>,
-            <span class="string">&quot;Parsing error at position 1: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"^?"</span>,
+            <span class="string">"Parsing error at position 1: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;${2}&quot;</span>,
-            <span class="string">&quot;Parsing error at position 3: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"${2}"</span>,
+            <span class="string">"Parsing error at position 3: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?m)^?&quot;</span>,
-            <span class="string">&quot;Parsing error at position 5: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?m)^?"</span>,
+            <span class="string">"Parsing error at position 5: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(?m)${2}&quot;</span>,
-            <span class="string">&quot;Parsing error at position 7: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(?m)${2}"</span>,
+            <span class="string">"Parsing error at position 7: Target of repeat operator is invalid"</span>,
         );
         assert_error(
-            <span class="string">&quot;(a|b|?)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 5: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">"(a|b|?)"</span>,
+            <span class="string">"Parsing error at position 5: Target of repeat operator is invalid"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>keepout() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;a\\Kb&quot;</span>),
-            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), Expr::KeepOut, make_literal(<span class="string">&quot;b&quot;</span>),])
+            p(<span class="string">"a\\Kb"</span>),
+            Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), Expr::KeepOut, make_literal(<span class="string">"b"</span>),])
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>backref_exists_condition() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(h)?(?(1))&quot;</span>),
+            p(<span class="string">"(h)?(?(1))"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
@@ -3264,10 +3266,10 @@
             ])
         );
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?&lt;h&gt;h)?(?(&#39;h&#39;))&quot;</span>),
+            p(<span class="string">"(?&lt;h&gt;h)?(?('h'))"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
@@ -3280,60 +3282,60 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>conditional_non_backref_validity_check_without_branches() {
         assert_error(
-            <span class="string">&quot;(?(foo))&quot;</span>,
-            <span class="string">&quot;Parsing error at position 7: General parsing error: expected conditional to be a backreference or at least an expression for when the condition is true&quot;</span>,
+            <span class="string">"(?(foo))"</span>,
+            <span class="string">"Parsing error at position 7: General parsing error: expected conditional to be a backreference or at least an expression for when the condition is true"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>conditional_invalid_target_of_repeat_operator() {
         assert_error(
-            <span class="string">r&quot;(?(?=\d)\w|!)&quot;</span>,
-            <span class="string">&quot;Parsing error at position 3: Target of repeat operator is invalid&quot;</span>,
+            <span class="string">r"(?(?=\d)\w|!)"</span>,
+            <span class="string">"Parsing error at position 3: Target of repeat operator is invalid"</span>,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>backref_condition_with_one_two_or_three_branches() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(h)?(?(1)i|x)&quot;</span>),
+            p(<span class="string">"(h)?(?(1)i|x)"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
                 </span>},
                 Expr::Conditional {
                     condition: Box::new(Expr::BackrefExistsCondition(<span class="number">1</span>)),
-                    true_branch: Box::new(make_literal(<span class="string">&quot;i&quot;</span>)),
-                    false_branch: Box::new(make_literal(<span class="string">&quot;x&quot;</span>)),
+                    true_branch: Box::new(make_literal(<span class="string">"i"</span>)),
+                    false_branch: Box::new(make_literal(<span class="string">"x"</span>)),
                 },
             ])
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(h)?(?(1)i)&quot;</span>),
+            p(<span class="string">"(h)?(?(1)i)"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
                 </span>},
                 Expr::Conditional {
                     condition: Box::new(Expr::BackrefExistsCondition(<span class="number">1</span>)),
-                    true_branch: Box::new(make_literal(<span class="string">&quot;i&quot;</span>)),
+                    true_branch: Box::new(make_literal(<span class="string">"i"</span>)),
                     false_branch: Box::new(Expr::Empty),
                 },
             ])
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(h)?(?(1)ii|xy|z)&quot;</span>),
+            p(<span class="string">"(h)?(?(1)ii|xy|z)"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
@@ -3341,21 +3343,21 @@
                 Expr::Conditional {
                     condition: Box::new(Expr::BackrefExistsCondition(<span class="number">1</span>)),
                     true_branch: Box::new(Expr::Concat(
-                        <span class="macro">vec!</span>[make_literal(<span class="string">&quot;i&quot;</span>), make_literal(<span class="string">&quot;i&quot;</span>),]
+                        <span class="macro">vec!</span>[make_literal(<span class="string">"i"</span>), make_literal(<span class="string">"i"</span>),]
                     )),
                     false_branch: Box::new(Expr::Alt(<span class="macro">vec!</span>[
-                        Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;x&quot;</span>), make_literal(<span class="string">&quot;y&quot;</span>),]),
-                        make_literal(<span class="string">&quot;z&quot;</span>),
+                        Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"x"</span>), make_literal(<span class="string">"y"</span>),]),
+                        make_literal(<span class="string">"z"</span>),
                     ])),
                 },
             ])
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;(?&lt;cap&gt;h)?(?(&lt;cap&gt;)ii|xy|z)&quot;</span>),
+            p(<span class="string">"(?&lt;cap&gt;h)?(?(&lt;cap&gt;)ii|xy|z)"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Repeat {
-                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">&quot;h&quot;</span>)))),
+                    child: Box::new(Expr::Group(Box::new(make_literal(<span class="string">"h"</span>)))),
                     lo: <span class="number">0</span>,
                     hi: <span class="number">1</span>,
                     greedy: <span class="bool-val">true
@@ -3363,11 +3365,11 @@
                 Expr::Conditional {
                     condition: Box::new(Expr::BackrefExistsCondition(<span class="number">1</span>)),
                     true_branch: Box::new(Expr::Concat(
-                        <span class="macro">vec!</span>[make_literal(<span class="string">&quot;i&quot;</span>), make_literal(<span class="string">&quot;i&quot;</span>),]
+                        <span class="macro">vec!</span>[make_literal(<span class="string">"i"</span>), make_literal(<span class="string">"i"</span>),]
                     )),
                     false_branch: Box::new(Expr::Alt(<span class="macro">vec!</span>[
-                        Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;x&quot;</span>), make_literal(<span class="string">&quot;y&quot;</span>),]),
-                        make_literal(<span class="string">&quot;z&quot;</span>),
+                        Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"x"</span>), make_literal(<span class="string">"y"</span>),]),
+                        make_literal(<span class="string">"z"</span>),
                     ])),
                 },
             ])
@@ -3377,39 +3379,39 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>conditional() {
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">&quot;((?(a)b|c))(\\1)&quot;</span>),
+            p(<span class="string">"((?(a)b|c))(\\1)"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::Group(Box::new(Expr::Conditional {
-                    condition: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
-                    true_branch: Box::new(make_literal(<span class="string">&quot;b&quot;</span>)),
-                    false_branch: Box::new(make_literal(<span class="string">&quot;c&quot;</span>))
+                    condition: Box::new(make_literal(<span class="string">"a"</span>)),
+                    true_branch: Box::new(make_literal(<span class="string">"b"</span>)),
+                    false_branch: Box::new(make_literal(<span class="string">"c"</span>))
                 })),
                 Expr::Group(Box::new(Expr::Backref(<span class="number">1</span>)))
             ])
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">r&quot;^(?(\d)abc|\d!)$&quot;</span>),
+            p(<span class="string">r"^(?(\d)abc|\d!)$"</span>),
             Expr::Concat(<span class="macro">vec!</span>[
                 Expr::StartText,
                 Expr::Conditional {
                     condition: Box::new(Expr::Delegate {
-                        inner: <span class="string">&quot;\\d&quot;</span>.to_string(),
+                        inner: <span class="string">"\\d"</span>.to_string(),
                         size: <span class="number">1</span>,
                         casei: <span class="bool-val">false</span>,
                     }),
                     true_branch: Box::new(Expr::Concat(<span class="macro">vec!</span>[
-                        make_literal(<span class="string">&quot;a&quot;</span>),
-                        make_literal(<span class="string">&quot;b&quot;</span>),
-                        make_literal(<span class="string">&quot;c&quot;</span>),
+                        make_literal(<span class="string">"a"</span>),
+                        make_literal(<span class="string">"b"</span>),
+                        make_literal(<span class="string">"c"</span>),
                     ])),
                     false_branch: Box::new(Expr::Concat(<span class="macro">vec!</span>[
                         Expr::Delegate {
-                            inner: <span class="string">&quot;\\d&quot;</span>.to_string(),
+                            inner: <span class="string">"\\d"</span>.to_string(),
                             size: <span class="number">1</span>,
                             casei: <span class="bool-val">false</span>,
                         },
-                        make_literal(<span class="string">&quot;!&quot;</span>),
+                        make_literal(<span class="string">"!"</span>),
                     ])),
                 },
                 Expr::EndText,
@@ -3417,34 +3419,34 @@
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">r&quot;(?((?=\d))\w|!)&quot;</span>),
+            p(<span class="string">r"(?((?=\d))\w|!)"</span>),
             Expr::Conditional {
                 condition: Box::new(Expr::LookAround(
                     Box::new(Expr::Delegate {
-                        inner: <span class="string">&quot;\\d&quot;</span>.to_string(),
+                        inner: <span class="string">"\\d"</span>.to_string(),
                         size: <span class="number">1</span>,
                         casei: <span class="bool-val">false
                     </span>}),
                     LookAhead
                 )),
                 true_branch: Box::new(Expr::Delegate {
-                    inner: <span class="string">&quot;\\w&quot;</span>.to_string(),
+                    inner: <span class="string">"\\w"</span>.to_string(),
                     size: <span class="number">1</span>,
                     casei: <span class="bool-val">false</span>,
                 }),
-                false_branch: Box::new(make_literal(<span class="string">&quot;!&quot;</span>)),
+                false_branch: Box::new(make_literal(<span class="string">"!"</span>)),
             },
         );
 
         <span class="macro">assert_eq!</span>(
-            p(<span class="string">r&quot;(?((ab))c|d)&quot;</span>),
+            p(<span class="string">r"(?((ab))c|d)"</span>),
             Expr::Conditional {
                 condition: Box::new(Expr::Group(Box::new(Expr::Concat(<span class="macro">vec!</span>[
-                    make_literal(<span class="string">&quot;a&quot;</span>),
-                    make_literal(<span class="string">&quot;b&quot;</span>),
+                    make_literal(<span class="string">"a"</span>),
+                    make_literal(<span class="string">"b"</span>),
                 ]),))),
-                true_branch: Box::new(make_literal(<span class="string">&quot;c&quot;</span>)),
-                false_branch: Box::new(make_literal(<span class="string">&quot;d&quot;</span>)),
+                true_branch: Box::new(make_literal(<span class="string">"c"</span>)),
+                false_branch: Box::new(make_literal(<span class="string">"d"</span>)),
             },
         );
     }
@@ -3452,12 +3454,12 @@
     <span class="comment">// found by cargo fuzz, then minimized
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>fuzz_1() {
-        p(<span class="string">r&quot;\ä&quot;</span>);
+        p(<span class="string">r"\ä"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fuzz_2() {
-        p(<span class="string">r&quot;\pä&quot;</span>);
+        p(<span class="string">r"\pä"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

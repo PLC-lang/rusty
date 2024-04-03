@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/runtime.rs`."><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/runtime.rs`."><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -763,43 +765,43 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>AutoName;
 
-<span class="kw">impl </span>From&lt;AutoName&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">fn </span>from(_value: AutoName) -&gt; ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">impl </span>From&lt;AutoName&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
+    <span class="kw">fn </span>from(_value: AutoName) -&gt; ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
         ReferenceValue::Named(<span class="prelude-val">None</span>)
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
         ReferenceValue::Named(value.map(Cow::Owned))
     }
 }
 
-<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">fn </span>from(value: String) -&gt; ReferenceValue&lt;<span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
+    <span class="kw">fn </span>from(value: String) -&gt; ReferenceValue&lt;<span class="lifetime">'static</span>&gt; {
         ReferenceValue::Named(<span class="prelude-val">Some</span>(Cow::Owned(value)))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;) -&gt; ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;) -&gt; ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
         ReferenceValue::Named(value.map(Cow::Borrowed))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
         ReferenceValue::Named(<span class="prelude-val">Some</span>(Cow::Borrowed(value)))
     }
 }
 
-<span class="kw">pub enum </span>ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Named(<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;),
-    Inline(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+<span class="kw">pub enum </span>ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
+    Named(<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;),
+    Inline(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
 }
 
 <span class="kw">fn </span>is_doctest(function_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
-    function_name.starts_with(<span class="string">&quot;rust_out::main::_doctest&quot;</span>)
+    function_name.starts_with(<span class="string">"rust_out::main::_doctest"</span>)
 }
 
 <span class="kw">fn </span>detect_snapshot_name(
@@ -807,25 +809,25 @@
     module_path: <span class="kw-2">&amp;</span>str,
     inline: bool,
     is_doctest: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>name = function_name;
 
     <span class="comment">// simplify doctest names
     </span><span class="kw">if </span>is_doctest &amp;&amp; !inline {
-        <span class="macro">panic!</span>(<span class="string">&quot;Cannot determine reliable names for snapshot in doctests.  Please use explicit names instead.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Cannot determine reliable names for snapshot in doctests.  Please use explicit names instead."</span>);
     }
 
     <span class="comment">// clean test name first
-    </span>name = name.rsplit(<span class="string">&quot;::&quot;</span>).next().unwrap();
+    </span>name = name.rsplit(<span class="string">"::"</span>).next().unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>test_prefixed = <span class="bool-val">false</span>;
-    <span class="kw">if </span>name.starts_with(<span class="string">&quot;test_&quot;</span>) {
+    <span class="kw">if </span>name.starts_with(<span class="string">"test_"</span>) {
         name = <span class="kw-2">&amp;</span>name[<span class="number">5</span>..];
         test_prefixed = <span class="bool-val">true</span>;
     }
 
     <span class="comment">// next check if we need to add a suffix
     </span><span class="kw">let </span>name = add_suffix_to_snapshot_name(Cow::Borrowed(name));
-    <span class="kw">let </span>key = <span class="macro">format!</span>(<span class="string">&quot;{}::{}&quot;</span>, module_path.replace(<span class="string">&quot;::&quot;</span>, <span class="string">&quot;__&quot;</span>), name);
+    <span class="kw">let </span>key = <span class="macro">format!</span>(<span class="string">"{}::{}"</span>, module_path.replace(<span class="string">"::"</span>, <span class="string">"__"</span>), name);
 
     <span class="comment">// because fn foo and fn test_foo end up with the same snapshot name we
     // make sure we detect this here and raise an error.
@@ -839,8 +841,8 @@
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>was_test_prefixed) =&gt; {
             <span class="kw">if </span>was_test_prefixed != test_prefixed {
                 <span class="macro">panic!</span>(
-                    <span class="string">&quot;Insta snapshot name clash detected between &#39;{}&#39; \
-                     and &#39;test_{}&#39; in &#39;{}&#39;. Rename one function.&quot;</span>,
+                    <span class="string">"Insta snapshot name clash detected between '{}' \
+                     and 'test_{}' in '{}'. Rename one function."</span>,
                     name, name, module_path
                 );
             }
@@ -860,7 +862,7 @@
     <span class="kw">let </span>rv = <span class="kw">if </span>test_idx == <span class="number">1 </span>{
         name.to_string()
     } <span class="kw">else </span>{
-        <span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, name, test_idx)
+        <span class="macro">format!</span>(<span class="string">"{}-{}"</span>, name, test_idx)
     };
     counters.insert(key, test_idx);
 
@@ -868,11 +870,11 @@
 }
 
 <span class="doccomment">/// If there is a suffix on the settings, append it to the snapshot name.
-</span><span class="kw">fn </span>add_suffix_to_snapshot_name(name: Cow&lt;<span class="lifetime">&#39;_</span>, str&gt;) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+</span><span class="kw">fn </span>add_suffix_to_snapshot_name(name: Cow&lt;<span class="lifetime">'_</span>, str&gt;) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
     Settings::with(|settings| {
         settings
             .snapshot_suffix()
-            .map(|suffix| Cow::Owned(<span class="macro">format!</span>(<span class="string">&quot;{}@{}&quot;</span>, name, suffix)))
+            .map(|suffix| Cow::Owned(<span class="macro">format!</span>(<span class="string">"{}@{}"</span>, name, suffix)))
             .unwrap_or_else(|| name)
     })
 }
@@ -897,22 +899,22 @@
                     <span class="kw">if </span>is_doctest {
                         <span class="macro">write!</span>(
                             <span class="kw-2">&amp;mut </span>f,
-                            <span class="string">&quot;doctest_{}__&quot;</span>,
+                            <span class="string">"doctest_{}__"</span>,
                             Path::new(assertion_file)
                                 .file_name()
                                 .unwrap()
                                 .to_string_lossy()
-                                .replace(<span class="string">&#39;.&#39;</span>, <span class="string">&quot;_&quot;</span>)
+                                .replace(<span class="string">'.'</span>, <span class="string">"_"</span>)
                         )
                         .unwrap();
                     } <span class="kw">else </span>{
-                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>f, <span class="string">&quot;{}__&quot;</span>, module_path.replace(<span class="string">&quot;::&quot;</span>, <span class="string">&quot;__&quot;</span>)).unwrap();
+                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>f, <span class="string">"{}__"</span>, module_path.replace(<span class="string">"::"</span>, <span class="string">"__"</span>)).unwrap();
                     }
                 }
                 <span class="macro">write!</span>(
                     <span class="kw-2">&amp;mut </span>f,
-                    <span class="string">&quot;{}.snap&quot;</span>,
-                    snapshot_name.replace(<span class="kw-2">&amp;</span>[<span class="string">&#39;/&#39;</span>, <span class="string">&#39;\\&#39;</span>][..], <span class="string">&quot;__&quot;</span>)
+                    <span class="string">"{}.snap"</span>,
+                    snapshot_name.replace(<span class="kw-2">&amp;</span>[<span class="string">'/'</span>, <span class="string">'\\'</span>][..], <span class="string">"__"</span>)
                 )
                 .unwrap();
                 f
@@ -921,29 +923,29 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>SnapshotAssertionContext&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>SnapshotAssertionContext&lt;<span class="lifetime">'a</span>&gt; {
     tool_config: Arc&lt;ToolConfig&gt;,
     cargo_workspace: Arc&lt;PathBuf&gt;,
-    module_path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    snapshot_name: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+    module_path: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    snapshot_name: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     snapshot_file: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     duplication_key: <span class="prelude-ty">Option</span>&lt;String&gt;,
     old_snapshot: <span class="prelude-ty">Option</span>&lt;Snapshot&gt;,
     pending_snapshots_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    assertion_file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    assertion_file: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
     assertion_line: u32,
     is_doctest: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; SnapshotAssertionContext&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SnapshotAssertionContext&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>prepare(
-        refval: ReferenceValue&lt;<span class="lifetime">&#39;a</span>&gt;,
-        manifest_dir: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-        function_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-        module_path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-        assertion_file: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        refval: ReferenceValue&lt;<span class="lifetime">'a</span>&gt;,
+        manifest_dir: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+        function_name: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+        module_path: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+        assertion_file: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
         assertion_line: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SnapshotAssertionContext&lt;<span class="lifetime">&#39;a</span>&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SnapshotAssertionContext&lt;<span class="lifetime">'a</span>&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
         <span class="kw">let </span>tool_config = get_tool_config(manifest_dir);
         <span class="kw">let </span>cargo_workspace = get_cargo_workspace(manifest_dir);
         <span class="kw">let </span>snapshot_name;
@@ -962,7 +964,7 @@
                         .into(),
                 };
                 <span class="kw">if </span>allow_duplicates() {
-                    duplication_key = <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;named:{}|{}&quot;</span>, module_path, name));
+                    duplication_key = <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"named:{}|{}"</span>, module_path, name));
                 }
                 <span class="kw">let </span>file = get_snapshot_filename(
                     module_path,
@@ -981,7 +983,7 @@
             ReferenceValue::Inline(contents) =&gt; {
                 <span class="kw">if </span>allow_duplicates() {
                     duplication_key = <span class="prelude-val">Some</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;inline:{}|{}|{}&quot;</span>,
+                        <span class="string">"inline:{}|{}|{}"</span>,
                         function_name, assertion_file, assertion_line
                     ));
                 } <span class="kw">else </span>{
@@ -992,16 +994,16 @@
                     .map(Cow::Owned);
                 <span class="kw">let </span><span class="kw-2">mut </span>pending_file = cargo_workspace.join(assertion_file);
                 pending_file.set_file_name(<span class="macro">format!</span>(
-                    <span class="string">&quot;.{}.pending-snap&quot;</span>,
+                    <span class="string">".{}.pending-snap"</span>,
                     pending_file
                         .file_name()
-                        .expect(<span class="string">&quot;no filename&quot;</span>)
+                        .expect(<span class="string">"no filename"</span>)
                         .to_str()
-                        .expect(<span class="string">&quot;non unicode filename&quot;</span>)
+                        .expect(<span class="string">"non unicode filename"</span>)
                 ));
                 pending_snapshots_path = <span class="prelude-val">Some</span>(pending_file);
                 old_snapshot = <span class="prelude-val">Some</span>(Snapshot::from_components(
-                    module_path.replace(<span class="string">&quot;::&quot;</span>, <span class="string">&quot;__&quot;</span>),
+                    module_path.replace(<span class="string">"::"</span>, <span class="string">"__"</span>),
                     <span class="prelude-val">None</span>,
                     MetaData::default(),
                     SnapshotContents::from_inline(contents),
@@ -1034,7 +1036,7 @@
     <span class="doccomment">/// Creates the new snapshot from input values.
     </span><span class="kw">pub fn </span>new_snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>, contents: SnapshotContents, expr: <span class="kw-2">&amp;</span>str) -&gt; Snapshot {
         Snapshot::from_components(
-            <span class="self">self</span>.module_path.replace(<span class="string">&quot;::&quot;</span>, <span class="string">&quot;__&quot;</span>),
+            <span class="self">self</span>.module_path.replace(<span class="string">"::"</span>, <span class="string">"__"</span>),
             <span class="self">self</span>.snapshot_name.as_ref().map(|x| x.to_string()),
             Settings::with(|settings| MetaData {
                 source: <span class="prelude-val">Some</span>(path_to_storage(Path::new(<span class="self">self</span>.assertion_file))),
@@ -1057,11 +1059,11 @@
 
     <span class="doccomment">/// Cleanup logic for passing snapshots.
     </span><span class="kw">pub fn </span>cleanup_passing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
-        <span class="comment">// let&#39;s just make sure there are no more pending files lingering
+        <span class="comment">// let's just make sure there are no more pending files lingering
         // around.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>snapshot_file) = <span class="self">self</span>.snapshot_file {
             <span class="kw">let </span><span class="kw-2">mut </span>snapshot_file = snapshot_file.clone();
-            snapshot_file.set_extension(<span class="string">&quot;snap.new&quot;</span>);
+            snapshot_file.set_extension(<span class="string">"snap.new"</span>);
             fs::remove_file(snapshot_file).ok();
         }
 
@@ -1093,21 +1095,21 @@
                     <span class="kw">let </span>saved = new_snapshot.save(snapshot_file)<span class="question-mark">?</span>;
                     <span class="kw">if </span>should_print &amp;&amp; saved {
                         <span class="macro">elog!</span>(
-                            <span class="string">&quot;{} {}&quot;</span>,
+                            <span class="string">"{} {}"</span>,
                             <span class="kw">if </span>unseen {
-                                style(<span class="string">&quot;created previously unseen snapshot&quot;</span>).green()
+                                style(<span class="string">"created previously unseen snapshot"</span>).green()
                             } <span class="kw">else </span>{
-                                style(<span class="string">&quot;updated snapshot&quot;</span>).green()
+                                style(<span class="string">"updated snapshot"</span>).green()
                             },
                             style(snapshot_file.display()).cyan().underlined(),
                         );
                     }
                 } <span class="kw">else if </span>should_print {
                     <span class="macro">elog!</span>(
-                        <span class="string">&quot;{}&quot;</span>,
+                        <span class="string">"{}"</span>,
                         style(
-                            <span class="string">&quot;error: cannot update inline snapshots in-place \
-                        (https://github.com/mitsuhiko/insta/issues/272)&quot;
+                            <span class="string">"error: cannot update inline snapshots in-place \
+                        (https://github.com/mitsuhiko/insta/issues/272)"
                         </span>)
                         .red()
                         .bold(),
@@ -1119,8 +1121,8 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(new_path) = new_snapshot.save_new(snapshot_file)<span class="question-mark">? </span>{
                         <span class="kw">if </span>should_print {
                             <span class="macro">elog!</span>(
-                                <span class="string">&quot;{} {}&quot;</span>,
-                                style(<span class="string">&quot;stored new snapshot&quot;</span>).green(),
+                                <span class="string">"{} {}"</span>,
+                                style(<span class="string">"stored new snapshot"</span>).green(),
                                 style(new_path.display()).cyan().underlined(),
                             );
                         }
@@ -1128,8 +1130,8 @@
                 } <span class="kw">else if </span><span class="self">self</span>.is_doctest {
                     <span class="kw">if </span>should_print {
                         <span class="macro">elog!</span>(
-                            <span class="string">&quot;{}&quot;</span>,
-                            style(<span class="string">&quot;warning: cannot update inline snapshots in doctests&quot;</span>)
+                            <span class="string">"{}"</span>,
+                            style(<span class="string">"warning: cannot update inline snapshots in doctests"</span>)
                                 .red()
                                 .bold(),
                         );
@@ -1163,14 +1165,14 @@
 }
 
 <span class="kw">fn </span>prevent_inline_duplicate(function_name: <span class="kw-2">&amp;</span>str, assertion_file: <span class="kw-2">&amp;</span>str, assertion_line: u32) {
-    <span class="kw">let </span>key = <span class="macro">format!</span>(<span class="string">&quot;{}|{}|{}&quot;</span>, function_name, assertion_file, assertion_line);
+    <span class="kw">let </span>key = <span class="macro">format!</span>(<span class="string">"{}|{}|{}"</span>, function_name, assertion_file, assertion_line);
     <span class="kw">let </span><span class="kw-2">mut </span>set = INLINE_DUPLICATES.lock().unwrap();
     <span class="kw">if </span>set.contains(<span class="kw-2">&amp;</span>key) {
-        <span class="comment">// drop the lock so we don&#39;t poison it
+        <span class="comment">// drop the lock so we don't poison it
         </span>drop(set);
         <span class="macro">panic!</span>(
-            <span class="string">&quot;Insta does not allow inline snapshot assertions in loops. \
-            Wrap your assertions in allow_duplicates! to change this.&quot;
+            <span class="string">"Insta does not allow inline snapshot assertions in loops. \
+            Wrap your assertions in allow_duplicates! to change this."
         </span>);
     }
     set.insert(key);
@@ -1185,7 +1187,7 @@
     );
     printer.set_line(<span class="prelude-val">Some</span>(ctx.assertion_line));
     printer.set_snapshot_file(ctx.snapshot_file.as_deref());
-    printer.set_title(<span class="prelude-val">Some</span>(<span class="string">&quot;Snapshot Summary&quot;</span>));
+    printer.set_title(<span class="prelude-val">Some</span>(<span class="string">"Snapshot Summary"</span>));
     printer.set_show_info(<span class="bool-val">true</span>);
     <span class="kw">match </span>ctx.tool_config.output_behavior() {
         OutputBehavior::Summary =&gt; {
@@ -1199,7 +1201,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
 </span><span class="macro">macro_rules! </span>print_or_panic {
     (<span class="macro-nonterminal">$fail_fast</span>:expr, $(<span class="macro-nonterminal">$tokens</span>:tt)<span class="kw-2">*</span>) =&gt; {{
         <span class="kw">if </span>(!<span class="macro-nonterminal">$fail_fast</span>) {
@@ -1216,7 +1218,7 @@
     <span class="comment">// if we are in glob mode, we want to adjust the finalization
     // so that we do not show the hints immediately.
     </span><span class="kw">let </span>fail_fast = {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
         </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(top) = <span class="kw">crate</span>::glob::GLOB_STACK.lock().unwrap().last() {
                 top.fail_fast
@@ -1224,7 +1226,7 @@
                 <span class="bool-val">true
             </span>}
         }
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;glob&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"glob"</span>))]
         </span>{
             <span class="bool-val">true
         </span>}
@@ -1236,17 +1238,17 @@
         &amp;&amp; !ctx.is_doctest
     {
         <span class="macro">println!</span>(
-            <span class="string">&quot;{hint}&quot;</span>,
-            hint = style(<span class="string">&quot;To update snapshots run `cargo insta review`&quot;</span>).dim(),
+            <span class="string">"{hint}"</span>,
+            hint = style(<span class="string">"To update snapshots run `cargo insta review`"</span>).dim(),
         );
     }
 
     <span class="kw">if </span>update_result != SnapshotUpdateBehavior::InPlace &amp;&amp; !ctx.tool_config.force_pass() {
         <span class="kw">if </span>fail_fast &amp;&amp; ctx.tool_config.output_behavior() != OutputBehavior::Nothing {
             <span class="macro">println!</span>(
-                <span class="string">&quot;{hint}&quot;</span>,
+                <span class="string">"{hint}"</span>,
                 hint = style(
-                    <span class="string">&quot;Stopped on the first failure. Run `cargo insta test` to run all snapshots.&quot;
+                    <span class="string">"Stopped on the first failure. Run `cargo insta test` to run all snapshots."
                 </span>)
                 .dim(),
             );
@@ -1255,7 +1257,7 @@
         <span class="comment">// if we are in glob mode, count the failures and print the
         // errors instead of panicking.  The glob will then panic at
         // the end.
-        </span><span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+        </span><span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>stack = <span class="kw">crate</span>::glob::GLOB_STACK.lock().unwrap();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(glob_collector) = stack.last_mut() {
@@ -1268,8 +1270,8 @@
 
                 <span class="macro">print_or_panic!</span>(
                     fail_fast,
-                    <span class="string">&quot;snapshot assertion from glob for &#39;{}&#39; failed in line {}&quot;</span>,
-                    ctx.snapshot_name.as_deref().unwrap_or(<span class="string">&quot;unnamed snapshot&quot;</span>),
+                    <span class="string">"snapshot assertion from glob for '{}' failed in line {}"</span>,
+                    ctx.snapshot_name.as_deref().unwrap_or(<span class="string">"unnamed snapshot"</span>),
                     ctx.assertion_line
                 );
                 <span class="kw">return</span>;
@@ -1277,8 +1279,8 @@
         }
 
         <span class="macro">panic!</span>(
-            <span class="string">&quot;snapshot assertion for &#39;{}&#39; failed in line {}&quot;</span>,
-            ctx.snapshot_name.as_deref().unwrap_or(<span class="string">&quot;unnamed snapshot&quot;</span>),
+            <span class="string">"snapshot assertion for '{}' failed in line {}"</span>,
+            ctx.snapshot_name.as_deref().unwrap_or(<span class="string">"unnamed snapshot"</span>),
             ctx.assertion_line
         );
     }
@@ -1292,21 +1294,21 @@
     <span class="kw">let </span>key = ctx.duplication_key.as_deref().unwrap();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(prev_snapshot) = results.get(key) {
         <span class="kw">if </span>prev_snapshot.contents() != snapshot.contents() {
-            <span class="macro">println!</span>(<span class="string">&quot;Snapshots in allow-duplicates block do not match.&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Snapshots in allow-duplicates block do not match."</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>printer =
                 SnapshotPrinter::new(ctx.cargo_workspace.as_path(), <span class="prelude-val">Some</span>(prev_snapshot), snapshot);
             printer.set_line(<span class="prelude-val">Some</span>(ctx.assertion_line));
             printer.set_snapshot_file(ctx.snapshot_file.as_deref());
-            printer.set_title(<span class="prelude-val">Some</span>(<span class="string">&quot;Differences in Block&quot;</span>));
-            printer.set_snapshot_hints(<span class="string">&quot;previous assertion&quot;</span>, <span class="string">&quot;current assertion&quot;</span>);
+            printer.set_title(<span class="prelude-val">Some</span>(<span class="string">"Differences in Block"</span>));
+            printer.set_snapshot_hints(<span class="string">"previous assertion"</span>, <span class="string">"current assertion"</span>);
             <span class="kw">if </span>ctx.tool_config.output_behavior() == OutputBehavior::Diff {
                 printer.set_show_diff(<span class="bool-val">true</span>);
             }
             printer.print();
             <span class="macro">panic!</span>(
-                <span class="string">&quot;snapshot assertion for &#39;{}&#39; failed in line {}. Result \
-                    does not match previous snapshot in allow-duplicates block.&quot;</span>,
-                ctx.snapshot_name.as_deref().unwrap_or(<span class="string">&quot;unnamed snapshot&quot;</span>),
+                <span class="string">"snapshot assertion for '{}' failed in line {}. Result \
+                    does not match previous snapshot in allow-duplicates block."</span>,
+                ctx.snapshot_name.as_deref().unwrap_or(<span class="string">"unnamed snapshot"</span>),
                 ctx.assertion_line
             );
         }
@@ -1342,7 +1344,7 @@
 /// assertion with a panic if needed.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">pub fn </span>assert_snapshot(
-    refval: ReferenceValue&lt;<span class="lifetime">&#39;_</span>&gt;,
+    refval: ReferenceValue&lt;<span class="lifetime">'_</span>&gt;,
     new_snapshot_value: <span class="kw-2">&amp;</span>str,
     manifest_dir: <span class="kw-2">&amp;</span>str,
     function_name: <span class="kw-2">&amp;</span>str,
@@ -1362,7 +1364,7 @@
     <span class="kw">let </span>tool_config = get_tool_config(manifest_dir);
 
     <span class="comment">// apply filters if they are available
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
     </span><span class="kw">let </span>new_snapshot_value =
         Settings::with(|settings| settings.filters().apply_to(new_snapshot_value));
 
@@ -1413,7 +1415,7 @@
 <span class="doccomment">/// Test snapshots in doctests.
 ///
 /// ```
-/// insta::assert_debug_snapshot!(&quot;named&quot;, vec![1, 2, 3, 4, 5]);
+/// insta::assert_debug_snapshot!("named", vec![1, 2, 3, 4, 5]);
 /// ```
 ///
 /// ```should_panic
@@ -1421,13 +1423,13 @@
 /// ```
 ///
 /// ```
-/// let some_string = &quot;Coucou je suis un joli bug&quot;;
-/// insta::assert_snapshot!(some_string, @&quot;Coucou je suis un joli bug&quot;);
+/// let some_string = "Coucou je suis un joli bug";
+/// insta::assert_snapshot!(some_string, @"Coucou je suis un joli bug");
 /// ```
 ///
 /// ```
-/// let some_string = &quot;Coucou je suis un joli bug&quot;;
-/// insta::assert_snapshot!(some_string, @&quot;Coucou je suis un joli bug&quot;);
+/// let some_string = "Coucou je suis un joli bug";
+/// insta::assert_snapshot!(some_string, @"Coucou je suis un joli bug");
 /// ```
 </span><span class="kw">const </span>_DOCTEST1: bool = <span class="bool-val">false</span>;
 </code></pre></div></section></main></body></html>

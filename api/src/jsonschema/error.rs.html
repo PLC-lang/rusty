@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1170,9 +1172,9 @@
 
 <span class="doccomment">/// An error that can occur during validation.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>ValidationError&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Value of the property that failed validation.
-    </span><span class="kw">pub </span>instance: Cow&lt;<span class="lifetime">&#39;a</span>, Value&gt;,
+    </span><span class="kw">pub </span>instance: Cow&lt;<span class="lifetime">'a</span>, Value&gt;,
     <span class="doccomment">/// Type of validation error.
     </span><span class="kw">pub </span>kind: ValidationErrorKind,
     <span class="doccomment">/// Path to the value that failed validation.
@@ -1190,21 +1192,21 @@
 /// use jsonschema::JSONSchema;
 /// use serde_json::json;
 ///
-/// let schema = json!({&quot;maxLength&quot;: 5});
-/// let instance = json!(&quot;foo&quot;);
+/// let schema = json!({"maxLength": 5});
+/// let instance = json!("foo");
 /// if let Ok(compiled) = JSONSchema::compile(&amp;schema) {
 ///     let result = compiled.validate(&amp;instance);
 ///     if let Err(errors) = result {
 ///         for error in errors {
-///             println!(&quot;Validation error: {}&quot;, error)
+///             println!("Validation error: {}", error)
 ///         }
 ///     }
 /// }
 /// ```
-</span><span class="kw">pub type </span>ErrorIterator&lt;<span class="lifetime">&#39;a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = ValidationError&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + Sync + Send + <span class="lifetime">&#39;a</span>&gt;;
+</span><span class="kw">pub type </span>ErrorIterator&lt;<span class="lifetime">'a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = ValidationError&lt;<span class="lifetime">'a</span>&gt;&gt; + Sync + Send + <span class="lifetime">'a</span>&gt;;
 
 <span class="comment">// Empty iterator means no error happened
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>no_error&lt;<span class="lifetime">&#39;a</span>&gt;() -&gt; ErrorIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>no_error&lt;<span class="lifetime">'a</span>&gt;() -&gt; ErrorIterator&lt;<span class="lifetime">'a</span>&gt; {
     Box::new(empty())
 }
 <span class="comment">// A wrapper for one error
@@ -1220,19 +1222,19 @@
     </span>AdditionalItems { limit: usize },
     <span class="doccomment">/// Unexpected properties.
     </span>AdditionalProperties { unexpected: Vec&lt;String&gt; },
-    <span class="doccomment">/// The input value is not valid under any of the schemas listed in the &#39;anyOf&#39; keyword.
+    <span class="doccomment">/// The input value is not valid under any of the schemas listed in the 'anyOf' keyword.
     </span>AnyOf,
     <span class="doccomment">/// Results from a [`fancy_regex::Error::BacktrackLimitExceeded`] variant when matching
     </span>BacktrackLimitExceeded { error: fancy_regex::Error },
-    <span class="doccomment">/// The input value doesn&#39;t match expected constant.
+    <span class="doccomment">/// The input value doesn't match expected constant.
     </span>Constant { expected_value: Value },
-    <span class="doccomment">/// The input array doesn&#39;t contain items conforming to the specified schema.
+    <span class="doccomment">/// The input array doesn't contain items conforming to the specified schema.
     </span>Contains,
     <span class="doccomment">/// The input value does not respect the defined contentEncoding
     </span>ContentEncoding { content_encoding: String },
     <span class="doccomment">/// The input value does not respect the defined contentMediaType
     </span>ContentMediaType { content_media_type: String },
-    <span class="doccomment">/// The input value doesn&#39;t match any of specified options.
+    <span class="doccomment">/// The input value doesn't match any of specified options.
     </span>Enum { options: Value },
     <span class="doccomment">/// Value is too large.
     </span>ExclusiveMaximum { limit: Value },
@@ -1242,8 +1244,8 @@
     </span>FalseSchema,
     <span class="doccomment">/// If the referenced file is not found during ref resolution.
     </span>FileNotFound { error: io::Error },
-    <span class="doccomment">/// When the input doesn&#39;t match to the specified format.
-    </span>Format { format: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str },
+    <span class="doccomment">/// When the input doesn't match to the specified format.
+    </span>Format { format: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str },
     <span class="doccomment">/// May happen in `contentEncoding` validation if `base64` encoded data is invalid.
     </span>FromUtf8 { error: FromUtf8Error },
     <span class="doccomment">/// Invalid UTF-8 string during percent encoding when resolving happens
@@ -1274,21 +1276,21 @@
     </span>MultipleOf { multiple_of: f64 },
     <span class="doccomment">/// Negated schema failed validation.
     </span>Not { schema: Value },
-    <span class="doccomment">/// The given schema is valid under more than one of the schemas listed in the &#39;oneOf&#39; keyword.
+    <span class="doccomment">/// The given schema is valid under more than one of the schemas listed in the 'oneOf' keyword.
     </span>OneOfMultipleValid,
-    <span class="doccomment">/// The given schema is not valid under any of the schemas listed in the &#39;oneOf&#39; keyword.
+    <span class="doccomment">/// The given schema is not valid under any of the schemas listed in the 'oneOf' keyword.
     </span>OneOfNotValid,
-    <span class="doccomment">/// When the input doesn&#39;t match to a pattern.
+    <span class="doccomment">/// When the input doesn't match to a pattern.
     </span>Pattern { pattern: String },
     <span class="doccomment">/// Object property names are invalid.
     </span>PropertyNames {
-        error: Box&lt;ValidationError&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
+        error: Box&lt;ValidationError&lt;<span class="lifetime">'static</span>&gt;&gt;,
     },
     <span class="doccomment">/// When a required property is missing.
     </span>Required { property: Value },
     <span class="doccomment">/// Resolved schema failed to compile.
     </span>Schema,
-    <span class="doccomment">/// When the input value doesn&#39;t match one or multiple required types.
+    <span class="doccomment">/// When the input value doesn't match one or multiple required types.
     </span>Type { kind: TypeKind },
     <span class="doccomment">/// Unexpected properties.
     </span>UnevaluatedProperties { unexpected: Vec&lt;String&gt; },
@@ -1313,8 +1315,8 @@
 }
 
 <span class="doccomment">/// Shortcuts for creation of specific error kinds.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_owned(<span class="self">self</span>) -&gt; ValidationError&lt;<span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_owned(<span class="self">self</span>) -&gt; ValidationError&lt;<span class="lifetime">'static</span>&gt; {
         ValidationError {
             instance_path: <span class="self">self</span>.instance_path.clone(),
             instance: Cow::Owned(<span class="self">self</span>.instance.into_owned()),
@@ -1326,9 +1328,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>additional_items(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: usize,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1339,9 +1341,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>additional_properties(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         unexpected: Vec&lt;String&gt;,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1352,8 +1354,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>any_of(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1364,9 +1366,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>backtrack_limit(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         error: fancy_regex::Error,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1377,9 +1379,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_array(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         expected_value: <span class="kw-2">&amp;</span>[Value],
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1392,9 +1394,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>constant_boolean(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         expected_value: bool,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1407,8 +1409,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>constant_null(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1421,9 +1423,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_number(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         expected_value: <span class="kw-2">&amp;</span>Number,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1436,9 +1438,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_object(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         expected_value: <span class="kw-2">&amp;</span>Map&lt;String, Value&gt;,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1451,9 +1453,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>constant_string(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         expected_value: <span class="kw-2">&amp;</span>str,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1466,8 +1468,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>contains(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1478,9 +1480,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>content_encoding(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         encoding: <span class="kw-2">&amp;</span>str,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1493,9 +1495,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>content_media_type(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         media_type: <span class="kw-2">&amp;</span>str,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1508,9 +1510,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enumeration(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         options: <span class="kw-2">&amp;</span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1523,9 +1525,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>exclusive_maximum(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1536,9 +1538,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>exclusive_minimum(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1549,8 +1551,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>false_schema(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1558,7 +1560,7 @@
             schema_path,
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>file_not_found(error: io::Error) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>file_not_found(error: io::Error) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1569,9 +1571,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>format(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-        format: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+        format: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1579,7 +1581,7 @@
             schema_path,
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_utf8(error: FromUtf8Error) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_utf8(error: FromUtf8Error) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1587,7 +1589,7 @@
             schema_path: JSONPointer::default(),
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>json_parse(error: serde_json::Error) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>json_parse(error: serde_json::Error) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1595,7 +1597,7 @@
             schema_path: JSONPointer::default(),
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_reference(reference: String) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_reference(reference: String) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1603,7 +1605,7 @@
             schema_path: JSONPointer::default(),
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_url(error: url::ParseError) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_url(error: url::ParseError) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1614,9 +1616,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>max_items(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1627,9 +1629,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>maximum(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1640,9 +1642,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>max_length(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1653,9 +1655,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>max_properties(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1666,9 +1668,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>min_items(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1679,9 +1681,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>minimum(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1692,9 +1694,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>min_length(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1705,9 +1707,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>min_properties(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         limit: u64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1718,9 +1720,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>multiple_of(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         multiple_of: f64,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1731,9 +1733,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>not(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         schema: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1744,8 +1746,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>one_of_multiple_valid(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1756,8 +1758,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>one_of_not_valid(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1768,9 +1770,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>pattern(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         pattern: String,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1781,9 +1783,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>property_names(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-        error: ValidationError&lt;<span class="lifetime">&#39;a</span>&gt;,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+        error: ValidationError&lt;<span class="lifetime">'a</span>&gt;,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1796,9 +1798,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>required(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         property: Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1807,7 +1809,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>null_schema() -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>null_schema() -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1819,9 +1821,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>single_type_error(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         type_name: PrimitiveType,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1834,9 +1836,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>multiple_type_error(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         types: PrimitiveTypesBitMap,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1849,9 +1851,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>unevaluated_properties(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         unexpected: Vec&lt;String&gt;,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1862,8 +1864,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>unique_items(
         schema_path: JSONPointer,
         instance_path: JSONPointer,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
-    ) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    ) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path,
             instance: Cow::Borrowed(instance),
@@ -1871,7 +1873,7 @@
             schema_path,
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>utf8(error: Utf8Error) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>utf8(error: Utf8Error) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1879,7 +1881,7 @@
             schema_path: JSONPointer::default(),
         }
     }
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolver(url: Url, error: SchemaResolverError) -&gt; ValidationError&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolver(url: Url, error: SchemaResolverError) -&gt; ValidationError&lt;<span class="lifetime">'a</span>&gt; {
         ValidationError {
             instance_path: JSONPointer::default(),
             instance: Cow::Owned(Value::Null),
@@ -1889,32 +1891,32 @@
     }
 }
 
-<span class="kw">impl </span>error::Error <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">impl </span>From&lt;serde_json::Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>error::Error <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">impl </span>From&lt;serde_json::Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(err: serde_json::Error) -&gt; <span class="self">Self </span>{
         ValidationError::json_parse(err)
     }
 }
-<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(err: io::Error) -&gt; <span class="self">Self </span>{
         ValidationError::file_not_found(err)
     }
 }
-<span class="kw">impl </span>From&lt;FromUtf8Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>From&lt;FromUtf8Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(err: FromUtf8Error) -&gt; <span class="self">Self </span>{
         ValidationError::from_utf8(err)
     }
 }
-<span class="kw">impl </span>From&lt;Utf8Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>From&lt;Utf8Error&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(err: Utf8Error) -&gt; <span class="self">Self </span>{
         ValidationError::utf8(err)
     }
 }
-<span class="kw">impl </span>From&lt;url::ParseError&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>From&lt;url::ParseError&gt; <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(err: url::ParseError) -&gt; <span class="self">Self </span>{
         ValidationError::invalid_url(err)
@@ -1922,229 +1924,229 @@
 }
 
 <span class="doccomment">/// Textual representation of various validation errors.
-</span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>ValidationError&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>ValidationError&lt;<span class="lifetime">'_</span>&gt; {
     <span class="attr">#[allow(clippy::too_many_lines)] </span><span class="comment">// The function is long but it does formatting only
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
-            ValidationErrorKind::Schema =&gt; f.write_str(<span class="string">&quot;Schema error&quot;</span>),
+            ValidationErrorKind::Schema =&gt; f.write_str(<span class="string">"Schema error"</span>),
             ValidationErrorKind::JSONParse { error } =&gt; error.fmt(f),
             ValidationErrorKind::Resolver { url, error } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;failed to resolve {}: {}&quot;</span>, url, error)
+                <span class="macro">write!</span>(f, <span class="string">"failed to resolve {}: {}"</span>, url, error)
             }
             ValidationErrorKind::FileNotFound { error } =&gt; error.fmt(f),
             ValidationErrorKind::InvalidURL { error } =&gt; error.fmt(f),
             ValidationErrorKind::BacktrackLimitExceeded { error } =&gt; error.fmt(f),
             ValidationErrorKind::UnknownReferenceScheme { scheme } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;Unknown scheme: {}&quot;</span>, scheme)
+                <span class="macro">write!</span>(f, <span class="string">"Unknown scheme: {}"</span>, scheme)
             }
             ValidationErrorKind::Format { format } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">r#&quot;{} is not a &quot;{}&quot;&quot;#</span>, <span class="self">self</span>.instance, format)
+                <span class="macro">write!</span>(f, <span class="string">r#"{} is not a "{}""#</span>, <span class="self">self</span>.instance, format)
             }
             ValidationErrorKind::AdditionalItems { limit } =&gt; {
-                <span class="comment">// It&#39;s safe to unwrap here as ValidationErrorKind::AdditionalItems is reported only in
+                <span class="comment">// It's safe to unwrap here as ValidationErrorKind::AdditionalItems is reported only in
                 // case of arrays with more items than expected
                 </span><span class="kw">let </span>extras: Vec&lt;<span class="kw-2">&amp;</span>Value&gt; = <span class="self">self
                     </span>.instance
                     .as_array()
-                    .expect(<span class="string">&quot;Always valid&quot;</span>)
+                    .expect(<span class="string">"Always valid"</span>)
                     .iter()
                     .skip(<span class="kw-2">*</span>limit)
                     .collect();
                 <span class="kw">let </span>verb = {
                     <span class="kw">if </span>extras.len() == <span class="number">1 </span>{
-                        <span class="string">&quot;was&quot;
+                        <span class="string">"was"
                     </span>} <span class="kw">else </span>{
-                        <span class="string">&quot;were&quot;
+                        <span class="string">"were"
                     </span>}
                 };
                 <span class="macro">write!</span>(
                     f,
-                    <span class="string">&quot;Additional items are not allowed ({} {} unexpected)&quot;</span>,
+                    <span class="string">"Additional items are not allowed ({} {} unexpected)"</span>,
                     extras
                         .iter()
                         .map(ToString::to_string)
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>),
+                        .join(<span class="string">", "</span>),
                     verb
                 )
             }
             ValidationErrorKind::AdditionalProperties { unexpected } =&gt; {
                 <span class="kw">let </span>verb = {
                     <span class="kw">if </span>unexpected.len() == <span class="number">1 </span>{
-                        <span class="string">&quot;was&quot;
+                        <span class="string">"was"
                     </span>} <span class="kw">else </span>{
-                        <span class="string">&quot;were&quot;
+                        <span class="string">"were"
                     </span>}
                 };
                 <span class="macro">write!</span>(
                     f,
-                    <span class="string">&quot;Additional properties are not allowed ({} {} unexpected)&quot;</span>,
+                    <span class="string">"Additional properties are not allowed ({} {} unexpected)"</span>,
                     unexpected
                         .iter()
-                        .map(|x| <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, x))
+                        .map(|x| <span class="macro">format!</span>(<span class="string">"'{}'"</span>, x))
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>),
+                        .join(<span class="string">", "</span>),
                     verb
                 )
             }
             ValidationErrorKind::AnyOf =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is not valid under any of the schemas listed in the &#39;anyOf&#39; keyword&quot;</span>,
+                <span class="string">"{} is not valid under any of the schemas listed in the 'anyOf' keyword"</span>,
                 <span class="self">self</span>.instance
             ),
             ValidationErrorKind::OneOfNotValid =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is not valid under any of the schemas listed in the &#39;oneOf&#39; keyword&quot;</span>,
+                <span class="string">"{} is not valid under any of the schemas listed in the 'oneOf' keyword"</span>,
                 <span class="self">self</span>.instance
             ),
             ValidationErrorKind::Contains =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;None of {} are valid under the given schema&quot;</span>,
+                <span class="string">"None of {} are valid under the given schema"</span>,
                 <span class="self">self</span>.instance
             ),
             ValidationErrorKind::Constant { expected_value } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} was expected&quot;</span>, expected_value)
+                <span class="macro">write!</span>(f, <span class="string">"{} was expected"</span>, expected_value)
             }
             ValidationErrorKind::ContentEncoding { content_encoding } =&gt; {
                 <span class="macro">write!</span>(
                     f,
-                    <span class="string">r#&quot;{} is not compliant with &quot;{}&quot; content encoding&quot;#</span>,
+                    <span class="string">r#"{} is not compliant with "{}" content encoding"#</span>,
                     <span class="self">self</span>.instance, content_encoding
                 )
             }
             ValidationErrorKind::ContentMediaType { content_media_type } =&gt; {
                 <span class="macro">write!</span>(
                     f,
-                    <span class="string">r#&quot;{} is not compliant with &quot;{}&quot; media type&quot;#</span>,
+                    <span class="string">r#"{} is not compliant with "{}" media type"#</span>,
                     <span class="self">self</span>.instance, content_media_type
                 )
             }
             ValidationErrorKind::FromUtf8 { error } =&gt; error.fmt(f),
             ValidationErrorKind::Utf8 { error } =&gt; error.fmt(f),
             ValidationErrorKind::Enum { options } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} is not one of {}&quot;</span>, <span class="self">self</span>.instance, options)
+                <span class="macro">write!</span>(f, <span class="string">"{} is not one of {}"</span>, <span class="self">self</span>.instance, options)
             }
             ValidationErrorKind::ExclusiveMaximum { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is greater than or equal to the maximum of {}&quot;</span>,
+                <span class="string">"{} is greater than or equal to the maximum of {}"</span>,
                 <span class="self">self</span>.instance, limit
             ),
             ValidationErrorKind::ExclusiveMinimum { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is less than or equal to the minimum of {}&quot;</span>,
+                <span class="string">"{} is less than or equal to the minimum of {}"</span>,
                 <span class="self">self</span>.instance, limit
             ),
             ValidationErrorKind::FalseSchema =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;False schema does not allow {}&quot;</span>, <span class="self">self</span>.instance)
+                <span class="macro">write!</span>(f, <span class="string">"False schema does not allow {}"</span>, <span class="self">self</span>.instance)
             }
             ValidationErrorKind::InvalidReference { reference } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;Invalid reference: {}&quot;</span>, reference)
+                <span class="macro">write!</span>(f, <span class="string">"Invalid reference: {}"</span>, reference)
             }
             ValidationErrorKind::Maximum { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is greater than the maximum of {}&quot;</span>,
+                <span class="string">"{} is greater than the maximum of {}"</span>,
                 <span class="self">self</span>.instance, limit
             ),
             ValidationErrorKind::Minimum { limit } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} is less than the minimum of {}&quot;</span>, <span class="self">self</span>.instance, limit)
+                <span class="macro">write!</span>(f, <span class="string">"{} is less than the minimum of {}"</span>, <span class="self">self</span>.instance, limit)
             }
             ValidationErrorKind::MaxLength { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is longer than {} character{}&quot;</span>,
+                <span class="string">"{} is longer than {} character{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;s&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"s" </span>}
             ),
             ValidationErrorKind::MinLength { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is shorter than {} character{}&quot;</span>,
+                <span class="string">"{} is shorter than {} character{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;s&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"s" </span>}
             ),
             ValidationErrorKind::MaxItems { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} has more than {} item{}&quot;</span>,
+                <span class="string">"{} has more than {} item{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;s&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"s" </span>}
             ),
             ValidationErrorKind::MinItems { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} has less than {} item{}&quot;</span>,
+                <span class="string">"{} has less than {} item{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;s&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"s" </span>}
             ),
             ValidationErrorKind::MaxProperties { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} has more than {} propert{}&quot;</span>,
+                <span class="string">"{} has more than {} propert{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;y&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;ies&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"y" </span>} <span class="kw">else </span>{ <span class="string">"ies" </span>}
             ),
             ValidationErrorKind::MinProperties { limit } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} has less than {} propert{}&quot;</span>,
+                <span class="string">"{} has less than {} propert{}"</span>,
                 <span class="self">self</span>.instance,
                 limit,
-                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">&quot;y&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;ies&quot; </span>}
+                <span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">1 </span>{ <span class="string">"y" </span>} <span class="kw">else </span>{ <span class="string">"ies" </span>}
             ),
             ValidationErrorKind::Not { schema } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} is not allowed for {}&quot;</span>, schema, <span class="self">self</span>.instance)
+                <span class="macro">write!</span>(f, <span class="string">"{} is not allowed for {}"</span>, schema, <span class="self">self</span>.instance)
             }
             ValidationErrorKind::OneOfMultipleValid =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is valid under more than one of the schemas listed in the &#39;oneOf&#39; keyword&quot;</span>,
+                <span class="string">"{} is valid under more than one of the schemas listed in the 'oneOf' keyword"</span>,
                 <span class="self">self</span>.instance
             ),
             ValidationErrorKind::Pattern { pattern } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">r#&quot;{} does not match &quot;{}&quot;&quot;#</span>, <span class="self">self</span>.instance, pattern)
+                <span class="macro">write!</span>(f, <span class="string">r#"{} does not match "{}""#</span>, <span class="self">self</span>.instance, pattern)
             }
             ValidationErrorKind::PropertyNames { error } =&gt; error.fmt(f),
             ValidationErrorKind::Required { property } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} is a required property&quot;</span>, property)
+                <span class="macro">write!</span>(f, <span class="string">"{} is a required property"</span>, property)
             }
             ValidationErrorKind::MultipleOf { multiple_of } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} is not a multiple of {}&quot;</span>, <span class="self">self</span>.instance, multiple_of)
+                <span class="macro">write!</span>(f, <span class="string">"{} is not a multiple of {}"</span>, <span class="self">self</span>.instance, multiple_of)
             }
             ValidationErrorKind::UnevaluatedProperties { unexpected } =&gt; {
                 <span class="kw">let </span>verb = {
                     <span class="kw">if </span>unexpected.len() == <span class="number">1 </span>{
-                        <span class="string">&quot;was&quot;
+                        <span class="string">"was"
                     </span>} <span class="kw">else </span>{
-                        <span class="string">&quot;were&quot;
+                        <span class="string">"were"
                     </span>}
                 };
                 <span class="macro">write!</span>(
                     f,
-                    <span class="string">&quot;Unevaluated properties are not allowed ({} {} unexpected)&quot;</span>,
+                    <span class="string">"Unevaluated properties are not allowed ({} {} unexpected)"</span>,
                     unexpected
                         .iter()
-                        .map(|x| <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, x))
+                        .map(|x| <span class="macro">format!</span>(<span class="string">"'{}'"</span>, x))
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>),
+                        .join(<span class="string">", "</span>),
                     verb
                 )
             }
             ValidationErrorKind::UniqueItems =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{} has non-unique elements&quot;</span>, <span class="self">self</span>.instance)
+                <span class="macro">write!</span>(f, <span class="string">"{} has non-unique elements"</span>, <span class="self">self</span>.instance)
             }
             ValidationErrorKind::Type {
                 kind: TypeKind::Single(type_),
-            } =&gt; <span class="macro">write!</span>(f, <span class="string">r#&quot;{} is not of type &quot;{}&quot;&quot;#</span>, <span class="self">self</span>.instance, type_),
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">r#"{} is not of type "{}""#</span>, <span class="self">self</span>.instance, type_),
             ValidationErrorKind::Type {
                 kind: TypeKind::Multiple(types),
             } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{} is not of types {}&quot;</span>,
+                <span class="string">"{} is not of types {}"</span>,
                 <span class="self">self</span>.instance,
                 types
                     .into_iter()
-                    .map(|t| <span class="macro">format!</span>(<span class="string">r#&quot;&quot;{}&quot;&quot;#</span>, t))
+                    .map(|t| <span class="macro">format!</span>(<span class="string">r#""{}""#</span>, t))
                     .collect::&lt;Vec&lt;String&gt;&gt;()
-                    .join(<span class="string">&quot;, &quot;</span>)
+                    .join(<span class="string">", "</span>)
             ),
         }
     }
@@ -2166,7 +2168,7 @@
             <span class="kw-2">&amp;</span>instance,
             PrimitiveType::String,
         );
-        <span class="macro">assert_eq!</span>(err.to_string(), <span class="string">r#&quot;42 is not of type &quot;string&quot;&quot;#</span>)
+        <span class="macro">assert_eq!</span>(err.to_string(), <span class="string">r#"42 is not of type "string""#</span>)
     }
 
     <span class="attr">#[test]
@@ -2178,24 +2180,24 @@
             <span class="kw-2">&amp;</span>instance,
             <span class="macro">vec!</span>[PrimitiveType::String, PrimitiveType::Number].into(),
         );
-        <span class="macro">assert_eq!</span>(err.to_string(), <span class="string">r#&quot;42 is not of types &quot;number&quot;, &quot;string&quot;&quot;#</span>)
+        <span class="macro">assert_eq!</span>(err.to_string(), <span class="string">r#"42 is not of types "number", "string""#</span>)
     }
 
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;bar&quot;</span>: <span class="number">42</span>}}), <span class="kw-2">&amp;</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>]</span>)]
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;foo&quot;</span>]</span>)]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;bar&quot;</span>: <span class="number">42</span>}}), <span class="kw-2">&amp;</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>]</span>)]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;foo&quot;</span>]</span>)]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: {<span class="string">"bar"</span>: <span class="number">42</span>}}), <span class="kw-2">&amp;</span>[<span class="string">"foo"</span>, <span class="string">"bar"</span>]</span>)]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"foo"</span>]</span>)]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: {<span class="string">"bar"</span>: <span class="number">42</span>}}), <span class="kw-2">&amp;</span>[<span class="string">"foo"</span>, <span class="string">"bar"</span>]</span>)]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"foo"</span>]</span>)]
     <span class="kw">fn </span>instance_path_properties(additional_properties: bool, instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
         <span class="kw">let </span>schema = <span class="macro">json!</span>(
             {
-                <span class="string">&quot;additionalProperties&quot;</span>: additional_properties,
-                <span class="string">&quot;type&quot;</span>:<span class="string">&quot;object&quot;</span>,
-                <span class="string">&quot;properties&quot;</span>:{
-                   <span class="string">&quot;foo&quot;</span>:{
-                      <span class="string">&quot;type&quot;</span>:<span class="string">&quot;object&quot;</span>,
-                      <span class="string">&quot;properties&quot;</span>:{
-                         <span class="string">&quot;bar&quot;</span>:{
-                            <span class="string">&quot;type&quot;</span>:<span class="string">&quot;string&quot;
+                <span class="string">"additionalProperties"</span>: additional_properties,
+                <span class="string">"type"</span>:<span class="string">"object"</span>,
+                <span class="string">"properties"</span>:{
+                   <span class="string">"foo"</span>:{
+                      <span class="string">"type"</span>:<span class="string">"object"</span>,
+                      <span class="string">"properties"</span>:{
+                         <span class="string">"bar"</span>:{
+                            <span class="string">"type"</span>:<span class="string">"string"
                          </span>}
                       }
                    }
@@ -2203,17 +2205,17 @@
             }
         );
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">&quot;error iterator&quot;</span>);
-        <span class="kw">let </span>error = result.next().expect(<span class="string">&quot;validation error&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">"error iterator"</span>);
+        <span class="kw">let </span>error = result.next().expect(<span class="string">"validation error"</span>);
 
         <span class="macro">assert!</span>(result.next().is_none());
         <span class="macro">assert_eq!</span>(error.instance_path, JSONPointer::from(expected));
     }
 
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, {<span class="string">&quot;foo&quot;</span>: [<span class="string">&quot;42&quot;</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">0</span>)])]
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="string">&quot;a&quot;</span>, {<span class="string">&quot;foo&quot;</span>: [<span class="number">42</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Property(<span class="string">&quot;foo&quot;</span>.into()), PathChunk::Index(<span class="number">0</span>)])]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, {<span class="string">&quot;foo&quot;</span>: [<span class="string">&quot;42&quot;</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">0</span>)])]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="string">&quot;a&quot;</span>, {<span class="string">&quot;foo&quot;</span>: [<span class="number">42</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Property(<span class="string">&quot;foo&quot;</span>.into()), PathChunk::Index(<span class="number">0</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, {<span class="string">"foo"</span>: [<span class="string">"42"</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">0</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="string">"a"</span>, {<span class="string">"foo"</span>: [<span class="number">42</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Property(<span class="string">"foo"</span>.into()), PathChunk::Index(<span class="number">0</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, {<span class="string">"foo"</span>: [<span class="string">"42"</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">0</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="string">"a"</span>, {<span class="string">"foo"</span>: [<span class="number">42</span>]</span>}]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Property(<span class="string">"foo"</span>.into()), PathChunk::Index(<span class="number">0</span>)])]
     <span class="kw">fn </span>instance_path_properties_and_arrays(
         additional_items: bool,
         instance: <span class="kw-2">&amp;</span>Value,
@@ -2221,20 +2223,20 @@
     ) {
         <span class="kw">let </span>schema = <span class="macro">json!</span>(
             {
-                <span class="string">&quot;additionalItems&quot;</span>: additional_items,
-                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
-                <span class="string">&quot;items&quot;</span>: [
+                <span class="string">"additionalItems"</span>: additional_items,
+                <span class="string">"type"</span>: <span class="string">"array"</span>,
+                <span class="string">"items"</span>: [
                     {
-                        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;
+                        <span class="string">"type"</span>: <span class="string">"string"
                     </span>},
                     {
-                        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;</span>,
-                        <span class="string">&quot;properties&quot;</span>: {
-                            <span class="string">&quot;foo&quot;</span>: {
-                                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
-                                <span class="string">&quot;items&quot;</span>: [
+                        <span class="string">"type"</span>: <span class="string">"object"</span>,
+                        <span class="string">"properties"</span>: {
+                            <span class="string">"foo"</span>: {
+                                <span class="string">"type"</span>: <span class="string">"array"</span>,
+                                <span class="string">"items"</span>: [
                                     {
-                                        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;
+                                        <span class="string">"type"</span>: <span class="string">"string"
                                     </span>}
                                 ]
                             }
@@ -2244,15 +2246,15 @@
             }
         );
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">&quot;error iterator&quot;</span>);
-        <span class="kw">let </span>error = result.next().expect(<span class="string">&quot;validation error&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">"error iterator"</span>);
+        <span class="kw">let </span>error = result.next().expect(<span class="string">"validation error"</span>);
 
         <span class="macro">assert!</span>(result.next().is_none());
         <span class="macro">assert_eq!</span>(error.instance_path, JSONPointer::from(expected));
     }
 
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="string">&quot;5&quot;</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Index(<span class="number">1</span>)])]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="string">&quot;5&quot;</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Index(<span class="number">1</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="string">"5"</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Index(<span class="number">1</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="string">"5"</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>), PathChunk::Index(<span class="number">1</span>)])]
     <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], <span class="number">42</span>]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">2</span>)])]
     <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span>, [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], <span class="number">42</span>]), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">2</span>)])]
     <span class="kw">fn </span>instance_path_nested_arrays(
@@ -2262,41 +2264,41 @@
     ) {
         <span class="kw">let </span>schema = <span class="macro">json!</span>(
             {
-                <span class="string">&quot;additionalItems&quot;</span>: additional_items,
-                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
-                <span class="string">&quot;items&quot;</span>: {
-                    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
-                    <span class="string">&quot;items&quot;</span>: {
-                        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;
+                <span class="string">"additionalItems"</span>: additional_items,
+                <span class="string">"type"</span>: <span class="string">"array"</span>,
+                <span class="string">"items"</span>: {
+                    <span class="string">"type"</span>: <span class="string">"array"</span>,
+                    <span class="string">"items"</span>: {
+                        <span class="string">"type"</span>: <span class="string">"integer"
                     </span>}
                 }
             }
         );
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">&quot;error iterator&quot;</span>);
-        <span class="kw">let </span>error = result.next().expect(<span class="string">&quot;validation error&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">"error iterator"</span>);
+        <span class="kw">let </span>error = result.next().expect(<span class="string">"validation error"</span>);
 
         <span class="macro">assert!</span>(result.next().is_none());
         <span class="macro">assert_eq!</span>(error.instance_path, JSONPointer::from(expected));
     }
 
-    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, <span class="string">&quot;a&quot;</span>]</span>), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>)])]
-    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, <span class="string">&quot;a&quot;</span>]</span>), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, <span class="string">"a"</span>]</span>), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>)])]
+    <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>([<span class="number">1</span>, <span class="string">"a"</span>]</span>), <span class="kw-2">&amp;</span>[PathChunk::Index(<span class="number">1</span>)])]
     <span class="attr">#[test_case(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">123</span>), <span class="kw-2">&amp;</span>[]</span>)]
     <span class="attr">#[test_case(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">123</span>), <span class="kw-2">&amp;</span>[]</span>)]
     <span class="kw">fn </span>instance_path_arrays(additional_items: bool, instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[PathChunk]) {
         <span class="kw">let </span>schema = <span class="macro">json!</span>(
             {
-                <span class="string">&quot;additionalItems&quot;</span>: additional_items,
-                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
-                <span class="string">&quot;items&quot;</span>: {
-                    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;
+                <span class="string">"additionalItems"</span>: additional_items,
+                <span class="string">"type"</span>: <span class="string">"array"</span>,
+                <span class="string">"items"</span>: {
+                    <span class="string">"type"</span>: <span class="string">"integer"
                 </span>}
             }
         );
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">&quot;error iterator&quot;</span>);
-        <span class="kw">let </span>error = result.next().expect(<span class="string">&quot;validation error&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>result = compiled.validate(instance).expect_err(<span class="string">"error iterator"</span>);
+        <span class="kw">let </span>error = result.next().expect(<span class="string">"validation error"</span>);
 
         <span class="macro">assert!</span>(result.next().is_none());
         <span class="macro">assert_eq!</span>(error.instance_path, JSONPointer::from(expected));

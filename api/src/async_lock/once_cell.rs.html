@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/once_cell.rs`."><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_lock"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/once_cell.rs`."><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -803,7 +805,7 @@
 <span class="kw">use </span>core::ptr;
 <span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
 
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">use </span>core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 <span class="kw">use </span>event_listener::{Event, EventListener};
@@ -827,7 +829,7 @@
             <span class="number">0 </span>=&gt; State::Uninitialized,
             <span class="number">1 </span>=&gt; State::Initializing,
             <span class="number">2 </span>=&gt; State::Initialized,
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid state&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Invalid state"</span>),
         }
     }
 }
@@ -1118,7 +1120,7 @@
     ///
     /// assert_eq!(cell.wait_blocking(), &amp;1);
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>wait_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="comment">// Fast path: see if the value is already initialized.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1223,7 +1225,7 @@
     ///
     /// assert_eq!(result.unwrap(), &amp;1);
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>get_or_try_init_blocking&lt;E&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         closure: <span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
@@ -1298,7 +1300,7 @@
     /// assert_eq!(cell.get_or_init_blocking(|| 1), &amp;1);
     /// assert_eq!(cell.get_or_init_blocking(|| 2), &amp;1);
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>get_or_init_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, closure: <span class="kw">impl </span>FnOnce() -&gt; T + Unpin) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw">match </span><span class="self">self</span>.get_or_try_init_blocking(<span class="kw">move </span>|| {
             <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;T, Infallible&gt; = <span class="prelude-val">Ok</span>(closure());
@@ -1365,7 +1367,7 @@
     /// assert_eq!(cell.get(), Some(&amp;1));
     /// assert_eq!(cell.set_blocking(2), Err(2));
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>set_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="prelude-val">Some</span>(value);
         <span class="self">self</span>.get_or_init_blocking(|| value.take().unwrap());
@@ -1385,9 +1387,9 @@
     </span><span class="kw">async fn </span>initialize_or_wait&lt;E, Fut: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt;, F: FnOnce() -&gt; Fut&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         closure: F,
-        strategy: <span class="kw-2">&amp;mut </span><span class="kw">impl for</span>&lt;<span class="lifetime">&#39;a</span>&gt; Strategy&lt;<span class="lifetime">&#39;a</span>&gt;,
+        strategy: <span class="kw-2">&amp;mut </span><span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>&gt; Strategy&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
-        <span class="comment">// The event listener we&#39;re currently waiting on.
+        <span class="comment">// The event listener we're currently waiting on.
         </span><span class="kw">let </span>event_listener = EventListener::new();
         <span class="macro">pin!</span>(event_listener);
 
@@ -1431,7 +1433,7 @@
                         </span><span class="kw">continue</span>;
                     }
 
-                    <span class="comment">// Now that we have an exclusive lock on the cell&#39;s value,
+                    <span class="comment">// Now that we have an exclusive lock on the cell's value,
                     // we can try to initialize it.
                     </span><span class="kw">let </span>_guard = Guard(<span class="self">self</span>);
                     <span class="kw">let </span>initializer = closure.take().unwrap();
@@ -1463,19 +1465,19 @@
             }
         }
 
-        <span class="doccomment">/// Set the cell&#39;s state back to `UNINITIALIZED on drop.
+        <span class="doccomment">/// Set the cell's state back to `UNINITIALIZED on drop.
         ///
-        /// If the closure panics, this ensures that the cell&#39;s state is set back to
+        /// If the closure panics, this ensures that the cell's state is set back to
         /// `UNINITIALIZED` and that the next listener is notified.
-        </span><span class="kw">struct </span>Guard&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OnceCell&lt;T&gt;);
+        </span><span class="kw">struct </span>Guard&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>OnceCell&lt;T&gt;);
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">'a</span>, T&gt; {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
                 <span class="self">self</span>.<span class="number">0
                     </span>.state
                     .store(State::Uninitialized.into(), Ordering::Release);
 
-                <span class="comment">// Notify the next initializer that it&#39;s their turn.
+                <span class="comment">// Notify the next initializer that it's their turn.
                 </span><span class="self">self</span>.<span class="number">0</span>.active_initializers.notify(<span class="number">1</span>);
             }
         }
@@ -1529,16 +1531,16 @@
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>OnceCell&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="kw">struct </span>Inner&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OnceCell&lt;T&gt;);
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">struct </span>Inner&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>OnceCell&lt;T&gt;);
 
-        <span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Inner&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Inner&lt;<span class="lifetime">'_</span>, T&gt; {
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
                 <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.state.load(Ordering::Acquire).into() {
-                    State::Uninitialized =&gt; f.write_str(<span class="string">&quot;&lt;uninitialized&gt;&quot;</span>),
-                    State::Initializing =&gt; f.write_str(<span class="string">&quot;&lt;initializing&gt;&quot;</span>),
+                    State::Uninitialized =&gt; f.write_str(<span class="string">"&lt;uninitialized&gt;"</span>),
+                    State::Initializing =&gt; f.write_str(<span class="string">"&lt;initializing&gt;"</span>),
                     State::Initialized =&gt; {
-                        <span class="comment">// SAFETY: &quot;value&quot; is initialized.
+                        <span class="comment">// SAFETY: "value" is initialized.
                         </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ <span class="self">self</span>.<span class="number">0</span>.get_unchecked() };
                         fmt::Debug::fmt(value, f)
                     }
@@ -1546,7 +1548,7 @@
             }
         }
 
-        f.debug_tuple(<span class="string">&quot;OnceCell&quot;</span>).field(<span class="kw-2">&amp;</span>Inner(<span class="self">self</span>)).finish()
+        f.debug_tuple(<span class="string">"OnceCell"</span>).field(<span class="kw-2">&amp;</span>Inner(<span class="self">self</span>)).finish()
     }
 }
 
@@ -1569,7 +1571,7 @@
 }
 
 <span class="doccomment">/// Either return the result of a future now, or panic.
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">fn </span>now_or_never&lt;T&gt;(f: <span class="kw">impl </span>Future&lt;Output = T&gt;) -&gt; T {
     <span class="kw">const </span>NOOP_WAKER: RawWakerVTable = RawWakerVTable::new(clone, wake, wake_by_ref, drop);
 
@@ -1589,7 +1591,7 @@
 
     <span class="kw">match </span>f.poll(<span class="kw-2">&amp;mut </span>cx) {
         Poll::Ready(value) =&gt; value,
-        Poll::Pending =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;future not ready&quot;</span>),
+        Poll::Pending =&gt; <span class="macro">unreachable!</span>(<span class="string">"future not ready"</span>),
     }
 }
 </code></pre></div></section></main></body></html>

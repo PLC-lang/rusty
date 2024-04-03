@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1210,7 +1212,7 @@
     //TODO: We should reduce the clone here
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
-        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to critical parse errors&quot;</span>).with_sub_diagnostics(errors))
+        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">"Compilation aborted due to critical parse errors"</span>).with_sub_diagnostics(errors))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(unit)
     }
@@ -1225,7 +1227,7 @@
             PropertyExternal =&gt; {
                 linkage = LinkageType::External;
                 lexer.advance();
-                <span class="comment">//Don&#39;t reset linkage
+                <span class="comment">//Don't reset linkage
                 </span><span class="kw">continue</span>;
             }
             KeywordVarGlobal =&gt; unit.global_vars.push(parse_variable_block(<span class="kw-2">&amp;mut </span>lexer, linkage)),
@@ -1248,7 +1250,7 @@
                 }
             }
             KeywordActions =&gt; {
-                <span class="kw">let </span>last_pou = unit.units.last().map(|it| it.name.as_str()).unwrap_or(<span class="string">&quot;__unknown__&quot;</span>);
+                <span class="kw">let </span>last_pou = unit.units.last().map(|it| it.name.as_str()).unwrap_or(<span class="string">"__unknown__"</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>actions = parse_actions(<span class="kw-2">&amp;mut </span>lexer, linkage, last_pou);
                 unit.implementations.append(<span class="kw-2">&amp;mut </span>actions);
             }
@@ -1261,7 +1263,7 @@
             KeywordEndActions | End =&gt; <span class="kw">return </span>(unit, lexer.diagnostics),
             <span class="kw">_ </span>=&gt; {
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    <span class="string">&quot;StartKeyword&quot;</span>,
+                    <span class="string">"StartKeyword"</span>,
                     lexer.slice(),
                     lexer.location(),
                 ));
@@ -1294,7 +1296,7 @@
                 }
                 <span class="kw">_ </span>=&gt; {
                     lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                        <span class="string">&quot;KeywordAction&quot;</span>,
+                        <span class="string">"KeywordAction"</span>,
                         lexer.slice(),
                         lexer.location(),
                     ));
@@ -1337,7 +1339,7 @@
         </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type);
 
         <span class="kw">let </span>(name, name_location) =
-            parse_identifier(lexer).unwrap_or_else(|| (<span class="string">&quot;&quot;</span>.to_string(), SourceLocation::undefined())); <span class="comment">// parse POU name
+            parse_identifier(lexer).unwrap_or_else(|| (<span class="string">""</span>.to_string(), SourceLocation::undefined())); <span class="comment">// parse POU name
 
         </span><span class="kw">let </span>generics = parse_generics(lexer);
 
@@ -1354,7 +1356,7 @@
             // blocks are not allowed inside of class declarations.
             </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
             <span class="kw">let </span>allowed_var_types =
-                <span class="macro">vec!</span>[KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+                [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
             <span class="kw">while </span>allowed_var_types.contains(<span class="kw-2">&amp;</span>lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
@@ -1363,7 +1365,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>implementations = <span class="macro">vec!</span>[];
 
             <span class="comment">// classes and function blocks can have methods. methods consist of a Pou part
-            // and an implementation part. That&#39;s why we get another (Pou, Implementation)
+            // and an implementation part. That's why we get another (Pou, Implementation)
             // tuple out of parse_method() that has to be added to the list of Pous and
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
@@ -1408,7 +1410,7 @@
     <span class="comment">//check if we ended on the right end-keyword
     </span><span class="kw">if </span>closing_tokens.contains(<span class="kw-2">&amp;</span>lexer.last_token) &amp;&amp; lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            <span class="macro">format!</span>(<span class="string">&quot;{expected_end_token:?}&quot;</span>).as_str(),
+            <span class="macro">format!</span>(<span class="string">"{expected_end_token:?}"</span>).as_str(),
             lexer.slice_region(lexer.last_range.clone()),
             lexer.source_range_factory.create_range(lexer.last_range.clone()),
         ));
@@ -1446,27 +1448,27 @@
 
 <span class="kw">fn </span>parse_type_nature(lexer: <span class="kw-2">&amp;mut </span>ParseSession, nature: <span class="kw-2">&amp;</span>str) -&gt; TypeNature {
     <span class="kw">match </span>nature {
-        <span class="string">&quot;ANY&quot; </span>=&gt; TypeNature::Any,
-        <span class="string">&quot;ANY_DERIVED&quot; </span>=&gt; TypeNature::Derived,
-        <span class="string">&quot;ANY_ELEMENTARY&quot; </span>=&gt; TypeNature::Elementary,
-        <span class="string">&quot;ANY_MAGNITUDE&quot; </span>=&gt; TypeNature::Magnitude,
-        <span class="string">&quot;ANY_NUM&quot; </span>=&gt; TypeNature::Num,
-        <span class="string">&quot;ANY_REAL&quot; </span>=&gt; TypeNature::Real,
-        <span class="string">&quot;ANY_INT&quot; </span>=&gt; TypeNature::Int,
-        <span class="string">&quot;ANY_SIGNED&quot; </span>=&gt; TypeNature::Signed,
-        <span class="string">&quot;ANY_UNSIGNED&quot; </span>=&gt; TypeNature::Unsigned,
-        <span class="string">&quot;ANY_DURATION&quot; </span>=&gt; TypeNature::Duration,
-        <span class="string">&quot;ANY_BIT&quot; </span>=&gt; TypeNature::Bit,
-        <span class="string">&quot;ANY_CHARS&quot; </span>=&gt; TypeNature::Chars,
-        <span class="string">&quot;ANY_STRING&quot; </span>=&gt; TypeNature::String,
-        <span class="string">&quot;ANY_CHAR&quot; </span>=&gt; TypeNature::Char,
-        <span class="string">&quot;ANY_DATE&quot; </span>=&gt; TypeNature::Date,
-        <span class="string">&quot;__ANY_VLA&quot; </span>=&gt; TypeNature::__VLA,
+        <span class="string">"ANY" </span>=&gt; TypeNature::Any,
+        <span class="string">"ANY_DERIVED" </span>=&gt; TypeNature::Derived,
+        <span class="string">"ANY_ELEMENTARY" </span>=&gt; TypeNature::Elementary,
+        <span class="string">"ANY_MAGNITUDE" </span>=&gt; TypeNature::Magnitude,
+        <span class="string">"ANY_NUM" </span>=&gt; TypeNature::Num,
+        <span class="string">"ANY_REAL" </span>=&gt; TypeNature::Real,
+        <span class="string">"ANY_INT" </span>=&gt; TypeNature::Int,
+        <span class="string">"ANY_SIGNED" </span>=&gt; TypeNature::Signed,
+        <span class="string">"ANY_UNSIGNED" </span>=&gt; TypeNature::Unsigned,
+        <span class="string">"ANY_DURATION" </span>=&gt; TypeNature::Duration,
+        <span class="string">"ANY_BIT" </span>=&gt; TypeNature::Bit,
+        <span class="string">"ANY_CHARS" </span>=&gt; TypeNature::Chars,
+        <span class="string">"ANY_STRING" </span>=&gt; TypeNature::String,
+        <span class="string">"ANY_CHAR" </span>=&gt; TypeNature::Char,
+        <span class="string">"ANY_DATE" </span>=&gt; TypeNature::Date,
+        <span class="string">"__ANY_VLA" </span>=&gt; TypeNature::__VLA,
         <span class="kw">_ </span>=&gt; {
             lexer.accept_diagnostic(
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Unkown type nature `{nature}`&quot;</span>))
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unkown type nature `{nature}`"</span>))
                     .with_location(lexer.location())
-                    .with_error_code(<span class="string">&quot;E063&quot;</span>),
+                    .with_error_code(<span class="string">"E063"</span>),
             );
             TypeNature::Any
         }
@@ -1506,18 +1508,18 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration, initializer)) = parse_data_type_definition(lexer, <span class="prelude-val">None</span>) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = initializer {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="string">&quot;Return types cannot have a default value, the value will be ignored&quot;</span>)
+                    Diagnostic::new(<span class="string">"Return types cannot have a default value, the value will be ignored"</span>)
                         .with_location(init.get_location())
-                        .with_error_code(<span class="string">&quot;E016&quot;</span>),
+                        .with_error_code(<span class="string">"E016"</span>),
                 );
             }
 
             <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">&quot;POU Type {pou_type:?} does not support a return type. Did you mean Function?&quot;
+                        <span class="string">"POU Type {pou_type:?} does not support a return type. Did you mean Function?"
                     </span>))
-                    .with_error_code(<span class="string">&quot;E026&quot;</span>)
+                    .with_error_code(<span class="string">"E026"</span>)
                     .with_location(
                         lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
                     ),
@@ -1530,13 +1532,13 @@
                         .get_location()
                         .to_range()
                         .map(|range| <span class="kw-2">&amp;</span>lexer.get_src()[range])
-                        .expect(<span class="string">&quot;Expecing location to be a range during parsing&quot;</span>);
+                        .expect(<span class="string">"Expecing location to be a range during parsing"</span>);
                     lexer.accept_diagnostic(
                         <span class="comment">////TODO: This prints a debug version of the datatype, it should have a user readable version instead
                         </span>Diagnostic::new(<span class="macro">format!</span>(
-                            <span class="string">&quot;Data Type {datatype_name} not supported as a function return type!&quot;
+                            <span class="string">"Data Type {datatype_name} not supported as a function return type!"
                         </span>))
-                        .with_error_code(<span class="string">&quot;E027&quot;</span>)
+                        .with_error_code(<span class="string">"E027"</span>)
                         .with_location(declaration.get_location()),
                     )
                 }
@@ -1545,7 +1547,7 @@
         } <span class="kw">else </span>{
             <span class="comment">//missing return type
             </span>lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                <span class="string">&quot;Datatype&quot;</span>,
+                <span class="string">"Datatype"</span>,
                 lexer.slice(),
                 lexer.source_range_factory.create_range(lexer.range()),
             ));
@@ -1600,7 +1602,7 @@
         );
 
         <span class="comment">// parse_implementation() will default-initialize the fields it
-        // doesn&#39;t know. thus, we have to complete the information.
+        // doesn't know. thus, we have to complete the information.
         </span><span class="kw">let </span>implementation = Implementation { overriding, access, ..implementation };
 
         <span class="kw">let </span>method_end = lexer.range().end;
@@ -1645,7 +1647,7 @@
         <span class="prelude-val">Some</span>((pou_name, lexer.last_location()))
     } <span class="kw">else </span>{
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            <span class="string">&quot;Identifier&quot;</span>,
+            <span class="string">"Identifier"</span>,
             pou_name.as_str(),
             lexer.location(),
         ));
@@ -1717,7 +1719,7 @@
         <span class="comment">//lets see if we ended on the right END_ keyword
         </span><span class="kw">if </span>closing_tokens.contains(<span class="kw-2">&amp;</span>lexer.last_token) &amp;&amp; lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                <span class="macro">format!</span>(<span class="string">&quot;{KeywordEndAction:?}&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"{KeywordEndAction:?}"</span>).as_str(),
                 lexer.slice(),
                 lexer.location(),
             ))
@@ -1797,7 +1799,7 @@
     parsed_datatype
 }
 
-<span class="comment">// TYPE xxx : &#39;STRUCT&#39; | &#39;(&#39; | IDENTIFIER
+<span class="comment">// TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
 </span><span class="kw">fn </span>parse_data_type_definition(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -1820,9 +1822,9 @@
         <span class="kw">let </span>start_pos = lexer.last_range.start;
         <span class="comment">//Report wrong keyword
         </span>lexer.accept_diagnostic(
-            Diagnostic::new(<span class="string">&quot;`POINTER TO` is not a standard keyword, use `REF_TO` instead&quot;</span>)
+            Diagnostic::new(<span class="string">"`POINTER TO` is not a standard keyword, use `REF_TO` instead"</span>)
                 .with_location(lexer.last_location())
-                .with_error_code(<span class="string">&quot;E015&quot;</span>),
+                .with_error_code(<span class="string">"E015"</span>),
         );
         <span class="kw">let </span>expect_keyword_to = |lexer: <span class="kw-2">&amp;mut </span>ParseSession| {
             <span class="macro">expect_token!</span>(lexer, KeywordTo, <span class="prelude-val">None</span>);
@@ -1844,8 +1846,8 @@
     } <span class="kw">else </span>{
         <span class="comment">//no datatype?
         </span>lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            <span class="string">&quot;DataTypeDefinition&quot;</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, lexer.token).as_str(),
+            <span class="string">"DataTypeDefinition"</span>,
+            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, lexer.token).as_str(),
             lexer.location(),
         ));
         <span class="prelude-val">None
@@ -1952,15 +1954,15 @@
                 || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
             {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>)
+                    Diagnostic::new(<span class="string">"Mismatched types of parentheses around string size expression"</span>)
                         .with_location(error_range)
-                        .with_error_code(<span class="string">&quot;E009&quot;</span>),
+                        .with_error_code(<span class="string">"E009"</span>),
                 );
             } <span class="kw">else if </span>opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
                 lexer.accept_diagnostic(Diagnostic::new(
-                    <span class="string">&quot;Unusual type of parentheses around string size expression, consider using square parentheses &#39;[]&#39;&quot;</span>).
+                    <span class="string">"Unusual type of parentheses around string size expression, consider using square parentheses '[]'"</span>).
                     with_location(error_range)
-                    .with_error_code(<span class="string">&quot;E014&quot;</span>)
+                    .with_error_code(<span class="string">"E014"</span>)
                 );
             }
 
@@ -2068,9 +2070,9 @@
             <span class="prelude-val">Some</span>(val) =&gt; val,
             <span class="prelude-val">None </span>=&gt; {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Expected a range statement, got {range:?} instead&quot;</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected a range statement, got {range:?} instead"</span>))
                         .with_location(range.get_location())
-                        .with_error_code(<span class="string">&quot;E008&quot;</span>),
+                        .with_error_code(<span class="string">"E008"</span>),
                 );
                 <span class="bool-val">false
             </span>}
@@ -2105,7 +2107,7 @@
     statements
 }
 
-<span class="doccomment">/// parses a statement ending with a &#39;;&#39;
+<span class="doccomment">/// parses a statement ending with a ';'
 </span><span class="kw">fn </span>parse_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
     <span class="kw">let </span>result = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon, KeywordColon], parse_expression);
     <span class="kw">if </span>lexer.last_token == KeywordColon {
@@ -2167,8 +2169,8 @@
         <span class="comment">//Report a diagnostic if blocktype is incompatible
         </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
-                Diagnostic::new(<span class="string">&quot;Invalid pragma location: Only VAR_INPUT support by ref properties&quot;</span>)
-                    .with_error_code(<span class="string">&quot;E024&quot;</span>)
+                Diagnostic::new(<span class="string">"Invalid pragma location: Only VAR_INPUT support by ref properties"</span>)
+                    .with_error_code(<span class="string">"E024"</span>)
                     .with_location(lexer.location()),
             )
         }
@@ -2234,19 +2236,19 @@
         <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordComma) {
             <span class="kw">let </span>next_token_start = lexer.range().start;
             lexer.accept_diagnostic(Diagnostic::missing_token(
-                <span class="macro">format!</span>(<span class="string">&quot;{KeywordColon:?} or {KeywordComma:?}&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"{KeywordColon:?} or {KeywordComma:?}"</span>).as_str(),
                 lexer.source_range_factory.create_range(identifier_end..next_token_start),
             ));
         }
     }
 
-    <span class="comment">//See if there&#39;s an AT keyword
+    <span class="comment">//See if there's an AT keyword
     </span><span class="kw">let </span>address = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
         <span class="comment">//Look for a hardware address
         </span><span class="kw">if let </span>HardwareAccess((direction, access_type)) = lexer.token {
             parse_hardware_access(lexer, direction, access_type)
         } <span class="kw">else </span>{
-            lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">&quot;Hardware Access&quot;</span>, lexer.location()));
+            lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"Hardware Access"</span>, lexer.location()));
             <span class="prelude-val">None
         </span>}
     } <span class="kw">else </span>{
@@ -2256,7 +2258,7 @@
     <span class="comment">// colon has to come before the data type
     </span><span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
-            <span class="macro">format!</span>(<span class="string">&quot;{KeywordColon:?}&quot;</span>).as_str(),
+            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
             lexer.location(),
         ));
     }
@@ -2304,7 +2306,7 @@
             lexer.next_id(),
         ))
     } <span class="kw">else </span>{
-        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">&quot;LiteralInteger&quot;</span>, lexer.location()));
+        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"LiteralInteger"</span>, lexer.location()));
         <span class="prelude-val">None
     </span>}
 }

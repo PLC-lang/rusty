@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -394,12 +396,12 @@
 //!
 //! ```rust
 //! # async fn run() -&gt; Result&lt;(), reqwest::Error&gt; {
-//! let body = reqwest::get(&quot;https://www.rust-lang.org&quot;)
+//! let body = reqwest::get("https://www.rust-lang.org")
 //!     .await?
 //!     .text()
 //!     .await?;
 //!
-//! println!(&quot;body = {:?}&quot;, body);
+//! println!("body = {:?}", body);
 //! # Ok(())
 //! # }
 //! ```
@@ -421,8 +423,8 @@
 //! #
 //! # async fn run() -&gt; Result&lt;(), Error&gt; {
 //! let client = reqwest::Client::new();
-//! let res = client.post(&quot;http://httpbin.org/post&quot;)
-//!     .body(&quot;the exact body that is sent&quot;)
+//! let res = client.post("http://httpbin.org/post")
+//!     .body("the exact body that is sent")
 //!     .send()
 //!     .await?;
 //! # Ok(())
@@ -431,7 +433,7 @@
 //!
 //! ### Forms
 //!
-//! It&#39;s very common to want to send form data in a request body. This can be
+//! It's very common to want to send form data in a request body. This can be
 //! done with any type that can be serialized into form data.
 //!
 //! This can be an array of tuples, or a `HashMap`, or a custom type that
@@ -442,9 +444,9 @@
 //! #
 //! # async fn run() -&gt; Result&lt;(), Error&gt; {
 //! // This will POST a body of `foo=bar&amp;baz=quux`
-//! let params = [(&quot;foo&quot;, &quot;bar&quot;), (&quot;baz&quot;, &quot;quux&quot;)];
+//! let params = [("foo", "bar"), ("baz", "quux")];
 //! let client = reqwest::Client::new();
-//! let res = client.post(&quot;http://httpbin.org/post&quot;)
+//! let res = client.post("http://httpbin.org/post")
 //!     .form(&amp;params)
 //!     .send()
 //!     .await?;
@@ -462,15 +464,15 @@
 //! # use reqwest::Error;
 //! # use std::collections::HashMap;
 //! #
-//! # #[cfg(feature = &quot;json&quot;)]
+//! # #[cfg(feature = "json")]
 //! # async fn run() -&gt; Result&lt;(), Error&gt; {
-//! // This will POST a body of `{&quot;lang&quot;:&quot;rust&quot;,&quot;body&quot;:&quot;json&quot;}`
+//! // This will POST a body of `{"lang":"rust","body":"json"}`
 //! let mut map = HashMap::new();
-//! map.insert(&quot;lang&quot;, &quot;rust&quot;);
-//! map.insert(&quot;body&quot;, &quot;json&quot;);
+//! map.insert("lang", "rust");
+//! map.insert("body", "json");
 //!
 //! let client = reqwest::Client::new();
-//! let res = client.post(&quot;http://httpbin.org/post&quot;)
+//! let res = client.post("http://httpbin.org/post")
 //!     .json(&amp;map)
 //!     .send()
 //!     .await?;
@@ -499,7 +501,7 @@
 //! `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections.
 //!
 //! These can be overwritten by adding a [`Proxy`] to `ClientBuilder`
-//! i.e. `let proxy = reqwest::Proxy::http(&quot;https://secure.example&quot;)?;`
+//! i.e. `let proxy = reqwest::Proxy::http("https://secure.example")?;`
 //! or disabled by calling `ClientBuilder::no_proxy()`.
 //!
 //! `socks` feature is required if you have configured socks proxy like this:
@@ -573,7 +575,7 @@
 //! environment variables, such as:
 //!
 //! ```notrust
-//! RUSTFLAGS=&quot;--cfg reqwest_unstable&quot; cargo build
+//! RUSTFLAGS="--cfg reqwest_unstable" cargo build
 //! ```
 //!
 //! [hyper]: http://hyper.rs
@@ -587,24 +589,24 @@
 //! [Proxy]: ./struct.Proxy.html
 //! [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;http3&quot;</span>, not(reqwest_unstable)))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">"http3"</span>, not(reqwest_unstable)))]
 </span><span class="macro">compile_error!</span>(
-    <span class="string">&quot;\
+    <span class="string">"\
     The `http3` feature is unstable, and requires the \
-    `RUSTFLAGS=&#39;--cfg reqwest_unstable&#39;` environment variable to be set.\
-&quot;
+    `RUSTFLAGS='--cfg reqwest_unstable'` environment variable to be set.\
+"
 </span>);
 
 <span class="macro">macro_rules! </span>if_wasm {
     ($(<span class="macro-nonterminal">$item</span>:item)<span class="kw-2">*</span>) =&gt; {$(
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
         </span><span class="macro-nonterminal">$item
     </span>)<span class="kw-2">*</span>}
 }
 
 <span class="macro">macro_rules! </span>if_hyper {
     ($(<span class="macro-nonterminal">$item</span>:item)<span class="kw-2">*</span>) =&gt; {$(
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
         </span><span class="macro-nonterminal">$item
     </span>)<span class="kw-2">*</span>}
 }
@@ -637,7 +639,7 @@
 ///
 /// ```rust
 /// # async fn run() -&gt; Result&lt;(), reqwest::Error&gt; {
-/// let body = reqwest::get(&quot;https://www.rust-lang.org&quot;).await?
+/// let body = reqwest::get("https://www.rust-lang.org").await?
 ///     .text().await?;
 /// # Ok(())
 /// # }
@@ -667,7 +669,7 @@
     assert_send::&lt;Request&gt;();
     assert_send::&lt;RequestBuilder&gt;();
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
     </span>{
         assert_send::&lt;Response&gt;();
     }
@@ -685,29 +687,29 @@
     </span><span class="kw">extern crate </span>doc_comment;
 
     <span class="attr">#[cfg(test)]
-    </span><span class="macro">doctest!</span>(<span class="string">&quot;../README.md&quot;</span>);
+    </span><span class="macro">doctest!</span>(<span class="string">"../README.md"</span>);
 
     <span class="kw">pub use </span><span class="self">self</span>::async_impl::{
         Body, Client, ClientBuilder, Request, RequestBuilder, Response, Upgraded,
     };
     <span class="kw">pub use </span><span class="self">self</span>::proxy::{Proxy,NoProxy};
-    <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     </span><span class="comment">// Re-exports, to be removed in a future release
     </span><span class="kw">pub use </span>tls::{Certificate, Identity};
-    <span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
     </span><span class="kw">pub use </span><span class="self">self</span>::async_impl::multipart;
 
 
     <span class="kw">mod </span>async_impl;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;blocking&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"blocking"</span>)]
     </span><span class="kw">pub mod </span>blocking;
     <span class="kw">mod </span>connect;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"cookies"</span>)]
     </span><span class="kw">pub mod </span>cookie;
     <span class="kw">pub mod </span>dns;
     <span class="kw">mod </span>proxy;
     <span class="kw">pub mod </span>redirect;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     </span><span class="kw">pub mod </span>tls;
     <span class="kw">mod </span>util;
 }
@@ -717,7 +719,7 @@
     <span class="kw">mod </span>util;
 
     <span class="kw">pub use </span><span class="self">self</span>::wasm::{Body, Client, ClientBuilder, Request, RequestBuilder, Response};
-    <span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
     </span><span class="kw">pub use </span><span class="self">self</span>::wasm::multipart;
 }
 </code></pre></div></section></main></body></html>

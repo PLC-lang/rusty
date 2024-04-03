@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../codespan_reporting/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -374,7 +376,7 @@
     /// error[E0001]: unexpected type in `+` application
     ///   ┌─ test:2:9
     ///   │
-    /// 2 │ (+ test &quot;&quot;)
+    /// 2 │ (+ test "")
     ///   │         ^^ expected `Int` but found `String`
     ///   │
     ///   = expected type `Int`
@@ -524,56 +526,56 @@
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Chars {
     <span class="doccomment">/// The characters to use for the top-left border of the snippet.
-    /// Defaults to: `&quot;┌─&quot;` or `&quot;--&gt;&quot;` with [`Chars::ascii()`].
+    /// Defaults to: `"┌─"` or `"--&gt;"` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>snippet_start: String,
     <span class="doccomment">/// The character to use for the left border of the source.
-    /// Defaults to: `&#39;│&#39;` or `&#39;|&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>source_border_left: char,
     <span class="doccomment">/// The character to use for the left border break of the source.
-    /// Defaults to: `&#39;·&#39;` or `&#39;.&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'·'` or `'.'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>source_border_left_break: char,
 
     <span class="doccomment">/// The character to use for the note bullet.
-    /// Defaults to: `&#39;=&#39;`.
+    /// Defaults to: `'='`.
     </span><span class="kw">pub </span>note_bullet: char,
 
     <span class="doccomment">/// The character to use for marking a single-line primary label.
-    /// Defaults to: `&#39;^&#39;`.
+    /// Defaults to: `'^'`.
     </span><span class="kw">pub </span>single_primary_caret: char,
     <span class="doccomment">/// The character to use for marking a single-line secondary label.
-    /// Defaults to: `&#39;-&#39;`.
+    /// Defaults to: `'-'`.
     </span><span class="kw">pub </span>single_secondary_caret: char,
 
     <span class="doccomment">/// The character to use for marking the start of a multi-line primary label.
-    /// Defaults to: `&#39;^&#39;`.
+    /// Defaults to: `'^'`.
     </span><span class="kw">pub </span>multi_primary_caret_start: char,
     <span class="doccomment">/// The character to use for marking the end of a multi-line primary label.
-    /// Defaults to: `&#39;^&#39;`.
+    /// Defaults to: `'^'`.
     </span><span class="kw">pub </span>multi_primary_caret_end: char,
     <span class="doccomment">/// The character to use for marking the start of a multi-line secondary label.
-    /// Defaults to: `&#39;\&#39;&#39;`.
+    /// Defaults to: `'\''`.
     </span><span class="kw">pub </span>multi_secondary_caret_start: char,
     <span class="doccomment">/// The character to use for marking the end of a multi-line secondary label.
-    /// Defaults to: `&#39;\&#39;&#39;`.
+    /// Defaults to: `'\''`.
     </span><span class="kw">pub </span>multi_secondary_caret_end: char,
     <span class="doccomment">/// The character to use for the top-left corner of a multi-line label.
-    /// Defaults to: `&#39;╭&#39;` or `&#39;/&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'╭'` or `'/'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>multi_top_left: char,
     <span class="doccomment">/// The character to use for the top of a multi-line label.
-    /// Defaults to: `&#39;─&#39;` or `&#39;-&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'─'` or `'-'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>multi_top: char,
     <span class="doccomment">/// The character to use for the bottom-left corner of a multi-line label.
-    /// Defaults to: `&#39;╰&#39;` or `&#39;\&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'╰'` or `'\'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>multi_bottom_left: char,
     <span class="doccomment">/// The character to use when marking the bottom of a multi-line label.
-    /// Defaults to: `&#39;─&#39;` or `&#39;-&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'─'` or `'-'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>multi_bottom: char,
     <span class="doccomment">/// The character to use for the left of a multi-line label.
-    /// Defaults to: `&#39;│&#39;` or `&#39;|&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>multi_left: char,
 
     <span class="doccomment">/// The character to use for the left of a pointer underneath a caret.
-    /// Defaults to: `&#39;│&#39;` or `&#39;|&#39;` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
     </span><span class="kw">pub </span>pointer_left: char,
 }
 
@@ -587,56 +589,56 @@
     <span class="doccomment">/// A character set that uses Unicode box drawing characters.
     </span><span class="kw">pub fn </span>box_drawing() -&gt; Chars {
         Chars {
-            snippet_start: <span class="string">&quot;┌─&quot;</span>.into(),
-            source_border_left: <span class="string">&#39;│&#39;</span>,
-            source_border_left_break: <span class="string">&#39;·&#39;</span>,
+            snippet_start: <span class="string">"┌─"</span>.into(),
+            source_border_left: <span class="string">'│'</span>,
+            source_border_left_break: <span class="string">'·'</span>,
 
-            note_bullet: <span class="string">&#39;=&#39;</span>,
+            note_bullet: <span class="string">'='</span>,
 
-            single_primary_caret: <span class="string">&#39;^&#39;</span>,
-            single_secondary_caret: <span class="string">&#39;-&#39;</span>,
+            single_primary_caret: <span class="string">'^'</span>,
+            single_secondary_caret: <span class="string">'-'</span>,
 
-            multi_primary_caret_start: <span class="string">&#39;^&#39;</span>,
-            multi_primary_caret_end: <span class="string">&#39;^&#39;</span>,
-            multi_secondary_caret_start: <span class="string">&#39;\&#39;&#39;</span>,
-            multi_secondary_caret_end: <span class="string">&#39;\&#39;&#39;</span>,
-            multi_top_left: <span class="string">&#39;╭&#39;</span>,
-            multi_top: <span class="string">&#39;─&#39;</span>,
-            multi_bottom_left: <span class="string">&#39;╰&#39;</span>,
-            multi_bottom: <span class="string">&#39;─&#39;</span>,
-            multi_left: <span class="string">&#39;│&#39;</span>,
+            multi_primary_caret_start: <span class="string">'^'</span>,
+            multi_primary_caret_end: <span class="string">'^'</span>,
+            multi_secondary_caret_start: <span class="string">'\''</span>,
+            multi_secondary_caret_end: <span class="string">'\''</span>,
+            multi_top_left: <span class="string">'╭'</span>,
+            multi_top: <span class="string">'─'</span>,
+            multi_bottom_left: <span class="string">'╰'</span>,
+            multi_bottom: <span class="string">'─'</span>,
+            multi_left: <span class="string">'│'</span>,
 
-            pointer_left: <span class="string">&#39;│&#39;</span>,
+            pointer_left: <span class="string">'│'</span>,
         }
     }
 
     <span class="doccomment">/// A character set that only uses ASCII characters.
     ///
-    /// This is useful if your terminal&#39;s font does not support box drawing
-    /// characters well and results in output that looks similar to rustc&#39;s
+    /// This is useful if your terminal's font does not support box drawing
+    /// characters well and results in output that looks similar to rustc's
     /// diagnostic output.
     </span><span class="kw">pub fn </span>ascii() -&gt; Chars {
         Chars {
-            snippet_start: <span class="string">&quot;--&gt;&quot;</span>.into(),
-            source_border_left: <span class="string">&#39;|&#39;</span>,
-            source_border_left_break: <span class="string">&#39;.&#39;</span>,
+            snippet_start: <span class="string">"--&gt;"</span>.into(),
+            source_border_left: <span class="string">'|'</span>,
+            source_border_left_break: <span class="string">'.'</span>,
 
-            note_bullet: <span class="string">&#39;=&#39;</span>,
+            note_bullet: <span class="string">'='</span>,
 
-            single_primary_caret: <span class="string">&#39;^&#39;</span>,
-            single_secondary_caret: <span class="string">&#39;-&#39;</span>,
+            single_primary_caret: <span class="string">'^'</span>,
+            single_secondary_caret: <span class="string">'-'</span>,
 
-            multi_primary_caret_start: <span class="string">&#39;^&#39;</span>,
-            multi_primary_caret_end: <span class="string">&#39;^&#39;</span>,
-            multi_secondary_caret_start: <span class="string">&#39;\&#39;&#39;</span>,
-            multi_secondary_caret_end: <span class="string">&#39;\&#39;&#39;</span>,
-            multi_top_left: <span class="string">&#39;/&#39;</span>,
-            multi_top: <span class="string">&#39;-&#39;</span>,
-            multi_bottom_left: <span class="string">&#39;\\&#39;</span>,
-            multi_bottom: <span class="string">&#39;-&#39;</span>,
-            multi_left: <span class="string">&#39;|&#39;</span>,
+            multi_primary_caret_start: <span class="string">'^'</span>,
+            multi_primary_caret_end: <span class="string">'^'</span>,
+            multi_secondary_caret_start: <span class="string">'\''</span>,
+            multi_secondary_caret_end: <span class="string">'\''</span>,
+            multi_top_left: <span class="string">'/'</span>,
+            multi_top: <span class="string">'-'</span>,
+            multi_bottom_left: <span class="string">'\\'</span>,
+            multi_bottom: <span class="string">'-'</span>,
+            multi_left: <span class="string">'|'</span>,
 
-            pointer_left: <span class="string">&#39;|&#39;</span>,
+            pointer_left: <span class="string">'|'</span>,
         }
     }
 }

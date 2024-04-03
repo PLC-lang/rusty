@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-parse-0.2.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle_parse" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-parse-0.2.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle_parse" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../anstyle_parse/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -431,8 +433,8 @@
 <a href="#431" id="431">431</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Parser for implementing virtual terminal emulators
 //!
-//! [`Parser`] is implemented according to [Paul Williams&#39; ANSI parser
-//! state machine]. The state machine doesn&#39;t assign meaning to the parsed data
+//! [`Parser`] is implemented according to [Paul Williams' ANSI parser
+//! state machine]. The state machine doesn't assign meaning to the parsed data
 //! and is thus not itself sufficient for writing a terminal emulator. Instead,
 //! it is expected that an implementation of [`Perform`] is provided which does
 //! something useful with the parsed data. The [`Parser`] handles the book
@@ -458,17 +460,17 @@
 //! * Only supports 7-bit codes. Some 8-bit codes are still supported, but they no longer work in
 //!   all states.
 //!
-//! [Paul Williams&#39; ANSI parser state machine]: https://vt100.net/emu/dec_ansi_parser
+//! [Paul Williams' ANSI parser state machine]: https://vt100.net/emu/dec_ansi_parser
 </span><span class="attr">#![cfg_attr(not(test), no_std)]
 
-#[cfg(not(feature = <span class="string">&quot;core&quot;</span>))]
+#[cfg(not(feature = <span class="string">"core"</span>))]
 </span><span class="kw">extern crate </span>alloc;
 
 <span class="kw">use </span>core::mem::MaybeUninit;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"core"</span>)]
 </span><span class="kw">use </span>arrayvec::ArrayVec;
-<span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
 </span><span class="kw">use </span>utf8parse <span class="kw">as </span>utf8;
 
 <span class="kw">mod </span>params;
@@ -480,7 +482,7 @@
 
 <span class="kw">const </span>MAX_INTERMEDIATES: usize = <span class="number">2</span>;
 <span class="kw">const </span>MAX_OSC_PARAMS: usize = <span class="number">16</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"core"</span>)]
 </span><span class="kw">const </span>MAX_OSC_RAW: usize = <span class="number">1024</span>;
 
 <span class="doccomment">/// Parser for raw _VTE_ protocol which delegates actions to a [`Perform`]
@@ -491,9 +493,9 @@
     intermediate_idx: usize,
     params: Params,
     param: u16,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;core&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"core"</span>)]
     </span>osc_raw: ArrayVec&lt;u8, MAX_OSC_RAW&gt;,
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;core&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"core"</span>))]
     </span>osc_raw: alloc::vec::Vec&lt;u8&gt;,
     osc_params: [(usize, usize); MAX_OSC_PARAMS],
     osc_num_params: usize,
@@ -633,7 +635,7 @@
                 <span class="self">self</span>.osc_num_params = <span class="number">0</span>;
             }
             Action::OscPut =&gt; {
-                <span class="attr">#[cfg(feature = <span class="string">&quot;core&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"core"</span>)]
                 </span>{
                     <span class="kw">if </span><span class="self">self</span>.osc_raw.is_full() {
                         <span class="kw">return</span>;
@@ -643,7 +645,7 @@
                 <span class="kw">let </span>idx = <span class="self">self</span>.osc_raw.len();
 
                 <span class="comment">// Param separator
-                </span><span class="kw">if </span>byte == <span class="string">b&#39;;&#39; </span>{
+                </span><span class="kw">if </span>byte == <span class="string">b';' </span>{
                     <span class="kw">let </span>param_idx = <span class="self">self</span>.osc_num_params;
                     <span class="kw">match </span>param_idx {
                         <span class="comment">// Only process up to MAX_OSC_PARAMS
@@ -718,16 +720,16 @@
                     <span class="kw">return</span>;
                 }
 
-                <span class="kw">if </span>byte == <span class="string">b&#39;;&#39; </span>{
+                <span class="kw">if </span>byte == <span class="string">b';' </span>{
                     <span class="self">self</span>.params.push(<span class="self">self</span>.param);
                     <span class="self">self</span>.param = <span class="number">0</span>;
-                } <span class="kw">else if </span>byte == <span class="string">b&#39;:&#39; </span>{
+                } <span class="kw">else if </span>byte == <span class="string">b':' </span>{
                     <span class="self">self</span>.params.extend(<span class="self">self</span>.param);
                     <span class="self">self</span>.param = <span class="number">0</span>;
                 } <span class="kw">else </span>{
                     <span class="comment">// Continue collecting bytes into param
                     </span><span class="self">self</span>.param = <span class="self">self</span>.param.saturating_mul(<span class="number">10</span>);
-                    <span class="self">self</span>.param = <span class="self">self</span>.param.saturating_add((byte - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span>u16);
+                    <span class="self">self</span>.param = <span class="self">self</span>.param.saturating_add((byte - <span class="string">b'0'</span>) <span class="kw">as </span>u16);
                 }
             }
             Action::Clear =&gt; {
@@ -753,9 +755,9 @@
     </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt;;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
 </span><span class="kw">pub type </span>DefaultCharAccumulator = Utf8Parser;
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;utf8&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"utf8"</span>))]
 </span><span class="kw">pub type </span>DefaultCharAccumulator = AsciiParser;
 
 <span class="doccomment">/// Only allow parsing 7-bit ASCII
@@ -764,18 +766,18 @@
 
 <span class="kw">impl </span>CharAccumulator <span class="kw">for </span>AsciiParser {
     <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
-        <span class="macro">unreachable!</span>(<span class="string">&quot;multi-byte UTF8 characters are unsupported&quot;</span>)
+        <span class="macro">unreachable!</span>(<span class="string">"multi-byte UTF8 characters are unsupported"</span>)
     }
 }
 
 <span class="doccomment">/// Allow parsing UTF-8
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Utf8Parser {
     utf8_parser: utf8::Parser,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
 </span><span class="kw">impl </span>CharAccumulator <span class="kw">for </span>Utf8Parser {
     <span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, byte: u8) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>c = <span class="prelude-val">None</span>;
@@ -785,17 +787,17 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
-</span><span class="kw">struct </span>VtUtf8Receiver&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;char&gt;);
+<span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
+</span><span class="kw">struct </span>VtUtf8Receiver&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;char&gt;);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;utf8&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; utf8::Receiver <span class="kw">for </span>VtUtf8Receiver&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"utf8"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; utf8::Receiver <span class="kw">for </span>VtUtf8Receiver&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>codepoint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(c);
     }
 
     <span class="kw">fn </span>invalid_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="string">&#39;�&#39;</span>);
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(<span class="string">'�'</span>);
     }
 }
 
@@ -805,9 +807,9 @@
 /// movement, or simply printing characters to the screen.
 ///
 /// The methods on this type correspond to actions described in
-/// &lt;http://vt100.net/emu/dec_ansi_parser&gt;. I&#39;ve done my best to describe them in
+/// &lt;http://vt100.net/emu/dec_ansi_parser&gt;. I've done my best to describe them in
 /// a useful way in my own words for completeness, but the site should be
-/// referenced if something isn&#39;t clear. If the site disappears at some point in
+/// referenced if something isn't clear. If the site disappears at some point in
 /// the future, consider checking archive.org.
 </span><span class="kw">pub trait </span>Perform {
     <span class="doccomment">/// Draw a character to the screen and update states.

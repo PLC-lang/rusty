@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_io"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/driver.rs`."><title>driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_io/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -307,8 +309,8 @@
 <span class="doccomment">/// Number of currently active `block_on()` invocations.
 </span><span class="kw">static </span>BLOCK_ON_COUNT: AtomicUsize = AtomicUsize::new(<span class="number">0</span>);
 
-<span class="doccomment">/// Unparker for the &quot;async-io&quot; thread.
-</span><span class="kw">fn </span>unparker() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>parking::Unparker {
+<span class="doccomment">/// Unparker for the "async-io" thread.
+</span><span class="kw">fn </span>unparker() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>parking::Unparker {
     <span class="kw">static </span>UNPARKER: OnceCell&lt;parking::Unparker&gt; = OnceCell::new();
 
     UNPARKER.get_or_init_blocking(|| {
@@ -316,26 +318,26 @@
 
         <span class="comment">// Spawn a helper thread driving the reactor.
         //
-        // Note that this thread is not exactly necessary, it&#39;s only here to help push things
+        // Note that this thread is not exactly necessary, it's only here to help push things
         // forward if there are no `Parker`s around or if `Parker`s are just idling and never
         // parking.
         </span>thread::Builder::new()
-            .name(<span class="string">&quot;async-io&quot;</span>.to_string())
+            .name(<span class="string">"async-io"</span>.to_string())
             .spawn(<span class="kw">move </span>|| main_loop(parker))
-            .expect(<span class="string">&quot;cannot spawn async-io thread&quot;</span>);
+            .expect(<span class="string">"cannot spawn async-io thread"</span>);
 
         unparker
     })
 }
 
-<span class="doccomment">/// Initializes the &quot;async-io&quot; thread.
+<span class="doccomment">/// Initializes the "async-io" thread.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>init() {
     <span class="kw">let _ </span>= unparker();
 }
 
-<span class="doccomment">/// The main loop for the &quot;async-io&quot; thread.
+<span class="doccomment">/// The main loop for the "async-io" thread.
 </span><span class="kw">fn </span>main_loop(parker: parking::Parker) {
-    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;async_io::main_loop&quot;</span>);
+    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"async_io::main_loop"</span>);
     <span class="kw">let </span>_enter = span.enter();
 
     <span class="comment">// The last observed reactor tick.
@@ -356,7 +358,7 @@
             };
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = reactor_lock {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;waiting on I/O&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">"waiting on I/O"</span>);
                 reactor_lock.react(<span class="prelude-val">None</span>).ok();
                 last_tick = Reactor::get().ticker();
                 sleeps = <span class="number">0</span>;
@@ -371,9 +373,9 @@
                 .get(sleeps <span class="kw">as </span>usize)
                 .unwrap_or(<span class="kw-2">&amp;</span><span class="number">10_000</span>);
 
-            <span class="macro">tracing::trace!</span>(<span class="string">&quot;sleeping for {} us&quot;</span>, delay_us);
+            <span class="macro">tracing::trace!</span>(<span class="string">"sleeping for {} us"</span>, delay_us);
             <span class="kw">if </span>parker.park_timeout(Duration::from_micros(<span class="kw-2">*</span>delay_us)) {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">"notified"</span>);
 
                 <span class="comment">// If notified before timeout, reset the last tick and the sleep counter.
                 </span>last_tick = Reactor::get().ticker();
@@ -395,18 +397,18 @@
 ///
 /// async_io::block_on(async {
 ///     // This timer will likely be processed by the current
-///     // thread rather than the fallback &quot;async-io&quot; thread.
+///     // thread rather than the fallback "async-io" thread.
 ///     Timer::after(Duration::from_millis(1)).await;
 /// });
 /// ```
 </span><span class="kw">pub fn </span>block_on&lt;T&gt;(future: <span class="kw">impl </span>Future&lt;Output = T&gt;) -&gt; T {
-    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;async_io::block_on&quot;</span>);
+    <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"async_io::block_on"</span>);
     <span class="kw">let </span>_enter = span.enter();
 
-    <span class="comment">// Increment `BLOCK_ON_COUNT` so that the &quot;async-io&quot; thread becomes less aggressive.
+    <span class="comment">// Increment `BLOCK_ON_COUNT` so that the "async-io" thread becomes less aggressive.
     </span>BLOCK_ON_COUNT.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
 
-    <span class="comment">// Make sure to decrement `BLOCK_ON_COUNT` at the end and wake the &quot;async-io&quot; thread.
+    <span class="comment">// Make sure to decrement `BLOCK_ON_COUNT` at the end and wake the "async-io" thread.
     </span><span class="kw">let </span>_guard = CallOnDrop(|| {
         BLOCK_ON_COUNT.fetch_sub(<span class="number">1</span>, Ordering::SeqCst);
         unparker().unpark();
@@ -491,13 +493,13 @@
                 <span class="comment">// Ensure the cached parker is reset to the unnotified state for future block_on calls,
                 // in case this future called wake and then immediately returned Poll::Ready.
                 </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>));
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;completed&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">"completed"</span>);
                 <span class="kw">return </span>t;
             }
 
             <span class="comment">// Check if a notification was received.
             </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                <span class="macro">tracing::trace!</span>(<span class="string">"notified"</span>);
 
                 <span class="comment">// Try grabbing a lock on the reactor to process I/O events.
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>reactor_lock) = Reactor::get().try_lock() {
@@ -528,33 +530,33 @@
                     });
 
                     <span class="comment">// Check if a notification has been received before `io_blocked` was updated
-                    // because in that case the reactor won&#39;t receive a wakeup.
+                    // because in that case the reactor won't receive a wakeup.
                     </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                        <span class="macro">tracing::trace!</span>(<span class="string">"notified"</span>);
                         <span class="kw">break</span>;
                     }
 
                     <span class="comment">// Wait for I/O events.
-                    </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;waiting on I/O&quot;</span>);
+                    </span><span class="macro">tracing::trace!</span>(<span class="string">"waiting on I/O"</span>);
                     reactor_lock.react(<span class="prelude-val">None</span>).ok();
 
                     <span class="comment">// Check if a notification has been received.
                     </span><span class="kw">if </span>p.park_timeout(Duration::from_secs(<span class="number">0</span>)) {
-                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;notified&quot;</span>);
+                        <span class="macro">tracing::trace!</span>(<span class="string">"notified"</span>);
                         <span class="kw">break</span>;
                     }
 
                     <span class="comment">// Check if this thread been handling I/O events for a long time.
                     </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
-                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;stops hogging the reactor&quot;</span>);
+                        <span class="macro">tracing::trace!</span>(<span class="string">"stops hogging the reactor"</span>);
 
                         <span class="comment">// This thread is clearly processing I/O events for some other threads
-                        // because it didn&#39;t get a notification yet. It&#39;s best to stop hogging the
+                        // because it didn't get a notification yet. It's best to stop hogging the
                         // reactor and give other threads a chance to process I/O events for
                         // themselves.
                         </span>drop(reactor_lock);
 
-                        <span class="comment">// Unpark the &quot;async-io&quot; thread in case no other thread is ready to start
+                        <span class="comment">// Unpark the "async-io" thread in case no other thread is ready to start
                         // processing I/O events. This way we prevent a potential latency spike.
                         </span>unparker().unpark();
 
@@ -565,7 +567,7 @@
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// Wait for an actual notification.
-                </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;sleep until notification&quot;</span>);
+                </span><span class="macro">tracing::trace!</span>(<span class="string">"sleep until notification"</span>);
                 p.park();
             }
         }

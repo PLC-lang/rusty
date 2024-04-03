@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/analyze.rs`."><title>analyze.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/analyze.rs`."><title>analyze.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fancy_regex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -305,7 +307,7 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the &quot;Software&quot;), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -314,7 +316,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -335,24 +337,24 @@
 <span class="kw">use </span><span class="kw">crate</span>::Result;
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Info&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Info&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) start_group: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) end_group: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) min_size: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) const_size: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) hard: bool,
 
-    <span class="doccomment">/// Whether the expression&#39;s matching could be dependent on what the
-    /// previous character was. E.g. `^` matches if there&#39;s no previous
+    <span class="doccomment">/// Whether the expression's matching could be dependent on what the
+    /// previous character was. E.g. `^` matches if there's no previous
     /// character; `(?m:^)` matches if the previous character was a newline.
     /// The matching of `\b` depends on the previous character.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) looks_left: bool,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) expr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expr,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) children: Vec&lt;Info&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) expr: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Expr,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) children: Vec&lt;Info&lt;<span class="lifetime">'a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Info&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Info&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.expr {
             Expr::Literal { casei, .. } =&gt; !casei,
@@ -370,18 +372,18 @@
                     child.push_literal(buf);
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;push_literal called on non-literal&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"push_literal called on non-literal"</span>),
         }
     }
 }
 
-<span class="kw">struct </span>Analyzer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    backrefs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BitSet,
+<span class="kw">struct </span>Analyzer&lt;<span class="lifetime">'a</span>&gt; {
+    backrefs: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BitSet,
     group_ix: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Analyzer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expr) -&gt; <span class="prelude-ty">Result</span>&lt;Info&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Analyzer&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Expr) -&gt; <span class="prelude-ty">Result</span>&lt;Info&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">let </span>start_group = <span class="self">self</span>.group_ix;
         <span class="kw">let </span><span class="kw-2">mut </span>children = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>min_size = <span class="number">0</span>;
@@ -439,9 +441,9 @@
                 min_size = child_info.min_size;
                 const_size = child_info.const_size;
                 looks_left = child_info.looks_left;
-                <span class="comment">// If there&#39;s a backref to this group, we potentially have to backtrack within the
+                <span class="comment">// If there's a backref to this group, we potentially have to backtrack within the
                 // group. E.g. with `(x|xy)\1` and input `xyxy`, `x` matches but then the backref
-                // doesn&#39;t, so we have to backtrack and try `xy`.
+                // doesn't, so we have to backtrack and try `xy`.
                 </span>hard = child_info.hard | <span class="self">self</span>.backrefs.contains(group);
                 children.push(child_info);
             }
@@ -514,7 +516,7 @@
                 const_size = child_info_condition.const_size
                     &amp;&amp; child_info_truth.const_size
                     &amp;&amp; child_info_false.const_size
-                    <span class="comment">// if the condition&#39;s size plus the truth branch&#39;s size is equal to the false branch&#39;s size then it&#39;s const size
+                    <span class="comment">// if the condition's size plus the truth branch's size is equal to the false branch's size then it's const size
                     </span>&amp;&amp; child_info_condition.min_size + child_info_truth.min_size == child_info_false.min_size;
                 looks_left = child_info_condition.looks_left
                     || child_info_truth.looks_left
@@ -540,14 +542,14 @@
 }
 
 <span class="kw">fn </span>literal_const_size(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str, <span class="kw">_</span>: bool) -&gt; bool {
-    <span class="comment">// Right now, regex doesn&#39;t do sophisticated case folding,
+    <span class="comment">// Right now, regex doesn't do sophisticated case folding,
     // test below will fail when that changes, then we need to
     // do something fancier here.
     </span><span class="bool-val">true
 </span>}
 
 <span class="doccomment">/// Analyze the parsed expression to determine whether it requires fancy features.
-</span><span class="kw">pub fn </span>analyze&lt;<span class="lifetime">&#39;a</span>&gt;(tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ExprTree) -&gt; <span class="prelude-ty">Result</span>&lt;Info&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+</span><span class="kw">pub fn </span>analyze&lt;<span class="lifetime">'a</span>&gt;(tree: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ExprTree) -&gt; <span class="prelude-ty">Result</span>&lt;Info&lt;<span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>analyzer = Analyzer {
         backrefs: <span class="kw-2">&amp;</span>tree.backrefs,
         group_ix: <span class="number">0</span>,
@@ -565,43 +567,43 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>case_folding_safe() {
-        <span class="kw">let </span>re = regex::Regex::new(<span class="string">&quot;(?i:ß)&quot;</span>).unwrap();
-        <span class="kw">if </span>re.is_match(<span class="string">&quot;SS&quot;</span>) {
-            <span class="macro">assert!</span>(!literal_const_size(<span class="string">&quot;ß&quot;</span>, <span class="bool-val">true</span>));
+        <span class="kw">let </span>re = regex::Regex::new(<span class="string">"(?i:ß)"</span>).unwrap();
+        <span class="kw">if </span>re.is_match(<span class="string">"SS"</span>) {
+            <span class="macro">assert!</span>(!literal_const_size(<span class="string">"ß"</span>, <span class="bool-val">true</span>));
         }
 
         <span class="comment">// Another tricky example, Armenian ECH YIWN
-        </span><span class="kw">let </span>re = regex::Regex::new(<span class="string">&quot;(?i:\\x{0587})&quot;</span>).unwrap();
-        <span class="kw">if </span>re.is_match(<span class="string">&quot;\u{0565}\u{0582}&quot;</span>) {
-            <span class="macro">assert!</span>(!literal_const_size(<span class="string">&quot;\u{0587}&quot;</span>, <span class="bool-val">true</span>));
+        </span><span class="kw">let </span>re = regex::Regex::new(<span class="string">"(?i:\\x{0587})"</span>).unwrap();
+        <span class="kw">if </span>re.is_match(<span class="string">"\u{0565}\u{0582}"</span>) {
+            <span class="macro">assert!</span>(!literal_const_size(<span class="string">"\u{0587}"</span>, <span class="bool-val">true</span>));
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_backref_1() {
-        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">&quot;.\\0&quot;</span>).unwrap()).is_err());
+        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">".\\0"</span>).unwrap()).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_backref_2() {
-        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">&quot;(.\\1)&quot;</span>).unwrap()).is_err());
+        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">"(.\\1)"</span>).unwrap()).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_backref_3() {
-        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">&quot;\\1(.)&quot;</span>).unwrap()).is_err());
+        <span class="macro">assert!</span>(analyze(<span class="kw-2">&amp;</span>Expr::parse_tree(<span class="string">"\\1(.)"</span>).unwrap()).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>is_literal() {
-        <span class="kw">let </span>tree = Expr::parse_tree(<span class="string">&quot;abc&quot;</span>).unwrap();
+        <span class="kw">let </span>tree = Expr::parse_tree(<span class="string">"abc"</span>).unwrap();
         <span class="kw">let </span>info = analyze(<span class="kw-2">&amp;</span>tree).unwrap();
         <span class="macro">assert_eq!</span>(info.is_literal(), <span class="bool-val">true</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>is_literal_with_repeat() {
-        <span class="kw">let </span>tree = Expr::parse_tree(<span class="string">&quot;abc*&quot;</span>).unwrap();
+        <span class="kw">let </span>tree = Expr::parse_tree(<span class="string">"abc*"</span>).unwrap();
         <span class="kw">let </span>info = analyze(<span class="kw-2">&amp;</span>tree).unwrap();
         <span class="macro">assert_eq!</span>(info.is_literal(), <span class="bool-val">false</span>);
     }

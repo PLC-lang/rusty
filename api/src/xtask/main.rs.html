@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `xtask/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xtask" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `xtask/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xtask" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../xtask/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -181,7 +183,7 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>tasks: Vec&lt;Box&lt;<span class="kw">dyn </span>Task&gt;&gt; = <span class="macro">vec!</span>[];
     <span class="kw">match </span><span class="kw-2">&amp;</span>action {
         <span class="prelude-val">Some</span>(Action::Compile { directory }) =&gt; {
-            <span class="kw">for </span>opt <span class="kw">in </span>[<span class="string">&quot;none&quot;</span>, <span class="string">&quot;less&quot;</span>, <span class="string">&quot;default&quot;</span>, <span class="string">&quot;aggressive&quot;</span>] {
+            <span class="kw">for </span>opt <span class="kw">in </span>[<span class="string">"none"</span>, <span class="string">"less"</span>, <span class="string">"default"</span>, <span class="string">"aggressive"</span>] {
                 <span class="kw">let </span>task = Compile {
                     name: directory.clone(),
                     directory: directory.into(),
@@ -193,13 +195,13 @@
         }
 
         <span class="prelude-val">Some</span>(Action::Run { directory }) =&gt; {
-            <span class="kw">for </span>opt <span class="kw">in </span>[<span class="string">&quot;none&quot;</span>, <span class="string">&quot;less&quot;</span>, <span class="string">&quot;default&quot;</span>, <span class="string">&quot;aggressive&quot;</span>] {
+            <span class="kw">for </span>opt <span class="kw">in </span>[<span class="string">"none"</span>, <span class="string">"less"</span>, <span class="string">"default"</span>, <span class="string">"aggressive"</span>] {
                 <span class="kw">let </span>task = Run {
                     name: directory.into(),
                     optimization: opt.to_string(),
                     compiler: compiler.clone(),
                     location: directory.into(),
-                    parameters: <span class="prelude-val">Some</span>(<span class="string">&quot;--linker=cc&quot;</span>.into()),
+                    parameters: <span class="prelude-val">Some</span>(<span class="string">"--linker=cc"</span>.into()),
                     work_dir: work_dir.path().into(),
                 };
                 tasks.push(Box::new(task));
@@ -215,7 +217,7 @@
     <span class="comment">// Run benchmarks
     </span><span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[];
     <span class="kw">for </span><span class="kw-2">mut </span>task <span class="kw">in </span>tasks {
-        <span class="macro">println!</span>(<span class="string">&quot;Running benchmark for {}&quot;</span>, task.get_name());
+        <span class="macro">println!</span>(<span class="string">"Running benchmark for {}"</span>, task.get_name());
         <span class="kw">let </span>duration = task.benchmark(<span class="number">3</span>)<span class="question-mark">?</span>;
         data.push((task.get_name(), task.get_wrapped(duration)));
     }
@@ -233,25 +235,25 @@
 
     <span class="comment">// TODO: convert to xtask
     // Build the standard libs and copy them to the output directory
-    </span><span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">&quot;cargo build --release --workspace&quot;</span>).run()<span class="question-mark">?</span>;
-    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">&quot;./scripts/build.sh --release --package&quot;</span>).run()<span class="question-mark">?</span>;
-    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">&quot;rm -rf target/release/stdlib&quot;</span>).run()<span class="question-mark">?</span>;
-    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">&quot;mv output target/release/stdlib&quot;</span>).run()<span class="question-mark">?</span>;
+    </span><span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">"cargo build --release --workspace"</span>).run()<span class="question-mark">?</span>;
+    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">"./scripts/build.sh --release --package"</span>).run()<span class="question-mark">?</span>;
+    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">"rm -rf target/release/stdlib"</span>).run()<span class="question-mark">?</span>;
+    <span class="macro">cmd!</span>(<span class="kw-2">&amp;</span>sh, <span class="string">"mv output target/release/stdlib"</span>).run()<span class="question-mark">?</span>;
 
     <span class="comment">// Get rusty path
-    </span><span class="kw">let </span>compile_dir = std::env::current_dir()<span class="question-mark">?</span>.join(<span class="string">&quot;target&quot;</span>).join(<span class="string">&quot;release&quot;</span>);
-    <span class="kw">let </span>plc = std::env::current_dir()<span class="question-mark">?</span>.join(<span class="string">&quot;target&quot;</span>).join(<span class="string">&quot;release&quot;</span>).join(<span class="string">&quot;plc&quot;</span>);
+    </span><span class="kw">let </span>compile_dir = std::env::current_dir()<span class="question-mark">?</span>.join(<span class="string">"target"</span>).join(<span class="string">"release"</span>);
+    <span class="kw">let </span>plc = std::env::current_dir()<span class="question-mark">?</span>.join(<span class="string">"target"</span>).join(<span class="string">"release"</span>).join(<span class="string">"plc"</span>);
     <span class="kw">if </span>!plc.exists() {
-        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Could not find compiler, did you run cargo build --release?&quot;</span>)
+        <span class="macro">anyhow::bail!</span>(<span class="string">"Could not find compiler, did you run cargo build --release?"</span>)
     }
 
     <span class="comment">// Export the standard lib location
-    </span><span class="kw">let </span>lib_loc = compile_dir.join(<span class="string">&quot;stdlib&quot;</span>);
+    </span><span class="kw">let </span>lib_loc = compile_dir.join(<span class="string">"stdlib"</span>);
     <span class="kw">if </span>!(lib_loc.exists()) {
-        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Could not find stdlib, did you run the standard function compile script?&quot;</span>)
+        <span class="macro">anyhow::bail!</span>(<span class="string">"Could not find stdlib, did you run the standard function compile script?"</span>)
     }
 
-    std::env::set_var(<span class="string">&quot;STDLIBLOC&quot;</span>, <span class="kw-2">&amp;</span>lib_loc);
+    std::env::set_var(<span class="string">"STDLIBLOC"</span>, <span class="kw-2">&amp;</span>lib_loc);
     <span class="prelude-val">Ok</span>((temp, plc))
 }
 </code></pre></div></section></main></body></html>

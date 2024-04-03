@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/net/syscalls.rs`."><title>syscalls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/net/syscalls.rs`."><title>syscalls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1056,14 +1058,14 @@
 //! See the `rustix::backend` module documentation for details.
 </span><span class="attr">#![allow(unsafe_code, clippy::undocumented_unsafe_blocks)]
 
-#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::msghdr::with_xdp_msghdr;
 <span class="kw">use </span><span class="kw">super</span>::msghdr::{
     with_noaddr_msghdr, with_recv_msghdr, with_unix_msghdr, with_v4_msghdr, with_v6_msghdr,
 };
 <span class="kw">use </span><span class="kw">super</span>::read_sockaddr::{initialize_family_to_unspec, maybe_read_sockaddr_os, read_sockaddr_os};
 <span class="kw">use </span><span class="kw">super</span>::send_recv::{RecvFlags, SendFlags};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::write_sockaddr::encode_sockaddr_xdp;
 <span class="kw">use </span><span class="kw">super</span>::write_sockaddr::{encode_sockaddr_v4, encode_sockaddr_v6};
 <span class="kw">use </span><span class="kw">crate</span>::backend::c;
@@ -1073,7 +1075,7 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::fd::{BorrowedFd, OwnedFd};
 <span class="kw">use </span><span class="kw">crate</span>::io::{<span class="self">self</span>, IoSlice, IoSliceMut};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::xdp::SocketAddrXdp;
 <span class="kw">use </span><span class="kw">crate</span>::net::{
     AddressFamily, Protocol, RecvAncillaryBuffer, RecvMsgReturn, SendAncillaryBuffer, Shutdown,
@@ -1081,7 +1083,7 @@
 };
 <span class="kw">use </span>c::{sockaddr, sockaddr_in, sockaddr_in6, socklen_t};
 <span class="kw">use </span>core::mem::MaybeUninit;
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">use </span>{
     <span class="kw">crate</span>::backend::conv::{slice_just_addr, x86_sys},
     <span class="kw">crate</span>::backend::reg::{ArgReg, SocketArg},
@@ -1098,16 +1100,16 @@
     type_: SocketType,
     protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
 ) -&gt; io::Result&lt;OwnedFd&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_owned_fd(<span class="macro">syscall_readonly!</span>(__NR_socket, family, type_, protocol))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_owned_fd(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SOCKET),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 family.into(),
                 type_.into(),
                 protocol.into(),
@@ -1123,7 +1125,7 @@
     flags: SocketFlags,
     protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
 ) -&gt; io::Result&lt;OwnedFd&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_owned_fd(<span class="macro">syscall_readonly!</span>(
             __NR_socket,
@@ -1132,12 +1134,12 @@
             protocol
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_owned_fd(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SOCKET),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 family.into(),
                 (type_, flags).into(),
                 protocol.into(),
@@ -1153,7 +1155,7 @@
     flags: SocketFlags,
     protocol: <span class="prelude-ty">Option</span>&lt;Protocol&gt;,
 ) -&gt; io::Result&lt;(OwnedFd, OwnedFd)&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::&lt;[OwnedFd; <span class="number">2</span>]&gt;::uninit();
         ret(<span class="macro">syscall!</span>(
@@ -1166,13 +1168,13 @@
         <span class="kw">let </span>[fd0, fd1] = result.assume_init();
         <span class="prelude-val">Ok</span>((fd0, fd1))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::&lt;[OwnedFd; <span class="number">2</span>]&gt;::uninit();
         ret(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_SOCKETPAIR),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 family.into(),
                 (type_, flags).into(),
                 protocol.into(),
@@ -1185,44 +1187,44 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;OwnedFd&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;OwnedFd&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall_readonly!</span>(__NR_accept, fd, zero(), zero()))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(fd)
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_ACCEPT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), zero(), zero()])
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), zero(), zero()])
         ))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(fd)
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept_with(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, flags: SocketFlags) -&gt; io::Result&lt;OwnedFd&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accept_with(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, flags: SocketFlags) -&gt; io::Result&lt;OwnedFd&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall_readonly!</span>(__NR_accept4, fd, zero(), zero(), flags))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(fd)
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_ACCEPT4),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), zero(), zero(), flags.into()])
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), zero(), zero(), flags.into()])
         ))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(fd)
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acceptfrom(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;(OwnedFd, <span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;)&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acceptfrom(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;(OwnedFd, <span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;)&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
@@ -1237,14 +1239,14 @@
             maybe_read_sockaddr_os(<span class="kw-2">&amp;</span>storage.assume_init(), addrlen.try_into().unwrap()),
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_ACCEPT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 (<span class="kw-2">&amp;mut </span>storage).into(),
                 by_mut(<span class="kw-2">&amp;mut </span>addrlen),
@@ -1259,10 +1261,10 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>acceptfrom_with(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     flags: SocketFlags,
 ) -&gt; io::Result&lt;(OwnedFd, <span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;)&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
@@ -1278,14 +1280,14 @@
             maybe_read_sockaddr_os(<span class="kw-2">&amp;</span>storage.assume_init(), addrlen.try_into().unwrap()),
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
         <span class="kw">let </span>fd = ret_owned_fd(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_ACCEPT4),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 (<span class="kw-2">&amp;mut </span>storage).into(),
                 by_mut(<span class="kw-2">&amp;mut </span>addrlen),
@@ -1301,24 +1303,24 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recvmsg(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
-    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>RecvAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
+    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>RecvAncillaryBuffer&lt;<span class="lifetime">'_</span>&gt;,
     msg_flags: RecvFlags,
 ) -&gt; io::Result&lt;RecvMsgReturn&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;c::sockaddr_storage&gt;::uninit();
 
     with_recv_msghdr(<span class="kw-2">&amp;mut </span>storage, iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_recvmsg, sockfd, by_mut(msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_RECVMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_mut(msghdr),
                     msg_flags.into(),
@@ -1342,22 +1344,22 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendmsg(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     msg_flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     with_noaddr_msghdr(iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_sendmsg, sockfd, by_ref(<span class="kw-2">&amp;</span>msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_SENDMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_ref(<span class="kw-2">&amp;</span>msghdr),
                     msg_flags.into()
@@ -1371,23 +1373,23 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendmsg_v4(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     addr: <span class="kw-2">&amp;</span>SocketAddrV4,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     msg_flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     with_v4_msghdr(addr, iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_sendmsg, sockfd, by_ref(<span class="kw-2">&amp;</span>msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_SENDMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_ref(<span class="kw-2">&amp;</span>msghdr),
                     msg_flags.into(),
@@ -1401,23 +1403,23 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendmsg_v6(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     addr: <span class="kw-2">&amp;</span>SocketAddrV6,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     msg_flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     with_v6_msghdr(addr, iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_sendmsg, sockfd, by_ref(<span class="kw-2">&amp;</span>msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_SENDMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_ref(<span class="kw-2">&amp;</span>msghdr),
                     msg_flags.into()
@@ -1431,23 +1433,23 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendmsg_unix(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     addr: <span class="kw-2">&amp;</span>SocketAddrUnix,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     msg_flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     with_unix_msghdr(addr, iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_sendmsg, sockfd, by_ref(<span class="kw-2">&amp;</span>msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_SENDMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_ref(<span class="kw-2">&amp;</span>msghdr),
                     msg_flags.into()
@@ -1459,26 +1461,26 @@
     })
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendmsg_xdp(
-    sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     addr: <span class="kw-2">&amp;</span>SocketAddrXdp,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     msg_flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     with_xdp_msghdr(addr, iov, control, |msghdr| {
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
         </span><span class="kw">let </span>result =
             <span class="kw">unsafe </span>{ ret_usize(<span class="macro">syscall!</span>(__NR_sendmsg, sockfd, by_ref(<span class="kw-2">&amp;</span>msghdr), msg_flags)) };
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
             ret_usize(<span class="macro">syscall!</span>(
                 __NR_socketcall,
                 x86_sys(SYS_SENDMSG),
-                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+                slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                     sockfd.into(),
                     by_ref(<span class="kw-2">&amp;</span>msghdr),
                     msg_flags.into()
@@ -1491,8 +1493,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, how: Shutdown) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shutdown(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, how: Shutdown) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_shutdown,
@@ -1500,37 +1502,37 @@
             c_uint(how <span class="kw">as </span>c::c_uint)
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SHUTDOWN),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), c_uint(how <span class="kw">as </span>c::c_uint)])
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), c_uint(how <span class="kw">as </span>c::c_uint)])
         ))
     }
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8], flags: SendFlags) -&gt; io::Result&lt;usize&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8], flags: SendFlags) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr, buf_len) = slice(buf);
 
     <span class="attr">#[cfg(not(any(
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-        target_arch = <span class="string">&quot;x86&quot;</span>,
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
+        target_arch = <span class="string">"aarch64"</span>,
+        target_arch = <span class="string">"mips64"</span>,
+        target_arch = <span class="string">"mips64r6"</span>,
+        target_arch = <span class="string">"riscv64"</span>,
+        target_arch = <span class="string">"x86"</span>,
+        target_arch = <span class="string">"x86_64"</span>,
     )))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(__NR_send, fd, buf_addr, buf_len, flags))
     }
     <span class="attr">#[cfg(any(
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
+        target_arch = <span class="string">"aarch64"</span>,
+        target_arch = <span class="string">"mips64"</span>,
+        target_arch = <span class="string">"mips64r6"</span>,
+        target_arch = <span class="string">"riscv64"</span>,
+        target_arch = <span class="string">"x86_64"</span>,
     ))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
@@ -1543,12 +1545,12 @@
             zero()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SEND),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf_addr,
                 buf_len,
@@ -1560,14 +1562,14 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendto_v4(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;</span>[u8],
     flags: SendFlags,
     addr: <span class="kw-2">&amp;</span>SocketAddrV4,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr, buf_len) = slice(buf);
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_sendto,
@@ -1579,12 +1581,12 @@
             size_of::&lt;sockaddr_in, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SENDTO),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf_addr,
                 buf_len,
@@ -1598,14 +1600,14 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendto_v6(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;</span>[u8],
     flags: SendFlags,
     addr: <span class="kw-2">&amp;</span>SocketAddrV6,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr, buf_len) = slice(buf);
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_sendto,
@@ -1617,12 +1619,12 @@
             size_of::&lt;sockaddr_in6, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SENDTO),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf_addr,
                 buf_len,
@@ -1636,14 +1638,14 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendto_unix(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;</span>[u8],
     flags: SendFlags,
     addr: <span class="kw-2">&amp;</span>SocketAddrUnix,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr, buf_len) = slice(buf);
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_sendto,
@@ -1655,12 +1657,12 @@
             socklen_t(addr.addr_len())
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SENDTO),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf_addr,
                 buf_len,
@@ -1672,17 +1674,17 @@
     }
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sendto_xdp(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;</span>[u8],
     flags: SendFlags,
     addr: <span class="kw-2">&amp;</span>SocketAddrXdp,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span>(buf_addr, buf_len) = slice(buf);
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_sendto,
@@ -1694,12 +1696,12 @@
             size_of::&lt;c::sockaddr_xdp, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret_usize(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SENDTO),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf_addr,
                 buf_len,
@@ -1713,28 +1715,28 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>recv(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">*mut </span>u8,
     len: usize,
     flags: RecvFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="attr">#[cfg(not(any(
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-        target_arch = <span class="string">&quot;x86&quot;</span>,
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
+        target_arch = <span class="string">"aarch64"</span>,
+        target_arch = <span class="string">"mips64"</span>,
+        target_arch = <span class="string">"mips64r6"</span>,
+        target_arch = <span class="string">"riscv64"</span>,
+        target_arch = <span class="string">"x86"</span>,
+        target_arch = <span class="string">"x86_64"</span>,
     )))]
     </span>{
         ret_usize(<span class="macro">syscall!</span>(__NR_recv, fd, buf, pass_usize(len), flags))
     }
     <span class="attr">#[cfg(any(
-        target_arch = <span class="string">&quot;aarch64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-        target_arch = <span class="string">&quot;riscv64&quot;</span>,
-        target_arch = <span class="string">&quot;x86_64&quot;</span>,
+        target_arch = <span class="string">"aarch64"</span>,
+        target_arch = <span class="string">"mips64"</span>,
+        target_arch = <span class="string">"mips64r6"</span>,
+        target_arch = <span class="string">"riscv64"</span>,
+        target_arch = <span class="string">"x86_64"</span>,
     ))]
     </span>{
         ret_usize(<span class="macro">syscall!</span>(
@@ -1747,12 +1749,12 @@
             zero()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span>{
         ret_usize(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_RECV),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 buf.into(),
                 pass_usize(len),
@@ -1764,7 +1766,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>recvfrom(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">*mut </span>u8,
     len: usize,
     flags: RecvFlags,
@@ -1777,7 +1779,7 @@
     // `AF_UNSPEC` so that we can detect this case.
     </span>initialize_family_to_unspec(storage.as_mut_ptr());
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">let </span>nread = ret_usize(<span class="macro">syscall!</span>(
         __NR_recvfrom,
         fd,
@@ -1787,11 +1789,11 @@
         <span class="kw-2">&amp;mut </span>storage,
         by_mut(<span class="kw-2">&amp;mut </span>addrlen)
     ))<span class="question-mark">?</span>;
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">let </span>nread = ret_usize(<span class="macro">syscall!</span>(
         __NR_socketcall,
         x86_sys(SYS_RECVFROM),
-        slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+        slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
             fd.into(),
             buf.into(),
             pass_usize(len),
@@ -1808,8 +1810,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getpeername(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getpeername(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
@@ -1824,14 +1826,14 @@
             addrlen.try_into().unwrap(),
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
         ret(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_GETPEERNAME),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 (<span class="kw-2">&amp;mut </span>storage).into(),
                 by_mut(<span class="kw-2">&amp;mut </span>addrlen),
@@ -1845,8 +1847,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getsockname(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;SocketAddrAny&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>getsockname(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;SocketAddrAny&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
@@ -1861,14 +1863,14 @@
             addrlen.try_into().unwrap(),
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>addrlen = core::mem::size_of::&lt;sockaddr&gt;() <span class="kw">as </span>socklen_t;
         <span class="kw">let </span><span class="kw-2">mut </span>storage = MaybeUninit::&lt;sockaddr&gt;::uninit();
         ret(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_GETSOCKNAME),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 (<span class="kw-2">&amp;mut </span>storage).into(),
                 by_mut(<span class="kw-2">&amp;mut </span>addrlen),
@@ -1882,8 +1884,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_v4(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_v4(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_bind,
@@ -1892,12 +1894,12 @@
             size_of::&lt;sockaddr_in, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_BIND),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>encode_sockaddr_v4(addr)),
                 size_of::&lt;sockaddr_in, <span class="kw">_</span>&gt;(),
@@ -1907,8 +1909,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_v6(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_v6(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_bind,
@@ -1917,12 +1919,12 @@
             size_of::&lt;sockaddr_in6, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_BIND),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>encode_sockaddr_v6(addr)),
                 size_of::&lt;sockaddr_in6, <span class="kw">_</span>&gt;(),
@@ -1932,8 +1934,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_unix(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_unix(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_bind,
@@ -1942,12 +1944,12 @@
             socklen_t(addr.addr_len())
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_BIND),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>addr.unix),
                 socklen_t(addr.addr_len()),
@@ -1956,10 +1958,10 @@
     }
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_xdp(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrXdp) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bind_xdp(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrXdp) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_bind,
@@ -1968,12 +1970,12 @@
             size_of::&lt;c::sockaddr_xdp, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_BIND),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>encode_sockaddr_xdp(addr)),
                 size_of::&lt;c::sockaddr_xdp, <span class="kw">_</span>&gt;(),
@@ -1983,8 +1985,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_v4(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_v4(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_connect,
@@ -1993,12 +1995,12 @@
             size_of::&lt;sockaddr_in, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_CONNECT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>encode_sockaddr_v4(addr)),
                 size_of::&lt;sockaddr_in, <span class="kw">_</span>&gt;(),
@@ -2008,8 +2010,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_v6(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_v6(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_connect,
@@ -2018,12 +2020,12 @@
             size_of::&lt;sockaddr_in6, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_CONNECT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>encode_sockaddr_v6(addr)),
                 size_of::&lt;sockaddr_in6, <span class="kw">_</span>&gt;(),
@@ -2033,8 +2035,8 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_unix(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_unix(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_connect,
@@ -2043,12 +2045,12 @@
             socklen_t(addr.addr_len())
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_CONNECT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>addr.unix),
                 socklen_t(addr.addr_len()),
@@ -2058,11 +2060,11 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_unspec(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>connect_unspec(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="macro">debug_assert_eq!</span>(c::AF_UNSPEC, <span class="number">0</span>);
     <span class="kw">let </span>addr = MaybeUninit::&lt;c::sockaddr_storage&gt;::zeroed();
 
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_connect,
@@ -2071,12 +2073,12 @@
             size_of::&lt;c::sockaddr_storage, <span class="kw">_</span>&gt;()
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_CONNECT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 by_ref(<span class="kw-2">&amp;</span>addr),
                 size_of::&lt;c::sockaddr_storage, <span class="kw">_</span>&gt;(),
@@ -2086,17 +2088,17 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>listen(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, backlog: c::c_int) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>listen(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, backlog: c::c_int) -&gt; io::Result&lt;()&gt; {
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(__NR_listen, fd, c_int(backlog)))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_LISTEN),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), c_int(backlog)])
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[fd.into(), c_int(backlog)])
         ))
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/string_functions.rs`."><title>string_functions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/string_functions.rs`."><title>string_functions.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../iec61131std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1788,13 +1790,13 @@
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-</span><span class="kw">pub unsafe fn </span>ptr_to_slice&lt;<span class="lifetime">&#39;a</span>, T: PrimInt&gt;(src: <span class="kw-2">*const </span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
+</span><span class="kw">pub unsafe fn </span>ptr_to_slice&lt;<span class="lifetime">'a</span>, T: PrimInt&gt;(src: <span class="kw-2">*const </span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T] {
     <span class="kw">let </span>nbytes = get_null_terminated_len(src);
     std::slice::from_raw_parts(src, nbytes)
 }
 
-<span class="kw">type </span>Utf16Iterator&lt;<span class="lifetime">&#39;a</span>&gt; = std::char::DecodeUtf16&lt;std::iter::Copied&lt;std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, u16&gt;&gt;&gt;;
-<span class="kw">type </span>Utf8Iterator&lt;<span class="lifetime">&#39;a</span>&gt; = core::str::Chars&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">type </span>Utf16Iterator&lt;<span class="lifetime">'a</span>&gt; = std::char::DecodeUtf16&lt;std::iter::Copied&lt;std::slice::Iter&lt;<span class="lifetime">'a</span>, u16&gt;&gt;&gt;;
+<span class="kw">type </span>Utf8Iterator&lt;<span class="lifetime">'a</span>&gt; = core::str::Chars&lt;<span class="lifetime">'a</span>&gt;;
 
 <span class="kw">pub trait </span>CharsDecoder&lt;T: PrimInt&gt; {
     <span class="kw">type </span>IteratorType: Iterator;
@@ -1832,8 +1834,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CharsDecoder&lt;u8&gt; <span class="kw">for </span>EncodedCharsIter&lt;Utf8Iterator&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <span class="kw">type </span>IteratorType = Utf8Iterator&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CharsDecoder&lt;u8&gt; <span class="kw">for </span>EncodedCharsIter&lt;Utf8Iterator&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    <span class="kw">type </span>IteratorType = Utf8Iterator&lt;<span class="lifetime">'a</span>&gt;;
     <span class="kw">unsafe fn </span>decode(src: <span class="kw-2">*const </span>u8) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>slice = ptr_to_slice(src);
         <span class="self">Self </span>{ iter: std::str::from_utf8(slice).unwrap().chars() }
@@ -1870,8 +1872,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CharsDecoder&lt;u16&gt; <span class="kw">for </span>EncodedCharsIter&lt;Utf16Iterator&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <span class="kw">type </span>IteratorType = Utf16Iterator&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CharsDecoder&lt;u16&gt; <span class="kw">for </span>EncodedCharsIter&lt;Utf16Iterator&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    <span class="kw">type </span>IteratorType = Utf16Iterator&lt;<span class="lifetime">'a</span>&gt;;
     <span class="kw">unsafe fn </span>decode(src: <span class="kw-2">*const </span>u16) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>src = ptr_to_slice(src);
         <span class="self">Self </span>{ iter: decode_utf16(src.iter().copied()) }
@@ -1890,7 +1892,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>LEN__STRING(src: <span class="kw-2">*const </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEN__STRING(src: <span class="kw-2">*const </span>u8) -&gt; i32 {
     EncodedCharsIter::decode(src).count() <span class="kw">as </span>i32
 }
 
@@ -1906,7 +1908,7 @@
 /// Works on raw pointers, inherently unsafe
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>LEN__WSTRING(src: <span class="kw-2">*const </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEN__WSTRING(src: <span class="kw-2">*const </span>u16) -&gt; i32 {
     EncodedCharsIter::decode(src).count() <span class="kw">as </span>i32
 }
 
@@ -1919,7 +1921,7 @@
 /// Works on raw pointers, inherently unsafe
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>FIND__STRING(src1: <span class="kw-2">*const </span>u8, src2: <span class="kw-2">*const </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>FIND__STRING(src1: <span class="kw-2">*const </span>u8, src2: <span class="kw-2">*const </span>u8) -&gt; i32 {
     <span class="kw">let </span>haystack = ptr_to_slice(src1);
     <span class="kw">let </span>needle = ptr_to_slice(src2);
 
@@ -1945,7 +1947,7 @@
 /// Works on raw pointers, inherently unsafe
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>FIND__WSTRING(src1: <span class="kw-2">*const </span>u16, src2: <span class="kw-2">*const </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>FIND__WSTRING(src1: <span class="kw-2">*const </span>u16, src2: <span class="kw-2">*const </span>u16) -&gt; i32 {
     <span class="kw">let </span>haystack = ptr_to_slice(src1);
     <span class="kw">let </span>needle = ptr_to_slice(src2);
 
@@ -1975,15 +1977,15 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>LEFT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEFT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>nchars &lt; substr_len {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).take(substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2002,15 +2004,15 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>LEFT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEFT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>nchars &lt; substr_len {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).take(substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2029,15 +2031,15 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>RIGHT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>RIGHT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>nchars &lt; substr_len {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2056,15 +2058,15 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>RIGHT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>RIGHT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>nchars &lt; substr_len {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2083,26 +2085,26 @@
 /// starting position of the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>MID_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>MID_EXT__STRING(
     src: <span class="kw-2">*const </span>u8,
     substr_len: i32,
     start_index: i32,
     dest: <span class="kw-2">*mut </span>u8,
 ) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>start_index = start_index <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>start_index &lt; <span class="number">1 </span>|| start_index &gt; nchars {
-        <span class="macro">panic!</span>(<span class="string">&quot;Position is out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Position is out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>start_index = start_index - <span class="number">1</span>;
     <span class="kw">if </span>nchars &lt; substr_len + start_index {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length {substr_len} from position {start_index} exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length {substr_len} from position {start_index} exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2122,26 +2124,26 @@
 /// starting position of the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>MID_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>MID_EXT__WSTRING(
     src: <span class="kw-2">*const </span>u16,
     substr_len: i32,
     start_index: i32,
     dest: <span class="kw-2">*mut </span>u16,
 ) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Length parameter cannot be negative.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>substr_len = substr_len <span class="kw">as </span>usize;
     <span class="kw">let </span>start_index = start_index <span class="kw">as </span>usize;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>start_index &lt; <span class="number">1 </span>|| start_index &gt; nchars {
-        <span class="macro">panic!</span>(<span class="string">&quot;Position is out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Position is out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>start_index = start_index - <span class="number">1</span>;
     <span class="kw">if </span>nchars &lt; substr_len + start_index {
-        <span class="macro">panic!</span>(<span class="string">&quot;Requested substring length {substr_len} from position {start_index} exceeds string length.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Requested substring length {substr_len} from position {start_index} exceeds string length."</span>)
     }
     <span class="kw">let </span>chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     chars.encode(<span class="kw-2">&amp;mut </span>dest);
@@ -2161,7 +2163,7 @@
 /// source array bounds.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>INSERT_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>INSERT_EXT__STRING(
     src_base: <span class="kw-2">*const </span>u8,
     src_to_insert: <span class="kw-2">*const </span>u8,
     pos: i32,
@@ -2170,7 +2172,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src_base).count();
     <span class="kw">if </span>pos &lt; <span class="number">0 </span>|| pos &gt; nchars <span class="kw">as </span>i32 {
-        <span class="macro">panic! </span>{<span class="string">&quot;Positional parameter is out of bounds.&quot;</span>}
+        <span class="macro">panic! </span>{<span class="string">"Positional parameter is out of bounds."</span>}
     }
     <span class="kw">let </span>pos = pos <span class="kw">as </span>usize;
     EncodedCharsIter::decode(src_base)
@@ -2194,7 +2196,7 @@
 /// source array bounds.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>INSERT_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>INSERT_EXT__WSTRING(
     src_base: <span class="kw-2">*const </span>u16,
     src_to_insert: <span class="kw-2">*const </span>u16,
     pos: i32,
@@ -2203,7 +2205,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src_base).count();
     <span class="kw">if </span>pos &lt; <span class="number">0 </span>|| pos &gt; nchars <span class="kw">as </span>i32 {
-        <span class="macro">panic! </span>{<span class="string">&quot;Positional parameter is out of bounds.&quot;</span>}
+        <span class="macro">panic! </span>{<span class="string">"Positional parameter is out of bounds."</span>}
     }
     <span class="kw">let </span>pos = pos <span class="kw">as </span>usize;
     EncodedCharsIter::decode(src_base)
@@ -2227,7 +2229,7 @@
 /// array or if trying to delete too many characters.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>DELETE_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>DELETE_EXT__STRING(
     src: <span class="kw-2">*const </span>u8,
     num_chars_to_delete: i32,
     pos: i32,
@@ -2236,16 +2238,16 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>pos &lt; <span class="number">1 </span>|| pos &gt; nchars <span class="kw">as </span>i32 {
-        <span class="macro">panic!</span>(<span class="string">&quot;Index out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Index out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>pos = pos <span class="kw">as </span>usize - <span class="number">1</span>;
     <span class="kw">let </span>ndel = num_chars_to_delete <span class="kw">as </span>usize;
     <span class="kw">if </span>ndel + pos &gt; nchars {
         <span class="macro">panic!</span>(
-            <span class="string">r#&quot;Cannot delete {} characters starting from index {}.
+            <span class="string">r#"Cannot delete {} characters starting from index {}.
             Index out of bounds.
-            &quot;#</span>,
+            "#</span>,
             num_chars_to_delete,
             pos + <span class="number">1
         </span>)
@@ -2270,7 +2272,7 @@
 /// array or if trying to delete too many characters.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>DELETE_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>DELETE_EXT__WSTRING(
     src: <span class="kw-2">*const </span>u16,
     num_chars_to_delete: i32,
     pos: i32,
@@ -2279,16 +2281,16 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nchars = EncodedCharsIter::decode(src).count();
     <span class="kw">if </span>pos &lt; <span class="number">1 </span>|| pos &gt; nchars <span class="kw">as </span>i32 {
-        <span class="macro">panic!</span>(<span class="string">&quot;Index out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Index out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>pos = pos <span class="kw">as </span>usize - <span class="number">1</span>;
     <span class="kw">let </span>ndel = num_chars_to_delete <span class="kw">as </span>usize;
     <span class="kw">if </span>ndel + pos &gt; nchars {
         <span class="macro">panic!</span>(
-            <span class="string">r#&quot;Cannot delete {} characters starting from index {}.
+            <span class="string">r#"Cannot delete {} characters starting from index {}.
             Index out of bounds.
-            &quot;#</span>,
+            "#</span>,
             num_chars_to_delete,
             pos + <span class="number">1
         </span>)
@@ -2314,7 +2316,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>REPLACE_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>REPLACE_EXT__STRING(
     src_base: <span class="kw-2">*const </span>u8,
     src_replacement: <span class="kw-2">*const </span>u8,
     num_chars_to_replace: i32,
@@ -2324,7 +2326,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nbase = EncodedCharsIter::decode(src_base).count();
     <span class="kw">if </span>pos &lt; <span class="number">1 </span>|| pos &gt; nbase <span class="kw">as </span>i32 {
-        <span class="macro">panic!</span>(<span class="string">&quot;Index out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Index out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>pos = (pos - <span class="number">1</span>) <span class="kw">as </span>usize;
@@ -2332,9 +2334,9 @@
 
     <span class="kw">if </span>nreplace + pos &gt; nbase {
         <span class="macro">panic!</span>(
-            <span class="string">r#&quot;Cannot replace {} characters starting from index {}.
+            <span class="string">r#"Cannot replace {} characters starting from index {}.
             Index out of bounds.
-            &quot;#</span>,
+            "#</span>,
             nreplace,
             pos + <span class="number">1
         </span>)
@@ -2362,7 +2364,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>REPLACE_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>REPLACE_EXT__WSTRING(
     src_base: <span class="kw-2">*const </span>u16,
     src_replacement: <span class="kw-2">*const </span>u16,
     num_chars_to_replace: i32,
@@ -2372,16 +2374,16 @@
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span>nbase = EncodedCharsIter::decode(src_base).count();
     <span class="kw">if </span>pos &lt; <span class="number">1 </span>|| pos &gt; nbase <span class="kw">as </span>i32 {
-        <span class="macro">panic!</span>(<span class="string">&quot;Index out of bounds.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Index out of bounds."</span>)
     }
     <span class="comment">// correct for 0-indexing
     </span><span class="kw">let </span>pos = (pos - <span class="number">1</span>) <span class="kw">as </span>usize;
     <span class="kw">let </span>nreplace = num_chars_to_replace <span class="kw">as </span>usize;
     <span class="kw">if </span>nreplace + pos &gt; nbase {
         <span class="macro">panic!</span>(
-            <span class="string">r#&quot;Cannot replace {} characters starting from index {}.
+            <span class="string">r#"Cannot replace {} characters starting from index {}.
             Index out of bounds.
-            &quot;#</span>,
+            "#</span>,
             nreplace,
             pos + <span class="number">1
         </span>)
@@ -2410,7 +2412,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>CONCAT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) {
     <span class="kw">let _ </span>= CONCAT_EXT__STRING(dest, argc, argv);
 }
 
@@ -2427,9 +2429,9 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>CONCAT_EXT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT_EXT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; i32 {
     <span class="kw">if </span>argv.is_null() || dest.is_null() {
-        <span class="macro">panic!</span>(<span class="string">&quot;Received null-pointer.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Received null-pointer."</span>)
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span><span class="kw-2">mut </span>argv = argv;
@@ -2454,7 +2456,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>CONCAT__WSTRING(dest: <span class="kw-2">*mut </span>u16, argc: i32, argv: <span class="kw-2">*const *const </span>u16) {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT__WSTRING(dest: <span class="kw-2">*mut </span>u16, argc: i32, argv: <span class="kw-2">*const *const </span>u16) {
     <span class="kw">let _ </span>= CONCAT_EXT__WSTRING(dest, argc, argv);
 }
 
@@ -2471,9 +2473,9 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>CONCAT_EXT__WSTRING(dest: <span class="kw-2">*mut </span>u16, argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT_EXT__WSTRING(dest: <span class="kw-2">*mut </span>u16, argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; i32 {
     <span class="kw">if </span>argv.is_null() || dest.is_null() {
-        <span class="macro">panic!</span>(<span class="string">&quot;Received null-pointer.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Received null-pointer."</span>)
     }
     <span class="kw">let </span><span class="kw-2">mut </span>dest = dest;
     <span class="kw">let </span><span class="kw-2">mut </span>argv = argv;
@@ -2491,7 +2493,7 @@
     </span>T: Ord + PrimInt,
 {
     <span class="kw">if </span>argc &lt; <span class="number">2 </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;Too few arguments for function call.&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Too few arguments for function call."</span>)
     }
     <span class="kw">let </span><span class="kw-2">mut </span>argv = argv;
     <span class="kw">unsafe </span>{
@@ -2508,7 +2510,7 @@
     <span class="bool-val">true
 </span>}
 
-<span class="doccomment">/// Extensible &quot;greater than&quot; comparison function.
+<span class="doccomment">/// Extensible "greater than" comparison function.
 /// Encoding: UTF-8
 ///
 /// # Safety
@@ -2516,11 +2518,11 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__STRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
-<span class="doccomment">/// Extensible &quot;greater than&quot; comparison function.
+<span class="doccomment">/// Extensible "greater than" comparison function.
 /// Encoding: UTF-16
 ///
 /// # Safety
@@ -2528,11 +2530,11 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__WSTRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
-<span class="doccomment">/// Extensible &quot;equal&quot; comparison function.
+<span class="doccomment">/// Extensible "equal" comparison function.
 /// Encoding: UTF-8
 ///
 /// # Safety
@@ -2540,11 +2542,11 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__STRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
-<span class="doccomment">/// Extensible &quot;equal&quot; comparison function.
+<span class="doccomment">/// Extensible "equal" comparison function.
 /// Encoding: UTF-16
 ///
 /// # Safety
@@ -2552,11 +2554,11 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__WSTRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
-<span class="doccomment">/// Extensible &quot;less than&quot; comparison function.
+<span class="doccomment">/// Extensible "less than" comparison function.
 /// Encoding: UTF-8
 ///
 /// # Safety
@@ -2564,11 +2566,11 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__STRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
-<span class="doccomment">/// Extensible &quot;less than&quot; comparison function.
+<span class="doccomment">/// Extensible "less than" comparison function.
 /// Encoding: UTF-16
 ///
 /// # Safety
@@ -2576,7 +2578,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>__WSTRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
@@ -2590,19 +2592,19 @@
     <span class="comment">// -----------------------------------UTF8
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_len_correct_utf8_character_count() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡϗabcd\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡϗabcd\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = LEN__STRING(src.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">8</span>)
         }
     }
 
-    <span class="attr">#[ignore = <span class="string">&quot;The user is responsible for correctly counting composed characters if they choose to use them.&quot;</span>]
+    <span class="attr">#[ignore = <span class="string">"The user is responsible for correctly counting composed characters if they choose to use them."</span>]
     #[test]
     </span><span class="kw">fn </span>test_len_with_precomposed_characters() {
         <span class="comment">// these characters are not the same. one is precomposed (len 1)
         // and the other is composed of two characters. they are merely rendered the same.
-        </span><span class="kw">let </span>src = <span class="string">&quot;éé\0&quot;</span>;
+        </span><span class="kw">let </span>src = <span class="string">"éé\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = LEN__STRING(src.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">2</span>)
@@ -2611,8 +2613,8 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_index_correct() {
-        <span class="kw">let </span>haystack = <span class="string">&quot;hϗllo wϕrld\0&quot;</span>;
-        <span class="kw">let </span>needle = <span class="string">&quot;llo\0&quot;</span>;
+        <span class="kw">let </span>haystack = <span class="string">"hϗllo wϕrld\0"</span>;
+        <span class="kw">let </span>needle = <span class="string">"llo\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">3</span>)
@@ -2621,8 +2623,8 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_index_correct_edge_case() {
-        <span class="kw">let </span>haystack = <span class="string">&quot;hello wϕrld\0&quot;</span>;
-        <span class="kw">let </span>needle = <span class="string">&quot;h\0&quot;</span>;
+        <span class="kw">let </span>haystack = <span class="string">"hello wϕrld\0"</span>;
+        <span class="kw">let </span>needle = <span class="string">"h\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">1</span>)
@@ -2631,8 +2633,8 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_index_correct_edge_case2() {
-        <span class="kw">let </span>haystack = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>needle = <span class="string">&quot;d\0&quot;</span>;
+        <span class="kw">let </span>haystack = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>needle = <span class="string">"d\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">11</span>)
@@ -2641,8 +2643,8 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_index_correct_multibyte() {
-        <span class="kw">let </span>haystack = <span class="string">&quot;hello ϕϚϡϗ\0&quot;</span>;
-        <span class="kw">let </span>needle = <span class="string">&quot;ϗ\0&quot;</span>;
+        <span class="kw">let </span>haystack = <span class="string">"hello ϕϚϡϗ\0"</span>;
+        <span class="kw">let </span>needle = <span class="string">"ϗ\0"</span>;
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             <span class="macro">assert_eq!</span>(res, <span class="number">10</span>)
@@ -2651,26 +2653,26 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_left_ext_str() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡϗ hello\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡϗ hello\0"</span>;
         <span class="kw">let </span>len = <span class="number">7</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡϗ he&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡϗ he"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_left_ext_long_str() {
-        <span class="kw">let </span>src = <span class="string">&quot;     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0"</span>;
         <span class="kw">let </span>len = <span class="number">85</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
             <span class="macro">assert_eq!</span>(
-                <span class="string">&quot;     this is   a  very   long           sentence   with plenty  of    characters and &quot;</span>,
+                <span class="string">"     this is   a  very   long           sentence   with plenty  of    characters and "</span>,
                 string
             )
         }
@@ -2678,32 +2680,32 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_left_ext_str_w_escape_sequence() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕ\&quot;Ϛ\&quot;ϡϗ hello\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕ\"Ϛ\"ϡϗ hello\0"</span>;
         <span class="kw">let </span>len = <span class="number">6</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕ\&quot;Ϛ\&quot;ϡϗ&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕ\"Ϛ\"ϡϗ"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_left_ext_str_edge_case() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡϗ hello\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡϗ hello\0"</span>;
         <span class="kw">let </span>len = <span class="number">10</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡϗ hello&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡϗ hello"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_left_ext_str_len_out_of_range() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello\0 world&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"hello\0 world"</span>;
         <span class="kw">let </span>len = <span class="number">7</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -2713,58 +2715,58 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_right_ext_str() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡϗ hello\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡϗ hello\0"</span>;
         <span class="kw">let </span>len = <span class="number">5</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hello&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"hello"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_right_ext_str_multi_byte() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span>len = <span class="number">8</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             RIGHT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;xϗ wϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"xϗ wϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_mid_ext_str() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span>len = <span class="number">6</span>;
         <span class="kw">let </span>start_index = <span class="number">3</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϡxϗ wϕ&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϡxϗ wϕ"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_mid_ext_str_edge_case() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span>len = <span class="number">11</span>;
         <span class="kw">let </span>start_index = <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ wϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡxϗ wϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_mid_ext_str_start_index_out_of_range() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>;
         <span class="kw">let </span>len = <span class="number">5</span>;
         <span class="kw">let </span>start_index = <span class="number">12</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
@@ -2773,45 +2775,45 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_str() {
-        <span class="kw">let </span>base = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
-        <span class="kw">let </span>insert = <span class="string">&quot;brave new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
+        <span class="kw">let </span>insert = <span class="string">"brave new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), <span class="number">6</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ brave new wϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡxϗ brave new wϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_str_insert_at_zero() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>insert = <span class="string">&quot;ϕϚϡxϗ new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>insert = <span class="string">"ϕϚϡxϗ new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), <span class="number">0</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ new hello world&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡxϗ new hello world"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_str_insert_at_end() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>insert = <span class="string">&quot;ϕϚϡxϗ new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>insert = <span class="string">"ϕϚϡxϗ new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), (base.len() - <span class="number">1</span>) <span class="kw">as </span>i32, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hello worldϕϚϡxϗ new &quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"hello worldϕϚϡxϗ new "</span>, string)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_insert_ext_str_pos_out_of_range() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>insert = <span class="string">&quot;brave new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>insert = <span class="string">"brave new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), base.len() <span class="kw">as </span>i32, dest.as_mut_ptr());
@@ -2821,8 +2823,8 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_insert_ext_str_pos_negative() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>insert = <span class="string">&quot;brave new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>insert = <span class="string">"brave new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), -<span class="number">2</span>, dest.as_mut_ptr());
@@ -2831,53 +2833,53 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_str() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">9</span>, <span class="number">3</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚ&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚ"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_str_delete_all() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">11</span>, <span class="number">1</span>, dest.as_mut_ptr());
             <span class="kw">let </span>c_str: <span class="kw-2">&amp;</span>CStr = CStr::from_ptr(dest.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
             <span class="kw">let </span>string: <span class="kw-2">&amp;</span>str = c_str.to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">""</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_str_delete_last() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">1</span>, <span class="number">11</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;ϕϚϡxϗ wϕrl&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"ϕϚϡxϗ wϕrl"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_str_delete_first() {
-        <span class="kw">let </span>src = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">1</span>, <span class="number">1</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;Ϛϡxϗ wϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"Ϛϡxϗ wϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_str_too_many_del_chars() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">12</span>, <span class="number">1</span>, dest.as_mut_ptr());
@@ -2887,7 +2889,7 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_str_pos_out_of_range_lower() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">11</span>, <span class="number">0</span>, dest.as_mut_ptr());
@@ -2897,7 +2899,7 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_str_pos_out_of_range_upper() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>;
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             DELETE_EXT__STRING(src.as_ptr(), <span class="number">11</span>, <span class="number">12</span>, dest.as_mut_ptr());
@@ -2906,45 +2908,45 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_str_replace_at_beginning() {
-        <span class="kw">let </span>base = <span class="string">&quot;ϕϚϡxϗ wϕrld\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;brϡxϗ new \0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"ϕϚϡxϗ wϕrld\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"brϡxϗ new \0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">6</span>, <span class="number">1</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;brϡxϗ new wϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"brϡxϗ new wϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_str_replace_at_middle() {
-        <span class="kw">let </span>base = <span class="string">&quot;hellϕ wϕrld\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;brϡxϗ new\0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hellϕ wϕrld\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"brϡxϗ new\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">3</span>, <span class="number">5</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hellbrϡxϗ newϕrld&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"hellbrϡxϗ newϕrld"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_str_replace_at_end() {
-        <span class="kw">let </span>base = <span class="string">&quot;hællø wørlÞ\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;aldø, how are you😀\0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hællø wørlÞ\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"aldø, how are you😀\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">4</span>, <span class="number">8</span>, dest.as_mut_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø waldø, how are you😀&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"hællø waldø, how are you😀"</span>, string)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_str_replace_too_many_chars() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;aldo, how are you\0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"aldo, how are you\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">12</span>, <span class="number">1</span>, dest.as_mut_ptr());
@@ -2954,8 +2956,8 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_str_pos_out_of_bounds_lower() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;aldo, how are you\0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"aldo, how are you\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">8</span>, <span class="number">0</span>, dest.as_mut_ptr());
@@ -2965,8 +2967,8 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_str_pos_out_of_bounds_upper() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>;
-        <span class="kw">let </span>replacement = <span class="string">&quot;aldo, how are you\0&quot;</span>;
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>;
+        <span class="kw">let </span>replacement = <span class="string">"aldo, how are you\0"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), <span class="number">8</span>, <span class="number">12</span>, dest.as_mut_ptr());
@@ -2975,26 +2977,26 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_concat_str() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr(), <span class="string">&quot;hello world\0&quot;</span>.as_ptr(), <span class="string">&quot;𝄞music\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"hællø wørlÞ\0"</span>.as_ptr(), <span class="string">"hello world\0"</span>.as_ptr(), <span class="string">"𝄞music\0"</span>.as_ptr()];
         <span class="kw">unsafe </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>arr = [<span class="number">0_u8</span>; <span class="number">2049</span>];
             <span class="kw">let </span>dest = arr.as_mut_ptr();
             CONCAT__STRING(dest, argv.len() <span class="kw">as </span>i32, argv.as_ptr());
             <span class="kw">let </span>string = String::from_utf8_lossy(ptr_to_slice(dest));
-            <span class="kw">let </span>result = string.trim_end_matches(<span class="string">&#39;\0&#39;</span>);
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø wørlÞhello world𝄞music&quot;</span>, result)
+            <span class="kw">let </span>result = string.trim_end_matches(<span class="string">'\0'</span>);
+            <span class="macro">assert_eq!</span>(<span class="string">"hællø wørlÞhello world𝄞music"</span>, result)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_concat_ext_str() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr(), <span class="string">&quot;hello world\0&quot;</span>.as_ptr(), <span class="string">&quot;𝄞music\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"hællø wørlÞ\0"</span>.as_ptr(), <span class="string">"hello world\0"</span>.as_ptr(), <span class="string">"𝄞music\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u8; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø wørlÞhello world𝄞music&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">"hællø wørlÞhello world𝄞music"</span>, string)
         }
     }
 
@@ -3006,40 +3008,40 @@
         <span class="kw">unsafe </span>{
             CONCAT_EXT__STRING(dest.as_mut_ptr(), argc, argv.as_ptr());
             <span class="kw">let </span>string = CStr::from_ptr(dest.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>).to_str().unwrap();
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, string)
+            <span class="macro">assert_eq!</span>(<span class="string">""</span>, string)
         }
     }
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_greater_than_string_is_false_for_equal_strings() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr(), <span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"hællø wørlÞ\0"</span>.as_ptr(), <span class="string">"hællø wørlÞ\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(!__STRING_GREATER(argc, argv.as_ptr())) }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_greater_than_string_is_true_for_decreasing_sequence() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;zyxZabcdefghijklmn\0&quot;</span>.as_ptr(), <span class="string">&quot;zyxA\0&quot;</span>.as_ptr(), <span class="string">&quot;zyx\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"zyxZabcdefghijklmn\0"</span>.as_ptr(), <span class="string">"zyxA\0"</span>.as_ptr(), <span class="string">"zyx\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(__STRING_GREATER(argc, argv.as_ptr())) }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_greater_than_string_is_false_for_increasing_sequence() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;abc\0&quot;</span>.as_ptr(), <span class="string">&quot;bce\0&quot;</span>.as_ptr(), <span class="string">&quot;xyz\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"abc\0"</span>.as_ptr(), <span class="string">"bce\0"</span>.as_ptr(), <span class="string">"xyz\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(!__STRING_GREATER(argc, argv.as_ptr())) }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_greater_than_string_works_correctly_for_two_params() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;zyxAabcdefghijklmn\0&quot;</span>.as_ptr(), <span class="string">&quot;zyxZ&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"zyxAabcdefghijklmn\0"</span>.as_ptr(), <span class="string">"zyxZ"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(!__STRING_GREATER(argc, argv.as_ptr())) }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_equal_string() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr(), <span class="string">&quot;hællø wørlÞ\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"hællø wørlÞ\0"</span>.as_ptr(), <span class="string">"hællø wørlÞ\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(__STRING_EQUAL(argc, argv.as_ptr())) }
     }
@@ -3047,10 +3049,10 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_equal_string_is_false_for_inequality() {
         <span class="kw">let </span>argv = [
-            <span class="string">&quot;hællø wørlÞabc\0&quot;</span>.as_ptr(),
-            <span class="string">&quot;hællø wørlÞabc\0&quot;</span>.as_ptr(),
-            <span class="string">&quot;hællø wørlÞabc\0&quot;</span>.as_ptr(),
-            <span class="string">&quot;hællø wørlÞZZc\0&quot;</span>.as_ptr(),
+            <span class="string">"hællø wørlÞabc\0"</span>.as_ptr(),
+            <span class="string">"hællø wørlÞabc\0"</span>.as_ptr(),
+            <span class="string">"hællø wørlÞabc\0"</span>.as_ptr(),
+            <span class="string">"hællø wørlÞZZc\0"</span>.as_ptr(),
         ];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(!__STRING_EQUAL(argc, argv.as_ptr())) }
@@ -3058,14 +3060,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_lesser_than_string() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;hællø wørlÞabc\0&quot;</span>.as_ptr(), <span class="string">&quot;hællø wørlÞz\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"hællø wørlÞabc\0"</span>.as_ptr(), <span class="string">"hællø wørlÞz\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(__STRING_LESS(argc, argv.as_ptr())) }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_lesser_than_string_is_false() {
-        <span class="kw">let </span>argv = [<span class="string">&quot;z\0&quot;</span>.as_ptr(), <span class="string">&quot;hællø wørlÞzbc\0&quot;</span>.as_ptr()];
+        <span class="kw">let </span>argv = [<span class="string">"z\0"</span>.as_ptr(), <span class="string">"hællø wørlÞzbc\0"</span>.as_ptr()];
         <span class="kw">let </span>argc = argv.len() <span class="kw">as </span>i32;
         <span class="kw">unsafe </span>{ <span class="macro">assert!</span>(!__STRING_LESS(argc, argv.as_ptr())) }
     }
@@ -3073,7 +3075,7 @@
     <span class="comment">// -----------------------------------UTF16
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_len_correct_utf16_character_count() {
-        <span class="kw">let </span>src = <span class="string">&quot;𝄞music𝄞 😀𝄞ϕϚϡϗ😀\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"𝄞music𝄞 😀𝄞ϕϚϡϗ😀\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = LEN__WSTRING(src_ptr);
@@ -3083,9 +3085,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_wstring() {
-        <span class="kw">let </span>base = <span class="string">&quot;𝄞music𝄞 world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"𝄞music𝄞 world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>find = <span class="string">&quot;c𝄞\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>find = <span class="string">"c𝄞\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>find_ptr = find.as_slice().as_ptr();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__WSTRING(base_ptr, find_ptr);
@@ -3095,9 +3097,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_wstring_no_match() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>find = <span class="string">&quot;zzzzzz\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>find = <span class="string">"zzzzzz\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>find_ptr = find.as_slice().as_ptr();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__WSTRING(base_ptr, find_ptr);
@@ -3107,9 +3109,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_find_wstring_base_string_too_short() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>find = <span class="string">&quot;hello world oachkatzlschwoaf\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>find = <span class="string">"hello world oachkatzlschwoaf\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>find_ptr = find.as_slice().as_ptr();
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>res = FIND__WSTRING(base_ptr, find_ptr);
@@ -3119,7 +3121,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_left_ext_wstring() {
-        <span class="kw">let </span>src = <span class="string">&quot;𝄞musϗ😀ic world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"𝄞musϗ😀ic world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3128,14 +3130,14 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;𝄞musϗ😀i&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"𝄞musϗ😀i"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_left_ext_wstring_len_out_of_range() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3145,7 +3147,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_right_ext_wstring() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello 𝄞musϗ😀\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello 𝄞musϗ😀\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3155,13 +3157,13 @@
                 get_null_terminated_len(dest.as_ptr()),
             ));
 
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;o 𝄞musϗ😀&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"o 𝄞musϗ😀"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_right_ext_wstring_zero_length_strings() {
-        <span class="kw">let </span>src = <span class="string">&quot;\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3171,13 +3173,13 @@
                 get_null_terminated_len(dest.as_ptr()),
             ));
 
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">""</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_mid_ext_wstring() {
-        <span class="kw">let </span>src = <span class="string">&quot;𝄞muϗ😀 world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"𝄞muϗ😀 world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3186,14 +3188,14 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;😀 wor&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"😀 wor"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_mid_ext_wstring_index_out_of_range() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3203,9 +3205,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_wstring() {
-        <span class="kw">let </span>base = <span class="string">&quot;𝄞muϗ😀 world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"𝄞muϗ😀 world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>to_insert = <span class="string">&quot;brave 𝄞muϗ😀 \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>to_insert = <span class="string">"brave 𝄞muϗ😀 \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>to_insert_ptr = to_insert.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3214,15 +3216,15 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;𝄞muϗ😀 brave 𝄞muϗ😀 world&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"𝄞muϗ😀 brave 𝄞muϗ😀 world"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_wstring_insert_at_zero() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello 𝄞muϗ😀\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello 𝄞muϗ😀\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>to_insert = <span class="string">&quot;𝄞muϗ😀 new \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>to_insert = <span class="string">"𝄞muϗ😀 new \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>to_insert_ptr = to_insert.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3231,15 +3233,15 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;𝄞muϗ😀 new hello 𝄞muϗ😀&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"𝄞muϗ😀 new hello 𝄞muϗ😀"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_ext_wstring_insert_at_end() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_ptr();
-        <span class="kw">let </span>to_insert = <span class="string">&quot;brave 𝄞muϗ😀 \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>to_insert = <span class="string">"brave 𝄞muϗ😀 \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>to_insert_ptr = to_insert.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3248,16 +3250,16 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hello worldbrave 𝄞muϗ😀 &quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"hello worldbrave 𝄞muϗ😀 "</span>, res)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_insert_ext_wstring_pos_out_of_range() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>to_insert = <span class="string">&quot;brave new \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>to_insert = <span class="string">"brave new \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>to_insert_ptr = to_insert.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3267,7 +3269,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_wstring() {
-        <span class="kw">let </span>src = <span class="string">&quot;h𝄞muϗ w😀rld\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"h𝄞muϗ w😀rld\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3276,13 +3278,13 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;h𝄞😀rld&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"h𝄞😀rld"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_delete_ext_wstring_delete_all() {
-        <span class="kw">let </span>src = <span class="string">&quot;h𝄞muϗ w😀rld\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"h𝄞muϗ w😀rld\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3292,14 +3294,14 @@
                 get_null_terminated_len(dest.as_ptr()),
             ));
 
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">""</span>, res)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_wstring_too_many_del_chars() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3310,7 +3312,7 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_wstring_pos_out_of_range_lower() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3321,7 +3323,7 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_delete_ext_wstring_pos_out_of_range_upper() {
-        <span class="kw">let </span>src = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>src = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>src_ptr = src.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3331,9 +3333,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_wstring_replace_at_beginning() {
-        <span class="kw">let </span>base = <span class="string">&quot;h𝄞muϗ w😀rld\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"h𝄞muϗ w😀rld\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot;brave new \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">"brave new \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3343,15 +3345,15 @@
                 get_null_terminated_len(dest.as_ptr()),
             ));
 
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;brave new w😀rld&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"brave new w😀rld"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_wstring_replace_at_middle() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello w😀rld𝄞\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello w😀rld𝄞\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot; is out of this \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">" is out of this \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3360,15 +3362,15 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hell is out of this w😀rld𝄞&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"hell is out of this w😀rld𝄞"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_replace_ext_wstring_replace_at_end() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello w😀rld𝄞\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello w😀rld𝄞\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot;aldo, how are you? 😀\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">"aldo, how are you? 😀\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3378,16 +3380,16 @@
                 get_null_terminated_len(dest.as_ptr()),
             ));
 
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hello waldo, how are you? 😀&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"hello waldo, how are you? 😀"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_wstring_replace_too_many_chars() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot; is out of this \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">" is out of this \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3398,9 +3400,9 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_wstring_pos_out_of_bounds_lower() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot; is out of this \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">" is out of this \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3411,9 +3413,9 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_replace_ext_wstring_pos_out_of_bounds_upper() {
-        <span class="kw">let </span>base = <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>base = <span class="string">"hello world\0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>base_ptr = base.as_slice().as_ptr();
-        <span class="kw">let </span>replacement = <span class="string">&quot; is out of this \0&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
+        <span class="kw">let </span>replacement = <span class="string">" is out of this \0"</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;();
         <span class="kw">let </span>replacement_ptr = replacement.as_slice().as_ptr();
         <span class="kw">let </span><span class="kw-2">mut </span>dest: [u16; DEFAULT_STRING_SIZE] = [<span class="number">0</span>; DEFAULT_STRING_SIZE];
         <span class="kw">unsafe </span>{
@@ -3424,9 +3426,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_concat_wstring() {
         <span class="kw">let </span>argvec: [Vec&lt;u16&gt;; <span class="number">3</span>] = [
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;𝄞music\0&quot;</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hello world\0"</span>.encode_utf16().collect(),
+            <span class="string">"𝄞music\0"</span>.encode_utf16().collect(),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>argv: [<span class="kw-2">*const </span>u16; <span class="number">3</span>] = [std::ptr::null(); <span class="number">3</span>];
         <span class="kw">for </span>(i, arg) <span class="kw">in </span>argvec.iter().enumerate() {
@@ -3437,17 +3439,17 @@
             <span class="kw">let </span>dest = arr.as_mut_ptr();
             CONCAT__WSTRING(dest, argv.len() <span class="kw">as </span>i32, argv.as_ptr());
             <span class="kw">let </span>string = String::from_utf16_lossy(ptr_to_slice(dest));
-            <span class="kw">let </span>result = string.trim_end_matches(<span class="string">&#39;\0&#39;</span>);
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø wørlÞhello world𝄞music&quot;</span>, result)
+            <span class="kw">let </span>result = string.trim_end_matches(<span class="string">'\0'</span>);
+            <span class="macro">assert_eq!</span>(<span class="string">"hællø wørlÞhello world𝄞music"</span>, result)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_concat_ext_wstring() {
         <span class="kw">let </span>argvec: [Vec&lt;u16&gt;; <span class="number">3</span>] = [
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;𝄞music\0&quot;</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hello world\0"</span>.encode_utf16().collect(),
+            <span class="string">"𝄞music\0"</span>.encode_utf16().collect(),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>argv: [<span class="kw-2">*const </span>u16; <span class="number">3</span>] = [std::ptr::null(); <span class="number">3</span>];
         <span class="kw">for </span>(i, arg) <span class="kw">in </span>argvec.iter().enumerate() {
@@ -3461,16 +3463,16 @@
                 dest.as_ptr(),
                 get_null_terminated_len(dest.as_ptr()),
             ));
-            <span class="macro">assert_eq!</span>(<span class="string">&quot;hællø wørlÞhello world𝄞music&quot;</span>, res)
+            <span class="macro">assert_eq!</span>(<span class="string">"hællø wørlÞhello world𝄞music"</span>, res)
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_gt_wstring() {
         <span class="kw">let </span>argvec: [Vec&lt;u16&gt;; <span class="number">3</span>] = [
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hel\0&quot;</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hello world\0"</span>.encode_utf16().collect(),
+            <span class="string">"hel\0"</span>.encode_utf16().collect(),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>argv: [<span class="kw-2">*const </span>u16; <span class="number">3</span>] = [std::ptr::null(); <span class="number">3</span>];
         <span class="kw">for </span>(i, arg) <span class="kw">in </span>argvec.iter().enumerate() {
@@ -3483,9 +3485,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_eq_wstring() {
         <span class="kw">let </span>argvec: [Vec&lt;u16&gt;; <span class="number">3</span>] = [
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>argv: [<span class="kw-2">*const </span>u16; <span class="number">3</span>] = [std::ptr::null(); <span class="number">3</span>];
         <span class="kw">for </span>(i, arg) <span class="kw">in </span>argvec.iter().enumerate() {
@@ -3498,9 +3500,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_lt_wstring() {
         <span class="kw">let </span>argvec: [Vec&lt;u16&gt;; <span class="number">3</span>] = [
-            <span class="string">&quot;hello world\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hællø wørlÞ\0&quot;</span>.encode_utf16().collect(),
-            <span class="string">&quot;hællø wør𝄞Þ\0&quot;</span>.encode_utf16().collect(),
+            <span class="string">"hello world\0"</span>.encode_utf16().collect(),
+            <span class="string">"hællø wørlÞ\0"</span>.encode_utf16().collect(),
+            <span class="string">"hællø wør𝄞Þ\0"</span>.encode_utf16().collect(),
         ];
         <span class="kw">let </span><span class="kw-2">mut </span>argv: [<span class="kw-2">*const </span>u16; <span class="number">3</span>] = [std::ptr::null(); <span class="number">3</span>];
         <span class="kw">for </span>(i, arg) <span class="kw">in </span>argvec.iter().enumerate() {

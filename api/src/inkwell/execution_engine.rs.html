@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/execution_engine.rs`."><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/execution_engine.rs`."><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -714,7 +716,7 @@
 <span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">static </span>EE_INNER_PANIC: <span class="kw-2">&amp;</span>str = <span class="string">&quot;ExecutionEngineInner should exist until Drop&quot;</span>;
+<span class="kw">static </span>EE_INNER_PANIC: <span class="kw-2">&amp;</span>str = <span class="string">"ExecutionEngineInner should exist until Drop"</span>;
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>FunctionLookupError {
@@ -727,15 +729,15 @@
 <span class="kw">impl </span>FunctionLookupError {
     <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            FunctionLookupError::JITNotEnabled =&gt; <span class="string">&quot;ExecutionEngine does not have JIT functionality enabled&quot;</span>,
-            FunctionLookupError::FunctionNotFound =&gt; <span class="string">&quot;Function not found in ExecutionEngine&quot;</span>,
+            FunctionLookupError::JITNotEnabled =&gt; <span class="string">"ExecutionEngine does not have JIT functionality enabled"</span>,
+            FunctionLookupError::FunctionNotFound =&gt; <span class="string">"Function not found in ExecutionEngine"</span>,
         }
     }
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>FunctionLookupError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;FunctionLookupError({})&quot;</span>, <span class="self">self</span>.as_str())
+        <span class="macro">write!</span>(f, <span class="string">"FunctionLookupError({})"</span>, <span class="self">self</span>.as_str())
     }
 }
 
@@ -747,7 +749,7 @@
 }
 
 <span class="kw">impl </span>Error <span class="kw">for </span>RemoveModuleError {
-    <span class="comment">// This method is deprecated on nighty so it&#39;s probably not
+    <span class="comment">// This method is deprecated on nighty so it's probably not
     // something we should worry about
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="self">self</span>.as_str()
@@ -761,20 +763,20 @@
 <span class="kw">impl </span>RemoveModuleError {
     <span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            RemoveModuleError::ModuleNotOwned =&gt; <span class="string">&quot;Module is not owned by an Execution Engine&quot;</span>,
-            RemoveModuleError::IncorrectModuleOwner =&gt; <span class="string">&quot;Module is not owned by this Execution Engine&quot;</span>,
-            RemoveModuleError::LLVMError(string) =&gt; string.to_str().unwrap_or(<span class="string">&quot;LLVMError with invalid unicode&quot;</span>),
+            RemoveModuleError::ModuleNotOwned =&gt; <span class="string">"Module is not owned by an Execution Engine"</span>,
+            RemoveModuleError::IncorrectModuleOwner =&gt; <span class="string">"Module is not owned by this Execution Engine"</span>,
+            RemoveModuleError::LLVMError(string) =&gt; string.to_str().unwrap_or(<span class="string">"LLVMError with invalid unicode"</span>),
         }
     }
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>RemoveModuleError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;RemoveModuleError({})&quot;</span>, <span class="self">self</span>.as_str())
+        <span class="macro">write!</span>(f, <span class="string">"RemoveModuleError({})"</span>, <span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// A reference-counted wrapper around LLVM&#39;s execution engine.
+<span class="doccomment">/// A reference-counted wrapper around LLVM's execution engine.
 ///
 /// # Note
 ///
@@ -783,13 +785,13 @@
 /// copies. The underlying LLVM object will be automatically deallocated when
 /// there are no more references to it.
 </span><span class="attr">#[derive(PartialEq, Eq, Debug)]
-</span><span class="kw">pub struct </span>ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    execution_engine: <span class="prelude-ty">Option</span>&lt;ExecEngineInner&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
+</span><span class="kw">pub struct </span>ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt; {
+    execution_engine: <span class="prelude-ty">Option</span>&lt;ExecEngineInner&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
     target_data: <span class="prelude-ty">Option</span>&lt;TargetData&gt;,
     jit_mode: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub unsafe fn </span>new(execution_engine: Rc&lt;LLVMExecutionEngineRef&gt;, jit_mode: bool) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!execution_engine.is_null());
 
@@ -817,14 +819,14 @@
         <span class="kw-2">**</span><span class="self">self</span>.execution_engine_rc()
     }
 
-    <span class="doccomment">/// This function probably doesn&#39;t need to be called, but is here due to
-    /// linking(?) requirements. Bad things happen if we don&#39;t provide it.
+    <span class="doccomment">/// This function probably doesn't need to be called, but is here due to
+    /// linking(?) requirements. Bad things happen if we don't provide it.
     </span><span class="kw">pub fn </span>link_in_mc_jit() {
         <span class="kw">unsafe </span>{ LLVMLinkInMCJIT() }
     }
 
-    <span class="doccomment">/// This function probably doesn&#39;t need to be called, but is here due to
-    /// linking(?) requirements. Bad things happen if we don&#39;t provide it.
+    <span class="doccomment">/// This function probably doesn't need to be called, but is here due to
+    /// linking(?) requirements. Bad things happen if we don't provide it.
     </span><span class="kw">pub fn </span>link_in_interpreter() {
         <span class="kw">unsafe </span>{
             LLVMLinkInInterpreter();
@@ -846,21 +848,21 @@
     /// }
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;test&quot;);
+    /// let module = context.create_module("test");
     /// let builder = context.create_builder();
     ///
     /// let ft = context.f64_type();
     /// let fnt = ft.fn_type(&amp;[], false);
     ///
-    /// let f = module.add_function(&quot;test_fn&quot;, fnt, None);
-    /// let b = context.append_basic_block(f, &quot;entry&quot;);
+    /// let f = module.add_function("test_fn", fnt, None);
+    /// let b = context.append_basic_block(f, "entry");
     ///
     /// builder.position_at_end(b);
     ///
-    /// let extf = module.add_function(&quot;sumf&quot;, ft.fn_type(&amp;[ft.into(), ft.into()], false), None);
+    /// let extf = module.add_function("sumf", ft.fn_type(&amp;[ft.into(), ft.into()], false), None);
     ///
     /// let argf = ft.const_float(64.);
-    /// let call_site_value = builder.build_call(extf, &amp;[argf.into(), argf.into()], &quot;retv&quot;);
+    /// let call_site_value = builder.build_call(extf, &amp;[argf.into(), argf.into()], "retv");
     /// let retv = call_site_value.try_as_basic_value().left().unwrap().into_float_value();
     ///
     /// builder.build_return(Some(&amp;retv));
@@ -872,7 +874,7 @@
     ///
     /// assert_eq!(result, 128.);
     /// ```
-    </span><span class="kw">pub fn </span>add_global_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnyValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, addr: usize) {
+    </span><span class="kw">pub fn </span>add_global_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnyValue&lt;<span class="lifetime">'ctx</span>&gt;, addr: usize) {
         <span class="kw">unsafe </span>{ LLVMAddGlobalMapping(<span class="self">self</span>.execution_engine_inner(), value.as_value_ref(), addr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }
     }
 
@@ -888,12 +890,12 @@
     /// Target::initialize_native(&amp;InitializationConfig::default()).unwrap();
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;test&quot;);
+    /// let module = context.create_module("test");
     /// let mut ee = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     ///
     /// assert!(ee.add_module(&amp;module).is_err());
     /// ```
-    </span><span class="kw">pub fn </span>add_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+    </span><span class="kw">pub fn </span>add_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
         <span class="kw">unsafe </span>{ LLVMAddModule(<span class="self">self</span>.execution_engine_inner(), module.module.get()) }
 
         <span class="kw">if </span>module.owned_by_ee.borrow().is_some() {
@@ -905,7 +907,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub fn </span>remove_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), RemoveModuleError&gt; {
+    <span class="kw">pub fn </span>remove_module(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), RemoveModuleError&gt; {
         <span class="kw">match </span><span class="kw-2">*</span>module.owned_by_ee.borrow() {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>ee) <span class="kw">if </span>ee.execution_engine_inner() != <span class="self">self</span>.execution_engine_inner() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(RemoveModuleError::IncorrectModuleOwner)
@@ -942,12 +944,12 @@
 
     <span class="doccomment">/// Try to load a function from the execution engine.
     ///
-    /// If a target hasn&#39;t already been initialized, spurious &quot;function not
-    /// found&quot; errors may be encountered.
+    /// If a target hasn't already been initialized, spurious "function not
+    /// found" errors may be encountered.
     ///
     /// The [`UnsafeFunctionPointer`] trait is designed so only `unsafe extern
-    /// &quot;C&quot;` functions can be retrieved via the `get_function()` method. If you
-    /// get funny type errors then it&#39;s probably because you have specified the
+    /// "C"` functions can be retrieved via the `get_function()` method. If you
+    /// get funny type errors then it's probably because you have specified the
     /// wrong calling convention or forgotten to specify the retrieved function
     /// as `unsafe`.
     ///
@@ -960,7 +962,7 @@
     /// # use inkwell::OptimizationLevel;
     /// # Target::initialize_native(&amp;InitializationConfig::default()).unwrap();
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;test&quot;);
+    /// let module = context.create_module("test");
     /// let builder = context.create_builder();
     ///
     /// // Set up the function signature
@@ -968,8 +970,8 @@
     /// let sig = double.fn_type(&amp;[], false);
     ///
     /// // Add the function to our module
-    /// let f = module.add_function(&quot;test_fn&quot;, sig, None);
-    /// let b = context.append_basic_block(f, &quot;entry&quot;);
+    /// let f = module.add_function("test_fn", sig, None);
+    /// let b = context.append_basic_block(f, "entry");
     /// builder.position_at_end(b);
     ///
     /// // Insert a return statement
@@ -979,9 +981,9 @@
     /// // create the JIT engine
     /// let mut ee = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     ///
-    /// // fetch our JIT&#39;d function and execute it
+    /// // fetch our JIT'd function and execute it
     /// unsafe {
-    ///     let test_fn = ee.get_function::&lt;unsafe extern &quot;C&quot; fn() -&gt; f64&gt;(&quot;test_fn&quot;).unwrap();
+    ///     let test_fn = ee.get_function::&lt;unsafe extern "C" fn() -&gt; f64&gt;("test_fn").unwrap();
     ///     let return_value = test_fn.call();
     ///     assert_eq!(return_value, 64.0);
     /// }
@@ -989,15 +991,15 @@
     ///
     /// # Safety
     ///
-    /// It is the caller&#39;s responsibility to ensure they call the function with
+    /// It is the caller's responsibility to ensure they call the function with
     /// the correct signature and calling convention.
     ///
-    /// The `JitFunction` wrapper ensures a function won&#39;t accidentally outlive the
+    /// The `JitFunction` wrapper ensures a function won't accidentally outlive the
     /// execution engine it came from, but adding functions after calling this
     /// method *may* invalidate the function pointer.
     ///
     /// [`UnsafeFunctionPointer`]: trait.UnsafeFunctionPointer.html
-    </span><span class="kw">pub unsafe fn </span>get_function&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;JitFunction&lt;<span class="lifetime">&#39;ctx</span>, F&gt;, FunctionLookupError&gt;
+    </span><span class="kw">pub unsafe fn </span>get_function&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;JitFunction&lt;<span class="lifetime">'ctx</span>, F&gt;, FunctionLookupError&gt;
     <span class="kw">where
         </span>F: UnsafeFunctionPointer,
     {
@@ -1010,7 +1012,7 @@
         <span class="macro">assert_eq!</span>(
             size_of::&lt;F&gt;(),
             size_of::&lt;usize&gt;(),
-            <span class="string">&quot;The type `F` must have the same size as a function pointer&quot;
+            <span class="string">"The type `F` must have the same size as a function pointer"
         </span>);
 
         <span class="kw">let </span>execution_engine = <span class="self">self</span>.execution_engine.as_ref().expect(EE_INNER_PANIC);
@@ -1021,15 +1023,15 @@
         })
     }
 
-    <span class="doccomment">/// Attempts to look up a function&#39;s address by its name. May return Err if the function cannot be
+    <span class="doccomment">/// Attempts to look up a function's address by its name. May return Err if the function cannot be
     /// found or some other unknown error has occurred.
     ///
     /// It is recommended to use `get_function` instead of this method when intending to call the function
-    /// pointer so that you don&#39;t have to do error-prone transmutes yourself.
+    /// pointer so that you don't have to do error-prone transmutes yourself.
     </span><span class="kw">pub fn </span>get_function_address(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, FunctionLookupError&gt; {
-        <span class="comment">// LLVMGetFunctionAddress segfaults in llvm 5.0 -&gt; 8.0 when fn_name doesn&#39;t exist. This is a workaround
-        // to see if it exists and avoid the segfault when it doesn&#39;t
-        </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>, feature = <span class="string">&quot;llvm7-0&quot;</span>, feature = <span class="string">&quot;llvm8-0&quot;</span>))]
+        <span class="comment">// LLVMGetFunctionAddress segfaults in llvm 5.0 -&gt; 8.0 when fn_name doesn't exist. This is a workaround
+        // to see if it exists and avoid the segfault when it doesn't
+        </span><span class="attr">#[cfg(any(feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>, feature = <span class="string">"llvm7-0"</span>, feature = <span class="string">"llvm8-0"</span>))]
         </span><span class="self">self</span>.get_function_value(fn_name)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>c_string = to_c_str(fn_name);
@@ -1038,7 +1040,7 @@
         <span class="comment">// REVIEW: Can also return 0 if no targets are initialized.
         // One option might be to set a (thread local?) global to true if any at all of the targets have been
         // initialized (maybe we could figure out which config in particular is the trigger)
-        // and if not return an &quot;NoTargetsInitialized&quot; error, instead of not found.
+        // and if not return an "NoTargetsInitialized" error, instead of not found.
         </span><span class="kw">if </span>address == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(FunctionLookupError::FunctionNotFound);
         }
@@ -1046,19 +1048,19 @@
         <span class="prelude-val">Ok</span>(address <span class="kw">as </span>usize)
     }
 
-    <span class="comment">// REVIEW: Not sure if an EE&#39;s target data can change.. if so we might want to update the value
+    <span class="comment">// REVIEW: Not sure if an EE's target data can change.. if so we might want to update the value
     // when making this call
     </span><span class="kw">pub fn </span>get_target_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TargetData {
         <span class="self">self</span>.target_data
             .as_ref()
-            .expect(<span class="string">&quot;TargetData should always exist until Drop&quot;</span>)
+            .expect(<span class="string">"TargetData should always exist until Drop"</span>)
     }
 
     <span class="comment">// REVIEW: Can also find nothing if no targeting is initialized. Maybe best to
     // do have a global flag for anything initialized. Catch is that it must be initialized
     // before EE is created
-    // REVIEW: Should FunctionValue lifetime be tied to self not &#39;ctx?
-    </span><span class="kw">pub fn </span>get_function_value(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, FunctionLookupError&gt; {
+    // REVIEW: Should FunctionValue lifetime be tied to self not 'ctx?
+    </span><span class="kw">pub fn </span>get_function_value(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;, FunctionLookupError&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.jit_mode {
             <span class="kw">return </span><span class="prelude-val">Err</span>(FunctionLookupError::JITNotEnabled);
         }
@@ -1075,13 +1077,13 @@
         <span class="prelude-val">Err</span>(FunctionLookupError::FunctionNotFound)
     }
 
-    <span class="comment">// TODOC: Marked as unsafe because input function could very well do something unsafe. It&#39;s up to the caller
-    // to ensure that doesn&#39;t happen by defining their function correctly.
+    <span class="comment">// TODOC: Marked as unsafe because input function could very well do something unsafe. It's up to the caller
+    // to ensure that doesn't happen by defining their function correctly.
     </span><span class="kw">pub unsafe fn </span>run_function(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>GenericValue&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-    ) -&gt; GenericValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>GenericValue&lt;<span class="lifetime">'ctx</span>&gt;],
+    ) -&gt; GenericValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMGenericValueRef&gt; = args.iter().map(|val| val.generic_value).collect();
 
         <span class="kw">let </span>value = LLVMRunFunction(
@@ -1094,10 +1096,10 @@
         </span>GenericValue::new(value)
     }
 
-    <span class="comment">// TODOC: Marked as unsafe because input function could very well do something unsafe. It&#39;s up to the caller
-    // to ensure that doesn&#39;t happen by defining their function correctly.
+    <span class="comment">// TODOC: Marked as unsafe because input function could very well do something unsafe. It's up to the caller
+    // to ensure that doesn't happen by defining their function correctly.
     // SubType: Only for JIT EEs?
-    </span><span class="kw">pub unsafe fn </span>run_function_as_main(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) -&gt; c_int {
+    </span><span class="kw">pub unsafe fn </span>run_function_as_main(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;, args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) -&gt; c_int {
         <span class="kw">let </span>cstring_args: Vec&lt;<span class="kw">_</span>&gt; = args.iter().map(|<span class="kw-2">&amp;</span>arg| to_c_str(arg)).collect();
         <span class="kw">let </span>raw_args: Vec&lt;<span class="kw-2">*const </span><span class="kw">_</span>&gt; = cstring_args.iter().map(|arg| arg.as_ptr()).collect();
 
@@ -1112,7 +1114,7 @@
         ) <span class="comment">// REVIEW: usize to u32 cast ok??
     </span>}
 
-    <span class="kw">pub fn </span>free_fn_machine_code(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>free_fn_machine_code(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMFreeMachineCodeForFunction(<span class="self">self</span>.execution_engine_inner(), function.as_value_ref()) }
     }
 
@@ -1127,14 +1129,14 @@
     }
 }
 
-<span class="comment">// Modules owned by the EE will be discarded by the EE so we don&#39;t
+<span class="comment">// Modules owned by the EE will be discarded by the EE so we don't
 // want owned modules to drop.
-</span><span class="kw">impl </span>Drop <span class="kw">for </span>ExecutionEngine&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>ExecutionEngine&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         forget(
             <span class="self">self</span>.target_data
                 .take()
-                .expect(<span class="string">&quot;TargetData should always exist until Drop&quot;</span>),
+                .expect(<span class="string">"TargetData should always exist until Drop"</span>),
         );
 
         <span class="comment">// We must ensure the EE gets dropped before its context does,
@@ -1144,7 +1146,7 @@
     }
 }
 
-<span class="kw">impl </span>Clone <span class="kw">for </span>ExecutionEngine&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Clone <span class="kw">for </span>ExecutionEngine&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>execution_engine_rc = <span class="self">self</span>.execution_engine_rc().clone();
 
@@ -1154,9 +1156,9 @@
 
 <span class="doccomment">/// A smart pointer which wraps the `Drop` logic for `LLVMExecutionEngineRef`.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
-</span><span class="kw">struct </span>ExecEngineInner&lt;<span class="lifetime">&#39;ctx</span>&gt;(Rc&lt;LLVMExecutionEngineRef&gt;, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;);
+</span><span class="kw">struct </span>ExecEngineInner&lt;<span class="lifetime">'ctx</span>&gt;(Rc&lt;LLVMExecutionEngineRef&gt;, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;);
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>ExecEngineInner&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>ExecEngineInner&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>Rc::strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>) == <span class="number">1 </span>{
             <span class="kw">unsafe </span>{
@@ -1166,7 +1168,7 @@
     }
 }
 
-<span class="kw">impl </span>Deref <span class="kw">for </span>ExecEngineInner&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Deref <span class="kw">for </span>ExecEngineInner&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Target = LLVMExecutionEngineRef;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
@@ -1175,14 +1177,14 @@
 }
 
 <span class="doccomment">/// A wrapper around a function pointer which ensures the function being pointed
-/// to doesn&#39;t accidentally outlive its execution engine.
+/// to doesn't accidentally outlive its execution engine.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>JitFunction&lt;<span class="lifetime">&#39;ctx</span>, F&gt; {
-    _execution_engine: ExecEngineInner&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>JitFunction&lt;<span class="lifetime">'ctx</span>, F&gt; {
+    _execution_engine: ExecEngineInner&lt;<span class="lifetime">'ctx</span>&gt;,
     inner: F,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, F: Copy&gt; JitFunction&lt;<span class="lifetime">&#39;ctx</span>, F&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, F: Copy&gt; JitFunction&lt;<span class="lifetime">'ctx</span>, F&gt; {
     <span class="doccomment">/// Returns the raw function pointer, consuming self in the process.
     /// This function is unsafe because the function pointer may dangle
     /// if the ExecutionEngine it came from is dropped. The caller is
@@ -1200,13 +1202,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;F&gt; Debug <span class="kw">for </span>JitFunction&lt;<span class="lifetime">&#39;_</span>, F&gt; {
+<span class="kw">impl</span>&lt;F&gt; Debug <span class="kw">for </span>JitFunction&lt;<span class="lifetime">'_</span>, F&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter) -&gt; fmt::Result {
-        f.debug_tuple(<span class="string">&quot;JitFunction&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;unnamed&gt;&quot;</span>).finish()
+        f.debug_tuple(<span class="string">"JitFunction"</span>).field(<span class="kw-2">&amp;</span><span class="string">"&lt;unnamed&gt;"</span>).finish()
     }
 }
 
-<span class="doccomment">/// Marker trait representing an unsafe function pointer (`unsafe extern &quot;C&quot; fn(A, B, ...) -&gt; Output`).
+<span class="doccomment">/// Marker trait representing an unsafe function pointer (`unsafe extern "C" fn(A, B, ...) -&gt; Output`).
 </span><span class="kw">pub trait </span>UnsafeFunctionPointer: private::SealedUnsafeFunctionPointer {}
 
 <span class="kw">mod </span>private {
@@ -1227,9 +1229,9 @@
     (@recurse) =&gt; {};
 
     ($( <span class="macro-nonterminal">$param</span>:ident ),<span class="kw-2">*</span>) =&gt; {
-        <span class="kw">impl</span>&lt;Output, $( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>&gt; private::SealedUnsafeFunctionPointer <span class="kw">for unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>($( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>) -&gt; Output {}
+        <span class="kw">impl</span>&lt;Output, $( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>&gt; private::SealedUnsafeFunctionPointer <span class="kw">for unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>($( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>) -&gt; Output {}
 
-        <span class="kw">impl</span>&lt;Output, $( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>&gt; JitFunction&lt;<span class="lifetime">&#39;_</span>, <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>($( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>) -&gt; Output&gt; {
+        <span class="kw">impl</span>&lt;Output, $( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>&gt; JitFunction&lt;<span class="lifetime">'_</span>, <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>($( <span class="macro-nonterminal">$param </span>),<span class="kw-2">*</span>) -&gt; Output&gt; {
             <span class="doccomment">/// This method allows you to call the underlying function while making
             /// sure that the backing storage is not dropped too early and
             /// preserves the `unsafe` marker for any calls.
@@ -1246,7 +1248,7 @@
 
 <span class="macro">impl_unsafe_fn!</span>(A, B, C, D, E, F, G, H, I, J, K, L, M);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
 </span><span class="kw">pub mod </span>experimental {
     <span class="kw">use </span>llvm_sys::error::{LLVMConsumeError, LLVMErrorRef, LLVMErrorTypeId, LLVMGetErrorMessage, LLVMGetErrorTypeId};
     <span class="kw">use </span>llvm_sys::orc::{
@@ -1285,7 +1287,7 @@
     <span class="kw">impl </span>LLVMError {
         <span class="comment">// Null type id == success
         </span><span class="kw">pub fn </span>get_type_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMErrorTypeId {
-            <span class="comment">// FIXME: Don&#39;t expose LLVMErrorTypeId
+            <span class="comment">// FIXME: Don't expose LLVMErrorTypeId
             </span><span class="kw">unsafe </span>{ LLVMGetErrorTypeId(<span class="self">self</span>.<span class="number">0</span>) }
         }
     }
@@ -1317,7 +1319,7 @@
             Orc(stack_ref)
         }
 
-        <span class="kw">pub fn </span>add_compiled_ir&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;, lazily: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="kw">pub fn </span>add_compiled_ir&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ctx</span>&gt;, lazily: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
             <span class="comment">// let handle = MaybeUninit::uninit();
             // let _err =  if lazily {
             //     unsafe { LLVMOrcAddLazilyCompiledIR(self.0, handle.as_mut_ptr(), module.module.get(), sym_resolve, sym_resolve_ctx) }
@@ -1333,7 +1335,7 @@
             <span class="kw">let </span>err_str = <span class="kw">unsafe </span>{ LLVMOrcGetErrorMsg(<span class="self">self</span>.<span class="number">0</span>) };
 
             <span class="kw">if </span>err_str.is_null() {
-                <span class="macro">panic!</span>(<span class="string">&quot;Needs to be optional&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">"Needs to be optional"</span>)
             }
 
             <span class="kw">unsafe </span>{ CStr::from_ptr(err_str) }
@@ -1369,8 +1371,8 @@
         <span class="kw">let </span>target_machine = target
             .create_target_machine(
                 <span class="kw-2">&amp;</span>target_triple,
-                <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="string">""</span>,
+                <span class="kw-2">&amp;</span><span class="string">""</span>,
                 OptimizationLevel::None,
                 RelocMode::Default,
                 CodeModel::Default,
@@ -1378,14 +1380,14 @@
             .unwrap();
         <span class="kw">let </span>orc = Orc::create(target_machine);
 
-        <span class="macro">assert_eq!</span>(orc.get_error().to_str().unwrap(), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(orc.get_error().to_str().unwrap(), <span class="string">""</span>);
 
-        <span class="kw">let </span>mangled_symbol = orc.get_mangled_symbol(<span class="string">&quot;MyStructName&quot;</span>);
+        <span class="kw">let </span>mangled_symbol = orc.get_mangled_symbol(<span class="string">"MyStructName"</span>);
 
-        <span class="macro">assert_eq!</span>(orc.get_error().to_str().unwrap(), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(orc.get_error().to_str().unwrap(), <span class="string">""</span>);
 
-        <span class="comment">// REVIEW: This doesn&#39;t seem very mangled...
-        </span><span class="macro">assert_eq!</span>(mangled_symbol.to_str().unwrap(), <span class="string">&quot;MyStructName&quot;</span>);
+        <span class="comment">// REVIEW: This doesn't seem very mangled...
+        </span><span class="macro">assert_eq!</span>(mangled_symbol.to_str().unwrap(), <span class="string">"MyStructName"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

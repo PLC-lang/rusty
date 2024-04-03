@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1622,45 +1624,45 @@
 //! [References for all `get_*` functions]: #references-for-all-get_-functions
 //! [References for all `set_*` functions]: #references-for-all-set_-functions
 
-</span><span class="attr">#![doc(alias = <span class="string">&quot;getsockopt&quot;</span>)]
-#![doc(alias = <span class="string">&quot;setsockopt&quot;</span>)]
+</span><span class="attr">#![doc(alias = <span class="string">"getsockopt"</span>)]
+#![doc(alias = <span class="string">"setsockopt"</span>)]
 
-#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::xdp::{XdpMmapOffsets, XdpOptionsFlags, XdpStatistics, XdpUmemReg};
 <span class="attr">#[cfg(not(any(
     apple,
     windows,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;dragonfly&quot;</span>,
-    target_os = <span class="string">&quot;emscripten&quot;</span>,
-    target_os = <span class="string">&quot;espidf&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;netbsd&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;</span>,
-    target_os = <span class="string">&quot;vita&quot;</span>,
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"dragonfly"</span>,
+    target_os = <span class="string">"emscripten"</span>,
+    target_os = <span class="string">"espidf"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"netbsd"</span>,
+    target_os = <span class="string">"nto"</span>,
+    target_os = <span class="string">"vita"</span>,
 )))]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::AddressFamily;
 <span class="attr">#[cfg(any(
     linux_kernel,
-    target_os = <span class="string">&quot;freebsd&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;openbsd&quot;</span>,
-    target_os = <span class="string">&quot;redox&quot;</span>,
-    target_env = <span class="string">&quot;newlib&quot;
+    target_os = <span class="string">"freebsd"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"openbsd"</span>,
+    target_os = <span class="string">"redox"</span>,
+    target_env = <span class="string">"newlib"
 </span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::Protocol;
-<span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+<span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::SocketAddrV4;
 <span class="attr">#[cfg(linux_kernel)]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::SocketAddrV6;
 <span class="kw">use </span><span class="kw">crate</span>::net::{Ipv4Addr, Ipv6Addr, SocketType};
 <span class="kw">use crate</span>::{backend, io};
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 #[cfg(any(
     linux_like,
-    target_os = <span class="string">&quot;freebsd&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;illumos&quot;
+    target_os = <span class="string">"freebsd"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"illumos"
 </span>))]
 </span><span class="kw">use </span>alloc::string::String;
 <span class="kw">use </span>backend::c;
@@ -1685,7 +1687,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_TYPE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_TYPE"</span>)]
 </span><span class="kw">pub fn </span>get_socket_type&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;SocketType&gt; {
     backend::net::sockopt::get_socket_type(fd.as_fd())
 }
@@ -1697,7 +1699,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEADDR&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEADDR"</span>)]
 </span><span class="kw">pub fn </span>set_socket_reuseaddr&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_reuseaddr(fd.as_fd(), value)
 }
@@ -1708,7 +1710,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEADDR&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEADDR"</span>)]
 </span><span class="kw">pub fn </span>get_socket_reuseaddr&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_reuseaddr(fd.as_fd())
 }
@@ -1719,7 +1721,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_BROADCAST&quot;</span>)]
+#[doc(alias = <span class="string">"SO_BROADCAST"</span>)]
 </span><span class="kw">pub fn </span>set_socket_broadcast&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_broadcast(fd.as_fd(), value)
 }
@@ -1730,7 +1732,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_BROADCAST&quot;</span>)]
+#[doc(alias = <span class="string">"SO_BROADCAST"</span>)]
 </span><span class="kw">pub fn </span>get_socket_broadcast&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_broadcast(fd.as_fd())
 }
@@ -1741,7 +1743,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_LINGER&quot;</span>)]
+#[doc(alias = <span class="string">"SO_LINGER"</span>)]
 </span><span class="kw">pub fn </span>set_socket_linger&lt;Fd: AsFd&gt;(fd: Fd, value: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_linger(fd.as_fd(), value)
 }
@@ -1752,7 +1754,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_LINGER&quot;</span>)]
+#[doc(alias = <span class="string">"SO_LINGER"</span>)]
 </span><span class="kw">pub fn </span>get_socket_linger&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
     backend::net::sockopt::get_socket_linger(fd.as_fd())
 }
@@ -1764,7 +1766,7 @@
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_PASSCRED&quot;</span>)]
+#[doc(alias = <span class="string">"SO_PASSCRED"</span>)]
 </span><span class="kw">pub fn </span>set_socket_passcred&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_passcred(fd.as_fd(), value)
 }
@@ -1776,7 +1778,7 @@
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_PASSCRED&quot;</span>)]
+#[doc(alias = <span class="string">"SO_PASSCRED"</span>)]
 </span><span class="kw">pub fn </span>get_socket_passcred&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_passcred(fd.as_fd())
 }
@@ -1788,8 +1790,8 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_RCVTIMEO&quot;</span>)]
-#[doc(alias = <span class="string">&quot;SO_SNDTIMEO&quot;</span>)]
+#[doc(alias = <span class="string">"SO_RCVTIMEO"</span>)]
+#[doc(alias = <span class="string">"SO_SNDTIMEO"</span>)]
 </span><span class="kw">pub fn </span>set_socket_timeout&lt;Fd: AsFd&gt;(
     fd: Fd,
     id: Timeout,
@@ -1804,8 +1806,8 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_RCVTIMEO&quot;</span>)]
-#[doc(alias = <span class="string">&quot;SO_SNDTIMEO&quot;</span>)]
+#[doc(alias = <span class="string">"SO_RCVTIMEO"</span>)]
+#[doc(alias = <span class="string">"SO_SNDTIMEO"</span>)]
 </span><span class="kw">pub fn </span>get_socket_timeout&lt;Fd: AsFd&gt;(fd: Fd, id: Timeout) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
     backend::net::sockopt::get_socket_timeout(fd.as_fd(), id)
 }
@@ -1816,7 +1818,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_ERROR&quot;</span>)]
+#[doc(alias = <span class="string">"SO_ERROR"</span>)]
 </span><span class="kw">pub fn </span>get_socket_error&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;<span class="prelude-ty">Result</span>&lt;(), io::Errno&gt;&gt; {
     backend::net::sockopt::get_socket_error(fd.as_fd())
 }
@@ -1826,8 +1828,8 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">&quot;netbsd&quot;</span>))]
-#[doc(alias = <span class="string">&quot;SO_NOSIGPIPE&quot;</span>)]
+</span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">"netbsd"</span>))]
+#[doc(alias = <span class="string">"SO_NOSIGPIPE"</span>)]
 #[inline]
 </span><span class="kw">pub fn </span>get_socket_nosigpipe&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_nosigpipe(fd.as_fd())
@@ -1838,8 +1840,8 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">&quot;netbsd&quot;</span>))]
-#[doc(alias = <span class="string">&quot;SO_NOSIGPIPE&quot;</span>)]
+</span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">"netbsd"</span>))]
+#[doc(alias = <span class="string">"SO_NOSIGPIPE"</span>)]
 #[inline]
 </span><span class="kw">pub fn </span>set_socket_nosigpipe&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_nosigpipe(fd.as_fd(), value)
@@ -1851,7 +1853,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_KEEPALIVE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_KEEPALIVE"</span>)]
 </span><span class="kw">pub fn </span>set_socket_keepalive&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_keepalive(fd.as_fd(), value)
 }
@@ -1862,7 +1864,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_KEEPALIVE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_KEEPALIVE"</span>)]
 </span><span class="kw">pub fn </span>get_socket_keepalive&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_keepalive(fd.as_fd())
 }
@@ -1873,7 +1875,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_RCVBUF&quot;</span>)]
+#[doc(alias = <span class="string">"SO_RCVBUF"</span>)]
 </span><span class="kw">pub fn </span>set_socket_recv_buffer_size&lt;Fd: AsFd&gt;(fd: Fd, value: usize) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_recv_buffer_size(fd.as_fd(), value)
 }
@@ -1884,7 +1886,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_RCVBUF&quot;</span>)]
+#[doc(alias = <span class="string">"SO_RCVBUF"</span>)]
 </span><span class="kw">pub fn </span>get_socket_recv_buffer_size&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;usize&gt; {
     backend::net::sockopt::get_socket_recv_buffer_size(fd.as_fd())
 }
@@ -1895,7 +1897,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_SNDBUF&quot;</span>)]
+#[doc(alias = <span class="string">"SO_SNDBUF"</span>)]
 </span><span class="kw">pub fn </span>set_socket_send_buffer_size&lt;Fd: AsFd&gt;(fd: Fd, value: usize) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_send_buffer_size(fd.as_fd(), value)
 }
@@ -1906,7 +1908,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_SNDBUF&quot;</span>)]
+#[doc(alias = <span class="string">"SO_SNDBUF"</span>)]
 </span><span class="kw">pub fn </span>get_socket_send_buffer_size&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;usize&gt; {
     backend::net::sockopt::get_socket_send_buffer_size(fd.as_fd())
 }
@@ -1919,17 +1921,17 @@
 </span><span class="attr">#[cfg(not(any(
     apple,
     windows,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;dragonfly&quot;</span>,
-    target_os = <span class="string">&quot;emscripten&quot;</span>,
-    target_os = <span class="string">&quot;espidf&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;netbsd&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;</span>,
-    target_os = <span class="string">&quot;vita&quot;</span>,
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"dragonfly"</span>,
+    target_os = <span class="string">"emscripten"</span>,
+    target_os = <span class="string">"espidf"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"netbsd"</span>,
+    target_os = <span class="string">"nto"</span>,
+    target_os = <span class="string">"vita"</span>,
 )))]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_DOMAIN&quot;</span>)]
+#[doc(alias = <span class="string">"SO_DOMAIN"</span>)]
 </span><span class="kw">pub fn </span>get_socket_domain&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;AddressFamily&gt; {
     backend::net::sockopt::get_socket_domain(fd.as_fd())
 }
@@ -1941,7 +1943,7 @@
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[cfg(not(apple))] </span><span class="comment">// Apple platforms declare the constant, but do not actually implement it.
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_ACCEPTCONN&quot;</span>)]
+#[doc(alias = <span class="string">"SO_ACCEPTCONN"</span>)]
 </span><span class="kw">pub fn </span>get_socket_acceptconn&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_acceptconn(fd.as_fd())
 }
@@ -1952,7 +1954,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_OOBINLINE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_OOBINLINE"</span>)]
 </span><span class="kw">pub fn </span>set_socket_oobinline&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_oobinline(fd.as_fd(), value)
 }
@@ -1963,7 +1965,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;SO_OOBINLINE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_OOBINLINE"</span>)]
 </span><span class="kw">pub fn </span>get_socket_oobinline&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_oobinline(fd.as_fd())
 }
@@ -1976,7 +1978,7 @@
 </span><span class="attr">#[cfg(not(any(solarish, windows)))]
 #[cfg(not(windows))]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEPORT&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEPORT"</span>)]
 </span><span class="kw">pub fn </span>set_socket_reuseport&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_reuseport(fd.as_fd(), value)
 }
@@ -1988,7 +1990,7 @@
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[cfg(not(any(solarish, windows)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEPORT&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEPORT"</span>)]
 </span><span class="kw">pub fn </span>get_socket_reuseport&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_reuseport(fd.as_fd())
 }
@@ -1998,9 +2000,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEPORT_LB&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEPORT_LB"</span>)]
 </span><span class="kw">pub fn </span>set_socket_reuseport_lb&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_reuseport_lb(fd.as_fd(), value)
 }
@@ -2010,9 +2012,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_REUSEPORT_LB&quot;</span>)]
+#[doc(alias = <span class="string">"SO_REUSEPORT_LB"</span>)]
 </span><span class="kw">pub fn </span>get_socket_reuseport_lb&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_socket_reuseport_lb(fd.as_fd())
 }
@@ -2024,14 +2026,14 @@
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[cfg(any(
     linux_kernel,
-    target_os = <span class="string">&quot;freebsd&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;openbsd&quot;</span>,
-    target_os = <span class="string">&quot;redox&quot;</span>,
-    target_env = <span class="string">&quot;newlib&quot;
+    target_os = <span class="string">"freebsd"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"openbsd"</span>,
+    target_os = <span class="string">"redox"</span>,
+    target_env = <span class="string">"newlib"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_PROTOCOL&quot;</span>)]
+#[doc(alias = <span class="string">"SO_PROTOCOL"</span>)]
 </span><span class="kw">pub fn </span>get_socket_protocol&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Protocol&gt;&gt; {
     backend::net::sockopt::get_socket_protocol(fd.as_fd())
 }
@@ -2041,9 +2043,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_COOKIE&quot;</span>)]
+#[doc(alias = <span class="string">"SO_COOKIE"</span>)]
 </span><span class="kw">pub fn </span>get_socket_cookie&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u64&gt; {
     backend::net::sockopt::get_socket_cookie(fd.as_fd())
 }
@@ -2053,9 +2055,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_INCOMING_CPU&quot;</span>)]
+#[doc(alias = <span class="string">"SO_INCOMING_CPU"</span>)]
 </span><span class="kw">pub fn </span>get_socket_incoming_cpu&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_socket_incoming_cpu(fd.as_fd())
 }
@@ -2065,9 +2067,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_INCOMING_CPU&quot;</span>)]
+#[doc(alias = <span class="string">"SO_INCOMING_CPU"</span>)]
 </span><span class="kw">pub fn </span>set_socket_incoming_cpu&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_socket_incoming_cpu(fd.as_fd(), value)
 }
@@ -2078,7 +2080,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_socket_-and-set_socket_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_TTL&quot;</span>)]
+#[doc(alias = <span class="string">"IP_TTL"</span>)]
 </span><span class="kw">pub fn </span>set_ip_ttl&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_ttl(fd.as_fd(), value)
 }
@@ -2089,7 +2091,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_TTL&quot;</span>)]
+#[doc(alias = <span class="string">"IP_TTL"</span>)]
 </span><span class="kw">pub fn </span>get_ip_ttl&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_ip_ttl(fd.as_fd())
 }
@@ -2100,7 +2102,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_V6ONLY&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_V6ONLY"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_v6only&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_v6only(fd.as_fd(), value)
 }
@@ -2111,7 +2113,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_V6ONLY&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_V6ONLY"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_v6only&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ipv6_v6only(fd.as_fd())
 }
@@ -2122,7 +2124,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_MULTICAST_LOOP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_MULTICAST_LOOP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_multicast_loop&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_multicast_loop(fd.as_fd(), value)
 }
@@ -2133,7 +2135,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_MULTICAST_LOOP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_MULTICAST_LOOP"</span>)]
 </span><span class="kw">pub fn </span>get_ip_multicast_loop&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ip_multicast_loop(fd.as_fd())
 }
@@ -2144,7 +2146,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_MULTICAST_TTL&quot;</span>)]
+#[doc(alias = <span class="string">"IP_MULTICAST_TTL"</span>)]
 </span><span class="kw">pub fn </span>set_ip_multicast_ttl&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_multicast_ttl(fd.as_fd(), value)
 }
@@ -2155,7 +2157,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_MULTICAST_TTL&quot;</span>)]
+#[doc(alias = <span class="string">"IP_MULTICAST_TTL"</span>)]
 </span><span class="kw">pub fn </span>get_ip_multicast_ttl&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_ip_multicast_ttl(fd.as_fd())
 }
@@ -2166,7 +2168,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_MULTICAST_LOOP&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_MULTICAST_LOOP"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_multicast_loop&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_multicast_loop(fd.as_fd(), value)
 }
@@ -2177,7 +2179,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_MULTICAST_LOOP&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_MULTICAST_LOOP"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_multicast_loop&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ipv6_multicast_loop(fd.as_fd())
 }
@@ -2188,7 +2190,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_UNICAST_HOPS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_UNICAST_HOPS"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_unicast_hops&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u8&gt; {
     backend::net::sockopt::get_ipv6_unicast_hops(fd.as_fd())
 }
@@ -2199,7 +2201,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_UNICAST_HOPS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_UNICAST_HOPS"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_unicast_hops&lt;Fd: AsFd&gt;(fd: Fd, value: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_unicast_hops(fd.as_fd(), value)
 }
@@ -2210,7 +2212,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_MULTICAST_HOPS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_MULTICAST_HOPS"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_multicast_hops&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_multicast_hops(fd.as_fd(), value)
 }
@@ -2221,7 +2223,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_MULTICAST_HOPS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_MULTICAST_HOPS"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_multicast_hops&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_ipv6_multicast_hops(fd.as_fd())
 }
@@ -2235,7 +2237,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_ADD_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_ADD_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_add_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2257,11 +2259,11 @@
     apple,
     freebsdlike,
     linux_like,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;openbsd&quot;
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"openbsd"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_ADD_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_ADD_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_add_membership_with_ifindex&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2281,9 +2283,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
-</span><span class="attr">#[cfg(any(apple, freebsdlike, linux_like, solarish, target_os = <span class="string">&quot;aix&quot;</span>))]
+</span><span class="attr">#[cfg(any(apple, freebsdlike, linux_like, solarish, target_os = <span class="string">"aix"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_ADD_SOURCE_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_ADD_SOURCE_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_add_source_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2303,9 +2305,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
-</span><span class="attr">#[cfg(any(apple, freebsdlike, linux_like, solarish, target_os = <span class="string">&quot;aix&quot;</span>))]
+</span><span class="attr">#[cfg(any(apple, freebsdlike, linux_like, solarish, target_os = <span class="string">"aix"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_DROP_SOURCE_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_DROP_SOURCE_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_drop_source_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2326,8 +2328,8 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_JOIN_GROUP&quot;</span>)]
-#[doc(alias = <span class="string">&quot;IPV6_ADD_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_JOIN_GROUP"</span>)]
+#[doc(alias = <span class="string">"IPV6_ADD_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_add_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr,
@@ -2345,7 +2347,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IP_DROP_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_DROP_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_drop_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2366,11 +2368,11 @@
     apple,
     freebsdlike,
     linux_like,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;openbsd&quot;
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"openbsd"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_DROP_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IP_DROP_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ip_drop_membership_with_ifindex&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -2391,8 +2393,8 @@
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;IPV6_LEAVE_GROUP&quot;</span>)]
-#[doc(alias = <span class="string">&quot;IPV6_DROP_MEMBERSHIP&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_LEAVE_GROUP"</span>)]
+#[doc(alias = <span class="string">"IPV6_DROP_MEMBERSHIP"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_drop_membership&lt;Fd: AsFd&gt;(
     fd: Fd,
     multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr,
@@ -2409,14 +2411,14 @@
 </span><span class="attr">#[cfg(any(
     bsd,
     linux_like,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;</span>,
-    target_env = <span class="string">&quot;newlib&quot;
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"nto"</span>,
+    target_env = <span class="string">"newlib"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_TOS&quot;</span>)]
+#[doc(alias = <span class="string">"IP_TOS"</span>)]
 </span><span class="kw">pub fn </span>set_ip_tos&lt;Fd: AsFd&gt;(fd: Fd, value: u8) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_tos(fd.as_fd(), value)
 }
@@ -2429,14 +2431,14 @@
 </span><span class="attr">#[cfg(any(
     bsd,
     linux_like,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;</span>,
-    target_env = <span class="string">&quot;newlib&quot;
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"nto"</span>,
+    target_env = <span class="string">"newlib"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_TOS&quot;</span>)]
+#[doc(alias = <span class="string">"IP_TOS"</span>)]
 </span><span class="kw">pub fn </span>get_ip_tos&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u8&gt; {
     backend::net::sockopt::get_ip_tos(fd.as_fd())
 }
@@ -2446,9 +2448,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
-</span><span class="attr">#[cfg(any(apple, linux_like, target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(apple, linux_like, target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_RECVTOS&quot;</span>)]
+#[doc(alias = <span class="string">"IP_RECVTOS"</span>)]
 </span><span class="kw">pub fn </span>set_ip_recvtos&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_recvtos(fd.as_fd(), value)
 }
@@ -2458,9 +2460,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ip_-and-set_ip_-functions
-</span><span class="attr">#[cfg(any(apple, linux_like, target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(apple, linux_like, target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_RECVTOS&quot;</span>)]
+#[doc(alias = <span class="string">"IP_RECVTOS"</span>)]
 </span><span class="kw">pub fn </span>get_ip_recvtos&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ip_recvtos(fd.as_fd())
 }
@@ -2473,12 +2475,12 @@
 </span><span class="attr">#[cfg(any(
     bsd,
     linux_like,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"nto"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_RECVTCLASS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_RECVTCLASS"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_recvtclass&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_recvtclass(fd.as_fd(), value)
 }
@@ -2491,12 +2493,12 @@
 </span><span class="attr">#[cfg(any(
     bsd,
     linux_like,
-    target_os = <span class="string">&quot;aix&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;nto&quot;
+    target_os = <span class="string">"aix"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"nto"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_RECVTCLASS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_RECVTCLASS"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_recvtclass&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ipv6_recvtclass(fd.as_fd())
 }
@@ -2506,9 +2508,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
-</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_FREEBIND&quot;</span>)]
+#[doc(alias = <span class="string">"IP_FREEBIND"</span>)]
 </span><span class="kw">pub fn </span>set_ip_freebind&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ip_freebind(fd.as_fd(), value)
 }
@@ -2518,9 +2520,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
-</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP_FREEBIND&quot;</span>)]
+#[doc(alias = <span class="string">"IP_FREEBIND"</span>)]
 </span><span class="kw">pub fn </span>get_ip_freebind&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ip_freebind(fd.as_fd())
 }
@@ -2532,7 +2534,7 @@
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_FREEBIND&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_FREEBIND"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_freebind&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_freebind(fd.as_fd(), value)
 }
@@ -2544,7 +2546,7 @@
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_FREEBIND&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_FREEBIND"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_freebind&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_ipv6_freebind(fd.as_fd())
 }
@@ -2557,9 +2559,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
-</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;SO_ORIGINAL_DST&quot;</span>)]
+#[doc(alias = <span class="string">"SO_ORIGINAL_DST"</span>)]
 </span><span class="kw">pub fn </span>get_ip_original_dst&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;SocketAddrV4&gt; {
     backend::net::sockopt::get_ip_original_dst(fd.as_fd())
 }
@@ -2574,7 +2576,7 @@
 /// [module-level documentation]: self#references-for-get_ipv6_-and-set_ipv6_-functions
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
-#[doc(alias = <span class="string">&quot;IP6T_SO_ORIGINAL_DST&quot;</span>)]
+#[doc(alias = <span class="string">"IP6T_SO_ORIGINAL_DST"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_original_dst&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;SocketAddrV6&gt; {
     backend::net::sockopt::get_ipv6_original_dst(fd.as_fd())
 }
@@ -2587,12 +2589,12 @@
 </span><span class="attr">#[cfg(not(any(
     solarish,
     windows,
-    target_os = <span class="string">&quot;espidf&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;vita&quot;
+    target_os = <span class="string">"espidf"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"vita"
 </span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_TCLASS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_TCLASS"</span>)]
 </span><span class="kw">pub fn </span>set_ipv6_tclass&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_ipv6_tclass(fd.as_fd(), value)
 }
@@ -2605,12 +2607,12 @@
 </span><span class="attr">#[cfg(not(any(
     solarish,
     windows,
-    target_os = <span class="string">&quot;espidf&quot;</span>,
-    target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;vita&quot;
+    target_os = <span class="string">"espidf"</span>,
+    target_os = <span class="string">"haiku"</span>,
+    target_os = <span class="string">"vita"
 </span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;IPV6_TCLASS&quot;</span>)]
+#[doc(alias = <span class="string">"IPV6_TCLASS"</span>)]
 </span><span class="kw">pub fn </span>get_ipv6_tclass&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_ipv6_tclass(fd.as_fd())
 }
@@ -2621,7 +2623,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;TCP_NODELAY&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_NODELAY"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_nodelay&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_nodelay(fd.as_fd(), value)
 }
@@ -2632,7 +2634,7 @@
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;TCP_NODELAY&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_NODELAY"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_nodelay&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_tcp_nodelay(fd.as_fd())
 }
@@ -2642,9 +2644,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPCNT&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPCNT"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_keepcnt&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_keepcnt(fd.as_fd(), value)
 }
@@ -2654,9 +2656,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPCNT&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPCNT"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_keepcnt&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_tcp_keepcnt(fd.as_fd())
 }
@@ -2668,9 +2670,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPIDLE&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPIDLE"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_keepidle&lt;Fd: AsFd&gt;(fd: Fd, value: Duration) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_keepidle(fd.as_fd(), value)
 }
@@ -2682,9 +2684,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPIDLE&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPIDLE"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_keepidle&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;Duration&gt; {
     backend::net::sockopt::get_tcp_keepidle(fd.as_fd())
 }
@@ -2694,9 +2696,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPINTVL&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPINTVL"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_keepintvl&lt;Fd: AsFd&gt;(fd: Fd, value: Duration) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_keepintvl(fd.as_fd(), value)
 }
@@ -2706,9 +2708,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>)))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_KEEPINTVL&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_KEEPINTVL"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_keepintvl&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;Duration&gt; {
     backend::net::sockopt::get_tcp_keepintvl(fd.as_fd())
 }
@@ -2718,9 +2720,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_USER_TIMEOUT&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_USER_TIMEOUT"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_user_timeout&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_user_timeout(fd.as_fd(), value)
 }
@@ -2730,9 +2732,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_USER_TIMEOUT&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_USER_TIMEOUT"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_user_timeout&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;u32&gt; {
     backend::net::sockopt::get_tcp_user_timeout(fd.as_fd())
 }
@@ -2742,9 +2744,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_QUICKACK&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_QUICKACK"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_quickack&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_quickack(fd.as_fd(), value)
 }
@@ -2754,9 +2756,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_QUICKACK&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_QUICKACK"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_quickack&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_tcp_quickack(fd.as_fd())
 }
@@ -2768,12 +2770,12 @@
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
 </span><span class="attr">#[cfg(any(
     linux_like,
-    target_os = <span class="string">&quot;freebsd&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;illumos&quot;
+    target_os = <span class="string">"freebsd"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"illumos"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_CONGESTION&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_CONGESTION"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_congestion&lt;Fd: AsFd&gt;(fd: Fd, value: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_congestion(fd.as_fd(), value)
 }
@@ -2783,15 +2785,15 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 #[cfg(any(
     linux_like,
-    target_os = <span class="string">&quot;freebsd&quot;</span>,
-    target_os = <span class="string">&quot;fuchsia&quot;</span>,
-    target_os = <span class="string">&quot;illumos&quot;
+    target_os = <span class="string">"freebsd"</span>,
+    target_os = <span class="string">"fuchsia"</span>,
+    target_os = <span class="string">"illumos"
 </span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_CONGESTION&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_CONGESTION"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_congestion&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;String&gt; {
     backend::net::sockopt::get_tcp_congestion(fd.as_fd())
 }
@@ -2801,9 +2803,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_THIN_LINEAR_TIMEOUTS&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_THIN_LINEAR_TIMEOUTS"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_thin_linear_timeouts&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_thin_linear_timeouts(fd.as_fd(), value)
 }
@@ -2813,9 +2815,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_THIN_LINEAR_TIMEOUTS&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_THIN_LINEAR_TIMEOUTS"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_thin_linear_timeouts&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_tcp_thin_linear_timeouts(fd.as_fd())
 }
@@ -2825,9 +2827,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, solarish, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, solarish, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_CORK&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_CORK"</span>)]
 </span><span class="kw">pub fn </span>set_tcp_cork&lt;Fd: AsFd&gt;(fd: Fd, value: bool) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_tcp_cork(fd.as_fd(), value)
 }
@@ -2837,9 +2839,9 @@
 /// See the [module-level documentation] for more.
 ///
 /// [module-level documentation]: self#references-for-get_tcp_-and-set_tcp_-functions
-</span><span class="attr">#[cfg(any(linux_like, solarish, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+</span><span class="attr">#[cfg(any(linux_like, solarish, target_os = <span class="string">"fuchsia"</span>))]
 #[inline]
-#[doc(alias = <span class="string">&quot;TCP_CORK&quot;</span>)]
+#[doc(alias = <span class="string">"TCP_CORK"</span>)]
 </span><span class="kw">pub fn </span>get_tcp_cork&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;bool&gt; {
     backend::net::sockopt::get_tcp_cork(fd.as_fd())
 }
@@ -2851,7 +2853,7 @@
 ///
 /// [Linux `unix`]: https://man7.org/linux/man-pages/man7/unix.7.html
 </span><span class="attr">#[cfg(linux_kernel)]
-#[doc(alias = <span class="string">&quot;SO_PEERCRED&quot;</span>)]
+#[doc(alias = <span class="string">"SO_PEERCRED"</span>)]
 </span><span class="kw">pub fn </span>get_socket_peercred&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;<span class="kw">super</span>::UCred&gt; {
     backend::net::sockopt::get_socket_peercred(fd.as_fd())
 }
@@ -2864,8 +2866,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-umem-reg-setsockopt
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_UMEM_REG&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_UMEM_REG"</span>)]
 </span><span class="kw">pub fn </span>set_xdp_umem_reg&lt;Fd: AsFd&gt;(fd: Fd, value: XdpUmemReg) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_xdp_umem_reg(fd.as_fd(), value)
 }
@@ -2876,8 +2878,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_UMEM_FILL_RING&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_UMEM_FILL_RING"</span>)]
 </span><span class="kw">pub fn </span>set_xdp_umem_fill_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_xdp_umem_fill_ring_size(fd.as_fd(), value)
 }
@@ -2888,8 +2890,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_UMEM_COMPLETION_RING&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_UMEM_COMPLETION_RING"</span>)]
 </span><span class="kw">pub fn </span>set_xdp_umem_completion_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_xdp_umem_completion_ring_size(fd.as_fd(), value)
 }
@@ -2900,8 +2902,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_TX_RING&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_TX_RING"</span>)]
 </span><span class="kw">pub fn </span>set_xdp_tx_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_xdp_tx_ring_size(fd.as_fd(), value)
 }
@@ -2912,8 +2914,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-rx-tx-umem-fill-umem-completion-ring-setsockopts
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_RX_RING&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_RX_RING"</span>)]
 </span><span class="kw">pub fn </span>set_xdp_rx_ring_size&lt;Fd: AsFd&gt;(fd: Fd, value: u32) -&gt; io::Result&lt;()&gt; {
     backend::net::sockopt::set_xdp_rx_ring_size(fd.as_fd(), value)
 }
@@ -2924,8 +2926,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_MMAP_OFFSETS&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_MMAP_OFFSETS"</span>)]
 </span><span class="kw">pub fn </span>get_xdp_mmap_offsets&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpMmapOffsets&gt; {
     backend::net::sockopt::get_xdp_mmap_offsets(fd.as_fd())
 }
@@ -2936,8 +2938,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-statistics-getsockopt
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_STATISTICS&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_STATISTICS"</span>)]
 </span><span class="kw">pub fn </span>get_xdp_statistics&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpStatistics&gt; {
     backend::net::sockopt::get_xdp_statistics(fd.as_fd())
 }
@@ -2948,8 +2950,8 @@
 ///   - [Linux]
 ///
 /// [Linux]: https://www.kernel.org/doc/html/next/networking/af_xdp.html#xdp-options-getsockopt
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-#[doc(alias = <span class="string">&quot;XDP_OPTIONS&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+#[doc(alias = <span class="string">"XDP_OPTIONS"</span>)]
 </span><span class="kw">pub fn </span>get_xdp_options&lt;Fd: AsFd&gt;(fd: Fd) -&gt; io::Result&lt;XdpOptionsFlags&gt; {
     backend::net::sockopt::get_xdp_options(fd.as_fd())
 }
@@ -2959,7 +2961,7 @@
     <span class="kw">use </span>c::c_int;
 
     <span class="comment">// Backend code needs to cast these to `c_int` so make sure that cast
-    // isn&#39;t lossy.
+    // isn't lossy.
     </span><span class="macro">assert_eq_size!</span>(Timeout, c_int);
 }
 </code></pre></div></section></main></body></html>

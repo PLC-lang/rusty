@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/mergesort.rs`."><title>mergesort.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/mergesort.rs`."><title>mergesort.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -959,7 +961,7 @@
 
     <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>MergeHole&lt;T&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="comment">// `T` is not a zero-sized type, so it&#39;s okay to divide by its size.
+            <span class="comment">// `T` is not a zero-sized type, so it's okay to divide by its size.
             </span><span class="kw">unsafe </span>{
                 <span class="kw">let </span>len = <span class="self">self</span>.end.offset_from(<span class="self">self</span>.start) <span class="kw">as </span>usize;
                 ptr::copy_nonoverlapping(<span class="self">self</span>.start, <span class="self">self</span>.dest, len);
@@ -1023,7 +1025,7 @@
 
 <span class="doccomment">/// Sorts a slice using merge sort, unless it is already in descending order.
 ///
-/// This function doesn&#39;t modify the slice if it is already non-descending or descending.
+/// This function doesn't modify the slice if it is already non-descending or descending.
 /// Otherwise, it sorts the slice into non-descending order.
 ///
 /// This merge sort borrows some (but not all) ideas from TimSort, which is described in detail
@@ -1059,7 +1061,7 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>runs = <span class="macro">vec!</span>[];
     <span class="kw">let </span><span class="kw-2">mut </span>end = len;
     <span class="kw">while </span>end &gt; <span class="number">0 </span>{
-        <span class="comment">// Find the next natural run, and reverse it if it&#39;s strictly descending.
+        <span class="comment">// Find the next natural run, and reverse it if it's strictly descending.
         </span><span class="kw">let </span><span class="kw-2">mut </span>start = end - <span class="number">1</span>;
 
         <span class="kw">if </span>start &gt; <span class="number">0 </span>{
@@ -1088,7 +1090,7 @@
             }
         }
 
-        <span class="comment">// Insert some more elements into the run if it&#39;s too short. Insertion sort is faster than
+        <span class="comment">// Insert some more elements into the run if it's too short. Insertion sort is faster than
         // merge sort on short sequences, so this significantly improves performance.
         </span><span class="kw">while </span>start &gt; <span class="number">0 </span>&amp;&amp; end - start &lt; MIN_RUN {
             start -= <span class="number">1</span>;
@@ -1194,7 +1196,7 @@
 {
     <span class="comment">// Slices whose lengths sum up to this value are merged sequentially. This number is slightly
     // larger than `CHUNK_LENGTH`, and the reason is that merging is faster than merge sorting, so
-    // merging needs a bit coarser granularity in order to hide the overhead of Rayon&#39;s task
+    // merging needs a bit coarser granularity in order to hide the overhead of Rayon's task
     // scheduling.
     </span><span class="kw">const </span>MAX_SEQUENTIAL: usize = <span class="number">5000</span>;
 
@@ -1304,7 +1306,7 @@
     <span class="macro">debug_assert!</span>(len &gt; <span class="number">0</span>);
 
     <span class="comment">// Base case of the algorithm.
-    // If only one chunk is remaining, there&#39;s no more work to split and merge.
+    // If only one chunk is remaining, there's no more work to split and merge.
     </span><span class="kw">if </span>len == <span class="number">1 </span>{
         <span class="kw">if </span>into_buf {
             <span class="comment">// Copy the chunk from `v` into `buf`.
@@ -1322,8 +1324,8 @@
     <span class="kw">let </span>(<span class="kw">_</span>, end) = chunks[len - <span class="number">1</span>];
     <span class="kw">let </span>(left, right) = chunks.split_at(len / <span class="number">2</span>);
 
-    <span class="comment">// After recursive calls finish we&#39;ll have to merge chunks `(start, mid)` and `(mid, end)` from
-    // `src` into `dest`. If the current invocation has to store the result into `buf`, we&#39;ll
+    <span class="comment">// After recursive calls finish we'll have to merge chunks `(start, mid)` and `(mid, end)` from
+    // `src` into `dest`. If the current invocation has to store the result into `buf`, we'll
     // merge chunks from `v` into `buf`, and vice versa.
     //
     // Recursive calls flip `into_buf` at each level of recursion. More concretely, `par_merge`
@@ -1335,7 +1337,7 @@
     //
     // If `is_less` panics at any point during the recursive calls, the destructor of `guard` will
     // be executed, thus copying everything from `src` into `dest`. This way we ensure that all
-    // chunks are in fact copied into `dest`, even if the merge process doesn&#39;t finish.
+    // chunks are in fact copied into `dest`, even if the merge process doesn't finish.
     </span><span class="kw">let </span>guard = CopyOnDrop {
         src: src.add(start),
         dest: dest.add(start),
@@ -1351,7 +1353,7 @@
         <span class="kw">move </span>|| recurse(v.get(), buf.get(), right, !into_buf, is_less),
     );
 
-    <span class="comment">// Everything went all right - recursive calls didn&#39;t panic.
+    <span class="comment">// Everything went all right - recursive calls didn't panic.
     // Forget the guard in order to prevent its destructor from running.
     </span>mem::forget(guard);
 
@@ -1374,7 +1376,7 @@
     // buffer allocation.
     </span><span class="kw">const </span>MAX_INSERTION: usize = <span class="number">20</span>;
     <span class="comment">// The length of initial chunks. This number is as small as possible but so that the overhead
-    // of Rayon&#39;s task scheduling is still negligible.
+    // of Rayon's task scheduling is still negligible.
     </span><span class="kw">const </span>CHUNK_LENGTH: usize = <span class="number">2000</span>;
 
     <span class="comment">// Sorting has no meaningful behavior on zero-sized types.

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser/expressions_parser.rs`."><title>expressions_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser/expressions_parser.rs`."><title>expressions_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1090,7 +1092,7 @@
         <span class="kw">let </span>right = parse_unary_expression(lexer);
         <span class="kw">let </span>span = left.get_location().span(<span class="kw-2">&amp;</span>right.get_location());
         left =
-            AstFactory::create_call_to_with_ids(<span class="string">&quot;EXPT&quot;</span>, <span class="macro">vec!</span>[left, right], <span class="kw-2">&amp;</span>span, lexer.id_provider.clone());
+            AstFactory::create_call_to_with_ids(<span class="string">"EXPT"</span>, <span class="macro">vec!</span>[left, right], <span class="kw-2">&amp;</span>span, lexer.id_provider.clone());
     }
     left
 }
@@ -1188,8 +1190,8 @@
 <span class="doccomment">/// parse an expression at the bottom of the parse-tree.
 /// leaf-expressions are literals, identifier, direct-access and parenthesized expressions
 /// (since the parentheses change the parse-priority)
-</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-    <span class="comment">// Check if we&#39;re dealing with a number that has an explicit &#39;+&#39; or &#39;-&#39; sign...
+</span><span class="kw">fn </span>parse_atomic_leaf_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+    <span class="comment">// Check if we're dealing with a number that has an explicit '+' or '-' sign...
 
     </span><span class="kw">match </span>lexer.token {
         OperatorPlus | OperatorMinus =&gt; {
@@ -1203,7 +1205,7 @@
                 LiteralIntegerHex =&gt; parse_literal_number_with_modifier(lexer, <span class="number">16</span>, is_negative),
                 <span class="kw">_ </span>=&gt; {
                     lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                        <span class="string">&quot;Numeric Literal&quot;</span>,
+                        <span class="string">"Numeric Literal"</span>,
                         lexer.slice(),
                         lexer.location(),
                     ));
@@ -1246,13 +1248,13 @@
             <span class="kw">if </span>lexer.closing_keywords.contains(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[KeywordParensClose])
                 &amp;&amp; <span class="macro">matches!</span>(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
             {
-                <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;
-                // we are probably in a call statement missing a parameter assignment &#39;foo(param := );
+                <span class="comment">// due to closing keyword ')' and last_token '=&gt;' / ':='
+                // we are probably in a call statement missing a parameter assignment 'foo(param := );
                 // optional parameter assignments are allowed, validation should handle any unwanted cases
                 </span><span class="prelude-val">Some</span>(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } <span class="kw">else </span>{
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    <span class="string">&quot;Literal&quot;</span>,
+                    <span class="string">"Literal"</span>,
                     lexer.slice(),
                     lexer.location(),
                 ));
@@ -1262,7 +1264,7 @@
     }
 }
 
-<span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; AstNode {
+<span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">'_</span>&gt;) -&gt; AstNode {
     AstFactory::create_identifier(<span class="kw-2">&amp;</span>lexer.slice_and_advance(), <span class="kw-2">&amp;</span>lexer.last_location(), lexer.next_id())
 }
 
@@ -1371,7 +1373,7 @@
                 <span class="kw">let </span>location_start = lexer.range().start;
                 <span class="kw">let </span>location = lexer.location();
                 <span class="kw">let </span><span class="kw-2">mut </span>type_name = lexer.slice_and_advance();
-                type_name.pop(); <span class="comment">// get rid of the &quot;#&quot; at the end
+                type_name.pop(); <span class="comment">// get rid of the "#" at the end
                 </span><span class="kw">let </span>stmt = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
                 <span class="kw">let </span>end = stmt.get_location();
                 <span class="kw">let </span>type_range = lexer
@@ -1445,7 +1447,7 @@
         }
         <span class="kw">_ </span>=&gt; {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                <span class="string">&quot;Integer or Reference&quot;</span>,
+                <span class="string">"Integer or Reference"</span>,
                 lexer.slice(),
                 lexer.location(),
             ));
@@ -1465,11 +1467,11 @@
     // been matched using regular expressions
     </span><span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>token = lexer.slice_and_advance();
-    <span class="kw">let </span>number_str = token.split(<span class="string">&#39;#&#39;</span>).last().expect(<span class="string">&quot;token with &#39;#&#39;&quot;</span>);
-    <span class="kw">let </span>number_str = number_str.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
+    <span class="kw">let </span>number_str = token.split(<span class="string">'#'</span>).last().expect(<span class="string">"token with '#'"</span>);
+    <span class="kw">let </span>number_str = number_str.replace(<span class="string">'_'</span>, <span class="string">""</span>);
 
     <span class="comment">// again, the parsed number can be safely unwrapped.
-    </span><span class="kw">let </span>value = i128::from_str_radix(number_str.as_str(), radix).expect(<span class="string">&quot;valid i128&quot;</span>);
+    </span><span class="kw">let </span>value = i128::from_str_radix(number_str.as_str(), radix).expect(<span class="string">"valid i128"</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
     <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
 }
@@ -1482,8 +1484,8 @@
         lexer.range()
     };
     <span class="kw">let </span>result = lexer.slice_and_advance();
-    <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
-        <span class="kw">let </span>value = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
+    <span class="kw">if </span>result.to_lowercase().contains(<span class="string">'e'</span>) {
+        <span class="kw">let </span>value = result.replace(<span class="string">'_'</span>, <span class="string">""</span>);
         <span class="comment">//Treat exponents as reals
         </span><span class="kw">return </span><span class="prelude-val">Some</span>(AstNode::new_literal(
             AstLiteral::new_real(value),
@@ -1498,8 +1500,8 @@
             <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Some</span>(v),
             <span class="prelude-val">Err</span>(e) =&gt; {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {result}&quot;</span>))
-                        .with_error_code(<span class="string">&quot;E011&quot;</span>)
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Failed to parse number {result}"</span>))
+                        .with_error_code(<span class="string">"E011"</span>)
                         .with_location(lexer.source_range_factory.create_range(location))
                         .with_internal_error(e.into()),
                 );
@@ -1519,9 +1521,9 @@
     }
 
     <span class="comment">// parsed number value can be safely unwrapped
-    </span><span class="kw">let </span>result = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
+    </span><span class="kw">let </span>result = result.replace(<span class="string">'_'</span>, <span class="string">""</span>);
 
-    <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
+    <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">"valid i128"</span>);
     <span class="kw">let </span>value = <span class="kw">if </span>is_negative { -value } <span class="kw">else </span>{ value };
 
     <span class="prelude-val">Some</span>(AstNode::new_literal(
@@ -1537,16 +1539,16 @@
     </span><span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>result = lexer.slice_and_advance();
     <span class="comment">// parsed number value can be safely unwrapped
-    </span><span class="kw">let </span>result = result.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
-    <span class="kw">if </span>result.to_lowercase().contains(<span class="string">&#39;e&#39;</span>) {
+    </span><span class="kw">let </span>result = result.replace(<span class="string">'_'</span>, <span class="string">""</span>);
+    <span class="kw">if </span>result.to_lowercase().contains(<span class="string">'e'</span>) {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            <span class="string">&quot;Integer&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Exponent value: {result}&quot;</span>),
+            <span class="string">"Integer"</span>,
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"Exponent value: {result}"</span>),
             location,
         ));
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">&quot;valid i128&quot;</span>);
+        <span class="kw">let </span>value = result.parse::&lt;i128&gt;().expect(<span class="string">"valid i128"</span>);
         <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_integer(value), lexer.next_id(), location))
     }
 }
@@ -1556,8 +1558,8 @@
         <span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Some</span>(v),
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
             lexer.accept_diagnostic(
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Failed to parse number {text}&quot;</span>))
-                    .with_error_code(<span class="string">&quot;E011&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Failed to parse number {text}"</span>))
+                    .with_error_code(<span class="string">"E011"</span>)
                     .with_location(location.clone()),
             );
             <span class="prelude-val">None
@@ -1571,21 +1573,21 @@
     location: SourceLocation,
     id: AstId,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>segments = text.split(<span class="string">&#39;-&#39;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>segments = text.split(<span class="string">'-'</span>);
 
     <span class="comment">//we can safely expect 3 numbers
     </span><span class="kw">let </span>year = segments
         .next()
         .map(|s| parse_number::&lt;i32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
-        .expect(<span class="string">&quot;year-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
+        .expect(<span class="string">"year-segment - tokenizer broken?"</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>month = segments
         .next()
         .map(|s| parse_number::&lt;u32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
-        .expect(<span class="string">&quot;month-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
+        .expect(<span class="string">"month-segment - tokenizer broken?"</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>day = segments
         .next()
         .map(|s| parse_number::&lt;u32&gt;(lexer, s, <span class="kw-2">&amp;</span>location))
-        .expect(<span class="string">&quot;day-segment - tokenizer broken?&quot;</span>)<span class="question-mark">?</span>;
+        .expect(<span class="string">"day-segment - tokenizer broken?"</span>)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_date(year, month, day), id, location))
 }
@@ -1594,21 +1596,21 @@
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
-    <span class="kw">let </span>hash_location = slice.find(<span class="string">&#39;#&#39;</span>).unwrap_or_default();
-    <span class="kw">let </span>last_minus_location = slice.rfind(<span class="string">&#39;-&#39;</span>).expect(<span class="string">&quot;unexpected date-and-time syntax&quot;</span>);
+    <span class="kw">let </span>hash_location = slice.find(<span class="string">'#'</span>).unwrap_or_default();
+    <span class="kw">let </span>last_minus_location = slice.rfind(<span class="string">'-'</span>).expect(<span class="string">"unexpected date-and-time syntax"</span>);
 
     <span class="kw">let </span>(<span class="kw">_</span>, date_and_time) = slice.split_at(hash_location + <span class="number">1</span>); <span class="comment">//get rid of the prefix
     </span><span class="kw">let </span>(date, time) = date_and_time.split_at(last_minus_location - hash_location);
 
     <span class="comment">//we can safely expect 3 numbers
-    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = date.split(<span class="string">&#39;-&#39;</span>);
-    <span class="kw">let </span>msg = <span class="string">&quot;unexpected date-and-time syntax&quot;</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = date.split(<span class="string">'-'</span>);
+    <span class="kw">let </span>msg = <span class="string">"unexpected date-and-time syntax"</span>;
     <span class="kw">let </span>year = parse_number::&lt;i32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
     <span class="kw">let </span>month = parse_number::&lt;u32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
     <span class="kw">let </span>day = parse_number::&lt;u32&gt;(lexer, segments.next().expect(msg), <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
     <span class="comment">//we can safely expect 3 numbers
-    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = time.split(<span class="string">&#39;:&#39;</span>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = time.split(<span class="string">':'</span>);
     <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(lexer, <span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Some</span>(AstNode::new_literal(
@@ -1622,7 +1624,7 @@
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of D# or DATE#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
-    <span class="kw">let </span>hash_location = slice.find(<span class="string">&#39;#&#39;</span>).unwrap_or_default();
+    <span class="kw">let </span>hash_location = slice.find(<span class="string">'#'</span>).unwrap_or_default();
     <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(hash_location + <span class="number">1</span>); <span class="comment">//get rid of the prefix
 
     </span><span class="kw">let </span>next_id = lexer.next_id();
@@ -1633,10 +1635,10 @@
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of TOD# or TIME_OF_DAY#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
-    <span class="kw">let </span>hash_location = slice.find(<span class="string">&#39;#&#39;</span>).unwrap_or_default();
+    <span class="kw">let </span>hash_location = slice.find(<span class="string">'#'</span>).unwrap_or_default();
     <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(hash_location + <span class="number">1</span>); <span class="comment">//get rid of the prefix
 
-    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = slice.split(<span class="string">&#39;:&#39;</span>);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>segments = slice.split(<span class="string">':'</span>);
     <span class="kw">let </span>(hour, min, sec, nano) = parse_time_of_day(lexer, <span class="kw-2">&amp;mut </span>segments, <span class="kw-2">&amp;</span>location)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_time_of_day(hour, min, sec, nano), lexer.next_id(), location))
@@ -1647,10 +1649,10 @@
     time: <span class="kw-2">&amp;mut </span>Split&lt;char&gt;,
     location: <span class="kw-2">&amp;</span>SourceLocation,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(u32, u32, u32, u32)&gt; {
-    <span class="kw">let </span>hour = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">&quot;expected hours&quot;</span>), location)<span class="question-mark">?</span>;
-    <span class="kw">let </span>min = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">&quot;expected minutes&quot;</span>), location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>hour = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">"expected hours"</span>), location)<span class="question-mark">?</span>;
+    <span class="kw">let </span>min = parse_number::&lt;u32&gt;(lexer, time.next().expect(<span class="string">"expected minutes"</span>), location)<span class="question-mark">?</span>;
 
-    <span class="comment">// doesn&#39;t necessarily have to have seconds, e.g [12:00] is also valid
+    <span class="comment">// doesn't necessarily have to have seconds, e.g [12:00] is also valid
     </span><span class="kw">let </span>sec = <span class="kw">match </span>time.next() {
         <span class="prelude-val">Some</span>(v) =&gt; parse_number::&lt;f64&gt;(lexer, v, location)<span class="question-mark">?</span>,
         <span class="prelude-val">None </span>=&gt; <span class="number">0.0</span>,
@@ -1672,12 +1674,12 @@
     <span class="kw">let </span>location = lexer.location();
     <span class="comment">//get rid of T# or TIME#
     </span><span class="kw">let </span>slice = lexer.slice_and_advance();
-    <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(slice.find(<span class="string">&#39;#&#39;</span>).unwrap_or_default() + <span class="number">1</span>); <span class="comment">//get rid of the prefix
+    <span class="kw">let </span>(<span class="kw">_</span>, slice) = slice.split_at(slice.find(<span class="string">'#'</span>).unwrap_or_default() + <span class="number">1</span>); <span class="comment">//get rid of the prefix
 
     </span><span class="kw">let </span><span class="kw-2">mut </span>chars = slice.char_indices();
     <span class="kw">let </span><span class="kw-2">mut </span>char = chars.next();
 
-    <span class="kw">let </span>is_negative = char.map(|(<span class="kw">_</span>, c)| c == <span class="string">&#39;-&#39;</span>).unwrap_or(<span class="bool-val">false</span>);
+    <span class="kw">let </span>is_negative = char.map(|(<span class="kw">_</span>, c)| c == <span class="string">'-'</span>).unwrap_or(<span class="bool-val">false</span>);
     <span class="kw">if </span>is_negative {
         char = chars.next();
     }
@@ -1688,14 +1690,14 @@
     <span class="kw">while </span>char.is_some() {
         <span class="comment">//expect a number
         </span><span class="kw">let </span>number = {
-            <span class="kw">let </span>start = char.expect(<span class="string">&quot;char&quot;</span>).<span class="number">0</span>;
+            <span class="kw">let </span>start = char.expect(<span class="string">"char"</span>).<span class="number">0</span>;
             <span class="comment">//just eat all the digits
-            </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_digit() &amp;&amp; !ch.eq(<span class="kw-2">&amp;</span><span class="string">&#39;.&#39;</span>));
+            </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_digit() &amp;&amp; !ch.eq(<span class="kw-2">&amp;</span><span class="string">'.'</span>));
             <span class="kw">match </span>char {
                 <span class="prelude-val">None </span>=&gt; {
                     lexer.accept_diagnostic(
-                        Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>)
-                            .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                        Diagnostic::new(<span class="string">"Invalid TIME Literal: Cannot parse segment."</span>)
+                            .with_error_code(<span class="string">"E010"</span>)
                             .with_location(location.clone()),
                     );
                     <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1710,8 +1712,8 @@
                 <span class="prelude-val">Some</span>((index, <span class="kw">_</span>)) =&gt; index,
                 <span class="prelude-val">None </span>=&gt; {
                     lexer.accept_diagnostic(
-                        Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>)
-                            .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                        Diagnostic::new(<span class="string">"Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)"</span>)
+                            .with_error_code(<span class="string">"E010"</span>)
                             .with_location(location.clone()),
                     );
                     <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1720,27 +1722,27 @@
 
             <span class="comment">//just eat all the characters
             </span>char = chars.find(|(<span class="kw">_</span>, ch)| !ch.is_ascii_alphabetic());
-            <span class="kw-2">&amp;</span>slice[start..char.unwrap_or((slice.len(), <span class="string">&#39; &#39;</span>)).<span class="number">0</span>]
+            <span class="kw-2">&amp;</span>slice[start..char.unwrap_or((slice.len(), <span class="string">' '</span>)).<span class="number">0</span>]
         }
         .to_lowercase();
 
-        <span class="comment">//now assign the number to the according segment of the value&#39;s array
+        <span class="comment">//now assign the number to the according segment of the value's array
         </span><span class="kw">let </span>position = <span class="kw">match </span>unit.as_str() {
-            <span class="string">&quot;d&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_D),
-            <span class="string">&quot;h&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_H),
-            <span class="string">&quot;m&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_M),
-            <span class="string">&quot;s&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_S),
-            <span class="string">&quot;ms&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_MS),
-            <span class="string">&quot;us&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_US),
-            <span class="string">&quot;ns&quot; </span>=&gt; <span class="prelude-val">Some</span>(POS_NS),
+            <span class="string">"d" </span>=&gt; <span class="prelude-val">Some</span>(POS_D),
+            <span class="string">"h" </span>=&gt; <span class="prelude-val">Some</span>(POS_H),
+            <span class="string">"m" </span>=&gt; <span class="prelude-val">Some</span>(POS_M),
+            <span class="string">"s" </span>=&gt; <span class="prelude-val">Some</span>(POS_S),
+            <span class="string">"ms" </span>=&gt; <span class="prelude-val">Some</span>(POS_MS),
+            <span class="string">"us" </span>=&gt; <span class="prelude-val">Some</span>(POS_US),
+            <span class="string">"ns" </span>=&gt; <span class="prelude-val">Some</span>(POS_NS),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
         <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = position {
             <span class="comment">//check if we assign out of order - every assignment before must have been a smaller position
             </span><span class="kw">if </span>prev_pos &gt; position {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>)
-                        .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                    Diagnostic::new(<span class="string">"Invalid TIME Literal: segments out of order, use d-h-m-s-ms"</span>)
+                        .with_error_code(<span class="string">"E010"</span>)
                         .with_location(location),
                 );
                 <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1749,8 +1751,8 @@
 
             </span><span class="kw">if </span>values[position].is_some() {
                 lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>)
-                        .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                    Diagnostic::new(<span class="string">"Invalid TIME Literal: segments must be unique"</span>)
+                        .with_error_code(<span class="string">"E010"</span>)
                         .with_location(location),
                 );
                 <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1758,8 +1760,8 @@
             values[position] = <span class="prelude-val">Some</span>(number); <span class="comment">//store the number
         </span>} <span class="kw">else </span>{
             lexer.accept_diagnostic(
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{unit}&#39;&quot;</span>))
-                    .with_error_code(<span class="string">&quot;E010&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Invalid TIME Literal: illegal unit '{unit}'"</span>))
+                    .with_error_code(<span class="string">"E010"</span>)
                     .with_location(location),
             );
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1789,13 +1791,13 @@
 <span class="kw">fn </span>handle_special_chars(string: <span class="kw-2">&amp;</span>str, is_wide: bool) -&gt; String {
     <span class="kw">let </span>(re, re_hex) = <span class="kw">if </span>is_wide {
         (
-            Regex::new(<span class="string">r#&quot;(\$([lLnNpPrRtT$&quot;]))&quot;#</span>).expect(<span class="string">&quot;valid regex&quot;</span>), <span class="comment">//Cannot fail
-            </span>Regex::new(<span class="string">r&quot;(\$([[:xdigit:]]{2}){2})+&quot;</span>).expect(<span class="string">&quot;valid regex&quot;</span>), <span class="comment">//Cannot fail
+            Regex::new(<span class="string">r#"(\$([lLnNpPrRtT$"]))"#</span>).expect(<span class="string">"valid regex"</span>), <span class="comment">//Cannot fail
+            </span>Regex::new(<span class="string">r"(\$([[:xdigit:]]{2}){2})+"</span>).expect(<span class="string">"valid regex"</span>), <span class="comment">//Cannot fail
         </span>)
     } <span class="kw">else </span>{
         (
-            Regex::new(<span class="string">r&quot;(\$([lLnNpPrRtT$&#39;]))&quot;</span>).expect(<span class="string">&quot;valid regex&quot;</span>), <span class="comment">//Cannot fail
-            </span>Regex::new(<span class="string">r&quot;(\$([[:xdigit:]]{2}))+&quot;</span>).expect(<span class="string">&quot;valid regex&quot;</span>), <span class="comment">//Cannot fail
+            Regex::new(<span class="string">r"(\$([lLnNpPrRtT$']))"</span>).expect(<span class="string">"valid regex"</span>), <span class="comment">//Cannot fail
+            </span>Regex::new(<span class="string">r"(\$([[:xdigit:]]{2}))+"</span>).expect(<span class="string">"valid regex"</span>), <span class="comment">//Cannot fail
         </span>)
     };
 
@@ -1803,14 +1805,14 @@
     </span><span class="kw">let </span>res = re.replace_all(string, |caps: <span class="kw-2">&amp;</span>Captures| {
         <span class="kw">let </span>cap_str = <span class="kw-2">&amp;</span>caps[<span class="number">1</span>];
         <span class="kw">match </span>cap_str {
-            <span class="string">&quot;$l&quot; </span>| <span class="string">&quot;$L&quot; </span>=&gt; <span class="string">&quot;\n&quot;</span>,
-            <span class="string">&quot;$n&quot; </span>| <span class="string">&quot;$N&quot; </span>=&gt; <span class="string">&quot;\n&quot;</span>,
-            <span class="string">&quot;$p&quot; </span>| <span class="string">&quot;$P&quot; </span>=&gt; <span class="string">&quot;\x0C&quot;</span>,
-            <span class="string">&quot;$r&quot; </span>| <span class="string">&quot;$R&quot; </span>=&gt; <span class="string">&quot;\r&quot;</span>,
-            <span class="string">&quot;$t&quot; </span>| <span class="string">&quot;$T&quot; </span>=&gt; <span class="string">&quot;\t&quot;</span>,
-            <span class="string">&quot;$$&quot; </span>=&gt; <span class="string">&quot;$&quot;</span>,
-            <span class="string">&quot;$&#39;&quot; </span>=&gt; <span class="string">&quot;\&#39;&quot;</span>,
-            <span class="string">&quot;$\&quot;&quot; </span>=&gt; <span class="string">&quot;\&quot;&quot;</span>,
+            <span class="string">"$l" </span>| <span class="string">"$L" </span>=&gt; <span class="string">"\n"</span>,
+            <span class="string">"$n" </span>| <span class="string">"$N" </span>=&gt; <span class="string">"\n"</span>,
+            <span class="string">"$p" </span>| <span class="string">"$P" </span>=&gt; <span class="string">"\x0C"</span>,
+            <span class="string">"$r" </span>| <span class="string">"$R" </span>=&gt; <span class="string">"\r"</span>,
+            <span class="string">"$t" </span>| <span class="string">"$T" </span>=&gt; <span class="string">"\t"</span>,
+            <span class="string">"$$" </span>=&gt; <span class="string">"$"</span>,
+            <span class="string">"$'" </span>=&gt; <span class="string">"\'"</span>,
+            <span class="string">"$\"" </span>=&gt; <span class="string">"\""</span>,
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     });
@@ -1818,7 +1820,7 @@
     re_hex
         .replace_all(<span class="kw-2">&amp;</span>res, |caps: <span class="kw-2">&amp;</span>Captures| {
             <span class="kw">let </span>hex = <span class="kw-2">&amp;</span>caps[<span class="number">0</span>];
-            <span class="kw">let </span>hex_vals: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = hex.split(<span class="string">&#39;$&#39;</span>).filter(|it| !it.is_empty()).collect();
+            <span class="kw">let </span>hex_vals: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = hex.split(<span class="string">'$'</span>).filter(|it| !it.is_empty()).collect();
             <span class="kw">let </span>res = <span class="kw">if </span>is_wide {
                 <span class="kw">let </span>hex_vals: Vec&lt;u16&gt; =
                     hex_vals.iter().map(|it| u16::from_str_radix(it, <span class="number">16</span>).unwrap_or_default()).collect();
@@ -1856,13 +1858,13 @@
         <span class="kw">let </span>start = integer_range.start;
         <span class="kw">let </span>end = lexer.range().end;
         <span class="kw">let </span>fractional = lexer.slice_and_advance();
-        <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">&quot;{}{}.{}&quot;</span>, <span class="kw">if </span>is_negative { <span class="string">&quot;-&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}, integer, fractional);
+        <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">"{}{}.{}"</span>, <span class="kw">if </span>is_negative { <span class="string">"-" </span>} <span class="kw">else </span>{ <span class="string">"" </span>}, integer, fractional);
         <span class="kw">let </span>new_location = lexer.source_range_factory.create_range(start..end);
 
         <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
     } <span class="kw">else </span>{
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            <span class="string">&quot;LiteralInteger or LiteralExponent&quot;</span>,
+            <span class="string">"LiteralInteger or LiteralExponent"</span>,
             lexer.slice(),
             lexer.location(),
         ));
@@ -1877,11 +1879,11 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>replace_all_test() {
         <span class="comment">// following special chars should be replaced
-        </span><span class="kw">let </span>string = <span class="string">&quot;a $l$L b $n$N test $p$P c $r$R d $t$T$$ $&#39;quote$&#39; $57 💖 $F0$9F$92$96&quot;</span>;
-        <span class="kw">let </span>expected = <span class="string">&quot;a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ &#39;quote&#39; W 💖 💖&quot;</span>;
+        </span><span class="kw">let </span>string = <span class="string">"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57 💖 $F0$9F$92$96"</span>;
+        <span class="kw">let </span>expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W 💖 💖"</span>;
 
-        <span class="kw">let </span>w_string = <span class="string">r#&quot;a $l$L b $n$N test $p$P c $r$R d $t$T$$ $&quot;double$&quot; $0077 💖 $D83D$DC96&quot;#</span>;
-        <span class="kw">let </span>w_expected = <span class="string">&quot;a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \&quot;double\&quot; w 💖 💖&quot;</span>;
+        <span class="kw">let </span>w_string = <span class="string">r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077 💖 $D83D$DC96"#</span>;
+        <span class="kw">let </span>w_expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" w 💖 💖"</span>;
 
         <span class="macro">assert_eq!</span>(handle_special_chars(w_string, <span class="bool-val">true</span>), w_expected);
         <span class="macro">assert_eq!</span>(handle_special_chars(string, <span class="bool-val">false</span>), expected);
@@ -1890,11 +1892,11 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>should_not_replace_test() {
         <span class="comment">// following special chars should not be replaced
-        </span><span class="kw">let </span>string = <span class="string">r#&quot;$0043 $&quot;no replace$&quot;&quot;#</span>;
-        <span class="kw">let </span>expected = <span class="string">&quot;\u{0}43 $\&quot;no replace$\&quot;&quot;</span>;
+        </span><span class="kw">let </span>string = <span class="string">r#"$0043 $"no replace$""#</span>;
+        <span class="kw">let </span>expected = <span class="string">"\u{0}43 $\"no replace$\""</span>;
 
-        <span class="kw">let </span>w_string = <span class="string">r#&quot;$57 $&#39;no replace$&#39;&quot;#</span>;
-        <span class="kw">let </span>w_expected = <span class="string">&quot;$57 $&#39;no replace$&#39;&quot;</span>;
+        <span class="kw">let </span>w_string = <span class="string">r#"$57 $'no replace$'"#</span>;
+        <span class="kw">let </span>w_expected = <span class="string">"$57 $'no replace$'"</span>;
 
         <span class="macro">assert_eq!</span>(handle_special_chars(w_string, <span class="bool-val">true</span>), w_expected);
         <span class="macro">assert_eq!</span>(handle_special_chars(string, <span class="bool-val">false</span>), expected);

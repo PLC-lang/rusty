@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bit-vec-0.6.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bit_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bit-vec-0.6.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bit_vec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../bit_vec/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2545,7 +2547,7 @@
 
 // FIXME(Gankro): BitVec and BitSet are very tightly coupled. Ideally (for
 // maintenance), they should be in separate files/modules, with BitSet only
-// using BitVec&#39;s public API. This will be hard for performance though, because
+// using BitVec's public API. This will be hard for performance though, because
 // `BitVec` will not want to leak its internal representation while its internal
 // representation as `u32`s must be assumed for best performance.
 
@@ -2553,7 +2555,7 @@
 //     memory can overflow `usize`.
 // (2) Make sure that the underlying vector has no excess length:
 //     E. g. `nbits == 16`, `storage.len() == 2` would be excess length,
-//     because the last word isn&#39;t used at all. This is important because some
+//     because the last word isn't used at all. This is important because some
 //     methods rely on it (for *CORRECTNESS*).
 // (3) Make sure that the unused bits in the last word are zeroed out, again
 //     other methods rely on it for *CORRECTNESS*.
@@ -2602,38 +2604,38 @@
 //!
 //! // Simple primality tests below our max bound
 //! let print_primes = 20;
-//! print!(&quot;The primes below {} are: &quot;, print_primes);
+//! print!("The primes below {} are: ", print_primes);
 //! for x in 0..print_primes {
 //!     if primes.get(x).unwrap_or(false) {
-//!         print!(&quot;{} &quot;, x);
+//!         print!("{} ", x);
 //!     }
 //! }
 //! println!();
 //!
 //! let num_primes = primes.iter().filter(|x| *x).count();
-//! println!(&quot;There are {} primes below {}&quot;, num_primes, max_prime);
+//! println!("There are {} primes below {}", num_primes, max_prime);
 //! assert_eq!(num_primes, 1_229);
 //! ```
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/bit-vec/0.6.3&quot;</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/bit-vec/0.6.3"</span>)]
 
 #![no_std]
 
-#[cfg(any(test, feature = <span class="string">&quot;std&quot;</span>))]
+#[cfg(any(test, feature = <span class="string">"std"</span>))]
 #[macro_use]
 </span><span class="kw">extern crate </span>std;
-<span class="attr">#[cfg(feature=<span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature=<span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::vec::Vec;
 
-<span class="attr">#[cfg(feature=<span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature=<span class="string">"serde"</span>)]
 </span><span class="kw">extern crate </span>serde;
-<span class="attr">#[cfg(feature=<span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature=<span class="string">"serde"</span>)]
 </span><span class="kw">use </span>serde::{Serialize, Deserialize};
 
-<span class="attr">#[cfg(not(feature=<span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature=<span class="string">"std"</span>))]
 #[macro_use]
 </span><span class="kw">extern crate </span>alloc;
-<span class="attr">#[cfg(not(feature=<span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature=<span class="string">"std"</span>))]
 </span><span class="kw">use </span>alloc::vec::Vec;
 
 <span class="kw">use </span>core::cmp::Ordering;
@@ -2647,7 +2649,7 @@
 <span class="kw">use </span>core::iter::repeat;
 <span class="kw">use </span>core::ops::<span class="kw-2">*</span>;
 
-<span class="kw">type </span>MutBlocks&lt;<span class="lifetime">&#39;a</span>, B&gt; = slice::IterMut&lt;<span class="lifetime">&#39;a</span>, B&gt;;
+<span class="kw">type </span>MutBlocks&lt;<span class="lifetime">'a</span>, B&gt; = slice::IterMut&lt;<span class="lifetime">'a</span>, B&gt;;
 
 <span class="doccomment">/// Abstracts over a pile of bits (basically unsigned primitives)
 </span><span class="kw">pub trait </span>BitBlock:
@@ -2672,7 +2674,7 @@
     </span><span class="kw">fn </span>bytes() -&gt; usize { <span class="self">Self</span>::bits() / <span class="number">8 </span>}
     <span class="doccomment">/// Convert a byte into this type (lowest-order bits set)
     </span><span class="kw">fn </span>from_byte(byte: u8) -&gt; <span class="self">Self</span>;
-    <span class="doccomment">/// Count the number of 1&#39;s in the bitwise repr
+    <span class="doccomment">/// Count the number of 1's in the bitwise repr
     </span><span class="kw">fn </span>count_ones(<span class="self">self</span>) -&gt; usize;
     <span class="doccomment">/// Get `0`
     </span><span class="kw">fn </span>zero() -&gt; <span class="self">Self</span>;
@@ -2730,20 +2732,20 @@
 /// bv.set(3, true);
 /// bv.set(5, true);
 /// bv.set(7, true);
-/// println!(&quot;{:?}&quot;, bv);
-/// println!(&quot;total bits set to true: {}&quot;, bv.iter().filter(|x| *x).count());
+/// println!("{:?}", bv);
+/// println!("total bits set to true: {}", bv.iter().filter(|x| *x).count());
 ///
 /// // flip all values in bitvector, producing non-primes less than 10
 /// bv.negate();
-/// println!(&quot;{:?}&quot;, bv);
-/// println!(&quot;total bits set to true: {}&quot;, bv.iter().filter(|x| *x).count());
+/// println!("{:?}", bv);
+/// println!("total bits set to true: {}", bv.iter().filter(|x| *x).count());
 ///
 /// // reset bitvector to empty
 /// bv.clear();
-/// println!(&quot;{:?}&quot;, bv);
-/// println!(&quot;total bits set to true: {}&quot;, bv.iter().filter(|x| *x).count());
+/// println!("{:?}", bv);
+/// println!("total bits set to true: {}", bv.iter().filter(|x| *x).count());
 /// ```
-</span><span class="attr">#[cfg_attr(feature=<span class="string">&quot;serde&quot;</span>, derive(Serialize, Deserialize))]
+</span><span class="attr">#[cfg_attr(feature=<span class="string">"serde"</span>, derive(Serialize, Deserialize))]
 </span><span class="kw">pub struct </span>BitVec&lt;B=u32&gt; {
     <span class="doccomment">/// Internal representation of the bit vector
     </span>storage: Vec&lt;B&gt;,
@@ -2757,7 +2759,7 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;</span>bool {
-        <span class="kw">if </span><span class="self">self</span>.get(i).expect(<span class="string">&quot;index out of bounds&quot;</span>) {
+        <span class="kw">if </span><span class="self">self</span>.get(i).expect(<span class="string">"index out of bounds"</span>) {
             <span class="kw-2">&amp;</span>TRUE
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>FALSE
@@ -2769,7 +2771,7 @@
 </span><span class="kw">fn </span>blocks_for_bits&lt;B: BitBlock&gt;(bits: usize) -&gt; usize {
     <span class="comment">// If we want 17 bits, dividing by 32 will produce 0. So we add 1 to make sure we
     // reserve enough. But if we want exactly a multiple of 32, this will actually allocate
-    // one too many. So we need to check if that&#39;s the case. We can do that by computing if
+    // one too many. So we need to check if that's the case. We can do that by computing if
     // bitwise AND by `32 - 1` is 0. But LLVM should be able to optimize the semantically
     // superior modulo operator on a power of two to this.
     //
@@ -2861,7 +2863,7 @@
     ///                     false, false, true, false]));
     /// ```
     </span><span class="kw">pub fn </span>from_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>len = bytes.len().checked_mul(u8::bits()).expect(<span class="string">&quot;capacity overflow&quot;</span>);
+        <span class="kw">let </span>len = bytes.len().checked_mul(u8::bits()).expect(<span class="string">"capacity overflow"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>bit_vec = BitVec::with_capacity(len);
         <span class="kw">let </span>complete_words = bytes.len() / B::bytes();
         <span class="kw">let </span>extra_bytes = bytes.len() % B::bytes();
@@ -2987,7 +2989,7 @@
     }
 
     <span class="doccomment">/// An operation might screw up the unused bits in the last block of the
-    /// `BitVec`. As per (3), it&#39;s assumed to be all 0s. This method fixes it up.
+    /// `BitVec`. As per (3), it's assumed to be all 0s. This method fixes it up.
     </span><span class="kw">fn </span>fix_last_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((last_block, used_bits)) = <span class="self">self</span>.last_block_mut_with_mask() {
             <span class="kw-2">*</span>last_block = <span class="kw-2">*</span>last_block &amp; used_bits;
@@ -3002,7 +3004,7 @@
         }
     }
 
-    <span class="doccomment">/// Check whether last block&#39;s invariant is fine.
+    <span class="doccomment">/// Check whether last block's invariant is fine.
     </span><span class="kw">fn </span>is_last_block_fixed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((last_block, used_bits)) = <span class="self">self</span>.last_block_with_mask() {
             last_block &amp; !used_bits == B::zero()
@@ -3071,7 +3073,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize, x: bool) {
         <span class="self">self</span>.ensure_invariant();
-        <span class="macro">assert!</span>(i &lt; <span class="self">self</span>.nbits, <span class="string">&quot;index out of bounds: {:?} &gt;= {:?}&quot;</span>, i, <span class="self">self</span>.nbits);
+        <span class="macro">assert!</span>(i &lt; <span class="self">self</span>.nbits, <span class="string">"index out of bounds: {:?} &gt;= {:?}"</span>, i, <span class="self">self</span>.nbits);
         <span class="kw">let </span>w = i / B::bits();
         <span class="kw">let </span>b = i % B::bits();
         <span class="kw">let </span>flag = B::one() &lt;&lt; b;
@@ -3148,8 +3150,8 @@
     /// assert_eq!(a, BitVec::from_bytes(&amp;[res]));
     /// ```
     </span><span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.7.0&quot;</span>,
-        note = <span class="string">&quot;Please use the &#39;or&#39; function instead&quot;
+        since = <span class="string">"0.7.0"</span>,
+        note = <span class="string">"Please use the 'or' function instead"
     </span>)]
     #[inline]
     </span><span class="kw">pub fn </span>union(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -3182,8 +3184,8 @@
     /// assert_eq!(a, BitVec::from_bytes(&amp;[res]));
     /// ```
     </span><span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.7.0&quot;</span>,
-        note = <span class="string">&quot;Please use the &#39;and&#39; function instead&quot;
+        since = <span class="string">"0.7.0"</span>,
+        note = <span class="string">"Please use the 'and' function instead"
     </span>)]
     #[inline]
     </span><span class="kw">pub fn </span>intersect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -3540,7 +3542,7 @@
     /// ```
     </span><span class="kw">pub fn </span>split_off(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.ensure_invariant();
-        <span class="macro">assert!</span>(at &lt;= <span class="self">self</span>.len(), <span class="string">&quot;`at` out of bounds&quot;</span>);
+        <span class="macro">assert!</span>(at &lt;= <span class="self">self</span>.len(), <span class="string">"`at` out of bounds"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>other = BitVec::&lt;B&gt;::default();
 
@@ -3637,7 +3639,7 @@
     /// ```
     </span><span class="kw">pub fn </span>to_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
         <span class="self">self</span>.ensure_invariant();
-    	<span class="comment">// Oh lord, we&#39;re mapping this to bytes bit-by-bit!
+    	<span class="comment">// Oh lord, we're mapping this to bytes bit-by-bit!
         </span><span class="kw">fn </span>bit&lt;B: BitBlock&gt;(bit_vec: <span class="kw-2">&amp;</span>BitVec&lt;B&gt;, byte: usize, bit: usize) -&gt; u8 {
             <span class="kw">let </span>offset = byte * <span class="number">8 </span>+ bit;
             <span class="kw">if </span>offset &gt;= bit_vec.nbits {
@@ -3686,7 +3688,7 @@
 
     <span class="doccomment">/// Shortens a `BitVec`, dropping excess elements.
     ///
-    /// If `len` is greater than the vector&#39;s current length, this has no
+    /// If `len` is greater than the vector's current length, this has no
     /// effect.
     ///
     /// # Examples
@@ -3728,7 +3730,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reserve(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
-        <span class="kw">let </span>desired_cap = <span class="self">self</span>.len().checked_add(additional).expect(<span class="string">&quot;capacity overflow&quot;</span>);
+        <span class="kw">let </span>desired_cap = <span class="self">self</span>.len().checked_add(additional).expect(<span class="string">"capacity overflow"</span>);
         <span class="kw">let </span>storage_len = <span class="self">self</span>.storage.len();
         <span class="kw">if </span>desired_cap &gt; <span class="self">self</span>.capacity() {
             <span class="self">self</span>.storage.reserve(blocks_for_bits::&lt;B&gt;(desired_cap) - storage_len);
@@ -3758,7 +3760,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>reserve_exact(<span class="kw-2">&amp;mut </span><span class="self">self</span>, additional: usize) {
-        <span class="kw">let </span>desired_cap = <span class="self">self</span>.len().checked_add(additional).expect(<span class="string">&quot;capacity overflow&quot;</span>);
+        <span class="kw">let </span>desired_cap = <span class="self">self</span>.len().checked_add(additional).expect(<span class="string">"capacity overflow"</span>);
         <span class="kw">let </span>storage_len = <span class="self">self</span>.storage.len();
         <span class="kw">if </span>desired_cap &gt; <span class="self">self</span>.capacity() {
             <span class="self">self</span>.storage.reserve_exact(blocks_for_bits::&lt;B&gt;(desired_cap) - storage_len);
@@ -3805,7 +3807,7 @@
         // which is technically wrong if not all of these bits are to be used. However, at the end
         // of this fn we call `fix_last_block` at the end of this fn, which should fix this.
 
-        </span><span class="kw">let </span>new_nbits = <span class="self">self</span>.nbits.checked_add(n).expect(<span class="string">&quot;capacity overflow&quot;</span>);
+        </span><span class="kw">let </span>new_nbits = <span class="self">self</span>.nbits.checked_add(n).expect(<span class="string">"capacity overflow"</span>);
         <span class="kw">let </span>new_nblocks = blocks_for_bits::&lt;B&gt;(new_nbits);
         <span class="kw">let </span>full_value = <span class="kw">if </span>value { !B::zero() } <span class="kw">else </span>{ B::zero() };
 
@@ -3889,7 +3891,7 @@
             <span class="self">self</span>.storage.push(B::zero());
         }
         <span class="kw">let </span>insert_pos = <span class="self">self</span>.nbits;
-        <span class="self">self</span>.nbits = <span class="self">self</span>.nbits.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;Capacity overflow&quot;</span>);
+        <span class="self">self</span>.nbits = <span class="self">self</span>.nbits.checked_add(<span class="number">1</span>).expect(<span class="string">"Capacity overflow"</span>);
         <span class="self">self</span>.set(insert_pos, elem);
     }
 
@@ -4001,7 +4003,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="self">self</span>.ensure_invariant();
         <span class="kw">for </span>bit <span class="kw">in </span><span class="self">self </span>{
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, <span class="kw">if </span>bit { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>})<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"{}"</span>, <span class="kw">if </span>bit { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>})<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -4034,18 +4036,18 @@
 
 <span class="doccomment">/// An iterator for `BitVec`.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a </span>= u32&gt; {
-    bit_vec: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BitVec&lt;B&gt;,
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a </span>= u32&gt; {
+    bit_vec: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BitVec&lt;B&gt;,
     range: Range&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = bool;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="comment">// NB: indexing is slow for extern crates when it has to go through &amp;TRUE or &amp;FALSE
-        // variables.  get is more direct, and unwrap is fine since we&#39;re sure of the range.
+        // variables.  get is more direct, and unwrap is fine since we're sure of the range.
         </span><span class="self">self</span>.range.next().map(|i| <span class="self">self</span>.bit_vec.get(i).unwrap())
     }
 
@@ -4054,21 +4056,21 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="self">self</span>.range.next_back().map(|i| <span class="self">self</span>.bit_vec.get(i).unwrap())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, B&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BitVec&lt;B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>BitVec&lt;B&gt; {
     <span class="kw">type </span>Item = bool;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, B&gt;;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>, B&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    </span><span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="self">self</span>.iter()
     }
 }
@@ -4109,11 +4111,11 @@
 
 <span class="doccomment">/// An iterator over the blocks of a `BitVec`.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Blocks&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt; {
-    iter: slice::Iter&lt;<span class="lifetime">&#39;a</span>, B&gt;,
+</span><span class="kw">pub struct </span>Blocks&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt; {
+    iter: slice::Iter&lt;<span class="lifetime">'a</span>, B&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = B;
 
     <span class="attr">#[inline]
@@ -4127,29 +4129,29 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; DoubleEndedIterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; DoubleEndedIterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt; {
         <span class="self">self</span>.iter.next_back().cloned()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; ExactSizeIterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; ExactSizeIterator <span class="kw">for </span>Blocks&lt;<span class="lifetime">'a</span>, B&gt; {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::{BitVec, Iter, Vec};
 
-    <span class="comment">// This is stupid, but I want to differentiate from a &quot;random&quot; 32
+    <span class="comment">// This is stupid, but I want to differentiate from a "random" 32
     </span><span class="kw">const </span>U32_BITS: usize = <span class="number">32</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_to_str() {
         <span class="kw">let </span>zerolen = BitVec::new();
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, zerolen), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, zerolen), <span class="string">""</span>);
 
         <span class="kw">let </span>eightbits = BitVec::from_elem(<span class="number">8</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, eightbits), <span class="string">&quot;00000000&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, eightbits), <span class="string">"00000000"</span>)
     }
 
     <span class="attr">#[test]
@@ -4175,7 +4177,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>b = BitVec::from_elem(<span class="number">2</span>, <span class="bool-val">false</span>);
         b.set(<span class="number">0</span>, <span class="bool-val">true</span>);
         b.set(<span class="number">1</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, b), <span class="string">&quot;10&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, b), <span class="string">"10"</span>);
         <span class="macro">assert!</span>(!b.none() &amp;&amp; !b.all());
     }
 
@@ -4509,8 +4511,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_from_bytes() {
         <span class="kw">let </span>bit_vec = BitVec::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b10110110</span>, <span class="number">0b00000000</span>, <span class="number">0b11111111</span>]);
-        <span class="kw">let </span>str = <span class="macro">concat!</span>(<span class="string">&quot;10110110&quot;</span>, <span class="string">&quot;00000000&quot;</span>, <span class="string">&quot;11111111&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, bit_vec), str);
+        <span class="kw">let </span>str = <span class="macro">concat!</span>(<span class="string">"10110110"</span>, <span class="string">"00000000"</span>, <span class="string">"11111111"</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, bit_vec), str);
     }
 
     <span class="attr">#[test]
@@ -4529,7 +4531,7 @@
     </span><span class="kw">fn </span>test_from_bools() {
         <span class="kw">let </span>bools = <span class="macro">vec!</span>[<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>];
         <span class="kw">let </span>bit_vec: BitVec = bools.iter().map(|n| <span class="kw-2">*</span>n).collect();
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, bit_vec), <span class="string">&quot;1011&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, bit_vec), <span class="string">"1011"</span>);
     }
 
     <span class="attr">#[test]
@@ -4799,7 +4801,7 @@
         <span class="macro">assert!</span>(s.capacity() &gt;= <span class="number">12 </span>* U32_BITS);
         s.reserve(<span class="number">7 </span>* U32_BITS + <span class="number">1</span>);
         <span class="macro">assert!</span>(s.capacity() &gt;= <span class="number">12 </span>* U32_BITS + <span class="number">1</span>);
-        <span class="comment">// Check that length hasn&#39;t changed
+        <span class="comment">// Check that length hasn't changed
         </span><span class="macro">assert_eq!</span>(s.len(), <span class="number">5 </span>* U32_BITS);
         s.push(<span class="bool-val">true</span>);
         s.push(<span class="bool-val">false</span>);
@@ -4950,7 +4952,7 @@
                            <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>]));
         <span class="macro">assert!</span>(b.eq_vec(<span class="kw-2">&amp;</span>[<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>]));
 
-        <span class="comment">// Don&#39;t split at block boundary
+        <span class="comment">// Don't split at block boundary
         </span><span class="kw">let </span><span class="kw-2">mut </span>a = BitVec::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b10100000</span>, <span class="number">0b00010010</span>, <span class="number">0b10010010</span>, <span class="number">0b00110011</span>,
                                          <span class="number">0b01101011</span>, <span class="number">0b10101101</span>]);
 
@@ -5005,7 +5007,7 @@
         <span class="kw">let </span>_a: Iter = b.iter();
     }
 
-    <span class="attr">#[cfg(feature=<span class="string">&quot;serde&quot;</span>)]
+    <span class="attr">#[cfg(feature=<span class="string">"serde"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_serialization() {
         <span class="kw">let </span>bit_vec: BitVec = BitVec::new();

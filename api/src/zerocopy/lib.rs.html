@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.32/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.32/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../zerocopy/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -8268,14 +8270,14 @@
 //
 //   ./generate-readme.sh &gt; README.md
 
-</span><span class="doccomment">//! *&lt;span style=&quot;font-size: 100%; color:grey;&quot;&gt;Want to help improve zerocopy?
+</span><span class="doccomment">//! *&lt;span style="font-size: 100%; color:grey;"&gt;Want to help improve zerocopy?
 //! Fill out our [user survey][user-survey]!&lt;/span&gt;*
 //!
-//! ***&lt;span style=&quot;font-size: 140%&quot;&gt;Fast, safe, &lt;span
-//! style=&quot;color:red;&quot;&gt;compile error&lt;/span&gt;. Pick two.&lt;/span&gt;***
+//! ***&lt;span style="font-size: 140%"&gt;Fast, safe, &lt;span
+//! style="color:red;"&gt;compile error&lt;/span&gt;. Pick two.&lt;/span&gt;***
 //!
 //! Zerocopy makes zero-cost memory manipulation effortless. We write `unsafe`
-//! so you don&#39;t have to.
+//! so you don't have to.
 //!
 //! # Overview
 //!
@@ -8287,7 +8289,7 @@
 //!   arbitrary byte sequence
 //! - [`AsBytes`] indicates that a type may safely be converted *to* a byte
 //!   sequence
-//! - [`Unaligned`] indicates that a type&#39;s alignment requirement is 1
+//! - [`Unaligned`] indicates that a type's alignment requirement is 1
 //!
 //! Types which implement a subset of these traits can then be converted to/from
 //! byte sequences with little to no runtime overhead.
@@ -8311,7 +8313,7 @@
 //!   multi-byte primitive numerical types. Unlike their primitive equivalents,
 //!   the types in this module have no alignment requirement and support byte
 //!   order conversions. This can be useful in handling file formats, network
-//!   packet layouts, etc which don&#39;t provide alignment guarantees and which may
+//!   packet layouts, etc which don't provide alignment guarantees and which may
 //!   use a byte order different from that of the execution platform.
 //!
 //! - **`derive`**   
@@ -8327,8 +8329,8 @@
 //!
 //!   ```toml
 //!   [dependencies]
-//!   zerocopy = &quot;0.X&quot;
-//!   zerocopy-derive = &quot;0.X&quot;
+//!   zerocopy = "0.X"
+//!   zerocopy-derive = "0.X"
 //!   ```
 //!
 //! - **`simd`**   
@@ -8349,19 +8351,19 @@
 //! # Security Ethos
 //!
 //! Zerocopy is expressly designed for use in security-critical contexts. We
-//! strive to ensure that that zerocopy code is sound under Rust&#39;s current
+//! strive to ensure that that zerocopy code is sound under Rust's current
 //! memory model, and *any future memory model*. We ensure this by:
-//! - **...not &#39;guessing&#39; about Rust&#39;s semantics.**   
+//! - **...not 'guessing' about Rust's semantics.**   
 //!   We annotate `unsafe` code with a precise rationale for its soundness that
-//!   cites a relevant section of Rust&#39;s official documentation. When Rust&#39;s
+//!   cites a relevant section of Rust's official documentation. When Rust's
 //!   documented semantics are unclear, we work with the Rust Operational
-//!   Semantics Team to clarify Rust&#39;s documentation.
+//!   Semantics Team to clarify Rust's documentation.
 //! - **...rigorously testing our implementation.**   
 //!   We run tests using [Miri], ensuring that zerocopy is sound across a wide
 //!   array of supported target platforms of varying endianness and pointer
 //!   width, and across both current and experimental memory models of Rust.
 //! - **...formally proving the correctness of our implementation.**   
-//!   We apply formal verification tools like [Kani][kani] to prove zerocopy&#39;s
+//!   We apply formal verification tools like [Kani][kani] to prove zerocopy's
 //!   correctness.
 //!
 //! For more information, see our full [soundness policy].
@@ -8381,9 +8383,9 @@
 //! another type. Once this functionality is sufficiently mature, zerocopy
 //! intends to replace its internal transmutability analysis (implemented by our
 //! custom derives) with the compiler-supported one. This change will likely be
-//! an implementation detail that is invisible to zerocopy&#39;s users.
+//! an implementation detail that is invisible to zerocopy's users.
 //!
-//! Project Safe Transmute will not replace the need for most of zerocopy&#39;s
+//! Project Safe Transmute will not replace the need for most of zerocopy's
 //! higher-level abstractions. The experimental compiler analysis is a tool for
 //! checking the soundness of `unsafe` code, not a tool to avoid writing
 //! `unsafe` code altogether. For the foreseeable future, crates like zerocopy
@@ -8474,17 +8476,17 @@
 </span><span class="attr">#![cfg_attr(any(test, kani), allow(
     <span class="comment">// In tests, you get line numbers and have access to source code, so panic
     // messages are less important. You also often unwrap a lot, which would
-    // make expect&#39;ing instead very verbose.
+    // make expect'ing instead very verbose.
     </span>clippy::unwrap_used,
-    <span class="comment">// In tests, there&#39;s no harm to &quot;panic risks&quot; - the worst that can happen is
-    // that your test will fail, and you&#39;ll fix it. By contrast, panic risks in
-    // production code introduce the possibly of code panicking unexpectedly &quot;in
-    // the field&quot;.
+    <span class="comment">// In tests, there's no harm to "panic risks" - the worst that can happen is
+    // that your test will fail, and you'll fix it. By contrast, panic risks in
+    // production code introduce the possibly of code panicking unexpectedly "in
+    // the field".
     </span>clippy::arithmetic_side_effects,
     clippy::indexing_slicing,
 ))]
 #![cfg_attr(not(test), no_std)]
-#![cfg_attr(feature = <span class="string">&quot;simd-nightly&quot;</span>, feature(stdsimd))]
+#![cfg_attr(feature = <span class="string">"simd-nightly"</span>, feature(stdsimd))]
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(
     __INTERNAL_USE_ONLY_NIGHLTY_FEATURES_IN_TESTS,
@@ -8494,14 +8496,14 @@
 </span><span class="comment">// This is a hack to allow zerocopy-derive derives to work in this crate. They
 // assume that zerocopy is linked as an extern crate, so they access items from
 // it as `zerocopy::Xxx`. This makes that still work.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
 </span><span class="kw">extern crate </span><span class="self">self </span><span class="kw">as </span>zerocopy;
 
 <span class="attr">#[macro_use]
 </span><span class="kw">mod </span>macros;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;byteorder&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;byteorder&quot;</span>)))]
+<span class="attr">#[cfg(feature = <span class="string">"byteorder"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"byteorder"</span>)))]
 </span><span class="kw">pub mod </span>byteorder;
 <span class="attr">#[doc(hidden)]
 </span><span class="kw">pub mod </span>macro_util;
@@ -8510,20 +8512,20 @@
 <span class="comment">// TODO(#252): If we make this pub, come up with a better name.
 </span><span class="kw">mod </span>wrappers;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;byteorder&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;byteorder&quot;</span>)))]
+<span class="attr">#[cfg(feature = <span class="string">"byteorder"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"byteorder"</span>)))]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::byteorder::<span class="kw-2">*</span>;
 <span class="kw">pub use </span><span class="kw">crate</span>::wrappers::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;derive&quot;</span>)))]
+<span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"derive"</span>)))]
 </span><span class="kw">pub use </span>zerocopy_derive::Unaligned;
 
 <span class="comment">// `pub use` separately here so that we can mark it `#[doc(hidden)]`.
 //
 // TODO(#29): Remove this or add a doc comment.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;derive&quot;</span>)))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"derive"</span>)))]
 #[doc(hidden)]
 </span><span class="kw">pub use </span>zerocopy_derive::KnownLayout;
 
@@ -8543,12 +8545,12 @@
     slice,
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">extern crate </span>alloc;
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::{boxed::Box, vec::Vec};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, kani))]
+<span class="attr">#[cfg(any(feature = <span class="string">"alloc"</span>, kani))]
 </span><span class="kw">use </span>core::alloc::Layout;
 
 <span class="comment">// Used by `TryFromBytes::is_bit_valid`.
@@ -8567,7 +8569,7 @@
 <span class="attr">#[rustversion::nightly]
 #[cfg(all(test, not(__INTERNAL_USE_ONLY_NIGHLTY_FEATURES_IN_TESTS)))]
 </span><span class="kw">const _</span>: () = {
-    <span class="attr">#[deprecated = <span class="string">&quot;some tests may be skipped due to missing RUSTFLAGS=\&quot;--cfg __INTERNAL_USE_ONLY_NIGHLTY_FEATURES_IN_TESTS\&quot;&quot;</span>]
+    <span class="attr">#[deprecated = <span class="string">"some tests may be skipped due to missing RUSTFLAGS=\"--cfg __INTERNAL_USE_ONLY_NIGHLTY_FEATURES_IN_TESTS\""</span>]
     </span><span class="kw">const </span>_WARNING: () = ();
     <span class="attr">#[warn(deprecated)]
     </span>_WARNING
@@ -8578,10 +8580,10 @@
 
 <span class="doccomment">/// The layout of a type which might be dynamically-sized.
 ///
-/// `DstLayout` describes the layout of sized types, slice types, and &quot;slice
-/// DSTs&quot; - ie, those that are known by the type system to have a trailing slice
+/// `DstLayout` describes the layout of sized types, slice types, and "slice
+/// DSTs" - ie, those that are known by the type system to have a trailing slice
 /// (as distinguished from `dyn Trait` types - such types *might* have a
-/// trailing slice type, but the type system isn&#39;t aware of it).
+/// trailing slice type, but the type system isn't aware of it).
 ///
 /// # Safety
 ///
@@ -8591,7 +8593,7 @@
 /// satisfies any conditions imposed on Rust types by the reference.
 ///
 /// If `layout: DstLayout` describes a type, `T`, then it is guaranteed that:
-/// - `layout.align` is equal to `T`&#39;s alignment
+/// - `layout.align` is equal to `T`'s alignment
 /// - If `layout.size_info` is `SizeInfo::Sized { size }`, then `T: Sized` and
 ///   `size_of::&lt;T&gt;() == size`
 /// - If `layout.size_info` is `SizeInfo::SliceDst(slice_layout)`, then
@@ -8803,8 +8805,8 @@
         <span class="macro">assert!</span>(max_align.is_power_of_two());
 
         <span class="comment">// We use Kani to prove that this method is robust to future increases
-        // in Rust&#39;s maximum allowed alignment. However, if such a change ever
-        // actually occurs, we&#39;d like to be notified via assertion failures.
+        // in Rust's maximum allowed alignment. However, if such a change ever
+        // actually occurs, we'd like to be notified via assertion failures.
         </span><span class="attr">#[cfg(not(kani))]
         </span>{
             <span class="macro">debug_assert!</span>(<span class="self">self</span>.align.get() &lt;= DstLayout::CURRENT_MAX_ALIGN.get());
@@ -8814,34 +8816,34 @@
             }
         }
 
-        <span class="comment">// The field&#39;s alignment is clamped by `repr_packed` (i.e., the
+        <span class="comment">// The field's alignment is clamped by `repr_packed` (i.e., the
         // `repr(packed(N))` attribute, if any) [1].
         //
         // [1] Per https://doc.rust-lang.org/reference/type-layout.html#the-alignment-modifiers:
         //
         //   The alignments of each field, for the purpose of positioning
         //   fields, is the smaller of the specified alignment and the alignment
-        //   of the field&#39;s type.
+        //   of the field's type.
         </span><span class="kw">let </span>field_align = min(field.align, max_align);
 
-        <span class="comment">// The struct&#39;s alignment is the maximum of its previous alignment and
+        <span class="comment">// The struct's alignment is the maximum of its previous alignment and
         // `field_align`.
         </span><span class="kw">let </span>align = max(<span class="self">self</span>.align, field_align);
 
         <span class="kw">let </span>size_info = <span class="kw">match </span><span class="self">self</span>.size_info {
             <span class="comment">// If the layout is already a DST, we panic; DSTs cannot be extended
             // with additional fields.
-            </span>SizeInfo::SliceDst(..) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Cannot extend a DST with additional fields.&quot;</span>),
+            </span>SizeInfo::SliceDst(..) =&gt; <span class="macro">panic!</span>(<span class="string">"Cannot extend a DST with additional fields."</span>),
 
             SizeInfo::Sized { _size: preceding_size } =&gt; {
                 <span class="comment">// Compute the minimum amount of inter-field padding needed to
-                // satisfy the field&#39;s alignment, and offset of the trailing
+                // satisfy the field's alignment, and offset of the trailing
                 // field. [1]
                 //
                 // [1] Per https://doc.rust-lang.org/reference/type-layout.html#the-alignment-modifiers:
                 //
                 //   Inter-field padding is guaranteed to be the minimum
-                //   required in order to satisfy each field&#39;s (possibly
+                //   required in order to satisfy each field's (possibly
                 //   altered) alignment.
                 </span><span class="kw">let </span>padding = padding_needed_for(preceding_size, field_align);
 
@@ -8852,7 +8854,7 @@
                 // exceeding `isize::MAX`).
                 </span><span class="kw">let </span>offset = <span class="kw">match </span>preceding_size.checked_add(padding) {
                     <span class="prelude-val">Some</span>(offset) =&gt; offset,
-                    <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Adding padding to `self`&#39;s size overflows `usize`.&quot;</span>),
+                    <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Adding padding to `self`'s size overflows `usize`."</span>),
                 };
 
                 <span class="kw">match </span>field.size_info {
@@ -8870,7 +8872,7 @@
                         // `usize::MAX`).
                         </span><span class="kw">let </span>size = <span class="kw">match </span>offset.checked_add(field_size) {
                             <span class="prelude-val">Some</span>(size) =&gt; size,
-                            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;`field` cannot be appended without the total size overflowing `usize`&quot;</span>),
+                            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"`field` cannot be appended without the total size overflowing `usize`"</span>),
                         };
                         SizeInfo::Sized { _size: size }
                     }
@@ -8892,7 +8894,7 @@
                         // `usize::MAX`).
                         </span><span class="kw">let </span>offset = <span class="kw">match </span>offset.checked_add(trailing_offset) {
                             <span class="prelude-val">Some</span>(offset) =&gt; offset,
-                            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;`field` cannot be appended without the total size overflowing `usize`&quot;</span>),
+                            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"`field` cannot be appended without the total size overflowing `usize`"</span>),
                         };
                         SizeInfo::SliceDst(TrailingSliceLayout { _offset: offset, _elem_size })
                     }
@@ -8904,7 +8906,7 @@
     }
 
     <span class="doccomment">/// Like `Layout::pad_to_align`, this routine rounds the size of this layout
-    /// up to the nearest multiple of this type&#39;s alignment or `repr_packed`
+    /// up to the nearest multiple of this type's alignment or `repr_packed`
     /// (whichever is less). This method leaves DST layouts unchanged, since the
     /// trailing padding of DSTs is computed at runtime.
     ///
@@ -8939,7 +8941,7 @@
                 <span class="kw">let </span>padding = padding_needed_for(unpadded_size, <span class="self">self</span>.align);
                 <span class="kw">let </span>size = <span class="kw">match </span>unpadded_size.checked_add(padding) {
                     <span class="prelude-val">Some</span>(size) =&gt; size,
-                    <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Adding padding caused size to overflow `usize`.&quot;</span>),
+                    <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Adding padding caused size to overflow `usize`."</span>),
                 };
                 SizeInfo::Sized { _size: size }
             }
@@ -8972,10 +8974,10 @@
     /// There are three conditions under which a cast can fail:
     /// - The smallest possible value for the type is larger than the provided
     ///   memory region
-    /// - A prefix cast is requested, and `addr` does not satisfy `self`&#39;s
+    /// - A prefix cast is requested, and `addr` does not satisfy `self`'s
     ///   alignment requirement
     /// - A suffix cast is requested, and `addr + bytes_len` does not satisfy
-    ///   `self`&#39;s alignment requirement (as a consequence, since all instances
+    ///   `self`'s alignment requirement (as a consequence, since all instances
     ///   of the type are a multiple of its alignment, no size for the type will
     ///   result in a starting address which is properly aligned)
     ///
@@ -8989,11 +8991,11 @@
     ///   `elems` as its pointer metadata) describes an object of size `size &lt;=
     ///   bytes_len`
     /// - If this is a prefix cast:
-    ///   - `addr` satisfies `self`&#39;s alignment
+    ///   - `addr` satisfies `self`'s alignment
     ///   - `size == split_at`
     /// - If this is a suffix cast:
     ///   - `split_at == bytes_len - size`
-    ///   - `addr + split_at` satisfies `self`&#39;s alignment
+    ///   - `addr + split_at` satisfies `self`'s alignment
     ///
     /// Note that this method does *not* ensure that a pointer constructed from
     /// its return values will be a valid pointer. In particular, this method
@@ -9002,7 +9004,7 @@
     /// invariant of pointer types themselves. This should never be a problem so
     /// long as the arguments to this method are derived from a known-valid
     /// pointer (e.g., one derived from a safe Rust reference), but it is
-    /// nonetheless the caller&#39;s responsibility to justify that pointer
+    /// nonetheless the caller's responsibility to justify that pointer
     /// arithmetic will not overflow based on a safety argument *other than* the
     /// mere fact that this method returned successfully.
     ///
@@ -9046,11 +9048,11 @@
         // https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#let-else-statements
         </span><span class="kw">let </span>size_info = <span class="kw">match </span><span class="self">self</span>.size_info.try_to_nonzero_elem_size() {
             <span class="prelude-val">Some</span>(size_info) =&gt; size_info,
-            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;attempted to cast to slice type with zero-sized element&quot;</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempted to cast to slice type with zero-sized element"</span>),
         };
 
         <span class="comment">// Precondition
-        </span><span class="macro">__debug_assert!</span>(addr.checked_add(bytes_len).is_some(), <span class="string">&quot;`addr` + `bytes_len` &gt; usize::MAX&quot;</span>);
+        </span><span class="macro">__debug_assert!</span>(addr.checked_add(bytes_len).is_some(), <span class="string">"`addr` + `bytes_len` &gt; usize::MAX"</span>);
 
         <span class="comment">// Alignment checks go in their own block to avoid introducing variables
         // into the top-level scope.
@@ -9163,7 +9165,7 @@
     }
 }
 
-<span class="doccomment">/// A trait which carries information about a type&#39;s layout that is used by the
+<span class="doccomment">/// A trait which carries information about a type's layout that is used by the
 /// internals of this crate.
 ///
 /// This trait is not meant for consumption by code outside of this crate. While
@@ -9178,8 +9180,8 @@
 </span><span class="attr">#[doc(hidden)] </span><span class="comment">// TODO: Remove this once KnownLayout is used by other APIs
 </span><span class="kw">pub unsafe trait </span>KnownLayout {
     <span class="comment">// The `Self: Sized` bound makes it so that `KnownLayout` can still be
-    // object safe. It&#39;s not currently object safe thanks to `const LAYOUT`, and
-    // it likely won&#39;t be in the future, but there&#39;s no reason not to be
+    // object safe. It's not currently object safe thanks to `const LAYOUT`, and
+    // it likely won't be in the future, but there's no reason not to be
     // forwards-compatible with object safety.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>only_derive_is_allowed_to_implement_this_trait()
@@ -9190,7 +9192,7 @@
     </span><span class="kw">const </span>LAYOUT: DstLayout;
 
     <span class="doccomment">/// SAFETY: The returned pointer has the same address and provenance as
-    /// `bytes`. If `Self` is a DST, the returned pointer&#39;s referent has `elems`
+    /// `bytes`. If `Self` is a DST, the returned pointer's referent has `elems`
     /// elements in its trailing slice. If `Self` is sized, `elems` is ignored.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>raw_from_ptr_len(bytes: NonNull&lt;u8&gt;, elems: usize) -&gt; NonNull&lt;<span class="self">Self</span>&gt;;
@@ -9239,7 +9241,7 @@
     <span class="doccomment">/// SAFETY:
     /// `str` and `ManuallyDrop&lt;[T]&gt;` [1] have the same representations as
     /// `[u8]` and `[T]` repsectively. `str` has different bit validity than
-    /// `[u8]`, but that doesn&#39;t affect the soundness of this impl.
+    /// `[u8]`, but that doesn't affect the soundness of this impl.
     ///
     /// [1] Per https://doc.rust-lang.org/nightly/core/mem/struct.ManuallyDrop.html:
     ///
@@ -9296,7 +9298,7 @@
 /// *This section describes, roughly, the analysis performed by this derive to
 /// determine whether it is sound to implement `FromZeroes` for a given type.
 /// Unless you are modifying the implementation of this derive, or attempting to
-/// manually implement `FromZeroes` for a type yourself, you don&#39;t need to read
+/// manually implement `FromZeroes` for a type yourself, you don't need to read
 /// this section.*
 ///
 /// If a type has the following properties, then this derive can implement
@@ -9320,7 +9322,7 @@
 /// [the reference]: https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
 /// [`UnsafeCell`]: core::cell::UnsafeCell
 ///
-/// ## Why isn&#39;t an explicit representation required for structs?
+/// ## Why isn't an explicit representation required for structs?
 ///
 /// Neither this derive, nor the [safety conditions] of `FromZeroes`, requires
 /// that structs are marked with `#[repr(C)]`.
@@ -9346,10 +9348,10 @@
 ///
 /// Whether a struct is soundly `FromZeroes` therefore solely depends on whether
 /// its fields are `FromZeroes`.
-</span><span class="comment">// TODO(#146): Document why we don&#39;t require an enum to have an explicit `repr`
+</span><span class="comment">// TODO(#146): Document why we don't require an enum to have an explicit `repr`
 // attribute.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;derive&quot;</span>)))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"derive"</span>)))]
 </span><span class="kw">pub use </span>zerocopy_derive::FromZeroes;
 
 <span class="doccomment">/// Types whose validity can be checked at runtime, allowing them to be
@@ -9365,15 +9367,15 @@
 /// `TryFromBytes` is ignorant of byte order. For byte order-aware types, see
 /// the [`byteorder`] module.
 ///
-/// # What is a &quot;valid instance&quot;?
+/// # What is a "valid instance"?
 ///
 /// In Rust, each type has *bit validity*, which refers to the set of bit
 /// patterns which may appear in an instance of that type. It is impossible for
 /// safe Rust code to produce values which violate bit validity (ie, values
-/// outside of the &quot;valid&quot; set of bit patterns). If `unsafe` code produces an
+/// outside of the "valid" set of bit patterns). If `unsafe` code produces an
 /// invalid value, this is considered [undefined behavior].
 ///
-/// Rust&#39;s bit validity rules are currently being decided, which means that some
+/// Rust's bit validity rules are currently being decided, which means that some
 /// types have three classes of bit patterns: those which are definitely valid,
 /// and whose validity is documented in the language; those which may or may not
 /// be considered valid at some point in the future; and those which are
@@ -9383,8 +9385,8 @@
 /// be valid if its validity is a documenteed guarantee provided by the
 /// language.
 ///
-/// For most use cases, Rust&#39;s current guarantees align with programmers&#39;
-/// intuitions about what ought to be valid. As a result, zerocopy&#39;s
+/// For most use cases, Rust's current guarantees align with programmers'
+/// intuitions about what ought to be valid. As a result, zerocopy's
 /// conservatism should not affect most users. One notable exception is unions,
 /// whose bit validity is very up in the air; zerocopy does not permit
 /// implementing `TryFromBytes` for any union type.
@@ -9455,7 +9457,7 @@
     ///   contain an enum type at a particular offset, and the enum discriminant
     ///   stored in `*candidate` corresponds to a valid variant of that enum
     ///   type, then it is guaranteed that the appropriate bytes of `*candidate`
-    ///   are initialized as defined by that variant&#39;s bit validity (although
+    ///   are initialized as defined by that variant's bit validity (although
     ///   note that the variant may contain another enum type, in which case the
     ///   same rules apply depending on the state of its discriminant, and so on
     ///   recursively).
@@ -9475,15 +9477,15 @@
     ///
     /// [`UnsafeCell`]: core::cell::UnsafeCell
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;) -&gt; bool;
+    </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;) -&gt; bool;
 
     <span class="doccomment">/// Attempts to interpret a byte slice as a `Self`.
     ///
     /// `try_from_ref` validates that `bytes` contains a valid `Self`, and that
-    /// it satisfies `Self`&#39;s alignment requirement. If it does, then `bytes` is
+    /// it satisfies `Self`'s alignment requirement. If it does, then `bytes` is
     /// reinterpreted as a `Self`.
     ///
-    /// Note that Rust&#39;s bit validity rules are still being decided. As such,
+    /// Note that Rust's bit validity rules are still being decided. As such,
     /// there exist types whose bit validity is ambiguous. See the
     /// `TryFromBytes` docs for a discussion of how these cases are handled.
     </span><span class="comment">// TODO(#251): In a future in which we distinguish between `FromBytes` and
@@ -9502,13 +9504,13 @@
         //   references exist to this memory region.
         // - Since `[u8]` contains no `UnsafeCell`s, we know there are no
         //   `&amp;UnsafeCell` references to this memory region.
-        // - Since we don&#39;t permit implementing `TryFromBytes` for types which
+        // - Since we don't permit implementing `TryFromBytes` for types which
         //   contain `UnsafeCell`s, there are no `UnsafeCell`s in `Self`, and so
         //   the requirement that all references contain `UnsafeCell`s at the
         //   same offsets is trivially satisfied.
         // - All bytes of `bytes` are initialized.
         //
-        // This call may panic. If that happens, it doesn&#39;t cause any soundness
+        // This call may panic. If that happens, it doesn't cause any soundness
         // issues, as we have not generated any invalid state which we need to
         // fix before returning.
         </span><span class="kw">if unsafe </span>{ !<span class="self">Self</span>::is_bit_valid(maybe_self) } {
@@ -9528,9 +9530,9 @@
         //     no mutation is possible. For the same reason, there is no
         //     mismatch between the two types in terms of which byte ranges are
         //     referenced as `UnsafeCell`s.
-        // - Since interior mutation isn&#39;t possible within `Self`, there&#39;s no
+        // - Since interior mutation isn't possible within `Self`, there's no
         //   way for the returned reference to be used to modify the byte range,
-        //   and thus there&#39;s no way for the returned reference to be used to
+        //   and thus there's no way for the returned reference to be used to
         //   write an invalid `[u8]` which would be observable via the original
         //   `&amp;[u8]`.
         </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ maybe_self.as_ref() })
@@ -9584,9 +9586,9 @@
 /// # Safety
 ///
 /// *This section describes what is required in order for `T: FromZeroes`, and
-/// what unsafe code may assume of such types. If you don&#39;t plan on implementing
-/// `FromZeroes` manually, and you don&#39;t plan on writing unsafe code that
-/// operates on `FromZeroes` types, then you don&#39;t need to read this section.*
+/// what unsafe code may assume of such types. If you don't plan on implementing
+/// `FromZeroes` manually, and you don't plan on writing unsafe code that
+/// operates on `FromZeroes` types, then you don't need to read this section.*
 ///
 /// If `T: FromZeroes`, then unsafe code may assume that:
 /// - It is sound to treat any initialized sequence of zero bytes of length
@@ -9603,14 +9605,14 @@
 /// requirements][derive-analysis].
 ///
 </span><span class="attr">#[cfg_attr(
-    feature = <span class="string">&quot;derive&quot;</span>,
-    doc = <span class="string">&quot;[derive]: zerocopy_derive::FromZeroes&quot;</span>,
-    doc = <span class="string">&quot;[derive-analysis]: zerocopy_derive::FromZeroes#analysis&quot;
+    feature = <span class="string">"derive"</span>,
+    doc = <span class="string">"[derive]: zerocopy_derive::FromZeroes"</span>,
+    doc = <span class="string">"[derive-analysis]: zerocopy_derive::FromZeroes#analysis"
 </span>)]
 #[cfg_attr(
-    not(feature = <span class="string">&quot;derive&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.FromZeroes.html&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive-analysis]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.FromZeroes.html#analysis&quot;</span>),
+    not(feature = <span class="string">"derive"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.FromZeroes.html"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive-analysis]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.FromZeroes.html#analysis"</span>),
 )]
 </span><span class="kw">pub unsafe trait </span>FromZeroes {
     <span class="comment">// The `Self: Sized` bound makes it so that `FromZeroes` is still object
@@ -9663,7 +9665,7 @@
         <span class="comment">// SAFETY:
         // - `self` is guaranteed by the type system to be valid for writes of
         //   size `size_of_val(self)`.
-        // - `u8`&#39;s alignment is 1, and thus `self` is guaranteed to be aligned
+        // - `u8`'s alignment is 1, and thus `self` is guaranteed to be aligned
         //   as required by `u8`.
         // - Since `Self: FromZeroes`, the all-zeroes instance is a valid
         //   instance of `Self.`
@@ -9723,8 +9725,8 @@
     /// # Panics
     ///
     /// Panics if allocation of `size_of::&lt;Self&gt;()` bytes fails.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"alloc"</span>)))]
     #[inline]
     </span><span class="kw">fn </span>new_box_zeroed() -&gt; Box&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
@@ -9737,13 +9739,13 @@
             <span class="kw">return </span>Box::new(<span class="self">Self</span>::new_zeroed());
         }
 
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ alloc::alloc::alloc_zeroed(layout).cast::&lt;<span class="self">Self</span>&gt;() };
         <span class="kw">if </span>ptr.is_null() {
             alloc::alloc::handle_alloc_error(layout);
         }
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             Box::from_raw(ptr)
@@ -9771,8 +9773,8 @@
     ///
     /// * Panics if `size_of::&lt;Self&gt;() * len` overflows.
     /// * Panics if allocation of `size_of::&lt;Self&gt;() * len` bytes fails.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"alloc"</span>)))]
     #[inline]
     </span><span class="kw">fn </span>new_box_slice_zeroed(len: usize) -&gt; Box&lt;[<span class="self">Self</span>]&gt;
     <span class="kw">where
@@ -9780,7 +9782,7 @@
     {
         <span class="kw">let </span>size = mem::size_of::&lt;<span class="self">Self</span>&gt;()
             .checked_mul(len)
-            .expect(<span class="string">&quot;mem::size_of::&lt;Self&gt;() * len overflows `usize`&quot;</span>);
+            .expect(<span class="string">"mem::size_of::&lt;Self&gt;() * len overflows `usize`"</span>);
         <span class="kw">let </span>align = mem::align_of::&lt;<span class="self">Self</span>&gt;();
         <span class="comment">// On stable Rust versions &lt;= 1.64.0, `Layout::from_size_align` has a
         // bug in which sufficiently-large allocations (those which, when
@@ -9792,12 +9794,12 @@
         </span><span class="kw">let </span>max_alloc = (isize::MAX <span class="kw">as </span>usize).saturating_sub(align);
         <span class="macro">assert!</span>(size &lt;= max_alloc);
         <span class="comment">// TODO(https://github.com/rust-lang/rust/issues/55724): Use
-        // `Layout::repeat` once it&#39;s stabilized.
+        // `Layout::repeat` once it's stabilized.
         </span><span class="kw">let </span>layout =
-            Layout::from_size_align(size, align).expect(<span class="string">&quot;total allocation size overflows `isize`&quot;</span>);
+            Layout::from_size_align(size, align).expect(<span class="string">"total allocation size overflows `isize`"</span>);
 
         <span class="kw">let </span>ptr = <span class="kw">if </span>layout.size() != <span class="number">0 </span>{
-            <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+            <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
             </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
             </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ alloc::alloc::alloc_zeroed(layout).cast::&lt;<span class="self">Self</span>&gt;() };
             <span class="kw">if </span>ptr.is_null() {
@@ -9811,7 +9813,7 @@
             </span>NonNull::&lt;<span class="self">Self</span>&gt;::dangling().as_ptr()
         };
 
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             Box::from_raw(slice::from_raw_parts_mut(ptr, len))
@@ -9838,8 +9840,8 @@
     ///
     /// * Panics if `size_of::&lt;Self&gt;() * len` overflows.
     /// * Panics if allocation of `size_of::&lt;Self&gt;() * len` bytes fails.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;new_vec_zeroed&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"new_vec_zeroed"</span>)))]
     #[inline(always)]
     </span><span class="kw">fn </span>new_vec_zeroed(len: usize) -&gt; Vec&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
@@ -9907,7 +9909,7 @@
 /// *This section describes, roughly, the analysis performed by this derive to
 /// determine whether it is sound to implement `FromBytes` for a given type.
 /// Unless you are modifying the implementation of this derive, or attempting to
-/// manually implement `FromBytes` for a type yourself, you don&#39;t need to read
+/// manually implement `FromBytes` for a type yourself, you don't need to read
 /// this section.*
 ///
 /// If a type has the following properties, then this derive can implement
@@ -9935,7 +9937,7 @@
 /// documented [safety conditions] of `FromBytes`, and must *not* rely on the
 /// implementation details of this derive.
 ///
-/// ## Why isn&#39;t an explicit representation required for structs?
+/// ## Why isn't an explicit representation required for structs?
 ///
 /// Neither this derive, nor the [safety conditions] of `FromBytes`, requires
 /// that structs are marked with `#[repr(C)]`.
@@ -9961,10 +9963,10 @@
 ///
 /// Whether a struct is soundly `FromBytes` therefore solely depends on whether
 /// its fields are `FromBytes`.
-</span><span class="comment">// TODO(#146): Document why we don&#39;t require an enum to have an explicit `repr`
+</span><span class="comment">// TODO(#146): Document why we don't require an enum to have an explicit `repr`
 // attribute.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;derive&quot;</span>)))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"derive"</span>)))]
 </span><span class="kw">pub use </span>zerocopy_derive::FromBytes;
 
 <span class="doccomment">/// Types for which any bit pattern is valid.
@@ -10029,9 +10031,9 @@
 /// # Safety
 ///
 /// *This section describes what is required in order for `T: FromBytes`, and
-/// what unsafe code may assume of such types. If you don&#39;t plan on implementing
-/// `FromBytes` manually, and you don&#39;t plan on writing unsafe code that
-/// operates on `FromBytes` types, then you don&#39;t need to read this section.*
+/// what unsafe code may assume of such types. If you don't plan on implementing
+/// `FromBytes` manually, and you don't plan on writing unsafe code that
+/// operates on `FromBytes` types, then you don't need to read this section.*
 ///
 /// If `T: FromBytes`, then unsafe code may assume that:
 /// - It is sound to treat any initialized sequence of bytes of length
@@ -10047,14 +10049,14 @@
 /// requirements][derive-analysis].
 ///
 </span><span class="attr">#[cfg_attr(
-    feature = <span class="string">&quot;derive&quot;</span>,
-    doc = <span class="string">&quot;[derive]: zerocopy_derive::FromBytes&quot;</span>,
-    doc = <span class="string">&quot;[derive-analysis]: zerocopy_derive::FromBytes#analysis&quot;
+    feature = <span class="string">"derive"</span>,
+    doc = <span class="string">"[derive]: zerocopy_derive::FromBytes"</span>,
+    doc = <span class="string">"[derive-analysis]: zerocopy_derive::FromBytes#analysis"
 </span>)]
 #[cfg_attr(
-    not(feature = <span class="string">&quot;derive&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.FromBytes.html&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive-analysis]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.FromBytes.html#analysis&quot;</span>),
+    not(feature = <span class="string">"derive"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.FromBytes.html"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive-analysis]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.FromBytes.html#analysis"</span>),
 )]
 </span><span class="kw">pub unsafe trait </span>FromBytes: FromZeroes {
     <span class="comment">// The `Self: Sized` bound makes it so that `FromBytes` is still object
@@ -10788,7 +10790,7 @@
 /// is illegal for `AsBytes` types. Consider reducing the alignment of some
 /// fields by using types in the [`byteorder`] module, adding explicit struct
 /// fields where those padding bytes would be, or using `#[repr(packed)]`. See
-/// the Rust Reference&#39;s page on [type layout] for more information
+/// the Rust Reference's page on [type layout] for more information
 /// about type layout and padding.
 ///
 /// [type layout]: https://doc.rust-lang.org/reference/type-layout.html
@@ -10798,7 +10800,7 @@
 /// *This section describes, roughly, the analysis performed by this derive to
 /// determine whether it is sound to implement `AsBytes` for a given type.
 /// Unless you are modifying the implementation of this derive, or attempting to
-/// manually implement `AsBytes` for a type yourself, you don&#39;t need to read
+/// manually implement `AsBytes` for a type yourself, you don't need to read
 /// this section.*
 ///
 /// If a type has the following properties, then this derive can implement
@@ -10829,8 +10831,8 @@
 /// implementation details of this derive.
 ///
 /// [Rust Reference]: https://doc.rust-lang.org/reference/type-layout.html
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;derive&quot;</span>)))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"derive"</span>)))]
 </span><span class="kw">pub use </span>zerocopy_derive::AsBytes;
 
 <span class="doccomment">/// Types that can be viewed as an immutable slice of initialized bytes.
@@ -10876,14 +10878,14 @@
 /// This derive performs a sophisticated, compile-time safety analysis to
 /// determine whether a type is `AsBytes`. See the [derive
 /// documentation][derive] for guidance on how to interpret error messages
-/// produced by the derive&#39;s analysis.
+/// produced by the derive's analysis.
 ///
 /// # Safety
 ///
 /// *This section describes what is required in order for `T: AsBytes`, and
-/// what unsafe code may assume of such types. If you don&#39;t plan on implementing
-/// `AsBytes` manually, and you don&#39;t plan on writing unsafe code that
-/// operates on `AsBytes` types, then you don&#39;t need to read this section.*
+/// what unsafe code may assume of such types. If you don't plan on implementing
+/// `AsBytes` manually, and you don't plan on writing unsafe code that
+/// operates on `AsBytes` types, then you don't need to read this section.*
 ///
 /// If `T: AsBytes`, then unsafe code may assume that:
 /// - It is sound to treat any `t: T` as an immutable `[u8]` of length
@@ -10899,22 +10901,22 @@
 /// requirements][derive-analysis].
 ///
 </span><span class="attr">#[cfg_attr(
-    feature = <span class="string">&quot;derive&quot;</span>,
-    doc = <span class="string">&quot;[derive]: zerocopy_derive::AsBytes&quot;</span>,
-    doc = <span class="string">&quot;[derive-analysis]: zerocopy_derive::AsBytes#analysis&quot;
+    feature = <span class="string">"derive"</span>,
+    doc = <span class="string">"[derive]: zerocopy_derive::AsBytes"</span>,
+    doc = <span class="string">"[derive-analysis]: zerocopy_derive::AsBytes#analysis"
 </span>)]
 #[cfg_attr(
-    not(feature = <span class="string">&quot;derive&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.AsBytes.html&quot;</span>),
-    doc = <span class="macro">concat!</span>(<span class="string">&quot;[derive-analysis]: https://docs.rs/zerocopy/&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>), <span class="string">&quot;/zerocopy/derive.AsBytes.html#analysis&quot;</span>),
+    not(feature = <span class="string">"derive"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.AsBytes.html"</span>),
+    doc = <span class="macro">concat!</span>(<span class="string">"[derive-analysis]: https://docs.rs/zerocopy/"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>), <span class="string">"/zerocopy/derive.AsBytes.html#analysis"</span>),
 )]
 </span><span class="kw">pub unsafe trait </span>AsBytes {
-    <span class="comment">// The `Self: Sized` bound makes it so that this function doesn&#39;t prevent
+    <span class="comment">// The `Self: Sized` bound makes it so that this function doesn't prevent
     // `AsBytes` from being object safe. Note that other `AsBytes` methods
     // prevent object safety, but those provide a benefit in exchange for object
     // safety. If at some point we remove those methods, change their type
     // signatures, or move them out of this trait so that `AsBytes` is object
-    // safe again, it&#39;s important that this function not prevent object safety.
+    // safe again, it's important that this function not prevent object safety.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">fn </span>only_derive_is_allowed_to_implement_this_trait()
     <span class="kw">where
@@ -10971,9 +10973,9 @@
         //   initialized.
         // - Since `slf` is derived from `self`, and `self` is an immutable
         //   reference, the only other references to this memory region that
-        //   could exist are other immutable references, and those don&#39;t allow
+        //   could exist are other immutable references, and those don't allow
         //   mutation. `AsBytes` prohibits types which contain `UnsafeCell`s,
-        //   which are the only types for which this rule wouldn&#39;t be sufficient.
+        //   which are the only types for which this rule wouldn't be sufficient.
         // - The total size of the resulting slice is no larger than
         //   `isize::MAX` because no allocation produced by safe code can be
         //   larger than `isize::MAX`.
@@ -11225,7 +11227,7 @@
         <span class="kw">let </span>start = bytes.len().checked_sub(mem::size_of_val(<span class="self">self</span>))<span class="question-mark">?</span>;
         bytes
             .get_mut(start..)
-            .expect(<span class="string">&quot;`start` should be in-bounds of `bytes`&quot;</span>)
+            .expect(<span class="string">"`start` should be in-bounds of `bytes`"</span>)
             .copy_from_slice(<span class="self">self</span>.as_bytes());
         <span class="prelude-val">Some</span>(())
     }
@@ -11242,9 +11244,9 @@
 ///
 /// *This section describes what is required in order for `T: Unaligned`, and
 /// what unsafe code may assume of such types. `#[derive(Unaligned)]` only
-/// permits types which satisfy these requirements. If you don&#39;t plan on
-/// implementing `Unaligned` manually, and you don&#39;t plan on writing unsafe code
-/// that operates on `Unaligned` types, then you don&#39;t need to read this
+/// permits types which satisfy these requirements. If you don't plan on
+/// implementing `Unaligned` manually, and you don't plan on writing unsafe code
+/// that operates on `Unaligned` types, then you don't need to read this
 /// section.*
 ///
 /// If `T: Unaligned`, then unsafe code may assume that it is sound to produce a
@@ -11262,8 +11264,8 @@
 
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
-    /// Per the reference [1], &quot;the unit tuple (`()`) ... is guaranteed as a
-    /// zero-sized type to have a size of 0 and an alignment of 1.&quot;
+    /// Per the reference [1], "the unit tuple (`()`) ... is guaranteed as a
+    /// zero-sized type to have a size of 0 and an alignment of 1."
     /// - `TryFromBytes` (with no validator), `FromZeroes`, `FromBytes`: There
     ///   is only one possible sequence of 0 bytes, and `()` is inhabited.
     /// - `AsBytes`: Since `()` has size 0, it contains no padding bytes.
@@ -11305,7 +11307,7 @@
     ///
     ///     The size of a value is always a multiple of its alignment.
     ///
-    /// TODO(#278): Once we&#39;ve updated the trait docs to refer to `u8`s rather
+    /// TODO(#278): Once we've updated the trait docs to refer to `u8`s rather
     /// than bits or bytes, update this comment, especially the reference to
     /// [1].
     </span><span class="macro">unsafe_impl!</span>(u8: TryFromBytes, FromZeroes, FromBytes, AsBytes, Unaligned);
@@ -11327,14 +11329,14 @@
 
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
-    /// - `FromZeroes`: Valid since &quot;[t]he value false has the bit pattern
-    ///   0x00&quot; [1].
-    /// - `AsBytes`: Since &quot;the boolean type has a size and alignment of 1 each&quot;
-    ///   and &quot;The value false has the bit pattern 0x00 and the value true has
-    ///   the bit pattern 0x01&quot; [1]. Thus, the only byte of the bool is always
+    /// - `FromZeroes`: Valid since "[t]he value false has the bit pattern
+    ///   0x00" [1].
+    /// - `AsBytes`: Since "the boolean type has a size and alignment of 1 each"
+    ///   and "The value false has the bit pattern 0x00 and the value true has
+    ///   the bit pattern 0x01" [1]. Thus, the only byte of the bool is always
     ///   initialized.
-    /// - `Unaligned`: Per the reference [1], &quot;[a]n object with the boolean type
-    ///   has a size and alignment of 1 each.&quot;
+    /// - `Unaligned`: Per the reference [1], "[a]n object with the boolean type
+    ///   has a size and alignment of 1 each."
     ///
     /// [1] https://doc.rust-lang.org/reference/types/boolean.html
     </span><span class="macro">unsafe_impl!</span>(bool: FromZeroes, AsBytes, Unaligned);
@@ -11345,13 +11347,13 @@
     ///   - Given `t: *mut bool` and `let r = *mut u8`, `r` refers to an object
     ///     of the same size as that referred to by `t`. This is true because
     ///     `bool` and `u8` have the same size (1 byte) [1].
-    ///   - Since the closure takes a `&amp;u8` argument, given a `Ptr&lt;&#39;a, bool&gt;`
+    ///   - Since the closure takes a `&amp;u8` argument, given a `Ptr&lt;'a, bool&gt;`
     ///     which satisfies the preconditions of
     ///     `TryFromBytes::&lt;bool&gt;::is_bit_valid`, it must be guaranteed that the
     ///     memory referenced by that `Ptr` always contains a valid `u8`. Since
-    ///     `bool`&#39;s single byte is always initialized, `is_bit_valid`&#39;s
+    ///     `bool`'s single byte is always initialized, `is_bit_valid`'s
     ///     precondition requires that the same is true of its argument. Since
-    ///     `u8`&#39;s only bit validity invariant is that its single byte must be
+    ///     `u8`'s only bit validity invariant is that its single byte must be
     ///     initialized, this memory is guaranteed to contain a valid `u8`.
     ///   - The alignment of `bool` is equal to the alignment of `u8`. [1] [2]
     ///   - The impl must only return `true` for its argument if the original
@@ -11380,12 +11382,12 @@
 }
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
-    /// - `FromZeroes`: Per reference [1], &quot;[a] value of type char is a Unicode
+    /// - `FromZeroes`: Per reference [1], "[a] value of type char is a Unicode
     ///   scalar value (i.e. a code point that is not a surrogate), represented
     ///   as a 32-bit unsigned word in the 0x0000 to 0xD7FF or 0xE000 to
-    ///   0x10FFFF range&quot; which contains 0x0000.
-    /// - `AsBytes`: `char` is per reference [1] &quot;represented as a 32-bit
-    ///   unsigned word&quot; (`u32`) which is `AsBytes`. Note that unlike `u32`, not
+    ///   0x10FFFF range" which contains 0x0000.
+    /// - `AsBytes`: `char` is per reference [1] "represented as a 32-bit
+    ///   unsigned word" (`u32`) which is `AsBytes`. Note that unlike `u32`, not
     ///   all bit patterns are valid for `char`.
     ///
     /// [1] https://doc.rust-lang.org/reference/types/textual.html
@@ -11396,13 +11398,13 @@
     ///   - Given `t: *mut char` and `let r = *mut u32`, `r` refers to an object
     ///     of the same size as that referred to by `t`. This is true because
     ///     `char` and `u32` have the same size [1].
-    ///   - Since the closure takes a `&amp;u32` argument, given a `Ptr&lt;&#39;a, char&gt;`
+    ///   - Since the closure takes a `&amp;u32` argument, given a `Ptr&lt;'a, char&gt;`
     ///     which satisfies the preconditions of
     ///     `TryFromBytes::&lt;char&gt;::is_bit_valid`, it must be guaranteed that the
     ///     memory referenced by that `Ptr` always contains a valid `u32`. Since
-    ///     `char`&#39;s bytes are always initialized [2], `is_bit_valid`&#39;s
+    ///     `char`'s bytes are always initialized [2], `is_bit_valid`'s
     ///     precondition requires that the same is true of its argument. Since
-    ///     `u32`&#39;s only bit validity invariant is that its bytes must be
+    ///     `u32`'s only bit validity invariant is that its bytes must be
     ///     initialized, this memory is guaranteed to contain a valid `u32`.
     ///   - The alignment of `char` is equal to the alignment of `u32`. [1]
     ///   - The impl must only return `true` for its argument if the original
@@ -11430,7 +11432,7 @@
     ///   has the same layout as `[u8]`, and `[u8]` is `FromZeroes`, `AsBytes`,
     ///   and `Unaligned`.
     ///
-    /// Note that we don&#39;t `assert_unaligned!(str)` because `assert_unaligned!`
+    /// Note that we don't `assert_unaligned!(str)` because `assert_unaligned!`
     /// uses `align_of`, which only works for `Sized` types.
     ///
     /// TODO(#429): Add quotes from documentation.
@@ -11443,13 +11445,13 @@
     ///   - Given `t: *mut str` and `let r = *mut [u8]`, `r` refers to an object
     ///     of the same size as that referred to by `t`. This is true because
     ///     `str` and `[u8]` have the same representation. [1]
-    ///   - Since the closure takes a `&amp;[u8]` argument, given a `Ptr&lt;&#39;a, str&gt;`
+    ///   - Since the closure takes a `&amp;[u8]` argument, given a `Ptr&lt;'a, str&gt;`
     ///     which satisfies the preconditions of
     ///     `TryFromBytes::&lt;str&gt;::is_bit_valid`, it must be guaranteed that the
     ///     memory referenced by that `Ptr` always contains a valid `[u8]`.
-    ///     Since `str`&#39;s bytes are always initialized [1], `is_bit_valid`&#39;s
+    ///     Since `str`'s bytes are always initialized [1], `is_bit_valid`'s
     ///     precondition requires that the same is true of its argument. Since
-    ///     `[u8]`&#39;s only bit validity invariant is that its bytes must be
+    ///     `[u8]`'s only bit validity invariant is that its bytes must be
     ///     initialized, this memory is guaranteed to contain a valid `[u8]`.
     ///   - The alignment of `str` is equal to the alignment of `[u8]`. [1]
     ///   - The impl must only return `true` for its argument if the original
@@ -11472,12 +11474,12 @@
     </span><span class="doccomment">/// SAFETY:
     /// - `AsBytes`: `NonZeroXxx` has the same layout as its associated
     ///    primitive. Since it is the same size, this guarantees it has no
-    ///    padding - integers have no padding, and there&#39;s no room for padding
+    ///    padding - integers have no padding, and there's no room for padding
     ///    if it can represent all of the same values except 0.
     /// - `Unaligned`: `NonZeroU8` and `NonZeroI8` document that
     ///   `Option&lt;NonZeroU8&gt;` and `Option&lt;NonZeroI8&gt;` both have size 1. [1] [2]
-    ///   This is worded in a way that makes it unclear whether it&#39;s meant as a
-    ///   guarantee, but given the purpose of those types, it&#39;s virtually
+    ///   This is worded in a way that makes it unclear whether it's meant as a
+    ///   guarantee, but given the purpose of those types, it's virtually
     ///   unthinkable that that would ever change. `Option` cannot be smaller
     ///   than its contained type, which implies that, and `NonZeroX8` are of
     ///   size 1 or 0. `NonZeroX8` can represent multiple states, so they cannot
@@ -11509,13 +11511,13 @@
     ///   - Given `t: *mut NonZeroXxx` and `let r = *mut xxx`, `r` refers to an
     ///     object of the same size as that referred to by `t`. This is true
     ///     because `NonZeroXxx` and `xxx` have the same size. [1]
-    ///   - Since the closure takes a `&amp;xxx` argument, given a `Ptr&lt;&#39;a,
+    ///   - Since the closure takes a `&amp;xxx` argument, given a `Ptr&lt;'a,
     ///     NonZeroXxx&gt;` which satisfies the preconditions of
     ///     `TryFromBytes::&lt;NonZeroXxx&gt;::is_bit_valid`, it must be guaranteed
     ///     that the memory referenced by that `Ptr` always contains a valid
-    ///     `xxx`. Since `NonZeroXxx`&#39;s bytes are always initialized [1],
-    ///     `is_bit_valid`&#39;s precondition requires that the same is true of its
-    ///     argument. Since `xxx`&#39;s only bit validity invariant is that its
+    ///     `xxx`. Since `NonZeroXxx`'s bytes are always initialized [1],
+    ///     `is_bit_valid`'s precondition requires that the same is true of its
+    ///     argument. Since `xxx`'s only bit validity invariant is that its
     ///     bytes must be initialized, this memory is guaranteed to contain a
     ///     valid `xxx`.
     ///   - The alignment of `NonZeroXxx` is equal to the alignment of `xxx`.
@@ -11549,8 +11551,8 @@
     ///   `NonZeroXxx` documentation.
     /// - `Unaligned`: `NonZeroU8` and `NonZeroI8` document that
     ///   `Option&lt;NonZeroU8&gt;` and `Option&lt;NonZeroI8&gt;` both have size 1. [1] [2]
-    ///   This is worded in a way that makes it unclear whether it&#39;s meant as a
-    ///   guarantee, but given the purpose of those types, it&#39;s virtually
+    ///   This is worded in a way that makes it unclear whether it's meant as a
+    ///   guarantee, but given the purpose of those types, it's virtually
     ///   unthinkable that that would ever change. The only valid alignment for
     ///   a 1-byte type is 1.
     ///
@@ -11597,17 +11599,17 @@
     ///   | `&amp;U`                  | when `U: Sized`                                           |
     ///   | `&amp;mut U`              | when `U: Sized`                                           |
     ///   | [`ptr::NonNull&lt;U&gt;`]   | when `U: Sized`                                           |
-    ///   | `fn`, `extern &quot;C&quot; fn` | always                                                    |
+    ///   | `fn`, `extern "C" fn` | always                                                    |
     ///
     /// TODO(#429), TODO(https://github.com/rust-lang/rust/pull/115333): Cite
-    /// the Stable docs once they&#39;re available.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    /// the Stable docs once they're available.
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="macro">unsafe_impl!</span>(
-        <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+        <span class="attr">#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"alloc"</span>)))]
         </span>T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt;
     );
-    <span class="macro">unsafe_impl!</span>(T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>T&gt;);
-    <span class="macro">unsafe_impl!</span>(T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>T&gt;);
+    <span class="macro">unsafe_impl!</span>(T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>T&gt;);
+    <span class="macro">unsafe_impl!</span>(T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">mut </span>T&gt;);
     <span class="macro">unsafe_impl!</span>(T =&gt; FromZeroes <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;NonNull&lt;T&gt;&gt;);
     <span class="macro">unsafe_impl_for_power_set!</span>(A, B, C, D, E, F, G, H, I, J, K, L -&gt; M =&gt; FromZeroes <span class="kw">for </span><span class="macro">opt_fn!</span>(...));
     <span class="macro">unsafe_impl_for_power_set!</span>(A, B, C, D, E, F, G, H, I, J, K, L -&gt; M =&gt; FromZeroes <span class="kw">for </span><span class="macro">opt_extern_c_fn!</span>(...));
@@ -11616,9 +11618,9 @@
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
     /// Per reference [1]:
-    /// &quot;For all T, the following are guaranteed:
+    /// "For all T, the following are guaranteed:
     /// size_of::&lt;PhantomData&lt;T&gt;&gt;() == 0
-    /// align_of::&lt;PhantomData&lt;T&gt;&gt;() == 1&quot;.
+    /// align_of::&lt;PhantomData&lt;T&gt;&gt;() == 1".
     /// This gives:
     /// - `TryFromBytes` (with no validator), `FromZeroes`, `FromBytes`: There
     ///   is only one possible sequence of 0 bytes, and `PhantomData` is
@@ -11641,8 +11643,8 @@
     /// `Wrapping&lt;T&gt;` is guaranteed by its docs [1] to have the same layout and
     /// bit validity as `T`. Also, `Wrapping&lt;T&gt;` is `#[repr(transparent)]`, and
     /// has a single field, which is `pub`. Per the reference [2], this means
-    /// that the `#[repr(transparent)]` attribute is &quot;considered part of the
-    /// public ABI&quot;.
+    /// that the `#[repr(transparent)]` attribute is "considered part of the
+    /// public ABI".
     ///
     /// - `TryFromBytes`: The safety requirements for `unsafe_impl!` with an
     ///   `is_bit_valid` closure:
@@ -11658,12 +11660,12 @@
     /// - `FromBytes`: Since `Wrapping&lt;T&gt;` has the same bit validity as `T`, if
     ///   `T: FromBytes`, then all initialized byte sequences are valid
     ///   instances of `Wrapping&lt;T&gt;`. Similarly, if `T: FromBytes`, then
-    ///   `Wrapping&lt;T&gt;` doesn&#39;t contain any `UnsafeCell`s. Thus, `impl FromBytes
+    ///   `Wrapping&lt;T&gt;` doesn't contain any `UnsafeCell`s. Thus, `impl FromBytes
     ///   for Wrapping&lt;T&gt; where T: FromBytes` is a sound impl.
     /// - `AsBytes`: Since `Wrapping&lt;T&gt;` has the same bit validity as `T`, if
     ///   `T: AsBytes`, then all valid instances of `Wrapping&lt;T&gt;` have all of
     ///   their bytes initialized. Similarly, if `T: AsBytes`, then
-    ///   `Wrapping&lt;T&gt;` doesn&#39;t contain any `UnsafeCell`s. Thus, `impl AsBytes
+    ///   `Wrapping&lt;T&gt;` doesn't contain any `UnsafeCell`s. Thus, `impl AsBytes
     ///   for Wrapping&lt;T&gt; where T: AsBytes` is a valid impl.
     /// - `Unaligned`: Since `Wrapping&lt;T&gt;` has the same layout as `T`,
     ///   `Wrapping&lt;T&gt;` has alignment 1 exactly when `T` does.
@@ -11676,7 +11678,7 @@
     /// TODO(#429): Add quotes from documentation.
     ///
     /// [1] TODO(https://doc.rust-lang.org/nightly/core/num/struct.Wrapping.html#layout-1):
-    /// Reference this documentation once it&#39;s available on stable.
+    /// Reference this documentation once it's available on stable.
     ///
     /// [2] https://doc.rust-lang.org/nomicon/other-reprs.html#reprtransparent
     </span><span class="macro">unsafe_impl!</span>(T: TryFromBytes =&gt; TryFromBytes <span class="kw">for </span>Wrapping&lt;T&gt;; |candidate: Ptr&lt;T&gt;| {
@@ -11709,8 +11711,8 @@
     ///   Thus, we require `T: Trait` in order to ensure that `T` - and thus
     ///   `MaybeUninit&lt;T&gt;` - contains to `UnsafeCell`s. Thus, requiring that `T`
     ///   implement each of these traits is sufficient.
-    /// - `Unaligned`: &quot;MaybeUninit&lt;T&gt; is guaranteed to have the same size,
-    ///    alignment, and ABI as T&quot; [1]
+    /// - `Unaligned`: "MaybeUninit&lt;T&gt; is guaranteed to have the same size,
+    ///    alignment, and ABI as T" [1]
     ///
     /// [1] https://doc.rust-lang.org/stable/core/mem/union.MaybeUninit.html#layout-1
     ///
@@ -11727,7 +11729,7 @@
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
     /// `ManuallyDrop` has the same layout and bit validity as `T` [1], and
-    /// accessing the inner value is safe (meaning that it&#39;s unsound to leave
+    /// accessing the inner value is safe (meaning that it's unsound to leave
     /// the inner value uninitialized while exposing the `ManuallyDrop` to safe
     /// code).
     /// - `FromZeroes`, `FromBytes`: Since it has the same layout as `T`, any
@@ -11735,7 +11737,7 @@
     ///   of zero bytes is a valid `T`, and thus a valid `ManuallyDrop&lt;T&gt;`. If
     ///   `T: FromBytes`, any sequence of bytes is a valid `T`, and thus a valid
     ///   `ManuallyDrop&lt;T&gt;`.
-    /// - `AsBytes`: Since it has the same layout as `T`, and since it&#39;s unsound
+    /// - `AsBytes`: Since it has the same layout as `T`, and since it's unsound
     ///   to let safe code access a `ManuallyDrop` whose inner value is
     ///   uninitialized, safe code can only ever access a `ManuallyDrop` whose
     ///   contents are a valid `T`. Since `T: AsBytes`, this means that safe
@@ -11775,10 +11777,10 @@
     /// In other words, the layout of a `[T]` or `[T; N]` is a sequence of `T`s
     /// laid out back-to-back with no bytes in between. Therefore, `[T]` or `[T;
     /// N]` are `TryFromBytes`, `FromZeroes`, `FromBytes`, and `AsBytes` if `T`
-    /// is (respectively). Furthermore, since an array/slice has &quot;the same
-    /// alignment of `T`&quot;, `[T]` and `[T; N]` are `Unaligned` if `T` is.
+    /// is (respectively). Furthermore, since an array/slice has "the same
+    /// alignment of `T`", `[T]` and `[T; N]` are `Unaligned` if `T` is.
     ///
-    /// Note that we don&#39;t `assert_unaligned!` for slice types because
+    /// Note that we don't `assert_unaligned!` for slice types because
     /// `assert_unaligned!` uses `align_of`, which only works for `Sized` types.
     ///
     /// [1] https://doc.rust-lang.org/reference/type-layout.html#array-layout
@@ -11808,7 +11810,7 @@
         //
         // Note that any of the below calls may panic, but it would still be
         // sound even if it did. `is_bit_valid` does not promise that it will
-        // not panic (in fact, it explicitly warns that it&#39;s a possibility), and
+        // not panic (in fact, it explicitly warns that it's a possibility), and
         // we have not violated any safety invariants that we must fix before
         // returning.
         </span>c.iter().all(|elem|
@@ -11831,7 +11833,7 @@
 <span class="macro">safety_comment! </span>{
     <span class="doccomment">/// SAFETY:
     /// - `FromZeroes`: For thin pointers (note that `T: Sized`), the zero
-    ///   pointer is considered &quot;null&quot;. [1] No operations which require
+    ///   pointer is considered "null". [1] No operations which require
     ///   provenance are legal on null pointers, so this is not a footgun.
     ///
     /// NOTE(#170): Implementing `FromBytes` and `AsBytes` for raw pointers
@@ -11898,7 +11900,7 @@
 // Also per [1]:
 //
 //   This chapter represents the consensus from issue #38. The statements in
-//   here are not (yet) &quot;guaranteed&quot; not to change until an RFC ratifies them.
+//   here are not (yet) "guaranteed" not to change until an RFC ratifies them.
 //
 // See issue #38 [2]. While this behavior is not technically guaranteed, the
 // likelihood that the behavior will change such that SIMD types are no longer
@@ -11909,8 +11911,8 @@
 //
 // [1] https://rust-lang.github.io/unsafe-code-guidelines/layout/packed-simd-vectors.html
 // [2] https://github.com/rust-lang/unsafe-code-guidelines/issues/38
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;simd&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;simd&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"simd"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"simd"</span>)))]
 </span><span class="kw">mod </span>simd {
     <span class="doccomment">/// Defines a module which implements `TryFromBytes`, `FromZeroes`,
     /// `FromBytes`, and `AsBytes` for a set of types from a module in
@@ -11920,8 +11922,8 @@
     /// module in `core::arch`, and `$typ` is the list of items from that module
     /// to implement `FromZeroes`, `FromBytes`, and `AsBytes` for.
     </span><span class="attr">#[allow(unused_macros)] </span><span class="comment">// `allow(unused_macros)` is needed because some
-                            // target/feature combinations don&#39;t emit any impls
-                            // and thus don&#39;t use this macro.
+                            // target/feature combinations don't emit any impls
+                            // and thus don't use this macro.
     </span><span class="macro">macro_rules! </span>simd_arch_mod {
         (<span class="attr">#[cfg <span class="macro-nonterminal">$cfg</span>:tt] </span><span class="macro-nonterminal">$arch</span>:ident, <span class="macro-nonterminal">$</span><span class="kw">mod</span>:<span class="macro-nonterminal">ident</span>, $(<span class="macro-nonterminal">$typ</span>:ident),<span class="kw-2">*</span>) =&gt; {
             <span class="attr">#[cfg <span class="macro-nonterminal">$cfg</span>]
@@ -11943,35 +11945,35 @@
     <span class="attr">#[rustfmt::skip]
     </span><span class="kw">const _</span>: () = {
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
             </span>x86, x86, __m128, __m128d, __m128i, __m256, __m256d, __m256i
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"x86"</span>))]
             </span>x86, x86_nightly, __m512bh, __m512, __m512d, __m512i
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
             </span>x86_64, x86_64, __m128, __m128d, __m128i, __m256, __m256d, __m256i
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"x86_64"</span>))]
             </span>x86_64, x86_64_nightly, __m512bh, __m512, __m512d, __m512i
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
             </span>wasm32, wasm32, v128
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;powerpc&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"powerpc"</span>))]
             </span>powerpc, powerpc, vector_bool_long, vector_double, vector_signed_long, vector_unsigned_long
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;powerpc64&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"powerpc64"</span>))]
             </span>powerpc64, powerpc64, vector_bool_long, vector_double, vector_signed_long, vector_unsigned_long
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;aarch64&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"aarch64"</span>)]
             </span>aarch64, aarch64, float32x2_t, float32x4_t, float64x1_t, float64x2_t, int8x8_t, int8x8x2_t,
             int8x8x3_t, int8x8x4_t, int8x16_t, int8x16x2_t, int8x16x3_t, int8x16x4_t, int16x4_t,
             int16x8_t, int32x2_t, int32x4_t, int64x1_t, int64x2_t, poly8x8_t, poly8x8x2_t, poly8x8x3_t,
@@ -11981,7 +11983,7 @@
             uint64x1_t, uint64x2_t
         );
         <span class="macro">simd_arch_mod!</span>(
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;arm&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"arm"</span>))]
             </span>arm, arm, int8x4_t, uint8x4_t
         );
     };
@@ -12013,7 +12015,7 @@
 </span><span class="macro">macro_rules! </span>transmute {
     (<span class="macro-nonterminal">$e</span>:expr) =&gt; {{
         <span class="comment">// NOTE: This must be a macro (rather than a function with trait bounds)
-        // because there&#39;s no way, in a generic context, to enforce that two
+        // because there's no way, in a generic context, to enforce that two
         // types have the same size. `core::mem::transmute` uses compiler magic
         // to enforce this so long as the types are concrete.
 
@@ -12045,7 +12047,7 @@
             // contexts in which `core` was not manually imported. This is not a
             // problem for 2018 edition crates.
             </span><span class="kw">unsafe </span>{
-                <span class="comment">// Clippy: It&#39;s okay to transmute a type to itself.
+                <span class="comment">// Clippy: It's okay to transmute a type to itself.
                 </span><span class="attr">#[allow(clippy::useless_transmute)]
                 </span><span class="macro-nonterminal">$crate::macro_util::core_reexport::mem::transmute</span>(e)
             }
@@ -12107,7 +12109,7 @@
 </span><span class="macro">macro_rules! </span>transmute_ref {
     (<span class="macro-nonterminal">$e</span>:expr) =&gt; {{
         <span class="comment">// NOTE: This must be a macro (rather than a function with trait bounds)
-        // because there&#39;s no way, in a generic context, to enforce that two
+        // because there's no way, in a generic context, to enforce that two
         // types have the same size or alignment.
 
         // Ensure that the source type is a reference or a mutable reference
@@ -12117,14 +12119,14 @@
         <span class="attr">#[allow(unused, clippy::diverging_sub_expression)]
         </span><span class="kw">if </span><span class="bool-val">false </span>{
             <span class="comment">// This branch, though never taken, ensures that the type of `e` is
-            // `&amp;T` where `T: &#39;t + Sized + AsBytes`, that the type of this macro
-            // expression is `&amp;U` where `U: &#39;u + Sized + FromBytes`, and that
-            // `&#39;t` outlives `&#39;u`.
+            // `&amp;T` where `T: 't + Sized + AsBytes`, that the type of this macro
+            // expression is `&amp;U` where `U: 'u + Sized + FromBytes`, and that
+            // `'t` outlives `'u`.
 
-            </span><span class="kw">struct </span>AssertIsAsBytes&lt;<span class="lifetime">&#39;a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
+            </span><span class="kw">struct </span>AssertIsAsBytes&lt;<span class="lifetime">'a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
             <span class="kw">let _ </span>= AssertIsAsBytes(e);
 
-            <span class="kw">struct </span>AssertIsFromBytes&lt;<span class="lifetime">&#39;a</span>, U: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>U);
+            <span class="kw">struct </span>AssertIsFromBytes&lt;<span class="lifetime">'a</span>, U: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>U);
             <span class="attr">#[allow(unused, unreachable_code)]
             </span><span class="kw">let </span>u = AssertIsFromBytes(<span class="kw">loop </span>{});
             u.<span class="number">0
@@ -12133,12 +12135,12 @@
             // size_of::&lt;U&gt;()` and that that `align_of::&lt;T&gt;() &gt;=
             // align_of::&lt;U&gt;()`.
 
-            // `t` is inferred to have type `T` because it&#39;s assigned to `e` (of
+            // `t` is inferred to have type `T` because it's assigned to `e` (of
             // type `&amp;T`) as `&amp;t`.
             </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">unreachable!</span>();
             e = <span class="kw-2">&amp;</span>t;
 
-            <span class="comment">// `u` is inferred to have type `U` because it&#39;s used as `&amp;u` as the
+            <span class="comment">// `u` is inferred to have type `U` because it's used as `&amp;u` as the
             // value returned from this branch.
             </span><span class="kw">let </span>u;
 
@@ -12217,7 +12219,7 @@
 </span><span class="macro">macro_rules! </span>transmute_mut {
     (<span class="macro-nonterminal">$e</span>:expr) =&gt; {{
         <span class="comment">// NOTE: This must be a macro (rather than a function with trait bounds)
-        // because there&#39;s no way, in a generic context, to enforce that two
+        // because there's no way, in a generic context, to enforce that two
         // types have the same size or alignment.
 
         // Ensure that the source type is a mutable reference.
@@ -12226,19 +12228,19 @@
         <span class="attr">#[allow(unused, clippy::diverging_sub_expression)]
         </span><span class="kw">if </span><span class="bool-val">false </span>{
             <span class="comment">// This branch, though never taken, ensures that the type of `e` is
-            // `&amp;mut T` where `T: &#39;t + Sized + FromBytes + AsBytes`, that the
-            // type of this macro expression is `&amp;mut U` where `U: &#39;u + Sized +
+            // `&amp;mut T` where `T: 't + Sized + FromBytes + AsBytes`, that the
+            // type of this macro expression is `&amp;mut U` where `U: 'u + Sized +
             // FromBytes + AsBytes`.
 
             // We use immutable references here rather than mutable so that, if
             // this macro is used in a const context (in which, as of this
             // writing, mutable references are banned), the error message
-            // appears to originate in the user&#39;s code rather than in the
+            // appears to originate in the user's code rather than in the
             // internals of this macro.
-            </span><span class="kw">struct </span>AssertSrcIsFromBytes&lt;<span class="lifetime">&#39;a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
-            <span class="kw">struct </span>AssertSrcIsAsBytes&lt;<span class="lifetime">&#39;a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
-            <span class="kw">struct </span>AssertDstIsFromBytes&lt;<span class="lifetime">&#39;a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
-            <span class="kw">struct </span>AssertDstIsAsBytes&lt;<span class="lifetime">&#39;a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
+            </span><span class="kw">struct </span>AssertSrcIsFromBytes&lt;<span class="lifetime">'a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
+            <span class="kw">struct </span>AssertSrcIsAsBytes&lt;<span class="lifetime">'a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
+            <span class="kw">struct </span>AssertDstIsFromBytes&lt;<span class="lifetime">'a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::FromBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
+            <span class="kw">struct </span>AssertDstIsAsBytes&lt;<span class="lifetime">'a</span>, T: ::core::marker::Sized + <span class="macro-nonterminal">$crate::AsBytes</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
 
             <span class="kw">if </span><span class="bool-val">true </span>{
                 <span class="kw">let _ </span>= AssertSrcIsFromBytes(<span class="kw-2">&amp;*</span>e);
@@ -12260,12 +12262,12 @@
             // size_of::&lt;U&gt;()` and that that `align_of::&lt;T&gt;() &gt;=
             // align_of::&lt;U&gt;()`.
 
-            // `t` is inferred to have type `T` because it&#39;s assigned to `e` (of
+            // `t` is inferred to have type `T` because it's assigned to `e` (of
             // type `&amp;mut T`) as `&amp;mut t`.
             </span><span class="kw">let </span><span class="kw-2">mut </span>t = <span class="macro">unreachable!</span>();
             e = <span class="kw-2">&amp;mut </span>t;
 
-            <span class="comment">// `u` is inferred to have type `U` because it&#39;s used as `&amp;mut u` as
+            <span class="comment">// `u` is inferred to have type `U` because it's used as `&amp;mut u` as
             // the value returned from this branch.
             </span><span class="kw">let </span>u;
 
@@ -12318,17 +12320,17 @@
 /// ```rust
 /// use zerocopy::include_value;
 /// # macro_rules! include_value {
-/// # ($file:expr) =&gt; { zerocopy::include_value!(concat!(&quot;../testdata/include_value/&quot;, $file)) };
+/// # ($file:expr) =&gt; { zerocopy::include_value!(concat!("../testdata/include_value/", $file)) };
 /// # }
 ///
 /// fn main() {
-///     let as_u32: u32 = include_value!(&quot;data&quot;);
-///     assert_eq!(as_u32, u32::from_ne_bytes([b&#39;a&#39;, b&#39;b&#39;, b&#39;c&#39;, b&#39;d&#39;]));
-///     let as_i32: i32 = include_value!(&quot;data&quot;);
-///     assert_eq!(as_i32, i32::from_ne_bytes([b&#39;a&#39;, b&#39;b&#39;, b&#39;c&#39;, b&#39;d&#39;]));
+///     let as_u32: u32 = include_value!("data");
+///     assert_eq!(as_u32, u32::from_ne_bytes([b'a', b'b', b'c', b'd']));
+///     let as_i32: i32 = include_value!("data");
+///     assert_eq!(as_i32, i32::from_ne_bytes([b'a', b'b', b'c', b'd']));
 /// }
 /// ```
-</span><span class="attr">#[doc(alias(<span class="string">&quot;include_bytes&quot;</span>, <span class="string">&quot;include_data&quot;</span>, <span class="string">&quot;include_type&quot;</span>))]
+</span><span class="attr">#[doc(alias(<span class="string">"include_bytes"</span>, <span class="string">"include_data"</span>, <span class="string">"include_type"</span>))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>include_value {
     (<span class="macro-nonterminal">$file</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
@@ -12349,7 +12351,7 @@
 /// simply a reference to that type.
 ///
 /// ```rust
-/// # #[cfg(feature = &quot;derive&quot;)] { // This example uses derives, and won&#39;t compile without them
+/// # #[cfg(feature = "derive")] { // This example uses derives, and won't compile without them
 /// use zerocopy::{AsBytes, ByteSlice, ByteSliceMut, FromBytes, FromZeroes, Ref, Unaligned};
 ///
 /// #[derive(FromZeroes, FromBytes, AsBytes, Unaligned)]
@@ -12387,7 +12389,7 @@
 </span><span class="kw">pub struct </span>Ref&lt;B, T: <span class="question-mark">?</span>Sized&gt;(B, PhantomData&lt;T&gt;);
 
 <span class="doccomment">/// Deprecated: prefer [`Ref`] instead.
-</span><span class="attr">#[deprecated(since = <span class="string">&quot;0.7.0&quot;</span>, note = <span class="string">&quot;LayoutVerified has been renamed to Ref&quot;</span>)]
+</span><span class="attr">#[deprecated(since = <span class="string">"0.7.0"</span>, note = <span class="string">"LayoutVerified has been renamed to Ref"</span>)]
 #[doc(hidden)]
 </span><span class="kw">pub type </span>LayoutVerified&lt;B, T&gt; = Ref&lt;B, T&gt;;
 
@@ -12463,7 +12465,7 @@
         <span class="kw">let </span>remainder = bytes
             .len()
             .checked_rem(mem::size_of::&lt;T&gt;())
-            .expect(<span class="string">&quot;Ref::new_slice called on a zero-sized type&quot;</span>);
+            .expect(<span class="string">"Ref::new_slice called on a zero-sized type"</span>);
         <span class="kw">if </span>remainder != <span class="number">0 </span>|| !util::aligned_to::&lt;<span class="kw">_</span>, T&gt;(bytes.deref()) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -12891,70 +12893,70 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B, T&gt; Ref&lt;B, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B, T&gt; Ref&lt;B, T&gt;
 <span class="kw">where
-    </span>B: <span class="lifetime">&#39;a </span>+ ByteSlice,
+    </span>B: <span class="lifetime">'a </span>+ ByteSlice,
     T: FromBytes,
 {
     <span class="doccomment">/// Converts this `Ref` into a reference.
     ///
     /// `into_ref` consumes the `Ref`, and returns a reference to `T`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>into_ref(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T {
+    </span><span class="kw">pub fn </span>into_ref(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T {
         <span class="macro">assert!</span>(B::INTO_REF_INTO_MUT_ARE_SOUND);
 
         <span class="comment">// SAFETY: According to the safety preconditions on
         // `ByteSlice::INTO_REF_INTO_MUT_ARE_SOUND`, the preceding assert
-        // ensures that, given `B: &#39;a`, it is sound to drop `self` and still
-        // access the underlying memory using reads for `&#39;a`.
+        // ensures that, given `B: 'a`, it is sound to drop `self` and still
+        // access the underlying memory using reads for `'a`.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.deref_helper() }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B, T&gt; Ref&lt;B, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B, T&gt; Ref&lt;B, T&gt;
 <span class="kw">where
-    </span>B: <span class="lifetime">&#39;a </span>+ ByteSliceMut,
+    </span>B: <span class="lifetime">'a </span>+ ByteSliceMut,
     T: FromBytes + AsBytes,
 {
     <span class="doccomment">/// Converts this `Ref` into a mutable reference.
     ///
     /// `into_mut` consumes the `Ref`, and returns a mutable reference to `T`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>into_mut(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T {
+    </span><span class="kw">pub fn </span>into_mut(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T {
         <span class="macro">assert!</span>(B::INTO_REF_INTO_MUT_ARE_SOUND);
 
         <span class="comment">// SAFETY: According to the safety preconditions on
         // `ByteSlice::INTO_REF_INTO_MUT_ARE_SOUND`, the preceding assert
-        // ensures that, given `B: &#39;a + ByteSliceMut`, it is sound to drop
+        // ensures that, given `B: 'a + ByteSliceMut`, it is sound to drop
         // `self` and still access the underlying memory using both reads and
-        // writes for `&#39;a`.
+        // writes for `'a`.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.deref_mut_helper() }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B, T&gt; Ref&lt;B, [T]&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B, T&gt; Ref&lt;B, [T]&gt;
 <span class="kw">where
-    </span>B: <span class="lifetime">&#39;a </span>+ ByteSlice,
+    </span>B: <span class="lifetime">'a </span>+ ByteSlice,
     T: FromBytes,
 {
     <span class="doccomment">/// Converts this `Ref` into a slice reference.
     ///
     /// `into_slice` consumes the `Ref`, and returns a reference to `[T]`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>into_slice(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
+    </span><span class="kw">pub fn </span>into_slice(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T] {
         <span class="macro">assert!</span>(B::INTO_REF_INTO_MUT_ARE_SOUND);
 
         <span class="comment">// SAFETY: According to the safety preconditions on
         // `ByteSlice::INTO_REF_INTO_MUT_ARE_SOUND`, the preceding assert
-        // ensures that, given `B: &#39;a`, it is sound to drop `self` and still
-        // access the underlying memory using reads for `&#39;a`.
+        // ensures that, given `B: 'a`, it is sound to drop `self` and still
+        // access the underlying memory using reads for `'a`.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.deref_slice_helper() }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B, T&gt; Ref&lt;B, [T]&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B, T&gt; Ref&lt;B, [T]&gt;
 <span class="kw">where
-    </span>B: <span class="lifetime">&#39;a </span>+ ByteSliceMut,
+    </span>B: <span class="lifetime">'a </span>+ ByteSliceMut,
     T: FromBytes + AsBytes,
 {
     <span class="doccomment">/// Converts this `Ref` into a mutable slice reference.
@@ -12962,14 +12964,14 @@
     /// `into_mut_slice` consumes the `Ref`, and returns a mutable reference to
     /// `[T]`.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">pub fn </span>into_mut_slice(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T] {
+    </span><span class="kw">pub fn </span>into_mut_slice(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[T] {
         <span class="macro">assert!</span>(B::INTO_REF_INTO_MUT_ARE_SOUND);
 
         <span class="comment">// SAFETY: According to the safety preconditions on
         // `ByteSlice::INTO_REF_INTO_MUT_ARE_SOUND`, the preceding assert
-        // ensures that, given `B: &#39;a + ByteSliceMut`, it is sound to drop
+        // ensures that, given `B: 'a + ByteSliceMut`, it is sound to drop
         // `self` and still access the underlying memory using both reads and
-        // writes for `&#39;a`.
+        // writes for `'a`.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.deref_mut_slice_helper() }
     }
 }
@@ -12984,14 +12986,14 @@
     /// # Safety
     ///
     /// The type bounds on this method guarantee that it is safe to create an
-    /// immutable reference to `T` from `self`. However, since the lifetime `&#39;a`
+    /// immutable reference to `T` from `self`. However, since the lifetime `'a`
     /// is not required to be shorter than the lifetime of the reference to
-    /// `self`, the caller must guarantee that the lifetime `&#39;a` is valid for
-    /// this reference. In particular, the referent must exist for all of `&#39;a`,
+    /// `self`, the caller must guarantee that the lifetime `'a` is valid for
+    /// this reference. In particular, the referent must exist for all of `'a`,
     /// and no mutable references to the same memory may be constructed during
-    /// `&#39;a`.
-    </span><span class="kw">unsafe fn </span>deref_helper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T {
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+    /// `'a`.
+    </span><span class="kw">unsafe fn </span>deref_helper&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T {
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>.as_ptr().cast::&lt;T&gt;()
@@ -13009,14 +13011,14 @@
     /// # Safety
     ///
     /// The type bounds on this method guarantee that it is safe to create a
-    /// mutable reference to `T` from `self`. However, since the lifetime `&#39;a`
+    /// mutable reference to `T` from `self`. However, since the lifetime `'a`
     /// is not required to be shorter than the lifetime of the reference to
-    /// `self`, the caller must guarantee that the lifetime `&#39;a` is valid for
-    /// this reference. In particular, the referent must exist for all of `&#39;a`,
+    /// `self`, the caller must guarantee that the lifetime `'a` is valid for
+    /// this reference. In particular, the referent must exist for all of `'a`,
     /// and no other references - mutable or immutable - to the same memory may
-    /// be constructed during `&#39;a`.
-    </span><span class="kw">unsafe fn </span>deref_mut_helper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T {
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+    /// be constructed during `'a`.
+    </span><span class="kw">unsafe fn </span>deref_mut_helper&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T {
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.as_mut_ptr().cast::&lt;T&gt;()
@@ -13034,7 +13036,7 @@
     /// # Safety
     ///
     /// `deref_slice_helper` has the same safety requirements as `deref_helper`.
-    </span><span class="kw">unsafe fn </span>deref_slice_helper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T] {
+    </span><span class="kw">unsafe fn </span>deref_slice_helper&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T] {
         <span class="kw">let </span>len = <span class="self">self</span>.<span class="number">0</span>.len();
         <span class="kw">let </span>elem_size = mem::size_of::&lt;T&gt;();
         <span class="macro">debug_assert_ne!</span>(elem_size, <span class="number">0</span>);
@@ -13045,7 +13047,7 @@
             <span class="macro">debug_assert_eq!</span>(len % elem_size, <span class="number">0</span>);
             len / elem_size
         };
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             slice::from_raw_parts(<span class="self">self</span>.<span class="number">0</span>.as_ptr().cast::&lt;T&gt;(), elems)
@@ -13064,7 +13066,7 @@
     ///
     /// `deref_mut_slice_helper` has the same safety requirements as
     /// `deref_mut_helper`.
-    </span><span class="kw">unsafe fn </span>deref_mut_slice_helper&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T] {
+    </span><span class="kw">unsafe fn </span>deref_mut_slice_helper&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[T] {
         <span class="kw">let </span>len = <span class="self">self</span>.<span class="number">0</span>.len();
         <span class="kw">let </span>elem_size = mem::size_of::&lt;T&gt;();
         <span class="macro">debug_assert_ne!</span>(elem_size, <span class="number">0</span>);
@@ -13075,7 +13077,7 @@
             <span class="macro">debug_assert_eq!</span>(len % elem_size, <span class="number">0</span>);
             len / elem_size
         };
-        <span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+        <span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
         </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
         </span><span class="kw">unsafe </span>{
             slice::from_raw_parts_mut(<span class="self">self</span>.<span class="number">0</span>.as_mut_ptr().cast::&lt;T&gt;(), elems)
@@ -13216,7 +13218,7 @@
     T: FromBytes + Display,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>inner: <span class="kw-2">&amp;</span>T = <span class="self">self</span>;
         inner.fmt(fmt)
     }
@@ -13229,7 +13231,7 @@
     [T]: Display,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>inner: <span class="kw-2">&amp;</span>[T] = <span class="self">self</span>;
         inner.fmt(fmt)
     }
@@ -13241,9 +13243,9 @@
     T: FromBytes + Debug,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>inner: <span class="kw-2">&amp;</span>T = <span class="self">self</span>;
-        fmt.debug_tuple(<span class="string">&quot;Ref&quot;</span>).field(<span class="kw-2">&amp;</span>inner).finish()
+        fmt.debug_tuple(<span class="string">"Ref"</span>).field(<span class="kw-2">&amp;</span>inner).finish()
     }
 }
 
@@ -13253,9 +13255,9 @@
     T: FromBytes + Debug,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>inner: <span class="kw-2">&amp;</span>[T] = <span class="self">self</span>;
-        fmt.debug_tuple(<span class="string">&quot;Ref&quot;</span>).field(<span class="kw-2">&amp;</span>inner).finish()
+        fmt.debug_tuple(<span class="string">"Ref"</span>).field(<span class="kw-2">&amp;</span>inner).finish()
     }
 }
 
@@ -13358,7 +13360,7 @@
 // expected. If ByteSlice or ByteSliceMut were not sealed, consumers could
 // implement them in a way that violated these behaviors, and would break our
 // unsafe code. Thus, we seal them and implement it only for known-good
-// reference types. For the same reason, they&#39;re unsafe traits.
+// reference types. For the same reason, they're unsafe traits.
 
 </span><span class="attr">#[allow(clippy::missing_safety_doc)] </span><span class="comment">// TODO(fxbug.dev/99068)
 </span><span class="doccomment">/// A mutable or immutable reference to a byte slice.
@@ -13375,12 +13377,12 @@
 /// [`split_at`]: crate::ByteSlice::split_at
 </span><span class="comment">// It may seem overkill to go to this length to ensure that this doc link never
 // breaks. We do this because it simplifies CI - it means that generating docs
-// always succeeds, so we don&#39;t need special logic to only generate docs under
+// always succeeds, so we don't need special logic to only generate docs under
 // certain features.
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;alloc&quot;</span>, doc = <span class="string">&quot;[`Vec&lt;u8&gt;`]: alloc::vec::Vec&quot;</span>)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"alloc"</span>, doc = <span class="string">"[`Vec&lt;u8&gt;`]: alloc::vec::Vec"</span>)]
 #[cfg_attr(
-    not(feature = <span class="string">&quot;alloc&quot;</span>),
-    doc = <span class="string">&quot;[`Vec&lt;u8&gt;`]: https://doc.rust-lang.org/std/vec/struct.Vec.html&quot;
+    not(feature = <span class="string">"alloc"</span>),
+    doc = <span class="string">"[`Vec&lt;u8&gt;`]: https://doc.rust-lang.org/std/vec/struct.Vec.html"
 </span>)]
 </span><span class="kw">pub unsafe trait </span>ByteSlice:
     Deref&lt;Target = [u8]&gt; + Sized + <span class="self">self</span>::sealed::ByteSliceSealed
@@ -13395,15 +13397,15 @@
     ///
     /// This may only be set to true if the following holds: Given the
     /// following:
-    /// - `Self: &#39;a`
+    /// - `Self: 'a`
     /// - `bytes: Self`
     /// - `let ptr = bytes.as_ptr()`
     ///
     /// ...then:
     /// - Using `ptr` to read the memory previously addressed by `bytes` is
-    ///   sound for `&#39;a` even after `bytes` has been dropped.
+    ///   sound for `'a` even after `bytes` has been dropped.
     /// - If `Self: ByteSliceMut`, using `ptr` to write the memory previously
-    ///   addressed by `bytes` is sound for `&#39;a` even after `bytes` has been
+    ///   addressed by `bytes` is sound for `'a` even after `bytes` has been
     ///   dropped.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">const </span>INTO_REF_INTO_MUT_ARE_SOUND: bool;
@@ -13438,12 +13440,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {}
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8] {}
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSlice <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
-    <span class="comment">// SAFETY: If `&amp;&#39;b [u8]: &#39;a`, then the underlying memory is treated as
-    // borrowed immutably for `&#39;a` even if the slice itself is dropped.
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSlice <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8] {
+    <span class="comment">// SAFETY: If `&amp;'b [u8]: 'a`, then the underlying memory is treated as
+    // borrowed immutably for `'a` even if the slice itself is dropped.
     </span><span class="kw">const </span>INTO_REF_INTO_MUT_ARE_SOUND: bool = <span class="bool-val">true</span>;
 
     <span class="attr">#[inline]
@@ -13452,12 +13454,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8] {}
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8] {}
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSlice <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8] {
-    <span class="comment">// SAFETY: If `&amp;&#39;b mut [u8]: &#39;a`, then the underlying memory is treated as
-    // borrowed mutably for `&#39;a` even if the slice itself is dropped.
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSlice <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8] {
+    <span class="comment">// SAFETY: If `&amp;'b mut [u8]: 'a`, then the underlying memory is treated as
+    // borrowed mutably for `'a` even if the slice itself is dropped.
     </span><span class="kw">const </span>INTO_REF_INTO_MUT_ARE_SOUND: bool = <span class="bool-val">true</span>;
 
     <span class="attr">#[inline]
@@ -13466,15 +13468,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span>cell::Ref&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {}
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span>cell::Ref&lt;<span class="lifetime">'a</span>, [u8]&gt; {}
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSlice <span class="kw">for </span>cell::Ref&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSlice <span class="kw">for </span>cell::Ref&lt;<span class="lifetime">'a</span>, [u8]&gt; {
     <span class="kw">const </span>INTO_REF_INTO_MUT_ARE_SOUND: bool = <span class="kw">if </span>!<span class="macro">cfg!</span>(doc) {
-        <span class="macro">panic!</span>(<span class="string">&quot;Ref::into_ref and Ref::into_mut are unsound when used with core::cell::Ref; see https://github.com/google/zerocopy/issues/716&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Ref::into_ref and Ref::into_mut are unsound when used with core::cell::Ref; see https://github.com/google/zerocopy/issues/716"</span>)
     } <span class="kw">else </span>{
         <span class="comment">// When compiling documentation, allow the evaluation of this constant
-        // to succeed. This doesn&#39;t represent a soundness hole - it just delays
+        // to succeed. This doesn't represent a soundness hole - it just delays
         // any error to runtime. The reason we need this is that, otherwise,
         // `rustdoc` will fail when trying to document this item.
         </span><span class="bool-val">false
@@ -13486,15 +13488,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span>RefMut&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {}
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; sealed::ByteSliceSealed <span class="kw">for </span>RefMut&lt;<span class="lifetime">'a</span>, [u8]&gt; {}
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSlice <span class="kw">for </span>RefMut&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSlice <span class="kw">for </span>RefMut&lt;<span class="lifetime">'a</span>, [u8]&gt; {
     <span class="kw">const </span>INTO_REF_INTO_MUT_ARE_SOUND: bool = <span class="kw">if </span>!<span class="macro">cfg!</span>(doc) {
-        <span class="macro">panic!</span>(<span class="string">&quot;Ref::into_ref and Ref::into_mut are unsound when used with core::cell::RefMut; see https://github.com/google/zerocopy/issues/716&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"Ref::into_ref and Ref::into_mut are unsound when used with core::cell::RefMut; see https://github.com/google/zerocopy/issues/716"</span>)
     } <span class="kw">else </span>{
         <span class="comment">// When compiling documentation, allow the evaluation of this constant
-        // to succeed. This doesn&#39;t represent a soundness hole - it just delays
+        // to succeed. This doesn't represent a soundness hole - it just delays
         // any error to runtime. The reason we need this is that, otherwise,
         // `rustdoc` will fail when trying to document this item.
         </span><span class="bool-val">false
@@ -13506,16 +13508,16 @@
     }
 }
 
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSliceMut <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8] {}
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSliceMut <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8] {}
 
-<span class="comment">// TODO(#429): Add a &quot;SAFETY&quot; comment and remove this `allow`.
+<span class="comment">// TODO(#429): Add a "SAFETY" comment and remove this `allow`.
 </span><span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ByteSliceMut <span class="kw">for </span>RefMut&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {}
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'a</span>&gt; ByteSliceMut <span class="kw">for </span>RefMut&lt;<span class="lifetime">'a</span>, [u8]&gt; {}
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">mod </span>alloc_support {
     <span class="kw">use </span>alloc::vec::Vec;
 
@@ -13718,13 +13720,13 @@
         }
 
         <span class="attr">#[test]
-        #[should_panic(expected = <span class="string">&quot;mem::size_of::&lt;Self&gt;() * len overflows `usize`&quot;</span>)]
+        #[should_panic(expected = <span class="string">"mem::size_of::&lt;Self&gt;() * len overflows `usize`"</span>)]
         </span><span class="kw">fn </span>test_new_box_slice_zeroed_panics_mul_overflow() {
             <span class="kw">let _ </span>= u16::new_box_slice_zeroed(usize::MAX);
         }
 
         <span class="attr">#[test]
-        #[should_panic(expected = <span class="string">&quot;assertion failed: size &lt;= max_alloc&quot;</span>)]
+        #[should_panic(expected = <span class="string">"assertion failed: size &lt;= max_alloc"</span>)]
         </span><span class="kw">fn </span>test_new_box_slice_zeroed_panics_isize_overflow() {
             <span class="kw">let </span>max = usize::try_from(isize::MAX).unwrap();
             <span class="kw">let _ </span>= u16::new_box_slice_zeroed((max / mem::size_of::&lt;u16&gt;()) + <span class="number">1</span>);
@@ -13732,7 +13734,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 #[doc(inline)]
 </span><span class="kw">pub use </span>alloc_support::<span class="kw-2">*</span>;
 
@@ -13750,7 +13752,7 @@
     <span class="comment">// An unsized type.
     //
     // This is used to test the custom derives of our traits. The `[u8]` type
-    // gets a hand-rolled impl, so it doesn&#39;t exercise our custom derives.
+    // gets a hand-rolled impl, so it doesn't exercise our custom derives.
     </span><span class="attr">#[derive(Debug, Eq, PartialEq, FromZeroes, FromBytes, AsBytes, Unaligned)]
     #[repr(transparent)]
     </span><span class="kw">struct </span>Unsized([u8]);
@@ -13759,9 +13761,9 @@
         <span class="kw">fn </span>from_mut_slice(slc: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="kw-2">&amp;mut </span>Unsized {
             <span class="comment">// SAFETY: This *probably* sound - since the layouts of `[u8]` and
             // `Unsized` are the same, so are the layouts of `&amp;mut [u8]` and
-            // `&amp;mut Unsized`. [1] Even if it turns out that this isn&#39;t actually
+            // `&amp;mut Unsized`. [1] Even if it turns out that this isn't actually
             // guaranteed by the language spec, we can just change this since
-            // it&#39;s in test code.
+            // it's in test code.
             //
             // [1] https://github.com/rust-lang/unsafe-code-guidelines/issues/375
             </span><span class="kw">unsafe </span>{ mem::transmute(slc) }
@@ -13953,7 +13955,7 @@
     }
 
     <span class="comment">// This test takes a long time when running under Miri, so we skip it in
-    // that case. This is acceptable because this is a logic test that doesn&#39;t
+    // that case. This is acceptable because this is a logic test that doesn't
     // attempt to expose UB.
     </span><span class="attr">#[test]
     #[cfg_attr(miri, ignore)]
@@ -13994,7 +13996,7 @@
         /// wildcarded variable is implicitly replaced by an iterator over a
         /// representative sample of values for that variable. Each `test!`
         /// invocation iterates over every combination of values provided by
-        /// each variable&#39;s iterator (ie, the cartesian product) and validates
+        /// each variable's iterator (ie, the cartesian product) and validates
         /// that the results are expected.
         ///
         /// The final argument uses the same syntax, but it has a different
@@ -14023,26 +14025,26 @@
                     <span class="macro">test!</span>(@generate_cast_type <span class="macro-nonterminal">$cast_type</span>)
                 ).for_each(|(size_info, align, addr, bytes_len, cast_type)| {
                     <span class="comment">// Temporarily disable the panic hook installed by the test
-                    // harness. If we don&#39;t do this, all panic messages will be
-                    // kept in an internal log. On its own, this isn&#39;t a
+                    // harness. If we don't do this, all panic messages will be
+                    // kept in an internal log. On its own, this isn't a
                     // problem, but if a non-caught panic ever happens (ie, in
                     // code later in this test not in this macro), all of the
                     // previously-buffered messages will be dumped, hiding the
                     // real culprit.
                     </span><span class="kw">let </span>previous_hook = std::panic::take_hook();
-                    <span class="comment">// I don&#39;t understand why, but this seems to be required in
+                    <span class="comment">// I don't understand why, but this seems to be required in
                     // addition to the previous line.
                     </span>std::panic::set_hook(Box::new(|<span class="kw">_</span>| {}));
                     <span class="kw">let </span>actual = std::panic::catch_unwind(|| {
                         layout(size_info, align).validate_cast_and_convert_metadata(addr, bytes_len, cast_type)
                     }).map_err(|d| {
-                        <span class="kw-2">*</span>d.downcast::&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;().expect(<span class="string">&quot;expected string panic message&quot;</span>).as_ref()
+                        <span class="kw-2">*</span>d.downcast::&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;().expect(<span class="string">"expected string panic message"</span>).as_ref()
                     });
                     std::panic::set_hook(previous_hook);
 
                     <span class="macro">assert_matches::assert_matches!</span>(
                         actual, <span class="macro-nonterminal">$expect</span>,
-                        <span class="string">&quot;layout({size_info:?}, {align}).validate_cast_and_convert_metadata({addr}, {bytes_len}, {cast_type:?})&quot;</span>,
+                        <span class="string">"layout({size_info:?}, {align}).validate_cast_and_convert_metadata({addr}, {bytes_len}, {cast_type:?})"</span>,
                     );
                 });
             };
@@ -14100,15 +14102,15 @@
         // implementation of `validate_cast_and_convert_metadata`, since
         // `panic!` consumes a string literal, not an expression.
         //
-        // It&#39;s important that these messages be in a separate module. If they
-        // were at the function&#39;s top level, we&#39;d pass them to `test!` as, e.g.,
+        // It's important that these messages be in a separate module. If they
+        // were at the function's top level, we'd pass them to `test!` as, e.g.,
         // `Err(TRAILING)`, which would run into a subtle Rust footgun - the
         // `TRAILING` identifier would be treated as a pattern to match rather
         // than a value to check for equality.
         </span><span class="kw">mod </span>msgs {
             <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>TRAILING: <span class="kw-2">&amp;</span>str =
-                <span class="string">&quot;attempted to cast to slice type with zero-sized element&quot;</span>;
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>OVERFLOW: <span class="kw-2">&amp;</span>str = <span class="string">&quot;`addr` + `bytes_len` &gt; usize::MAX&quot;</span>;
+                <span class="string">"attempted to cast to slice type with zero-sized element"</span>;
+            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>OVERFLOW: <span class="kw-2">&amp;</span>str = <span class="string">"`addr` + `bytes_len` &gt; usize::MAX"</span>;
         }
 
         <span class="comment">// casts with ZST trailing element types are unsupported
@@ -14128,7 +14130,7 @@
 
         <span class="comment">// Validates that `validate_cast_and_convert_metadata` satisfies its own
         // documented safety postconditions, and also a few other properties
-        // that aren&#39;t documented but we want to guarantee anyway.
+        // that aren't documented but we want to guarantee anyway.
         </span><span class="kw">fn </span>validate_behavior(
             (layout, addr, bytes_len, cast_type): (DstLayout, usize, usize, _CastType),
         ) {
@@ -14137,15 +14139,15 @@
             {
                 <span class="kw">let </span>(size_info, align) = (layout.size_info, layout.align);
                 <span class="kw">let </span>debug_str = <span class="macro">format!</span>(
-                    <span class="string">&quot;layout({size_info:?}, {align}).validate_cast_and_convert_metadata({addr}, {bytes_len}, {cast_type:?}) =&gt; ({elems}, {split_at})&quot;</span>,
+                    <span class="string">"layout({size_info:?}, {align}).validate_cast_and_convert_metadata({addr}, {bytes_len}, {cast_type:?}) =&gt; ({elems}, {split_at})"</span>,
                 );
 
                 <span class="comment">// If this is a sized type (no trailing slice), then `elems` is
                 // meaningless, but in practice we set it to 0. Callers are not
                 // allowed to rely on this, but a lot of math is nicer if
-                // they&#39;re able to, and some callers might accidentally do that.
+                // they're able to, and some callers might accidentally do that.
                 </span><span class="kw">let </span>sized = <span class="macro">matches!</span>(layout.size_info, SizeInfo::Sized { .. });
-                <span class="macro">assert!</span>(!(sized &amp;&amp; elems != <span class="number">0</span>), <span class="string">&quot;{}&quot;</span>, debug_str);
+                <span class="macro">assert!</span>(!(sized &amp;&amp; elems != <span class="number">0</span>), <span class="string">"{}"</span>, debug_str);
 
                 <span class="kw">let </span>resulting_size = <span class="kw">match </span>layout.size_info {
                     SizeInfo::Sized { _size } =&gt; _size,
@@ -14163,22 +14165,22 @@
                         <span class="comment">// Test that `validate_cast_and_convert_metadata`
                         // computed the largest possible value that fits in the
                         // given range.
-                        </span><span class="macro">assert!</span>(padded_size(elems + <span class="number">1</span>) &gt; bytes_len, <span class="string">&quot;{}&quot;</span>, debug_str);
+                        </span><span class="macro">assert!</span>(padded_size(elems + <span class="number">1</span>) &gt; bytes_len, <span class="string">"{}"</span>, debug_str);
                         resulting_size
                     }
                 };
 
                 <span class="comment">// Test safety postconditions guaranteed by
                 // `validate_cast_and_convert_metadata`.
-                </span><span class="macro">assert!</span>(resulting_size &lt;= bytes_len, <span class="string">&quot;{}&quot;</span>, debug_str);
+                </span><span class="macro">assert!</span>(resulting_size &lt;= bytes_len, <span class="string">"{}"</span>, debug_str);
                 <span class="kw">match </span>cast_type {
                     _CastType::_Prefix =&gt; {
-                        <span class="macro">assert_eq!</span>(addr % align, <span class="number">0</span>, <span class="string">&quot;{}&quot;</span>, debug_str);
-                        <span class="macro">assert_eq!</span>(resulting_size, split_at, <span class="string">&quot;{}&quot;</span>, debug_str);
+                        <span class="macro">assert_eq!</span>(addr % align, <span class="number">0</span>, <span class="string">"{}"</span>, debug_str);
+                        <span class="macro">assert_eq!</span>(resulting_size, split_at, <span class="string">"{}"</span>, debug_str);
                     }
                     _CastType::_Suffix =&gt; {
-                        <span class="macro">assert_eq!</span>(split_at, bytes_len - resulting_size, <span class="string">&quot;{}&quot;</span>, debug_str);
-                        <span class="macro">assert_eq!</span>((addr + split_at) % align, <span class="number">0</span>, <span class="string">&quot;{}&quot;</span>, debug_str);
+                        <span class="macro">assert_eq!</span>(split_at, bytes_len - resulting_size, <span class="string">"{}"</span>, debug_str);
+                        <span class="macro">assert_eq!</span>((addr + split_at) % align, <span class="number">0</span>, <span class="string">"{}"</span>, debug_str);
                     }
                 }
             } <span class="kw">else </span>{
@@ -14221,11 +14223,11 @@
     </span><span class="kw">fn </span>test_validate_rust_layout() {
         <span class="kw">use </span>core::ptr::NonNull;
 
-        <span class="comment">// This test synthesizes pointers with various metadata and uses Rust&#39;s
+        <span class="comment">// This test synthesizes pointers with various metadata and uses Rust's
         // built-in APIs to confirm that Rust makes decisions about type layout
         // which are consistent with what we believe is guaranteed by the
-        // language. If this test fails, it doesn&#39;t just mean our code is wrong
-        // - it means we&#39;re misunderstanding the language&#39;s guarantees.
+        // language. If this test fails, it doesn't just mean our code is wrong
+        // - it means we're misunderstanding the language's guarantees.
 
         </span><span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>MacroArgs {
@@ -14260,7 +14262,7 @@
                         //   #[repr(C, align(2))]
                         //   struct Foo([u8; 1]);
                         //
-                        // ...then Rust will automatically round the type&#39;s size
+                        // ...then Rust will automatically round the type's size
                         // up to 2.
                         </span>_size: args.offset
                             + util::core_layout::padding_needed_for(args.offset, args.align),
@@ -14288,15 +14290,15 @@
 
                 <span class="comment">// Avoid expensive allocation when running under Miri.
                 </span><span class="kw">let </span>assert_msg = <span class="kw">if </span>!<span class="macro">cfg!</span>(miri) {
-                    <span class="macro">format!</span>(<span class="string">&quot;\n{args:?}\nsize:{size}, align:{align}&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"\n{args:?}\nsize:{size}, align:{align}"</span>)
                 } <span class="kw">else </span>{
                     String::new()
                 };
 
                 <span class="kw">let </span>without_padding =
                     args.offset + args.elem_size.map(|elem_size| elems * elem_size).unwrap_or(<span class="number">0</span>);
-                <span class="macro">assert!</span>(size &gt;= without_padding, <span class="string">&quot;{}&quot;</span>, assert_msg);
-                <span class="macro">assert_eq!</span>(align, args.align.get(), <span class="string">&quot;{}&quot;</span>, assert_msg);
+                <span class="macro">assert!</span>(size &gt;= without_padding, <span class="string">"{}"</span>, assert_msg);
+                <span class="macro">assert_eq!</span>(align, args.align.get(), <span class="string">"{}"</span>, assert_msg);
 
                 <span class="comment">// This encodes the most important part of the test: our
                 // understanding of how Rust determines the layout of repr(C)
@@ -14313,7 +14315,7 @@
                 //   alignment.
                 </span><span class="kw">let </span>expected_size = without_padding
                     + util::core_layout::padding_needed_for(without_padding, args.align);
-                <span class="macro">assert_eq!</span>(expected_size, size, <span class="string">&quot;{}&quot;</span>, assert_msg);
+                <span class="macro">assert_eq!</span>(expected_size, size, <span class="string">"{}"</span>, assert_msg);
 
                 <span class="comment">// For zero-sized element types,
                 // `validate_cast_and_convert_metadata` just panics, so we skip
@@ -14326,15 +14328,15 @@
                     <span class="comment">// Avoid expensive allocation when running under Miri.
                     </span><span class="kw">let </span>assert_msg = <span class="kw">if </span>!<span class="macro">cfg!</span>(miri) {
                         <span class="macro">format!</span>(
-                            <span class="string">&quot;{}\nvalidate_cast_and_convert_metadata({addr}, {size})&quot;</span>,
+                            <span class="string">"{}\nvalidate_cast_and_convert_metadata({addr}, {size})"</span>,
                             assert_msg
                         )
                     } <span class="kw">else </span>{
                         String::new()
                     };
-                    <span class="macro">assert_eq!</span>(got_split_at, size, <span class="string">&quot;{}&quot;</span>, assert_msg);
+                    <span class="macro">assert_eq!</span>(got_split_at, size, <span class="string">"{}"</span>, assert_msg);
                     <span class="kw">if </span>dst {
-                        <span class="macro">assert!</span>(got_elems &gt;= elems, <span class="string">&quot;{}&quot;</span>, assert_msg);
+                        <span class="macro">assert!</span>(got_elems &gt;= elems, <span class="string">"{}"</span>, assert_msg);
                         <span class="kw">if </span>got_elems != elems {
                             <span class="comment">// If `validate_cast_and_convert_metadata`
                             // returned more elements than `elems`, that
@@ -14349,13 +14351,13 @@
                             </span><span class="kw">let </span>got_ptr = with_elems(got_elems);
                             <span class="comment">// SAFETY: `got_ptr` is a pointer to a valid `T`.
                             </span><span class="kw">let </span>size_of_got_ptr = <span class="kw">unsafe </span>{ mem::size_of_val_raw(got_ptr.as_ptr()) };
-                            <span class="macro">assert_eq!</span>(size_of_got_ptr, size, <span class="string">&quot;{}&quot;</span>, assert_msg);
+                            <span class="macro">assert_eq!</span>(size_of_got_ptr, size, <span class="string">"{}"</span>, assert_msg);
                         }
                     } <span class="kw">else </span>{
                         <span class="comment">// For sized casts, the returned element value is
-                        // technically meaningless, and we don&#39;t guarantee any
-                        // particular value. In practice, it&#39;s always zero.
-                        </span><span class="macro">assert_eq!</span>(got_elems, <span class="number">0</span>, <span class="string">&quot;{}&quot;</span>, assert_msg)
+                        // technically meaningless, and we don't guarantee any
+                        // particular value. In practice, it's always zero.
+                        </span><span class="macro">assert_eq!</span>(got_elems, <span class="number">0</span>, <span class="string">"{}"</span>, assert_msg)
                     }
                 }
             }
@@ -14380,11 +14382,11 @@
                 <span class="attr">#[repr(C, align(<span class="macro-nonterminal">$align</span>))]
                 </span><span class="kw">struct </span>FooAlign;
                 <span class="comment">// Create an aligned buffer to use in order to synthesize
-                // pointers to `Foo`. We don&#39;t ever load values from these
-                // pointers - we just do arithmetic on them - so having a &quot;real&quot;
+                // pointers to `Foo`. We don't ever load values from these
+                // pointers - we just do arithmetic on them - so having a "real"
                 // block of memory as opposed to a validly-aligned-but-dangling
                 // pointer is only necessary to make Miri happy since we run it
-                // with &quot;strict provenance&quot; checking enabled.
+                // with "strict provenance" checking enabled.
                 </span><span class="kw">let </span>aligned_buf = Align::&lt;<span class="kw">_</span>, FooAlign&gt;::new([<span class="number">0u8</span>; <span class="number">1024</span>]);
                 <span class="kw">let </span>with_elems = |elems| {
                     <span class="kw">let </span>slc = NonNull::slice_from_raw_parts(NonNull::from(<span class="kw-2">&amp;</span>aligned_buf.t), elems);
@@ -14597,14 +14599,14 @@
         </span><span class="macro">test!</span>(u64, layout(<span class="number">8</span>, mem::align_of::&lt;u64&gt;(), <span class="prelude-val">None</span>));
         <span class="macro">test!</span>(AU64, layout(<span class="number">8</span>, <span class="number">8</span>, <span class="prelude-val">None</span>));
 
-        <span class="macro">test!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>()&gt;, usize::LAYOUT);
+        <span class="macro">test!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>()&gt;, usize::LAYOUT);
 
         <span class="macro">test!</span>([()], layout(<span class="number">0</span>, <span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>)));
         <span class="macro">test!</span>([u8], layout(<span class="number">0</span>, <span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)));
         <span class="macro">test!</span>(str, layout(<span class="number">0</span>, <span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>)));
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;derive&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"derive"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_known_layout_derive() {
         <span class="comment">// In this and other files (`late_compile_pass.rs`,
@@ -15000,33 +15002,33 @@
         <span class="comment">// Test types that implement `FromZeroes` but not `FromBytes`.
 
         </span><span class="macro">assert!</span>(!bool::new_zeroed());
-        <span class="macro">assert_eq!</span>(char::new_zeroed(), <span class="string">&#39;\0&#39;</span>);
+        <span class="macro">assert_eq!</span>(char::new_zeroed(), <span class="string">'\0'</span>);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
         </span>{
             <span class="macro">assert_eq!</span>(bool::new_box_zeroed(), Box::new(<span class="bool-val">false</span>));
-            <span class="macro">assert_eq!</span>(char::new_box_zeroed(), Box::new(<span class="string">&#39;\0&#39;</span>));
+            <span class="macro">assert_eq!</span>(char::new_box_zeroed(), Box::new(<span class="string">'\0'</span>));
 
             <span class="macro">assert_eq!</span>(bool::new_box_slice_zeroed(<span class="number">3</span>).as_ref(), [<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>]);
-            <span class="macro">assert_eq!</span>(char::new_box_slice_zeroed(<span class="number">3</span>).as_ref(), [<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\0&#39;</span>]);
+            <span class="macro">assert_eq!</span>(char::new_box_slice_zeroed(<span class="number">3</span>).as_ref(), [<span class="string">'\0'</span>, <span class="string">'\0'</span>, <span class="string">'\0'</span>]);
 
             <span class="macro">assert_eq!</span>(bool::new_vec_zeroed(<span class="number">3</span>).as_ref(), [<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>]);
-            <span class="macro">assert_eq!</span>(char::new_vec_zeroed(<span class="number">3</span>).as_ref(), [<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\0&#39;</span>, <span class="string">&#39;\0&#39;</span>]);
+            <span class="macro">assert_eq!</span>(char::new_vec_zeroed(<span class="number">3</span>).as_ref(), [<span class="string">'\0'</span>, <span class="string">'\0'</span>, <span class="string">'\0'</span>]);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="string">&quot;hello&quot;</span>.to_string();
+        <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="string">"hello"</span>.to_string();
         <span class="kw">let </span>s: <span class="kw-2">&amp;mut </span>str = string.as_mut();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;hello&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">"hello"</span>);
         s.zero();
-        <span class="macro">assert_eq!</span>(s, <span class="string">&quot;\0\0\0\0\0&quot;</span>);
+        <span class="macro">assert_eq!</span>(s, <span class="string">"\0\0\0\0\0"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_read_write() {
         <span class="kw">const </span>VAL: u64 = <span class="number">0x12345678</span>;
-        <span class="attr">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+        <span class="attr">#[cfg(target_endian = <span class="string">"big"</span>)]
         </span><span class="kw">const </span>VAL_BYTES: [u8; <span class="number">8</span>] = VAL.to_be_bytes();
-        <span class="attr">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+        <span class="attr">#[cfg(target_endian = <span class="string">"little"</span>)]
         </span><span class="kw">const </span>VAL_BYTES: [u8; <span class="number">8</span>] = VAL.to_le_bytes();
 
         <span class="comment">// Test `FromBytes::{read_from, read_from_prefix, read_from_suffix}`.
@@ -15068,14 +15070,14 @@
         <span class="kw">let </span>x: [u8; <span class="number">8</span>] = <span class="macro">transmute!</span>(array_of_arrays);
         <span class="macro">assert_eq!</span>(x, array_of_u8s);
 
-        <span class="comment">// Test that the source expression&#39;s value is forgotten rather than
+        <span class="comment">// Test that the source expression's value is forgotten rather than
         // dropped.
         </span><span class="attr">#[derive(AsBytes)]
         #[repr(transparent)]
         </span><span class="kw">struct </span>PanicOnDrop(());
         <span class="kw">impl </span>Drop <span class="kw">for </span>PanicOnDrop {
             <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-                <span class="macro">panic!</span>(<span class="string">&quot;PanicOnDrop::drop&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"PanicOnDrop::drop"</span>);
             }
         }
         <span class="attr">#[allow(clippy::let_unit_value)]
@@ -15102,11 +15104,11 @@
         </span><span class="kw">const </span>ARRAY_OF_U8S: [u8; <span class="number">8</span>] = [<span class="number">0u8</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>];
         <span class="kw">const </span>ARRAY_OF_ARRAYS: [[u8; <span class="number">2</span>]; <span class="number">4</span>] = [[<span class="number">0</span>, <span class="number">1</span>], [<span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>], [<span class="number">6</span>, <span class="number">7</span>]];
         <span class="attr">#[allow(clippy::redundant_static_lifetimes)]
-        </span><span class="kw">const </span>X: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[[u8; <span class="number">2</span>]; <span class="number">4</span>] = <span class="macro">transmute_ref!</span>(<span class="kw-2">&amp;</span>ARRAY_OF_U8S);
+        </span><span class="kw">const </span>X: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[[u8; <span class="number">2</span>]; <span class="number">4</span>] = <span class="macro">transmute_ref!</span>(<span class="kw-2">&amp;</span>ARRAY_OF_U8S);
         <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>X, ARRAY_OF_ARRAYS);
 
-        <span class="comment">// Test that it&#39;s legal to transmute a reference while shrinking the
-        // lifetime (note that `X` has the lifetime `&#39;static`).
+        <span class="comment">// Test that it's legal to transmute a reference while shrinking the
+        // lifetime (note that `X` has the lifetime `'static`).
         </span><span class="kw">let </span>x: <span class="kw-2">&amp;</span>[u8; <span class="number">8</span>] = <span class="macro">transmute_ref!</span>(X);
         <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, ARRAY_OF_U8S);
 
@@ -15134,7 +15136,7 @@
         <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, array_of_u8s);
 
         {
-            <span class="comment">// Test that it&#39;s legal to transmute a reference while shrinking the
+            <span class="comment">// Test that it's legal to transmute a reference while shrinking the
             // lifetime.
             </span><span class="kw">let </span>x: <span class="kw-2">&amp;mut </span>[u8; <span class="number">8</span>] = <span class="macro">transmute_mut!</span>(<span class="kw-2">&amp;mut </span>array_of_arrays);
             <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, array_of_u8s);
@@ -15171,10 +15173,10 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_include_value() {
-        <span class="kw">const </span>AS_U32: u32 = <span class="macro">include_value!</span>(<span class="string">&quot;../testdata/include_value/data&quot;</span>);
-        <span class="macro">assert_eq!</span>(AS_U32, u32::from_ne_bytes([<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;d&#39;</span>]));
-        <span class="kw">const </span>AS_I32: i32 = <span class="macro">include_value!</span>(<span class="string">&quot;../testdata/include_value/data&quot;</span>);
-        <span class="macro">assert_eq!</span>(AS_I32, i32::from_ne_bytes([<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;d&#39;</span>]));
+        <span class="kw">const </span>AS_U32: u32 = <span class="macro">include_value!</span>(<span class="string">"../testdata/include_value/data"</span>);
+        <span class="macro">assert_eq!</span>(AS_U32, u32::from_ne_bytes([<span class="string">b'a'</span>, <span class="string">b'b'</span>, <span class="string">b'c'</span>, <span class="string">b'd'</span>]));
+        <span class="kw">const </span>AS_I32: i32 = <span class="macro">include_value!</span>(<span class="string">"../testdata/include_value/data"</span>);
+        <span class="macro">assert_eq!</span>(AS_I32, i32::from_ne_bytes([<span class="string">b'a'</span>, <span class="string">b'b'</span>, <span class="string">b'c'</span>, <span class="string">b'd'</span>]));
     }
 
     <span class="attr">#[test]
@@ -15317,7 +15319,7 @@
         buf.t = ascending;
         test_new_helper(Ref::&lt;<span class="kw">_</span>, AU64&gt;::new_zeroed(<span class="kw-2">&amp;mut </span>buf.t[..]).unwrap());
         {
-            <span class="comment">// In a block so that `r` and `suffix` don&#39;t live too long.
+            <span class="comment">// In a block so that `r` and `suffix` don't live too long.
             </span>buf.set_default();
             <span class="kw">let </span>(r, suffix) = Ref::&lt;<span class="kw">_</span>, AU64&gt;::new_from_prefix(<span class="kw-2">&amp;mut </span>buf.t[..]).unwrap();
             <span class="macro">assert!</span>(suffix.is_empty());
@@ -15403,7 +15405,7 @@
         buf = [<span class="number">0xFFu8</span>; <span class="number">8</span>];
         test_new_helper_unaligned(Ref::&lt;<span class="kw">_</span>, [u8; <span class="number">8</span>]&gt;::new_unaligned_zeroed(<span class="kw-2">&amp;mut </span>buf[..]).unwrap());
         {
-            <span class="comment">// In a block so that `r` and `suffix` don&#39;t live too long.
+            <span class="comment">// In a block so that `r` and `suffix` don't live too long.
             </span>buf = [<span class="number">0u8</span>; <span class="number">8</span>];
             <span class="kw">let </span>(r, suffix) = Ref::&lt;<span class="kw">_</span>, [u8; <span class="number">8</span>]&gt;::new_unaligned_from_prefix(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
             <span class="macro">assert!</span>(suffix.is_empty());
@@ -15482,7 +15484,7 @@
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = Align::&lt;[u8; <span class="number">16</span>], AU64&gt;::default();
         {
-            <span class="comment">// In a block so that `r` and `suffix` don&#39;t live too long. `buf.t`
+            <span class="comment">// In a block so that `r` and `suffix` don't live too long. `buf.t`
             // should be aligned to 8, so this should always succeed.
             </span><span class="kw">let </span>(r, suffix) = Ref::&lt;<span class="kw">_</span>, AU64&gt;::new_from_prefix(<span class="kw-2">&amp;mut </span>buf.t[..]).unwrap();
             <span class="macro">assert_eq!</span>(suffix.len(), <span class="number">8</span>);
@@ -15492,7 +15494,7 @@
             buf.t = [<span class="number">0xFFu8</span>; <span class="number">16</span>];
             <span class="comment">// `buf.t` should be aligned to 8, so this should always succeed.
             </span><span class="kw">let </span>(r, suffix) = Ref::&lt;<span class="kw">_</span>, AU64&gt;::new_from_prefix_zeroed(<span class="kw-2">&amp;mut </span>buf.t[..]).unwrap();
-            <span class="comment">// Assert that the suffix wasn&#39;t zeroed.
+            <span class="comment">// Assert that the suffix wasn't zeroed.
             </span><span class="macro">assert_eq!</span>(suffix, <span class="kw-2">&amp;</span>[<span class="number">0xFFu8</span>; <span class="number">8</span>]);
             test_new_helper(r);
         }
@@ -15507,7 +15509,7 @@
             buf.t = [<span class="number">0xFFu8</span>; <span class="number">16</span>];
             <span class="comment">// `buf.t` should be aligned to 8, so this should always succeed.
             </span><span class="kw">let </span>(prefix, r) = Ref::&lt;<span class="kw">_</span>, AU64&gt;::new_from_suffix_zeroed(<span class="kw-2">&amp;mut </span>buf.t[..]).unwrap();
-            <span class="comment">// Assert that the prefix wasn&#39;t zeroed.
+            <span class="comment">// Assert that the prefix wasn't zeroed.
             </span><span class="macro">assert_eq!</span>(prefix, <span class="kw-2">&amp;</span>[<span class="number">0xFFu8</span>; <span class="number">8</span>]);
             test_new_helper(r);
         }
@@ -15522,7 +15524,7 @@
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">16</span>];
         {
-            <span class="comment">// In a block so that `r` and `suffix` don&#39;t live too long.
+            <span class="comment">// In a block so that `r` and `suffix` don't live too long.
             </span><span class="kw">let </span>(r, suffix) = Ref::&lt;<span class="kw">_</span>, [u8; <span class="number">8</span>]&gt;::new_unaligned_from_prefix(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
             <span class="macro">assert_eq!</span>(suffix.len(), <span class="number">8</span>);
             test_new_helper_unaligned(r);
@@ -15531,7 +15533,7 @@
             buf = [<span class="number">0xFFu8</span>; <span class="number">16</span>];
             <span class="kw">let </span>(r, suffix) =
                 Ref::&lt;<span class="kw">_</span>, [u8; <span class="number">8</span>]&gt;::new_unaligned_from_prefix_zeroed(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
-            <span class="comment">// Assert that the suffix wasn&#39;t zeroed.
+            <span class="comment">// Assert that the suffix wasn't zeroed.
             </span><span class="macro">assert_eq!</span>(suffix, <span class="kw-2">&amp;</span>[<span class="number">0xFF</span>; <span class="number">8</span>]);
             test_new_helper_unaligned(r);
         }
@@ -15545,7 +15547,7 @@
             buf = [<span class="number">0xFFu8</span>; <span class="number">16</span>];
             <span class="kw">let </span>(prefix, r) =
                 Ref::&lt;<span class="kw">_</span>, [u8; <span class="number">8</span>]&gt;::new_unaligned_from_suffix_zeroed(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
-            <span class="comment">// Assert that the prefix wasn&#39;t zeroed.
+            <span class="comment">// Assert that the prefix wasn't zeroed.
             </span><span class="macro">assert_eq!</span>(prefix, <span class="kw-2">&amp;</span>[<span class="number">0xFF</span>; <span class="number">8</span>]);
             test_new_helper_unaligned(r);
         }
@@ -15658,7 +15660,7 @@
 
         <span class="comment">// Fail because the buffer is too short.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = Align::&lt;[u8; <span class="number">12</span>], AU64&gt;::default();
-        <span class="comment">// `buf.t` has length 12, but the element size is 8 (and we&#39;re expecting
+        <span class="comment">// `buf.t` has length 12, but the element size is 8 (and we're expecting
         // two of them).
         </span><span class="macro">assert!</span>(Ref::&lt;<span class="kw">_</span>, [AU64]&gt;::new_slice_from_prefix(<span class="kw-2">&amp;</span>buf.t[..], <span class="number">2</span>).is_none());
         <span class="macro">assert!</span>(Ref::&lt;<span class="kw">_</span>, [AU64]&gt;::new_slice_from_prefix_zeroed(<span class="kw-2">&amp;mut </span>buf.t[..], <span class="number">2</span>).is_none());
@@ -15728,26 +15730,26 @@
         <span class="macro">macro_rules! </span>zst_test {
             (<span class="macro-nonterminal">$name</span>:ident($(<span class="macro-nonterminal">$tt</span>:tt)<span class="kw-2">*</span>), <span class="macro-nonterminal">$constructor_in_panic_msg</span>:tt) =&gt; {
                 <span class="attr">#[test]
-                #[should_panic = <span class="macro">concat!</span>(<span class="string">&quot;Ref::&quot;</span>, <span class="macro-nonterminal">$constructor_in_panic_msg</span>, <span class="string">&quot; called on a zero-sized type&quot;</span>)]
+                #[should_panic = <span class="macro">concat!</span>(<span class="string">"Ref::"</span>, <span class="macro-nonterminal">$constructor_in_panic_msg</span>, <span class="string">" called on a zero-sized type"</span>)]
                 </span><span class="kw">fn </span><span class="macro-nonterminal">$name</span>() {
                     <span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>];
                     <span class="kw">let </span>r = <span class="macro-nonterminal">$crate::Ref</span>::&lt;<span class="kw">_</span>, [()]&gt;::<span class="macro-nonterminal">$name</span>(<span class="kw-2">&amp;mut </span>buffer[..], $(<span class="macro-nonterminal">$tt</span>)<span class="kw-2">*</span>);
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;should have panicked, got {:?}&quot;</span>, r);
+                    <span class="macro">unreachable!</span>(<span class="string">"should have panicked, got {:?}"</span>, r);
                 }
             }
         }
-        <span class="macro">zst_test!</span>(new_slice(), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_zeroed(), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_from_prefix(<span class="number">1</span>), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_from_prefix_zeroed(<span class="number">1</span>), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_from_suffix(<span class="number">1</span>), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_from_suffix_zeroed(<span class="number">1</span>), <span class="string">&quot;new_slice&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned(), <span class="string">&quot;new_slice_unaligned&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned_zeroed(), <span class="string">&quot;new_slice_unaligned&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned_from_prefix(<span class="number">1</span>), <span class="string">&quot;new_slice_unaligned&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned_from_prefix_zeroed(<span class="number">1</span>), <span class="string">&quot;new_slice_unaligned&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned_from_suffix(<span class="number">1</span>), <span class="string">&quot;new_slice_unaligned&quot;</span>);
-        <span class="macro">zst_test!</span>(new_slice_unaligned_from_suffix_zeroed(<span class="number">1</span>), <span class="string">&quot;new_slice_unaligned&quot;</span>);
+        <span class="macro">zst_test!</span>(new_slice(), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_zeroed(), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_from_prefix(<span class="number">1</span>), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_from_prefix_zeroed(<span class="number">1</span>), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_from_suffix(<span class="number">1</span>), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_from_suffix_zeroed(<span class="number">1</span>), <span class="string">"new_slice"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned(), <span class="string">"new_slice_unaligned"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned_zeroed(), <span class="string">"new_slice_unaligned"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned_from_prefix(<span class="number">1</span>), <span class="string">"new_slice_unaligned"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned_from_prefix_zeroed(<span class="number">1</span>), <span class="string">"new_slice_unaligned"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned_from_suffix(<span class="number">1</span>), <span class="string">"new_slice_unaligned"</span>);
+        <span class="macro">zst_test!</span>(new_slice_unaligned_from_suffix_zeroed(<span class="number">1</span>), <span class="string">"new_slice_unaligned"</span>);
     }
 
     <span class="attr">#[test]
@@ -15793,7 +15795,7 @@
             <span class="macro">assert_eq!</span>(bytes, t.as_bytes());
 
             <span class="comment">// `write_to_prefix` works with too-large slices, and any bytes past
-            // the prefix aren&#39;t modified.
+            // the prefix aren't modified.
             </span><span class="kw">let </span><span class="kw-2">mut </span>too_many_bytes = <span class="macro">vec!</span>[<span class="number">0</span>; N + <span class="number">1</span>];
             too_many_bytes[N] = <span class="number">123</span>;
             <span class="macro">assert_eq!</span>(t.write_to_prefix(<span class="kw-2">&amp;mut </span>too_many_bytes[..]), <span class="prelude-val">Some</span>(()));
@@ -15809,7 +15811,7 @@
             <span class="macro">assert_eq!</span>(bytes, t.as_bytes());
 
             <span class="comment">// `write_to_suffix` works with too-large slices, and any bytes
-            // before the suffix aren&#39;t modified.
+            // before the suffix aren't modified.
             </span><span class="kw">let </span><span class="kw-2">mut </span>too_many_bytes = <span class="macro">vec!</span>[<span class="number">0</span>; N + <span class="number">1</span>];
             too_many_bytes[<span class="number">0</span>] = <span class="number">123</span>;
             <span class="macro">assert_eq!</span>(t.write_to_suffix(<span class="kw-2">&amp;mut </span>too_many_bytes[..]), <span class="prelude-val">Some</span>(()));
@@ -15825,13 +15827,13 @@
             c: <span class="prelude-ty">Option</span>&lt;NonZeroU32&gt;,
         }
 
-        <span class="kw">let </span>expected_bytes: Vec&lt;u8&gt; = <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;little&quot;</span>) {
+        <span class="kw">let </span>expected_bytes: Vec&lt;u8&gt; = <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">"little"</span>) {
             <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]
         } <span class="kw">else </span>{
             <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]
         };
         <span class="kw">let </span>post_mutation_expected_a =
-            <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">&quot;little&quot;</span>) { <span class="number">0x00_00_00_FE </span>} <span class="kw">else </span>{ <span class="number">0xFF_00_00_01 </span>};
+            <span class="kw">if </span><span class="macro">cfg!</span>(target_endian = <span class="string">"little"</span>) { <span class="number">0x00_00_00_FE </span>} <span class="kw">else </span>{ <span class="number">0xFF_00_00_01 </span>};
         test::&lt;<span class="kw">_</span>, <span class="number">12</span>&gt;(
             <span class="kw-2">&amp;mut </span>Foo { a: <span class="number">1</span>, b: Wrapping(<span class="number">2</span>), c: <span class="prelude-val">None </span>},
             expected_bytes.as_bytes(),
@@ -15861,12 +15863,12 @@
     </span><span class="kw">fn </span>test_display_debug() {
         <span class="kw">let </span>buf = Align::&lt;[u8; <span class="number">8</span>], u64&gt;::default();
         <span class="kw">let </span>r = Ref::&lt;<span class="kw">_</span>, u64&gt;::new(<span class="kw-2">&amp;</span>buf.t[..]).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, r), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, r), <span class="string">&quot;Ref(0)&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{}"</span>, r), <span class="string">"0"</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, r), <span class="string">"Ref(0)"</span>);
 
         <span class="kw">let </span>buf = Align::&lt;[u8; <span class="number">8</span>], u64&gt;::default();
         <span class="kw">let </span>r = Ref::&lt;<span class="kw">_</span>, [u64]&gt;::new_slice(<span class="kw-2">&amp;</span>buf.t[..]).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, r), <span class="string">&quot;Ref([0])&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, r), <span class="string">"Ref([0])"</span>);
     }
 
     <span class="attr">#[test]
@@ -16013,9 +16015,9 @@
         </span><span class="macro">impl_try_from_bytes_testable!</span>(
             bool =&gt; @success <span class="bool-val">true</span>, <span class="bool-val">false</span>,
                     @failure <span class="number">2u8</span>, <span class="number">3u8</span>, <span class="number">0xFFu8</span>;
-            char =&gt; @success <span class="string">&#39;\u{0}&#39;</span>, <span class="string">&#39;\u{D7FF}&#39;</span>, <span class="string">&#39;\u{E000}&#39;</span>, <span class="string">&#39;\u{10FFFF}&#39;</span>,
+            char =&gt; @success <span class="string">'\u{0}'</span>, <span class="string">'\u{D7FF}'</span>, <span class="string">'\u{E000}'</span>, <span class="string">'\u{10FFFF}'</span>,
                     @failure <span class="number">0xD800u32</span>, <span class="number">0xDFFFu32</span>, <span class="number">0x110000u32</span>;
-            str  =&gt; @success <span class="string">&quot;&quot;</span>, <span class="string">&quot;hello&quot;</span>, <span class="string">&quot;❤️🧡💛💚💙💜&quot;</span>,
+            str  =&gt; @success <span class="string">""</span>, <span class="string">"hello"</span>, <span class="string">"❤️🧡💛💚💙💜"</span>,
                     @failure [<span class="number">0</span>, <span class="number">159</span>, <span class="number">146</span>, <span class="number">150</span>];
             [u8] =&gt; @success [], [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>];
             NonZeroU8, NonZeroI8, NonZeroU16, NonZeroI16, NonZeroU32,
@@ -16032,7 +16034,7 @@
                     @failure [<span class="number">2u8</span>], [<span class="number">3u8</span>], [<span class="number">0xFFu8</span>], [<span class="number">0u8</span>, <span class="number">1u8</span>, <span class="number">2u8</span>];
         );
 
-        <span class="comment">// Asserts that `$ty` implements any `$trait` and doesn&#39;t implement any
+        <span class="comment">// Asserts that `$ty` implements any `$trait` and doesn't implement any
         // `!$trait`. Note that all `$trait`s must come before any `!$trait`s.
         //
         // For `T: TryFromBytes`, uses `TryFromBytesTestable` to test success
@@ -16044,13 +16046,13 @@
                     <span class="comment">// SAFETY:
                     // - Since `val` is a normal reference, `c` is guranteed to
                     //   be aligned, to point to a single allocation, and to
-                    //   have a size which doesn&#39;t overflow `isize`.
-                    // - Since `val` is a valid `$ty`, `c`&#39;s referent satisfies
+                    //   have a size which doesn't overflow `isize`.
+                    // - Since `val` is a valid `$ty`, `c`'s referent satisfies
                     //   the bit validity constraints of `is_bit_valid`, which
                     //   are a superset of the bit validity constraints of
                     //   `$ty`.
                     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{ &lt;<span class="macro-nonterminal">$ty </span><span class="kw">as </span>TryFromBytes&gt;::is_bit_valid(c) };
-                    <span class="macro">assert!</span>(res, <span class="string">&quot;{}::is_bit_valid({:?}): got false, expected true&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), val);
+                    <span class="macro">assert!</span>(res, <span class="string">"{}::is_bit_valid({:?}): got false, expected true"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), val);
 
                     <span class="comment">// TODO(#5): In addition to testing `is_bit_valid`, test the
                     // methods built on top of it. This would both allow us to
@@ -16058,7 +16060,7 @@
                     // to `$ty`, giving Miri a chance to catch if this is
                     // unsound (ie, if our `is_bit_valid` impl is buggy).
                     //
-                    // The following code was tried, but it doesn&#39;t work because
+                    // The following code was tried, but it doesn't work because
                     // a) some types are not `AsBytes` and, b) some types are
                     // not `Sized`.
                     //
@@ -16072,7 +16074,7 @@
                 <span class="attr">#[allow(clippy::as_conversions)]
                 </span>&lt;<span class="macro-nonterminal">$ty </span><span class="kw">as </span>TryFromBytesTestable&gt;::with_failing_test_cases(|c| {
                     <span class="kw">let </span>res = &lt;<span class="macro-nonterminal">$ty </span><span class="kw">as </span>TryFromBytes&gt;::try_from_ref(c);
-                    <span class="macro">assert!</span>(res.is_none(), <span class="string">&quot;{}::is_bit_valid({:?}): got true, expected false&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), c);
+                    <span class="macro">assert!</span>(res.is_none(), <span class="string">"{}::is_bit_valid({:?}): got true, expected false"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), c);
                 });
 
                 <span class="attr">#[allow(dead_code)]
@@ -16099,7 +16101,7 @@
 
         <span class="comment">// NOTE: The negative impl assertions here are not necessarily
         // prescriptive. They merely serve as change detectors to make sure
-        // we&#39;re aware of what trait impls are getting added with a given
+        // we're aware of what trait impls are getting added with a given
         // change. Of course, some impls would be invalid (e.g., `bool:
         // FromBytes`), and so this change detection is very important.
 
@@ -16157,25 +16159,25 @@
             NotZerocopy, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8,
         ) -&gt; (NotZerocopy, NotZerocopy);
 
-        <span class="comment">// Allowed, because we&#39;re not actually using this type for FFI.
+        <span class="comment">// Allowed, because we're not actually using this type for FFI.
         </span><span class="attr">#[allow(improper_ctypes_definitions)]
         #[rustfmt::skip]
-        </span><span class="kw">type </span>ECFnManyArgs = <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(
+        </span><span class="kw">type </span>ECFnManyArgs = <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(
             NotZerocopy, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8,
         ) -&gt; (NotZerocopy, NotZerocopy);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
         </span><span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;Box&lt;UnsafeCell&lt;NotZerocopy&gt;&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;Box&lt;[UnsafeCell&lt;NotZerocopy&gt;]&gt;&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
-        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>UnsafeCell&lt;NotZerocopy&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
-        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[UnsafeCell&lt;NotZerocopy&gt;]&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
-        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw-2">mut </span>UnsafeCell&lt;NotZerocopy&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
-        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw-2">mut </span>[UnsafeCell&lt;NotZerocopy&gt;]&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
+        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>UnsafeCell&lt;NotZerocopy&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
+        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[UnsafeCell&lt;NotZerocopy&gt;]&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
+        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>UnsafeCell&lt;NotZerocopy&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
+        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[UnsafeCell&lt;NotZerocopy&gt;]&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;NonNull&lt;UnsafeCell&lt;NotZerocopy&gt;&gt;&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;NonNull&lt;[UnsafeCell&lt;NotZerocopy&gt;]&gt;&gt;: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw">fn</span>()&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;FnManyArgs&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
-        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>()&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
+        <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>()&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="prelude-ty">Option</span>&lt;ECFnManyArgs&gt;: KnownLayout, FromZeroes, !TryFromBytes, !FromBytes, !AsBytes, !Unaligned);
 
         <span class="macro">assert_impls!</span>(PhantomData&lt;NotZerocopy&gt;: KnownLayout, TryFromBytes, FromZeroes, FromBytes, AsBytes, Unaligned);
@@ -16210,7 +16212,7 @@
         <span class="macro">assert_impls!</span>(<span class="kw-2">*const </span><span class="kw">dyn </span>Debug: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
         <span class="macro">assert_impls!</span>(<span class="kw-2">*mut </span><span class="kw">dyn </span>Debug: KnownLayout, !TryFromBytes, !FromZeroes, !FromBytes, !AsBytes, !Unaligned);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;simd&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"simd"</span>)]
         </span>{
             <span class="attr">#[allow(unused_macros)]
             </span><span class="macro">macro_rules! </span>test_simd_arch_mod {
@@ -16222,22 +16224,22 @@
                     }
                 };
             }
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
             </span><span class="macro">test_simd_arch_mod!</span>(x86, __m128, __m128d, __m128i, __m256, __m256d, __m256i);
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"x86"</span>))]
             </span><span class="macro">test_simd_arch_mod!</span>(x86, __m512bh, __m512, __m512d, __m512i);
 
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
             </span><span class="macro">test_simd_arch_mod!</span>(x86_64, __m128, __m128d, __m128i, __m256, __m256d, __m256i);
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"x86_64"</span>))]
             </span><span class="macro">test_simd_arch_mod!</span>(x86_64, __m512bh, __m512, __m512d, __m512i);
 
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
             </span><span class="macro">test_simd_arch_mod!</span>(wasm32, v128);
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;powerpc&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"powerpc"</span>))]
             </span><span class="macro">test_simd_arch_mod!</span>(
                 powerpc,
                 vector_bool_long,
@@ -16246,7 +16248,7 @@
                 vector_unsigned_long
             );
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;powerpc64&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"powerpc64"</span>))]
             </span><span class="macro">test_simd_arch_mod!</span>(
                 powerpc64,
                 vector_bool_long,
@@ -16254,7 +16256,7 @@
                 vector_signed_long,
                 vector_unsigned_long
             );
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;aarch64&quot;</span>)]
+            <span class="attr">#[cfg(target_arch = <span class="string">"aarch64"</span>)]
             #[rustfmt::skip]
             </span><span class="macro">test_simd_arch_mod!</span>(
                 aarch64, float32x2_t, float32x4_t, float64x1_t, float64x2_t, int8x8_t, int8x8x2_t,
@@ -16265,7 +16267,7 @@
                 uint8x16x2_t, uint8x16x3_t, uint8x16x4_t, uint16x4_t, uint16x8_t, uint32x2_t, uint32x4_t,
                 uint64x1_t, uint64x2_t
             );
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;simd-nightly&quot;</span>, target_arch = <span class="string">&quot;arm&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"simd-nightly"</span>, target_arch = <span class="string">"arm"</span>))]
             #[rustfmt::skip]
             </span><span class="macro">test_simd_arch_mod!</span>(arm, int8x4_t, uint8x4_t);
         }
@@ -16346,7 +16348,7 @@
             kani::assume(base.align &lt;= max_align);
         }
 
-        <span class="comment">// The base can only be extended if it&#39;s sized.
+        <span class="comment">// The base can only be extended if it's sized.
         </span>kani::assume(<span class="macro">matches!</span>(base.size_info, SizeInfo::Sized { .. }));
         <span class="kw">let </span>base_size = <span class="kw">if let </span>SizeInfo::Sized { _size: size } = base.size_info {
             size
@@ -16357,32 +16359,32 @@
         <span class="comment">// Under the above conditions, `DstLayout::extend` will not panic.
         </span><span class="kw">let </span>composite = base.extend(field, packed);
 
-        <span class="comment">// The field&#39;s alignment is clamped by `max_align` (i.e., the
+        <span class="comment">// The field's alignment is clamped by `max_align` (i.e., the
         // `packed` attribute, if any) [1].
         //
         // [1] Per https://doc.rust-lang.org/reference/type-layout.html#the-alignment-modifiers:
         //
         //   The alignments of each field, for the purpose of positioning
         //   fields, is the smaller of the specified alignment and the
-        //   alignment of the field&#39;s type.
+        //   alignment of the field's type.
         </span><span class="kw">let </span>field_align = min(field.align, packed.unwrap_or(DstLayout::THEORETICAL_MAX_ALIGN));
 
-        <span class="comment">// The struct&#39;s alignment is the maximum of its previous alignment and
+        <span class="comment">// The struct's alignment is the maximum of its previous alignment and
         // `field_align`.
         </span><span class="macro">assert_eq!</span>(composite.align, max(base.align, field_align));
 
         <span class="comment">// Compute the minimum amount of inter-field padding needed to
-        // satisfy the field&#39;s alignment, and offset of the trailing field.
+        // satisfy the field's alignment, and offset of the trailing field.
         // [1]
         //
         // [1] Per https://doc.rust-lang.org/reference/type-layout.html#the-alignment-modifiers:
         //
         //   Inter-field padding is guaranteed to be the minimum required in
-        //   order to satisfy each field&#39;s (possibly altered) alignment.
+        //   order to satisfy each field's (possibly altered) alignment.
         </span><span class="kw">let </span>padding = padding_needed_for(base_size, field_align);
         <span class="kw">let </span>offset = base_size + padding;
 
-        <span class="comment">// For testing purposes, we&#39;ll also construct `alloc::Layout`
+        <span class="comment">// For testing purposes, we'll also construct `alloc::Layout`
         // stand-ins for `DstLayout`, and show that `extend` behaves
         // comparably on both types.
         </span><span class="kw">let </span>base_analog = Layout::from_size_align(base_size, base.align.get()).unwrap();
@@ -16410,11 +16412,11 @@
                         // fragment, because such a fragment would violate
                         // the basic invariants of a valid Rust layout. At
                         // the time of writing, `DstLayout` is a little more
-                        // permissive than `Layout`, so we don&#39;t assert
+                        // permissive than `Layout`, so we don't assert
                         // anything in this branch (e.g., unreachability).
                     </span>}
                 } <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;The composite of two sized layouts must be sized.&quot;</span>)
+                    <span class="macro">panic!</span>(<span class="string">"The composite of two sized layouts must be sized."</span>)
                 }
             }
             SizeInfo::SliceDst(TrailingSliceLayout {
@@ -16447,11 +16449,11 @@
                         // fragment, because such a fragment would violate
                         // the basic invariants of a valid Rust layout. At
                         // the time of writing, `DstLayout` is a little more
-                        // permissive than `Layout`, so we don&#39;t assert
+                        // permissive than `Layout`, so we don't assert
                         // anything in this branch (e.g., unreachability).
                     </span>}
                 } <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;The extension of a layout with a DST must result in a DST.&quot;</span>)
+                    <span class="macro">panic!</span>(<span class="string">"The extension of a layout with a DST must result in a DST."</span>)
                 }
             }
         }
@@ -16482,7 +16484,7 @@
 
         <span class="kw">let </span>padded: DstLayout = layout.pad_to_align();
 
-        <span class="comment">// Calling `pad_to_align` does not alter the `DstLayout`&#39;s alignment.
+        <span class="comment">// Calling `pad_to_align` does not alter the `DstLayout`'s alignment.
         </span><span class="macro">assert_eq!</span>(padded.align, layout.align);
 
         <span class="kw">if let </span>SizeInfo::Sized { _size: unpadded_size } = layout.size_info {
@@ -16502,7 +16504,7 @@
                 <span class="macro">assert_eq!</span>(padded_analog.align(), layout.align.get());
                 <span class="macro">assert_eq!</span>(padded_analog.size(), padded_size);
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;The padding of a sized layout must result in a sized layout.&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">"The padding of a sized layout must result in a sized layout."</span>)
             }
         } <span class="kw">else </span>{
             <span class="comment">// If the layout is a DST, padding cannot be statically added.

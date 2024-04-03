@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/component.rs`."><title>component.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/component.rs`."><title>component.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -363,7 +365,7 @@
 <span class="kw">use </span>std::io::Read;
 <span class="kw">use </span>std::path::{Path, PathBuf};
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/component.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/component.md"</span>)]
 #[derive(Default)]
 </span><span class="kw">pub struct </span>Component {
     <span class="doccomment">/// Optional associated device of a `Component`.
@@ -373,7 +375,7 @@
     /// Kernel documentation extract:
     /// ```txt
     /// This should be a short, lowercase string, not containing
-    /// whitespace, dashes, or the wildcard character &#39;*&#39;.
+    /// whitespace, dashes, or the wildcard character '*'.
     /// This attribute represents the chip name. It is the only
     /// mandatory attribute.
     /// I2C devices get this attribute created automatically.
@@ -421,7 +423,7 @@
     ///
     /// Should only be created if the driver has hints about what
     /// this temperature channel is being used for, and user-space
-    /// doesn&#39;t. In all other cases, the label is provided by user-space.
+    /// doesn't. In all other cases, the label is provided by user-space.
     </span>label: String,
     <span class="comment">// TODO: not used now.
     // Historical minimum temperature
@@ -439,7 +441,7 @@
     // - temp[1-*]_emergency
     // - Unit: millidegree Celsius
     </span><span class="doccomment">/// File to read current temperature shall be `temp[1-*]_input`
-    /// It may be absent but we don&#39;t continue if absent.
+    /// It may be absent but we don't continue if absent.
     </span>input_file: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="doccomment">/// `temp[1-*]_highest file` to read if available highest value.
     </span>highest_file: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
@@ -468,8 +470,8 @@
     <span class="kw">let </span>number = std::str::from_utf8(number).ok()<span class="question-mark">?</span>;
     <span class="kw">let </span>number = number.trim();
     <span class="comment">// Assert that we cleaned a little bit that string.
-    </span><span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;debug&quot;</span>) {
-        <span class="macro">assert!</span>(!number.contains(<span class="string">&#39;\n&#39;</span>) &amp;&amp; !number.contains(<span class="string">&#39;\0&#39;</span>));
+    </span><span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"debug"</span>) {
+        <span class="macro">assert!</span>(!number.contains(<span class="string">'\n'</span>) &amp;&amp; !number.contains(<span class="string">'\0'</span>));
     }
     number.parse().ok()
 }
@@ -477,7 +479,7 @@
 <span class="comment">// Read a temperature from a `tempN_item` sensor form the sysfs.
 // number returned will be in mili-celsius.
 //
-// Don&#39;t call it on `label`, `name` or `type` file.
+// Don't call it on `label`, `name` or `type` file.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>get_temperature_from_file(file: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;f32&gt; {
     <span class="kw">let </span>temp = read_number_from_file(file);
@@ -490,7 +492,7 @@
     temp.map(|n| (n <span class="kw">as </span>f32) / <span class="number">1000f32</span>)
 }
 
-<span class="doccomment">/// Information about thermal sensor. It may be unavailable as it&#39;s
+<span class="doccomment">/// Information about thermal sensor. It may be unavailable as it's
 /// kernel module and chip dependent.
 </span><span class="kw">enum </span>TermalSensorType {
     <span class="doccomment">/// 1: CPU embedded diode
@@ -529,11 +531,11 @@
 </span><span class="kw">fn </span>fill_component(component: <span class="kw-2">&amp;mut </span>Component, item: <span class="kw-2">&amp;</span>str, folder: <span class="kw-2">&amp;</span>Path, file: <span class="kw-2">&amp;</span>str) {
     <span class="kw">let </span>hwmon_file = folder.join(file);
     <span class="kw">match </span>item {
-        <span class="string">&quot;type&quot; </span>=&gt; {
+        <span class="string">"type" </span>=&gt; {
             component.sensor_type =
                 read_number_from_file::&lt;u8&gt;(<span class="kw-2">&amp;</span>hwmon_file).map(TermalSensorType::from)
         }
-        <span class="string">&quot;input&quot; </span>=&gt; {
+        <span class="string">"input" </span>=&gt; {
             <span class="kw">let </span>temperature = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file);
             component.input_file = <span class="prelude-val">Some</span>(hwmon_file);
             component.temperature = temperature;
@@ -543,17 +545,17 @@
                 component.max = temperature;
             }
         }
-        <span class="string">&quot;label&quot; </span>=&gt; component.label = get_file_line(<span class="kw-2">&amp;</span>hwmon_file, <span class="number">10</span>).unwrap_or_default(),
-        <span class="string">&quot;highest&quot; </span>=&gt; {
+        <span class="string">"label" </span>=&gt; component.label = get_file_line(<span class="kw-2">&amp;</span>hwmon_file, <span class="number">10</span>).unwrap_or_default(),
+        <span class="string">"highest" </span>=&gt; {
             component.max = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file).or(component.temperature);
             component.highest_file = <span class="prelude-val">Some</span>(hwmon_file);
         }
-        <span class="string">&quot;max&quot; </span>=&gt; component.threshold_max = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
-        <span class="string">&quot;min&quot; </span>=&gt; component.threshold_min = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
-        <span class="string">&quot;crit&quot; </span>=&gt; component.threshold_critical = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
+        <span class="string">"max" </span>=&gt; component.threshold_max = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
+        <span class="string">"min" </span>=&gt; component.threshold_min = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
+        <span class="string">"crit" </span>=&gt; component.threshold_critical = get_temperature_from_file(<span class="kw-2">&amp;</span>hwmon_file),
         <span class="kw">_ </span>=&gt; {
             <span class="macro">sysinfo_debug!</span>(
-                <span class="string">&quot;This hwmon-temp file is still not supported! Contributions are appreciated.;) {:?}&quot;</span>,
+                <span class="string">"This hwmon-temp file is still not supported! Contributions are appreciated.;) {:?}"</span>,
                 hwmon_file,
             );
         }
@@ -562,7 +564,7 @@
 
 <span class="kw">impl </span>Component {
     <span class="doccomment">/// Read out `hwmon` info (hardware monitor) from `folder`
-    /// to get values&#39; path to be used on refresh as well as files containing `max`,
+    /// to get values' path to be used on refresh as well as files containing `max`,
     /// `critical value` and `label`. Then we store everything into `components`.
     ///
     /// Note that a thermal [Component] must have a way to read its temperature.
@@ -592,18 +594,18 @@
         <span class="kw">let </span><span class="kw-2">mut </span>matchings: HashMap&lt;u32, Component&gt; = HashMap::with_capacity(<span class="number">10</span>);
         <span class="kw">for </span>entry <span class="kw">in </span>dir.flatten() {
             <span class="kw">let </span>entry = entry.path();
-            <span class="kw">let </span>filename = entry.file_name().and_then(|x| x.to_str()).unwrap_or(<span class="string">&quot;&quot;</span>);
-            <span class="kw">if </span>entry.is_dir() || !filename.starts_with(<span class="string">&quot;temp&quot;</span>) {
+            <span class="kw">let </span>filename = entry.file_name().and_then(|x| x.to_str()).unwrap_or(<span class="string">""</span>);
+            <span class="kw">if </span>entry.is_dir() || !filename.starts_with(<span class="string">"temp"</span>) {
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let </span>(id, item) = filename.split_once(<span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(id, item) = filename.split_once(<span class="string">'_'</span>)<span class="question-mark">?</span>;
             <span class="kw">let </span>id = id.get(<span class="number">4</span>..)<span class="question-mark">?</span>.parse::&lt;u32&gt;().ok()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>component = matchings.entry(id).or_default();
-            <span class="kw">let </span>name = get_file_line(<span class="kw-2">&amp;</span>folder.join(<span class="string">&quot;name&quot;</span>), <span class="number">16</span>);
+            <span class="kw">let </span>name = get_file_line(<span class="kw-2">&amp;</span>folder.join(<span class="string">"name"</span>), <span class="number">16</span>);
             component.name = name.unwrap_or_default();
-            <span class="kw">let </span>device_model = get_file_line(<span class="kw-2">&amp;</span>folder.join(<span class="string">&quot;device/model&quot;</span>), <span class="number">16</span>);
+            <span class="kw">let </span>device_model = get_file_line(<span class="kw-2">&amp;</span>folder.join(<span class="string">"device/model"</span>), <span class="number">16</span>);
             component.device_model = device_model;
             fill_component(component, item, folder, filename);
         }
@@ -611,13 +613,13 @@
             .into_iter()
             .map(|(id, <span class="kw-2">mut </span>c)| {
                 <span class="comment">// sysinfo expose a generic interface with a `label`.
-                // Problem: a lot of sensors don&#39;t have a label or a device model! ¯\_(ツ)_/¯
-                // So let&#39;s pretend we have a unique label!
+                // Problem: a lot of sensors don't have a label or a device model! ¯\_(ツ)_/¯
+                // So let's pretend we have a unique label!
                 // See the table in `Component::label` documentation for the table detail.
-                </span>c.label = c.format_label(<span class="string">&quot;temp&quot;</span>, id);
+                </span>c.label = c.format_label(<span class="string">"temp"</span>, id);
                 c
             })
-            <span class="comment">// Remove components without `tempN_input` file termal. `Component` doesn&#39;t support this kind of sensors yet
+            <span class="comment">// Remove components without `tempN_input` file termal. `Component` doesn't support this kind of sensors yet
             </span>.filter(|c| c.input_file.is_some());
 
         components.extend(compo);
@@ -625,7 +627,7 @@
     }
 
     <span class="doccomment">/// Compute a label out of available information.
-    /// See the table in `Component::label`&#39;s documentation.
+    /// See the table in `Component::label`'s documentation.
     </span><span class="kw">fn </span>format_label(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>str, id: u32) -&gt; String {
         <span class="kw">let </span>Component {
             device_model,
@@ -636,11 +638,11 @@
         <span class="kw">let </span>has_label = !label.is_empty();
         <span class="kw">match </span>(has_label, device_model) {
             (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(device_model)) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{name} {label} {device_model} {class}{id}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{name} {label} {device_model} {class}{id}"</span>)
             }
-            (<span class="bool-val">true</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{name} {label}&quot;</span>),
-            (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(device_model)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{name} {device_model}&quot;</span>),
-            (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{name} {class}{id}&quot;</span>),
+            (<span class="bool-val">true</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(<span class="string">"{name} {label}"</span>),
+            (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(device_model)) =&gt; <span class="macro">format!</span>(<span class="string">"{name} {device_model}"</span>),
+            (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(<span class="string">"{name} {class}{id}"</span>),
         }
     }
 }
@@ -684,15 +686,15 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_components() -&gt; Vec&lt;Component&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>components = Vec::with_capacity(<span class="number">10</span>);
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = read_dir(Path::new(<span class="string">&quot;/sys/class/hwmon/&quot;</span>)) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = read_dir(Path::new(<span class="string">"/sys/class/hwmon/"</span>)) {
         <span class="kw">for </span>entry <span class="kw">in </span>dir.flatten() {
             <span class="kw">let </span>entry = entry.path();
             <span class="kw">if </span>!entry.is_dir()
                 || !entry
                     .file_name()
                     .and_then(|x| x.to_str())
-                    .unwrap_or(<span class="string">&quot;&quot;</span>)
-                    .starts_with(<span class="string">&quot;hwmon&quot;</span>)
+                    .unwrap_or(<span class="string">""</span>)
+                    .starts_with(<span class="string">"hwmon"</span>)
             {
                 <span class="kw">continue</span>;
             }

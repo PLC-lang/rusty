@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/pou_generator.rs`."><title>pou_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/pou_generator.rs`."><title>pou_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -771,7 +773,7 @@
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
-/// - generates a struct-datatype for the POU&#39;s members
+/// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 </span><span class="kw">use </span><span class="kw">crate</span>::index::{ImplementationIndexEntry, VariableIndexEntry};
@@ -792,24 +794,24 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
-<span class="kw">pub struct </span>PouGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; {
-    llvm: Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>Index,
-    annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>AstAnnotations,
-    llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
+<span class="kw">pub struct </span>PouGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; {
+    llvm: Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>Index,
+    annotations: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>AstAnnotations,
+    llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
 }
 
 <span class="doccomment">/// Creates opaque implementations for all callable items in the index
 /// Returns a Typed index containing the associated implementations.
-</span><span class="kw">pub fn </span>generate_implementation_stubs&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    llvm: Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
+</span><span class="kw">pub fn </span>generate_implementation_stubs&lt;<span class="lifetime">'ink</span>&gt;(
+    module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
+    llvm: Llvm&lt;<span class="lifetime">'ink</span>&gt;,
     dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
-    types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+    debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>llvm_index = LlvmTypedIndex::default();
     <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     <span class="kw">let </span>implementations = dependencies
@@ -837,15 +839,15 @@
 /// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression
 /// Retrieves the POUs from the index (implementation)
 /// Returns a new LLVM index to be merged with the parent codegen index.
-</span><span class="kw">pub fn </span>generate_global_constants_for_pou_members&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
+</span><span class="kw">pub fn </span>generate_global_constants_for_pou_members&lt;<span class="lifetime">'ink</span>&gt;(
+    module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
     dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
-    llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
+    llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
     location: <span class="kw-2">&amp;</span>str,
-) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>local_llvm_index = LlvmTypedIndex::default();
     <span class="kw">let </span>implementations = dependencies.into_iter().filter_map(|it| {
         <span class="kw">if let </span>Dependency::Call(name) | Dependency::Datatype(name) = it {
@@ -888,16 +890,16 @@
     <span class="prelude-val">Ok</span>(local_llvm_index)
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; PouGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; PouGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; {
     <span class="doccomment">/// creates a new PouGenerator
     ///
     /// the PouGenerator needs a mutable index to register the generated pou
     </span><span class="kw">pub fn </span>new(
-        llvm: Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>Index,
-        annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>AstAnnotations,
-        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; PouGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span>&gt; {
+        llvm: Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>Index,
+        annotations: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>AstAnnotations,
+        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; PouGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; {
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
@@ -905,10 +907,10 @@
     </span><span class="kw">pub fn </span>generate_implementation_stub(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry,
-        module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        new_llvm_index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
+        debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+        new_llvm_index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
 
         <span class="kw">let </span>parameters = <span class="self">self
@@ -997,12 +999,12 @@
     </span><span class="kw">fn </span>collect_parameters_for_implementation(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if </span>implementation.implementation_type != ImplementationType::Function {
             <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="macro">vec!</span>[];
             <span class="kw">if </span>implementation.get_implementation_type() == <span class="kw-2">&amp;</span>ImplementationType::Method {
                 <span class="kw">let </span>class_name =
-                    implementation.get_associated_class_name().expect(<span class="string">&quot;Method needs to have a class-name&quot;</span>);
+                    implementation.get_associated_class_name().expect(<span class="string">"Method needs to have a class-name"</span>);
                 <span class="kw">let </span>instance_members_struct_type: StructType =
                     <span class="self">self</span>.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())<span class="question-mark">?</span>;
                 parameters.push(
@@ -1019,7 +1021,7 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span>declared_params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
 
-            <span class="comment">//find the function&#39;s parameters
+            <span class="comment">//find the function's parameters
             </span>declared_params
                 .iter()
                 .map(|v| <span class="self">self</span>.llvm_index.get_associated_type(v.get_type_name()).map(Into::into))
@@ -1031,7 +1033,7 @@
     </span><span class="kw">pub fn </span>generate_implementation(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         implementation: <span class="kw-2">&amp;</span>Implementation,
-        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>context = <span class="self">self</span>.llvm.context;
         <span class="kw">let </span><span class="kw-2">mut </span>local_index = LlvmTypedIndex::create_child(<span class="self">self</span>.llvm_index);
@@ -1040,7 +1042,7 @@
 
         <span class="kw">let </span>current_function = <span class="self">self</span>.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Could not find generated stub for {pou_name}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Could not find generated stub for {pou_name}"</span>),
                 implementation.location.clone(),
             )
         })<span class="question-mark">?</span>;
@@ -1057,7 +1059,7 @@
         debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>current_function, line, column);
 
         <span class="comment">//generate the body
-        </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">&quot;entry&quot;</span>);
+        </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">"entry"</span>);
 
         <span class="comment">//Create all labels this function will have
         </span><span class="kw">let </span><span class="kw-2">mut </span>blocks = HashMap::new();
@@ -1067,13 +1069,13 @@
             }
         }
         <span class="self">self</span>.llvm.builder.position_at_end(block);
-        blocks.insert(<span class="string">&quot;entry&quot;</span>.into(), block);
+        blocks.insert(<span class="string">"entry"</span>.into(), block);
 
         <span class="kw">let </span>function_context = FunctionContext {
             linking_context: <span class="self">self</span>.index.find_implementation_by_name(<span class="kw-2">&amp;</span>implementation.name).ok_or_else(
                 || {
                     Diagnostic::codegen_error(
-                        <span class="macro">format!</span>(<span class="string">&quot;Could not find implementation for {}&quot;</span>, <span class="kw-2">&amp;</span>implementation.name),
+                        <span class="macro">format!</span>(<span class="string">"Could not find implementation for {}"</span>, <span class="kw-2">&amp;</span>implementation.name),
                         implementation.location.clone(),
                     )
                 },
@@ -1084,7 +1086,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>param_index = <span class="number">0</span>;
         <span class="kw">if let </span>PouType::Method { .. } = implementation.pou_type {
-            <span class="kw">let </span>class_name = implementation.type_name.split(<span class="string">&#39;.&#39;</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">0</span>];
+            <span class="kw">let </span>class_name = implementation.type_name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">0</span>];
             <span class="self">self</span>.generate_local_pou_variable_accessors(
                 param_index,
                 <span class="kw-2">&amp;mut </span>local_index,
@@ -1150,10 +1152,10 @@
     /// returns the given `return_type`
     </span><span class="kw">fn </span>create_llvm_function_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        parameters: Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
-        variadic: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>VariableIndexEntry&gt;,
-        return_type: <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionType&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+        parameters: Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+        variadic: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'cg </span>VariableIndexEntry&gt;,
+        return_type: <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionType&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
         </span><span class="kw">let </span>is_var_args = variadic
             .map(|it| it.get_varargs().map(|it| !it.is_sized()).unwrap_or_default())
@@ -1182,7 +1184,7 @@
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.context.void_type().fn_type(<span class="kw-2">&amp;</span>params, is_var_args)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {return_type:?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Unsupported return type {return_type:?}"</span>),
                 SourceLocation::undefined(),
             )),
         }
@@ -1191,10 +1193,10 @@
     <span class="doccomment">/// generates a load-statement for the given members of a function
     </span><span class="kw">fn </span>generate_local_function_arguments_accessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
         type_name: <span class="kw-2">&amp;</span>str,
-        function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
-        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
+        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
         <span class="comment">//Generate reference to parameter
@@ -1272,11 +1274,11 @@
     </span><span class="kw">fn </span>generate_local_pou_variable_accessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg_index: u32,
-        index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
         type_name: <span class="kw-2">&amp;</span>str,
-        function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
+        function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
         <span class="kw">let </span>param_pointer = function_context
@@ -1330,7 +1332,7 @@
         variables: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
         local_llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
         function_context: <span class="kw-2">&amp;</span>FunctionContext,
-        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>variables_with_initializers =
             variables.iter().filter(|it| it.is_local() || it.is_temp() || it.is_return());
@@ -1372,7 +1374,7 @@
 
     <span class="doccomment">/// initializes the variable represented by `variable` by storing into the given `variable_to_initialize` pointer using either
     /// the optional `initializer_statement` (hence code like: `variable : type := initializer_statement`), or determine the initial
-    /// value with the help of the `variable`&#39;s index entry by e.g. looking for a default value of the variable&#39;s type
+    /// value with the help of the `variable`'s index entry by e.g. looking for a default value of the variable's type
     </span><span class="kw">fn </span>generate_variable_initializer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         variable: &amp;&amp;VariableIndexEntry,
@@ -1386,7 +1388,7 @@
             .map_err(|err| err.with_location(variable.source_location.clone()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error(<span class="string">&quot;Couldn&#39;t determine type size&quot;</span>, variable.source_location.clone())
+            Diagnostic::codegen_error(<span class="string">"Couldn't determine type size"</span>, variable.source_location.clone())
         });
 
         <span class="comment">// initialize the variable with the initial_value
@@ -1402,7 +1404,7 @@
         <span class="comment">// 2nd try: see if there is an initializer-statement
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(initializer) = initializer_statement {
             (exp_gen.generate_expression(initializer)<span class="question-mark">?</span>, DEFAULT_ALIGNMENT)
-        <span class="comment">// 3rd try: see if ther is a global variable with the variable&#39;s type name - naming convention :-(
+        <span class="comment">// 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(global_variable) = <span class="self">self</span>.llvm_index.find_global_value(<span class="kw-2">&amp;</span>index::get_initializer_name(variable.get_type_name())) {
             (global_variable.as_basic_value_enum(), global_variable.get_alignment())
         <span class="comment">// 4th try, see if the datatype has a default initializer
@@ -1419,7 +1421,7 @@
         <span class="kw">let </span>is_aggregate_type = variable_data_type.is_aggregate_type();
         <span class="kw">let </span>variable_to_initialize = <span class="kw">if </span>variable.is_return() &amp;&amp; is_aggregate_type {
             <span class="comment">//if this is an out-pointer we need to deref it first
-            </span><span class="self">self</span>.llvm.builder.build_load(variable_to_initialize, <span class="string">&quot;deref&quot;</span>).into_pointer_value()
+            </span><span class="self">self</span>.llvm.builder.build_load(variable_to_initialize, <span class="string">"deref"</span>).into_pointer_value()
         } <span class="kw">else </span>{
             variable_to_initialize
         };
@@ -1452,7 +1454,7 @@
                     )
                     .map(|<span class="kw">_</span>| ())
             } <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;initializing an array should be memcpy-able or memset-able&quot;</span>);
+                <span class="macro">unreachable!</span>(<span class="string">"initializing an array should be memcpy-able or memset-able"</span>);
             };
             init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
@@ -1463,8 +1465,8 @@
 
     <span class="kw">fn </span>get_variadic_size_and_pointer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        variadic: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cg </span>VariableIndexEntry&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;; <span class="number">2</span>]&gt; {
+        variadic: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'cg </span>VariableIndexEntry&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;[BasicMetadataTypeEnum&lt;<span class="lifetime">'ink</span>&gt;; <span class="number">2</span>]&gt; {
         <span class="kw">if let </span>(<span class="prelude-val">Some</span>(var), <span class="prelude-val">Some</span>(VarArgs::Sized(<span class="prelude-val">Some</span>(type_name)))) =
             (variadic, variadic.and_then(VariableIndexEntry::get_varargs))
         {

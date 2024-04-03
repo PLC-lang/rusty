@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/task/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="async_std"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/task/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../async_std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -180,10 +182,10 @@
 //! ## The task model
 //!
 //! An executing asynchronous Rust program consists of a collection of native OS threads, on top of
-//! which multiple stackless coroutines are multiplexed. We refer to these as &quot;tasks&quot;.  Tasks can
+//! which multiple stackless coroutines are multiplexed. We refer to these as "tasks".  Tasks can
 //! be named, and provide some built-in support for synchronization.
 //!
-//! Communication between tasks can be done through channels, Rust&#39;s message-passing types, along
+//! Communication between tasks can be done through channels, Rust's message-passing types, along
 //! with [other forms of tasks synchronization](../sync/index.html) and shared-memory data
 //! structures. In particular, types that are guaranteed to be threadsafe are easily shared between
 //! tasks using the atomically-reference-counted container, [`Arc`].
@@ -191,7 +193,7 @@
 //! Fatal logic errors in Rust cause *thread panic*, during which a thread will unwind the stack,
 //! running destructors and freeing owned resources. If a panic occurs inside a task, there is no
 //! meaningful way of recovering, so the panic will propagate through any thread boundaries all the
-//! way to the root task. This is also known as a &quot;panic = abort&quot; model.
+//! way to the root task. This is also known as a "panic = abort" model.
 //!
 //! ## Spawning a task
 //!
@@ -205,7 +207,7 @@
 //! });
 //! ```
 //!
-//! In this example, the spawned task is &quot;detached&quot; from the current task. This means that it can
+//! In this example, the spawned task is "detached" from the current task. This means that it can
 //! outlive its parent (the task that spawned it), unless this parent is the root task.
 //!
 //! The root task can also wait on the completion of the child task; a call to [`spawn`] produces a
@@ -238,8 +240,8 @@
 //!
 //! # async_std::task::block_on(async {
 //! #
-//! task::Builder::new().name(&quot;child1&quot;.to_string()).spawn(async {
-//!     println!(&quot;Hello, world!&quot;);
+//! task::Builder::new().name("child1".to_string()).spawn(async {
+//!     println!("Hello, world!");
 //! });
 //! #
 //! # })
@@ -263,7 +265,7 @@
 //!
 //! A task-local key owns the value it contains and will destroy the value when the
 //! task exits. It is created with the [`task_local!`] macro and can contain any
-//! value that is `&#39;static` (no borrowed pointers). It provides an accessor function,
+//! value that is `'static` (no borrowed pointers). It provides an accessor function,
 //! [`with`], that yields a shared reference to the value to the specified
 //! closure. Task-local keys allow only shared access to values, as there would be no
 //! way to guarantee uniqueness if mutable borrows were allowed.
@@ -310,7 +312,7 @@
     <span class="kw">pub use </span>task_id::TaskId;
     <span class="kw">pub use </span>join_handle::JoinHandle;
     <span class="kw">pub use </span>sleep::sleep;
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub use </span>spawn::spawn;
     <span class="kw">pub use </span>task_local::{AccessError, LocalKey};
 
@@ -322,24 +324,24 @@
     <span class="kw">mod </span>current;
     <span class="kw">mod </span>join_handle;
     <span class="kw">mod </span>sleep;
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">mod </span>spawn;
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">mod </span>spawn_blocking;
     <span class="kw">mod </span>task;
     <span class="kw">mod </span>task_id;
     <span class="kw">mod </span>task_local;
     <span class="kw">mod </span>task_locals_wrapper;
 
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub use </span>spawn_blocking::spawn_blocking;
 }
 
 <span class="macro">cfg_unstable! </span>{
-    <span class="attr">#[cfg(feature = <span class="string">&quot;default&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"default"</span>)]
     </span><span class="kw">pub use </span>spawn_local::spawn_local;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;default&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"default"</span>)]
     </span><span class="kw">mod </span>spawn_local;
 }
 </code></pre></div></section></main></body></html>

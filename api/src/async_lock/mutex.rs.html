@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/mutex.rs`."><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_lock"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/mutex.rs`."><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -776,7 +778,7 @@
 
 <span class="kw">use </span>alloc::sync::Arc;
 
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">use </span>std::time::{Duration, Instant};
 
 <span class="kw">use </span>event_listener::{Event, EventListener};
@@ -871,7 +873,7 @@
     /// # })
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lock&lt;<span class="lifetime">'_</span>, T&gt; {
         Lock::_new(LockInner {
             mutex: <span class="self">self</span>,
             acquire_slow: <span class="prelude-val">None</span>,
@@ -900,9 +902,9 @@
     /// let guard = mutex.lock_blocking();
     /// assert_eq!(*guard, 10);
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     #[inline]
-    </span><span class="kw">pub fn </span>lock_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>lock_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="self">self</span>.lock().wait()
     }
 
@@ -923,7 +925,7 @@
     /// # ;
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+    </span><span class="kw">pub fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MutexGuard&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
         <span class="kw">if </span><span class="self">self
             </span>.state
             .compare_exchange(<span class="number">0</span>, <span class="number">1</span>, Ordering::Acquire, Ordering::Acquire)
@@ -960,7 +962,7 @@
     /// # Safety
     ///
     /// This function is intended to be used only in the case where the mutex is locked,
-    /// and the guard is subsequently forgotten. Calling this while you don&#39;t hold a lock
+    /// and the guard is subsequently forgotten. Calling this while you don't hold a lock
     /// on the mutex will likely lead to UB.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>unlock_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// Remove the last bit and notify a waiting lock operation.
@@ -1016,7 +1018,7 @@
     /// let guard = mutex.lock_arc_blocking();
     /// assert_eq!(*guard, 10);
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     #[inline]
     </span><span class="kw">pub fn </span>lock_arc_blocking(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; MutexGuardArc&lt;T&gt; {
         <span class="self">self</span>.lock_arc().wait()
@@ -1054,17 +1056,17 @@
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Mutex&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">struct </span>Locked;
         <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Locked {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-                f.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>)
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+                f.write_str(<span class="string">"&lt;locked&gt;"</span>)
             }
         }
 
         <span class="kw">match </span><span class="self">self</span>.try_lock() {
-            <span class="prelude-val">None </span>=&gt; f.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span>Locked).finish(),
-            <span class="prelude-val">Some</span>(guard) =&gt; f.debug_struct(<span class="string">&quot;Mutex&quot;</span>).field(<span class="string">&quot;data&quot;</span>, &amp;&amp;<span class="kw-2">*</span>guard).finish(),
+            <span class="prelude-val">None </span>=&gt; f.debug_struct(<span class="string">"Mutex"</span>).field(<span class="string">"data"</span>, <span class="kw-2">&amp;</span>Locked).finish(),
+            <span class="prelude-val">Some</span>(guard) =&gt; f.debug_struct(<span class="string">"Mutex"</span>).field(<span class="string">"data"</span>, &amp;&amp;<span class="kw-2">*</span>guard).finish(),
         }
     }
 }
@@ -1083,37 +1085,37 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`Mutex::lock`].
-    </span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(LockInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(LockInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; MutexGuard&lt;<span class="lifetime">'a</span>, T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// Inner future for acquiring the mutex.
-    </span><span class="kw">struct </span>LockInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    </span><span class="kw">struct </span>LockInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
         <span class="comment">// Reference to the mutex.
-        </span>mutex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;,
+        </span>mutex: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;T&gt;,
 
         <span class="comment">// The future that waits for the mutex to become available.
         </span><span class="attr">#[pin]
-        </span>acquire_slow: <span class="prelude-ty">Option</span>&lt;AcquireSlow&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;, T&gt;&gt;,
+        </span>acquire_slow: <span class="prelude-ty">Option</span>&lt;AcquireSlow&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;T&gt;, T&gt;&gt;,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>Lock&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>Lock&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Lock&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Lock { .. }&quot;</span>)
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Lock&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"Lock { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>LockInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>LockInner&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Output = MutexGuard&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         context: <span class="kw-2">&amp;mut </span>S::Context,
@@ -1142,7 +1144,7 @@
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`Mutex::lock_arc`].
     </span><span class="kw">pub struct </span>LockArc&lt;T: <span class="question-mark">?</span>Sized&gt;(LockArcInnards&lt;T&gt; =&gt; MutexGuardArc&lt;T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
@@ -1164,22 +1166,22 @@
 <span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>LockArc&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>LockArcInnards&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;LockArc { .. }&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"LockArc { .. }"</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>LockArcInnards&lt;T&gt; {
     <span class="kw">type </span>Output = MutexGuardArc&lt;T&gt;;
 
-    <span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(
+    <span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">'a</span>&gt;&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         context: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="comment">// Set the inner future if needed.
         </span><span class="kw">if let </span>LockArcInnardsProj::Unpolled { mutex } = <span class="self">self</span>.as_mut().project() {
-            <span class="kw">let </span>mutex = mutex.take().expect(<span class="string">&quot;mutex taken more than once&quot;</span>);
+            <span class="kw">let </span>mutex = mutex.take().expect(<span class="string">"mutex taken more than once"</span>);
 
             <span class="comment">// Try the fast path before trying to register slowly.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(guard) = mutex.try_lock_arc() {
@@ -1233,9 +1235,9 @@
     }
 }
 
-<span class="doccomment">/// `pin_project_lite` doesn&#39;t support `#[cfg]` yet, so we have to do this manually.
+<span class="doccomment">/// `pin_project_lite` doesn't support `#[cfg]` yet, so we have to do this manually.
 </span><span class="kw">struct </span>Start {
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span>start: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
 }
 
@@ -1250,7 +1252,7 @@
             mutex: <span class="prelude-val">Some</span>(mutex),
             listener,
             start: Start {
-                <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+                <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
                 </span>start: <span class="prelude-val">None</span>,
             },
             starved: <span class="bool-val">false</span>,
@@ -1278,19 +1280,19 @@
     <span class="kw">type </span>Output = B;
 
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'a</span>, S: event_listener_strategy::Strategy&lt;<span class="lifetime">'a</span>&gt;&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         context: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut().project();
-        <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+        <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
         </span><span class="kw">let </span>start = <span class="kw-2">*</span>this.start.start.get_or_insert_with(Instant::now);
         <span class="kw">let </span>mutex = Borrow::&lt;Mutex&lt;T&gt;&gt;::borrow(
-            this.mutex.as_ref().expect(<span class="string">&quot;future polled after completion&quot;</span>),
+            this.mutex.as_ref().expect(<span class="string">"future polled after completion"</span>),
         );
 
-        <span class="comment">// Only use this hot loop if we aren&#39;t currently starved.
+        <span class="comment">// Only use this hot loop if we aren't currently starved.
         </span><span class="kw">if </span>!<span class="kw-2">*</span>this.starved {
             <span class="kw">loop </span>{
                 <span class="comment">// Start listening for events.
@@ -1338,7 +1340,7 @@
 
                     <span class="comment">// If waiting for too long, fall back to a fairer locking strategy that will prevent
                     // newer lock operations from starving us forever.
-                    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+                    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
                     </span><span class="kw">if </span>start.elapsed() &gt; Duration::from_micros(<span class="number">500</span>) {
                         <span class="kw">break</span>;
                     }
@@ -1394,12 +1396,12 @@
 
 <span class="doccomment">/// A guard that releases the mutex when dropped.
 </span><span class="attr">#[clippy::has_significant_drop]
-</span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt;);
+</span><span class="kw">pub struct </span>MutexGuard&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;T&gt;);
 
-<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; MutexGuard&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="doccomment">/// Returns a reference to the mutex a guard came from.
     ///
     /// # Examples
@@ -1413,12 +1415,12 @@
     /// dbg!(MutexGuard::source(&amp;guard));
     /// # })
     /// ```
-    </span><span class="kw">pub fn </span>source(guard: <span class="kw-2">&amp;</span>MutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;T&gt; {
+    </span><span class="kw">pub fn </span>source(guard: <span class="kw-2">&amp;</span>MutexGuard&lt;<span class="lifetime">'a</span>, T&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;T&gt; {
         guard.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// SAFETY: we are dropping the mutex guard, therefore unlocking the mutex.
@@ -1428,19 +1430,19 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
@@ -1448,7 +1450,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>MutexGuard&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
     }
@@ -1497,13 +1499,13 @@
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Debug + <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         fmt::Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="kw">impl</span>&lt;T: fmt::Display + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         (<span class="kw-2">**</span><span class="self">self</span>).fmt(f)
     }
 }

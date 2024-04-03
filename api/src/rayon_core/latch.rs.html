@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/latch.rs`."><title>latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/latch.rs`."><title>latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -481,8 +483,8 @@
 /// called any number of times. Once `probe()` returns true, the memory
 /// effects that occurred before `set()` become visible.
 ///
-/// It&#39;d probably be better to refactor the API into two paired types,
-/// but that&#39;s a bit of work, and this is not a public API.
+/// It'd probably be better to refactor the API into two paired types,
+/// but that's a bit of work, and this is not a public API.
 ///
 /// ## Memory ordering
 ///
@@ -492,7 +494,7 @@
 ///   are visible (in other words, the set should synchronize-with
 ///   the probe).
 /// - Once `set()` occurs, the next `probe()` *will* observe it.  This
-///   typically requires a seq-cst ordering. See [the &quot;tickle-then-get-sleepy&quot; scenario in the sleep
+///   typically requires a seq-cst ordering. See [the "tickle-then-get-sleepy" scenario in the sleep
 ///   README](/src/sleep/README.md#tickle-then-get-sleepy) for details.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Latch {
     <span class="doccomment">/// Set the latch, signalling others.
@@ -502,7 +504,7 @@
     /// Setting a latch triggers other threads to wake up and (in some
     /// cases) complete. This may, in turn, cause memory to be
     /// deallocated and so forth. One must be very careful about this,
-    /// and it&#39;s typically better to read all the fields you will need
+    /// and it's typically better to read all the fields you will need
     /// to access *before* a latch is set!
     ///
     /// This function operates on `*const Self` instead of `&amp;self` to allow it
@@ -607,20 +609,20 @@
 <span class="doccomment">/// Spin latches are the simplest, most efficient kind, but they do
 /// not support a `wait()` operation. They just have a boolean flag
 /// that becomes true when `set()` is called.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
     core_latch: CoreLatch,
-    registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Arc&lt;Registry&gt;,
+    registry: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>Arc&lt;Registry&gt;,
     target_worker_index: usize,
     cross: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>&gt; SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
     <span class="doccomment">/// Creates a new spin latch that is owned by `thread`. This means
     /// that `thread` is the only thread that should be blocking on
     /// this latch -- it also means that when the latch is set, we
     /// will wake `thread` if it is sleeping.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(thread: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>WorkerThread) -&gt; SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(thread: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>WorkerThread) -&gt; SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
         SpinLatch {
             core_latch: CoreLatch::new(),
             registry: thread.registry(),
@@ -633,7 +635,7 @@
     /// need to make sure the registry is kept alive after setting, so we can
     /// safely call the notification.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>cross(thread: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>WorkerThread) -&gt; SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>cross(thread: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>WorkerThread) -&gt; SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
         SpinLatch {
             cross: <span class="bool-val">true</span>,
             ..SpinLatch::new(thread)
@@ -646,14 +648,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; AsCoreLatch <span class="kw">for </span>SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>&gt; AsCoreLatch <span class="kw">for </span>SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_core_latch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CoreLatch {
         <span class="kw-2">&amp;</span><span class="self">self</span>.core_latch
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; Latch <span class="kw">for </span>SpinLatch&lt;<span class="lifetime">&#39;r</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>&gt; Latch <span class="kw">for </span>SpinLatch&lt;<span class="lifetime">'r</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>set(this: <span class="kw-2">*const </span><span class="self">Self</span>) {
         <span class="kw">let </span>cross_registry;
@@ -667,9 +669,9 @@
             </span>cross_registry = Arc::clone((<span class="kw-2">*</span>this).registry);
             <span class="kw-2">&amp;</span>cross_registry
         } <span class="kw">else </span>{
-            <span class="comment">// If this is not a &quot;cross-registry&quot; spin-latch, then the
+            <span class="comment">// If this is not a "cross-registry" spin-latch, then the
             // thread which is performing `set` is itself ensuring
-            // that the registry stays alive. However, that doesn&#39;t
+            // that the registry stays alive. However, that doesn't
             // include this *particular* `Arc` handle if the waiting
             // thread then exits, so we must completely dereference it.
             </span>(<span class="kw-2">*</span>this).registry
@@ -736,12 +738,12 @@
 ///
 /// Note: like a `SpinLatch`, once-latches are always associated with
 /// some registry that is probing them, which must be tickled when
-/// they are set. *Unlike* a `SpinLatch`, they don&#39;t themselves hold a
+/// they are set. *Unlike* a `SpinLatch`, they don't themselves hold a
 /// reference to that registry. This is because in some cases the
 /// registry owns the once-latch, and that would create a cycle. So a
 /// `OnceLatch` must be given a reference to its owning registry when
 /// it is set. For this reason, it does not implement the `Latch`
-/// trait (but it doesn&#39;t have to, as it is not used in those generic
+/// trait (but it doesn't have to, as it is not used in those generic
 /// contexts).
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>OnceLatch {
@@ -780,7 +782,7 @@
 <span class="doccomment">/// Counting latches are used to implement scopes. They track a
 /// counter. Unlike other latches, calling `set()` does not
 /// necessarily make the latch be considered `set()`; instead, it just
-/// decrements the counter. The latch is only &quot;set&quot; (in the sense that
+/// decrements the counter. The latch is only "set" (in the sense that
 /// `probe()` returns true) once the counter reaches zero.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CountLatch {
@@ -809,13 +811,13 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>CountLatchKind {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             CountLatchKind::Stealing { latch, .. } =&gt; {
-                f.debug_tuple(<span class="string">&quot;Stealing&quot;</span>).field(latch).finish()
+                f.debug_tuple(<span class="string">"Stealing"</span>).field(latch).finish()
             }
             CountLatchKind::Blocking { latch, .. } =&gt; {
-                f.debug_tuple(<span class="string">&quot;Blocking&quot;</span>).field(latch).finish()
+                f.debug_tuple(<span class="string">"Blocking"</span>).field(latch).finish()
             }
         }
     }
@@ -855,7 +857,7 @@
                 registry,
                 worker_index,
             } =&gt; <span class="kw">unsafe </span>{
-                <span class="kw">let </span>owner = owner.expect(<span class="string">&quot;owner thread&quot;</span>);
+                <span class="kw">let </span>owner = owner.expect(<span class="string">"owner thread"</span>);
                 <span class="macro">debug_assert_eq!</span>(registry.id(), owner.registry().id());
                 <span class="macro">debug_assert_eq!</span>(<span class="kw-2">*</span>worker_index, owner.index());
                 owner.wait_until(latch);
@@ -889,13 +891,13 @@
 }
 
 <span class="doccomment">/// `&amp;L` without any implication of `dereferenceable` for `Latch::set`
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>LatchRef&lt;<span class="lifetime">&#39;a</span>, L&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>LatchRef&lt;<span class="lifetime">'a</span>, L&gt; {
     inner: <span class="kw-2">*const </span>L,
-    marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>L&gt;,
+    marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>L&gt;,
 }
 
-<span class="kw">impl</span>&lt;L&gt; LatchRef&lt;<span class="lifetime">&#39;_</span>, L&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span>L) -&gt; LatchRef&lt;<span class="lifetime">&#39;_</span>, L&gt; {
+<span class="kw">impl</span>&lt;L&gt; LatchRef&lt;<span class="lifetime">'_</span>, L&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span>L) -&gt; LatchRef&lt;<span class="lifetime">'_</span>, L&gt; {
         LatchRef {
             inner,
             marker: PhantomData,
@@ -903,9 +905,9 @@
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;L: Sync&gt; Sync <span class="kw">for </span>LatchRef&lt;<span class="lifetime">&#39;_</span>, L&gt; {}
+<span class="kw">unsafe impl</span>&lt;L: Sync&gt; Sync <span class="kw">for </span>LatchRef&lt;<span class="lifetime">'_</span>, L&gt; {}
 
-<span class="kw">impl</span>&lt;L&gt; Deref <span class="kw">for </span>LatchRef&lt;<span class="lifetime">&#39;_</span>, L&gt; {
+<span class="kw">impl</span>&lt;L&gt; Deref <span class="kw">for </span>LatchRef&lt;<span class="lifetime">'_</span>, L&gt; {
     <span class="kw">type </span>Target = L;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>L {
@@ -914,7 +916,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L: Latch&gt; Latch <span class="kw">for </span>LatchRef&lt;<span class="lifetime">&#39;_</span>, L&gt; {
+<span class="kw">impl</span>&lt;L: Latch&gt; Latch <span class="kw">for </span>LatchRef&lt;<span class="lifetime">'_</span>, L&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>set(this: <span class="kw-2">*const </span><span class="self">Self</span>) {
         L::set((<span class="kw-2">*</span>this).inner);

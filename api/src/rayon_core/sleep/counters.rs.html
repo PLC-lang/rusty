@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/sleep/counters.rs`."><title>counters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/sleep/counters.rs`."><title>counters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -311,7 +313,7 @@
         <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="doccomment">/// The JEC &quot;is sleepy&quot; if the last thread to increment it was in the
+    <span class="doccomment">/// The JEC "is sleepy" if the last thread to increment it was in the
     /// process of becoming sleepy. This is indicated by its value being *even*.
     /// When new jobs are posted, they check if the JEC is sleepy, and if so
     /// they incremented it.
@@ -320,7 +322,7 @@
         (<span class="self">self</span>.as_usize() &amp; <span class="number">1</span>) == <span class="number">0
     </span>}
 
-    <span class="doccomment">/// The JEC &quot;is active&quot; if the last thread to increment it was posting new
+    <span class="doccomment">/// The JEC "is active" if the last thread to increment it was posting new
     /// work. This is indicated by its value being *odd*. When threads get
     /// sleepy, they will check if the JEC is active, and increment it.
     </span><span class="attr">#[inline]
@@ -330,10 +332,10 @@
 }
 
 <span class="doccomment">/// Number of bits used for the thread counters.
-</span><span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+</span><span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
 </span><span class="kw">const </span>THREADS_BITS: usize = <span class="number">16</span>;
 
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
 </span><span class="kw">const </span>THREADS_BITS: usize = <span class="number">8</span>;
 
 <span class="doccomment">/// Bits to shift to select the sleeping threads
@@ -429,19 +431,19 @@
         <span class="kw">let </span>old_value = Counters::new(<span class="self">self</span>.value.fetch_sub(ONE_INACTIVE, Ordering::SeqCst));
         <span class="macro">debug_assert!</span>(
             old_value.inactive_threads() &gt; <span class="number">0</span>,
-            <span class="string">&quot;sub_inactive_thread: old_value {:?} has no inactive threads&quot;</span>,
+            <span class="string">"sub_inactive_thread: old_value {:?} has no inactive threads"</span>,
             old_value,
         );
         <span class="macro">debug_assert!</span>(
             old_value.sleeping_threads() &lt;= old_value.inactive_threads(),
-            <span class="string">&quot;sub_inactive_thread: old_value {:?} had {} sleeping threads and {} inactive threads&quot;</span>,
+            <span class="string">"sub_inactive_thread: old_value {:?} had {} sleeping threads and {} inactive threads"</span>,
             old_value,
             old_value.sleeping_threads(),
             old_value.inactive_threads(),
         );
 
         <span class="comment">// Current heuristic: whenever an inactive thread goes away, if
-        // there are any sleeping threads, wake &#39;em up.
+        // there are any sleeping threads, wake 'em up.
         </span><span class="kw">let </span>sleeping_threads = old_value.sleeping_threads();
         std::cmp::min(sleeping_threads, <span class="number">2</span>)
     }
@@ -455,12 +457,12 @@
         <span class="kw">let </span>old_value = Counters::new(<span class="self">self</span>.value.fetch_sub(ONE_SLEEPING, Ordering::SeqCst));
         <span class="macro">debug_assert!</span>(
             old_value.sleeping_threads() &gt; <span class="number">0</span>,
-            <span class="string">&quot;sub_sleeping_thread: old_value {:?} had no sleeping threads&quot;</span>,
+            <span class="string">"sub_sleeping_thread: old_value {:?} had no sleeping threads"</span>,
             old_value,
         );
         <span class="macro">debug_assert!</span>(
             old_value.sleeping_threads() &lt;= old_value.inactive_threads(),
-            <span class="string">&quot;sub_sleeping_thread: old_value {:?} had {} sleeping threads and {} inactive threads&quot;</span>,
+            <span class="string">"sub_sleeping_thread: old_value {:?} had {} sleeping threads and {} inactive threads"</span>,
             old_value,
             old_value.sleeping_threads(),
             old_value.inactive_threads(),
@@ -471,12 +473,12 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_add_sleeping_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, old_value: Counters) -&gt; bool {
         <span class="macro">debug_assert!</span>(
             old_value.inactive_threads() &gt; <span class="number">0</span>,
-            <span class="string">&quot;try_add_sleeping_thread: old_value {:?} has no inactive threads&quot;</span>,
+            <span class="string">"try_add_sleeping_thread: old_value {:?} has no inactive threads"</span>,
             old_value,
         );
         <span class="macro">debug_assert!</span>(
             old_value.sleeping_threads() &lt; THREADS_MAX,
-            <span class="string">&quot;try_add_sleeping_thread: old_value {:?} has too many sleeping threads&quot;</span>,
+            <span class="string">"try_add_sleeping_thread: old_value {:?} has too many sleeping threads"</span>,
             old_value,
         );
 
@@ -506,7 +508,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>increment_jobs_counter(<span class="self">self</span>) -&gt; Counters {
         <span class="comment">// We can freely add to JEC because it occupies the most significant bits.
-        // Thus it doesn&#39;t overflow into the other counters, just wraps itself.
+        // Thus it doesn't overflow into the other counters, just wraps itself.
         </span>Counters {
             word: <span class="self">self</span>.word.wrapping_add(ONE_JEC),
         }
@@ -528,7 +530,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>awake_but_idle_threads(<span class="self">self</span>) -&gt; usize {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.sleeping_threads() &lt;= <span class="self">self</span>.inactive_threads(),
-            <span class="string">&quot;sleeping threads: {} &gt; raw idle threads {}&quot;</span>,
+            <span class="string">"sleeping threads: {} &gt; raw idle threads {}"</span>,
             <span class="self">self</span>.sleeping_threads(),
             <span class="self">self</span>.inactive_threads()
         );
@@ -542,13 +544,13 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Counters {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span>word = <span class="macro">format!</span>(<span class="string">&quot;{:016x}&quot;</span>, <span class="self">self</span>.word);
-        fmt.debug_struct(<span class="string">&quot;Counters&quot;</span>)
-            .field(<span class="string">&quot;word&quot;</span>, <span class="kw-2">&amp;</span>word)
-            .field(<span class="string">&quot;jobs&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.jobs_counter().<span class="number">0</span>)
-            .field(<span class="string">&quot;inactive&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inactive_threads())
-            .field(<span class="string">&quot;sleeping&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sleeping_threads())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span>word = <span class="macro">format!</span>(<span class="string">"{:016x}"</span>, <span class="self">self</span>.word);
+        fmt.debug_struct(<span class="string">"Counters"</span>)
+            .field(<span class="string">"word"</span>, <span class="kw-2">&amp;</span>word)
+            .field(<span class="string">"jobs"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.jobs_counter().<span class="number">0</span>)
+            .field(<span class="string">"inactive"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inactive_threads())
+            .field(<span class="string">"sleeping"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sleeping_threads())
             .finish()
     }
 }

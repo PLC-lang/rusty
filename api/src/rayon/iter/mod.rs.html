@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3701,7 +3703,7 @@
 //! - Strings (`&amp;str`) offer methods like `par_split` and `par_lines`.
 //!   See [the `ParallelString` trait] for the full list.
 //! - Various collections offer [`par_extend`], which grows a
-//!   collection given a parallel iterator. (If you don&#39;t have a
+//!   collection given a parallel iterator. (If you don't have a
 //!   collection to extend, you can use [`collect()`] to create a new
 //!   one from scratch.)
 //!
@@ -3714,7 +3716,7 @@
 //! check out the [`ParallelIterator`] and [`IndexedParallelIterator`]
 //! traits.
 //!
-//! If you&#39;d like to build a custom parallel iterator, or to write your own
+//! If you'd like to build a custom parallel iterator, or to write your own
 //! combinator, then check out the [split] function and the [plumbing] module.
 //!
 //! [regular iterator]: https://doc.rust-lang.org/std/iter/trait.Iterator.html
@@ -3870,7 +3872,7 @@
 ///
 /// By implementing `IntoParallelIterator` for a type, you define how it will
 /// transformed into an iterator. This is a parallel version of the standard
-/// library&#39;s [`std::iter::IntoIterator`] trait.
+/// library's [`std::iter::IntoIterator`] trait.
 ///
 /// [`ParallelIterator`]: trait.ParallelIterator.html
 /// [`std::iter::IntoIterator`]: https://doc.rust-lang.org/std/iter/trait.IntoIterator.html
@@ -3888,9 +3890,9 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// println!(&quot;counting in parallel:&quot;);
+    /// println!("counting in parallel:");
     /// (0..100).into_par_iter()
-    ///     .for_each(|i| println!(&quot;{}&quot;, i));
+    ///     .for_each(|i| println!("{}", i));
     /// ```
     ///
     /// This conversion is often implicit for arguments to methods like [`zip`].
@@ -3919,13 +3921,13 @@
 ///
 /// [`ParallelIterator`]: trait.ParallelIterator.html
 /// [`IntoParallelIterator`]: trait.IntoParallelIterator.html
-</span><span class="kw">pub trait </span>IntoParallelRefIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
+</span><span class="kw">pub trait </span>IntoParallelRefIterator&lt;<span class="lifetime">'data</span>&gt; {
     <span class="doccomment">/// The type of the parallel iterator that will be returned.
     </span><span class="kw">type </span>Iter: ParallelIterator&lt;Item = <span class="self">Self</span>::Item&gt;;
 
     <span class="doccomment">/// The type of item that the parallel iterator will produce.
-    /// This will typically be an `&amp;&#39;data T` reference type.
-    </span><span class="kw">type </span>Item: Send + <span class="lifetime">&#39;data</span>;
+    /// This will typically be an `&amp;'data T` reference type.
+    </span><span class="kw">type </span>Item: Send + <span class="lifetime">'data</span>;
 
     <span class="doccomment">/// Converts `self` into a parallel iterator.
     ///
@@ -3942,17 +3944,17 @@
     /// assert!(v.par_iter().zip(&amp;v)
     ///          .all(|(a, b)| std::ptr::eq(a, b)));
     /// ```
-    </span><span class="kw">fn </span>par_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter;
+    </span><span class="kw">fn </span>par_iter(<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, I: <span class="lifetime">&#39;data </span>+ <span class="question-mark">?</span>Sized&gt; IntoParallelRefIterator&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>I
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, I: <span class="lifetime">'data </span>+ <span class="question-mark">?</span>Sized&gt; IntoParallelRefIterator&lt;<span class="lifetime">'data</span>&gt; <span class="kw">for </span>I
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>I: IntoParallelIterator,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span>I: IntoParallelIterator,
 {
-    <span class="kw">type </span>Iter = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Iter;
-    <span class="kw">type </span>Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Item;
+    <span class="kw">type </span>Iter = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Iter;
+    <span class="kw">type </span>Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Item;
 
-    <span class="kw">fn </span>par_iter(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
+    <span class="kw">fn </span>par_iter(<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
         <span class="self">self</span>.into_par_iter()
     }
 }
@@ -3970,13 +3972,13 @@
 ///
 /// [`ParallelIterator`]: trait.ParallelIterator.html
 /// [`IntoParallelIterator`]: trait.IntoParallelIterator.html
-</span><span class="kw">pub trait </span>IntoParallelRefMutIterator&lt;<span class="lifetime">&#39;data</span>&gt; {
+</span><span class="kw">pub trait </span>IntoParallelRefMutIterator&lt;<span class="lifetime">'data</span>&gt; {
     <span class="doccomment">/// The type of iterator that will be created.
     </span><span class="kw">type </span>Iter: ParallelIterator&lt;Item = <span class="self">Self</span>::Item&gt;;
 
     <span class="doccomment">/// The type of item that will be produced; this is typically an
-    /// `&amp;&#39;data mut T` reference.
-    </span><span class="kw">type </span>Item: Send + <span class="lifetime">&#39;data</span>;
+    /// `&amp;'data mut T` reference.
+    </span><span class="kw">type </span>Item: Send + <span class="lifetime">'data</span>;
 
     <span class="doccomment">/// Creates the parallel iterator from `self`.
     ///
@@ -3989,17 +3991,17 @@
     /// v.par_iter_mut().enumerate().for_each(|(i, x)| *x = i);
     /// assert_eq!(v, [0, 1, 2, 3, 4]);
     /// ```
-    </span><span class="kw">fn </span>par_iter_mut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter;
+    </span><span class="kw">fn </span>par_iter_mut(<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, I: <span class="lifetime">&#39;data </span>+ <span class="question-mark">?</span>Sized&gt; IntoParallelRefMutIterator&lt;<span class="lifetime">&#39;data</span>&gt; <span class="kw">for </span>I
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, I: <span class="lifetime">'data </span>+ <span class="question-mark">?</span>Sized&gt; IntoParallelRefMutIterator&lt;<span class="lifetime">'data</span>&gt; <span class="kw">for </span>I
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>I: IntoParallelIterator,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>I: IntoParallelIterator,
 {
-    <span class="kw">type </span>Iter = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Iter;
-    <span class="kw">type </span>Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Item;
+    <span class="kw">type </span>Iter = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Iter;
+    <span class="kw">type </span>Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>I <span class="kw">as </span>IntoParallelIterator&gt;::Item;
 
-    <span class="kw">fn </span>par_iter_mut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
+    <span class="kw">fn </span>par_iter_mut(<span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
         <span class="self">self</span>.into_par_iter()
     }
 }
@@ -4033,7 +4035,7 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// (0..100).into_par_iter().for_each(|x| println!(&quot;{:?}&quot;, x));
+    /// (0..100).into_par_iter().for_each(|x| println!("{:?}", x));
     /// ```
     </span><span class="kw">fn </span>for_each&lt;OP&gt;(<span class="self">self</span>, op: OP)
     <span class="kw">where
@@ -4094,7 +4096,7 @@
     ///         |rng, chunk| rng.fill(chunk),
     ///     );
     ///
-    /// // There&#39;s a remote chance that this will fail...
+    /// // There's a remote chance that this will fail...
     /// for i in 0u8..=255 {
     ///     assert!(v.contains(&amp;i));
     /// }
@@ -4121,11 +4123,11 @@
     /// use rayon::prelude::*;
     /// use std::io::{self, Write};
     ///
-    /// // This will stop iteration early if there&#39;s any write error, like
+    /// // This will stop iteration early if there's any write error, like
     /// // having piped output get closed on the other end.
     /// (0..100).into_par_iter()
-    ///     .try_for_each(|x| writeln!(io::stdout(), &quot;{:?}&quot;, x))
-    ///     .expect(&quot;expected no write errors&quot;);
+    ///     .try_for_each(|x| writeln!(io::stdout(), "{:?}", x))
+    ///     .expect("expected no write errors");
     /// ```
     </span><span class="kw">fn </span>try_for_each&lt;OP, R&gt;(<span class="self">self</span>, op: OP) -&gt; R
     <span class="kw">where
@@ -4158,7 +4160,7 @@
     ///
     /// (0..5).into_par_iter()
     ///     .try_for_each_with(sender, |s, x| s.send(x))
-    ///     .expect(&quot;expected no send errors&quot;);
+    ///     .expect("expected no send errors");
     ///
     /// let mut res: Vec&lt;_&gt; = receiver.iter().collect();
     ///
@@ -4201,9 +4203,9 @@
     ///         || rand::thread_rng(),
     ///         |rng, chunk| rng.try_fill(chunk),
     ///     )
-    ///     .expect(&quot;expected no rand errors&quot;);
+    ///     .expect("expected no rand errors");
     ///
-    /// // There&#39;s a remote chance that this will fail...
+    /// // There's a remote chance that this will fail...
     /// for i in 0u8..=255 {
     ///     assert!(v.contains(&amp;i));
     /// }
@@ -4324,7 +4326,7 @@
     ///         },
     ///     ).collect();
     ///
-    /// // There&#39;s a remote chance that this will fail...
+    /// // There's a remote chance that this will fail...
     /// assert!(a.iter().any(|&amp;x| x &lt; 0));
     /// assert!(a.iter().any(|&amp;x| x &gt; 0));
     /// ```
@@ -4358,10 +4360,10 @@
     /// assert_eq!(v_cloned, vec![1, 2, 3]);
     /// assert_eq!(v_map, vec![1, 2, 3]);
     /// ```
-    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>T: <span class="lifetime">&#39;a </span>+ Clone + Send,
-        <span class="self">Self</span>: ParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
+        </span>T: <span class="lifetime">'a </span>+ Clone + Send,
+        <span class="self">Self</span>: ParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
     {
         Cloned::new(<span class="self">self</span>)
     }
@@ -4387,17 +4389,17 @@
     /// assert_eq!(v_copied, vec![1, 2, 3]);
     /// assert_eq!(v_map, vec![1, 2, 3]);
     /// ```
-    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span>T: <span class="lifetime">&#39;a </span>+ Copy + Send,
-        <span class="self">Self</span>: ParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
+        </span>T: <span class="lifetime">'a </span>+ Copy + Send,
+        <span class="self">Self</span>: ParallelIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
     {
         Copied::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Applies `inspect_op` to a reference to each item of this iterator,
     /// producing a new iterator passing through the original items.  This is
-    /// often useful for debugging to see what&#39;s happening in iterator stages.
+    /// often useful for debugging to see what's happening in iterator stages.
     ///
     /// # Examples
     ///
@@ -4412,17 +4414,17 @@
     ///             .filter(|&amp;x| x % 2 == 0)
     ///             .reduce(|| 0, |sum, i| sum + i);
     ///
-    /// println!(&quot;{}&quot;, sum);
+    /// println!("{}", sum);
     ///
-    /// // let&#39;s add some inspect() calls to investigate what&#39;s happening
+    /// // let's add some inspect() calls to investigate what's happening
     /// let sum = a.par_iter()
     ///             .cloned()
-    ///             .inspect(|x| println!(&quot;about to filter: {}&quot;, x))
+    ///             .inspect(|x| println!("about to filter: {}", x))
     ///             .filter(|&amp;x| x % 2 == 0)
-    ///             .inspect(|x| println!(&quot;made it through filter: {}&quot;, x))
+    ///             .inspect(|x| println!("made it through filter: {}", x))
     ///             .reduce(|| 0, |sum, i| sum + i);
     ///
-    /// println!(&quot;{}&quot;, sum);
+    /// println!("{}", sum);
     /// ```
     </span><span class="kw">fn </span>inspect&lt;OP&gt;(<span class="self">self</span>, inspect_op: OP) -&gt; Inspect&lt;<span class="self">Self</span>, OP&gt;
     <span class="kw">where
@@ -4536,7 +4538,7 @@
     /// produced by each nested iterator are processed sequentially.
     ///
     /// When choosing between these methods, consider whether nested parallelism suits the
-    /// potential iterators at hand. If there&#39;s little computation involved, or its length
+    /// potential iterators at hand. If there's little computation involved, or its length
     /// is much less than the outer parallel iterator, then it may perform better to avoid
     /// the overhead of parallelism, just flattening sequentially with `flat_map_iter`.
     /// If there is a lot of computation, potentially outweighing the outer parallel
@@ -4553,7 +4555,7 @@
     /// let a = [[1, 2], [3, 4], [5, 6], [7, 8]];
     ///
     /// let par_iter = a.par_iter().flat_map_iter(|a| {
-    ///     // The serial iterator doesn&#39;t have to be thread-safe, just its items.
+    ///     // The serial iterator doesn't have to be thread-safe, just its items.
     ///     let cell_iter = RefCell::new(a.iter().cloned());
     ///     std::iter::from_fn(move || cell_iter.borrow_mut().next())
     /// });
@@ -4618,7 +4620,7 @@
 
     <span class="doccomment">/// Reduces the items in the iterator into one item using `op`.
     /// The argument `identity` should be a closure that can produce
-    /// &quot;identity&quot; value which may be inserted into the sequence as
+    /// "identity" value which may be inserted into the sequence as
     /// needed to create opportunities for parallel execution. So, for
     /// example, if you are doing a summation, then `identity()` ought
     /// to produce something that represents the zero for your type
@@ -4634,7 +4636,7 @@
     /// let sums = [(0, 1), (5, 6), (16, 2), (8, 9)]
     ///            .par_iter()        // iterating over &amp;(i32, i32)
     ///            .cloned()          // iterating over (i32, i32)
-    ///            .reduce(|| (0, 0), // the &quot;identity&quot; is 0 in both columns
+    ///            .reduce(|| (0, 0), // the "identity" is 0 in both columns
     ///                    |a, b| (a.0 + b.0, a.1 + b.1));
     /// assert_eq!(sums, (0 + 5 + 16 + 8, 1 + 6 + 2 + 9));
     /// ```
@@ -4767,7 +4769,7 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let files = [&quot;/dev/null&quot;, &quot;/does/not/exist&quot;];
+    /// let files = ["/dev/null", "/does/not/exist"];
     ///
     /// // Find the biggest file
     /// files.into_par_iter()
@@ -4775,8 +4777,8 @@
     ///     .try_reduce_with(|a, b| {
     ///         Ok(if a.1 &gt;= b.1 { a } else { b })
     ///     })
-    ///     .expect(&quot;Some value, since the iterator is not empty&quot;)
-    ///     .expect_err(&quot;not found&quot;);
+    ///     .expect("Some value, since the iterator is not empty")
+    ///     .expect_err("not found");
     /// ```
     </span><span class="kw">fn </span>try_reduce_with&lt;T, OP&gt;(<span class="self">self</span>, op: OP) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;
     <span class="kw">where
@@ -4843,7 +4845,7 @@
     /// convert our bytes into `u32`. And of course we might not get
     /// back a single sum.
     ///
-    /// There is a more subtle distinction as well, though it&#39;s
+    /// There is a more subtle distinction as well, though it's
     /// actually implied by the above points. When you use `reduce()`,
     /// your reduction function is sometimes called with values that
     /// were never part of your original parallel iterator (for
@@ -4863,13 +4865,13 @@
     /// use rayon::prelude::*;
     ///
     /// let s =
-    ///     [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+    ///     ['a', 'b', 'c', 'd', 'e']
     ///     .par_iter()
-    ///     .map(|c: &amp;char| format!(&quot;{}&quot;, c))
+    ///     .map(|c: &amp;char| format!("{}", c))
     ///     .reduce(|| String::new(),
     ///             |mut a: String, b: String| { a.push_str(&amp;b); a });
     ///
-    /// assert_eq!(s, &quot;abcde&quot;);
+    /// assert_eq!(s, "abcde");
     /// ```
     ///
     /// Because reduce produces the same type of element as its input,
@@ -4882,14 +4884,14 @@
     /// use rayon::prelude::*;
     ///
     /// let s =
-    ///     [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+    ///     ['a', 'b', 'c', 'd', 'e']
     ///     .par_iter()
     ///     .fold(|| String::new(),
     ///             |mut s: String, c: &amp;char| { s.push(*c); s })
     ///     .reduce(|| String::new(),
     ///             |mut a: String, b: String| { a.push_str(&amp;b); a });
     ///
-    /// assert_eq!(s, &quot;abcde&quot;);
+    /// assert_eq!(s, "abcde");
     /// ```
     ///
     /// Now `fold` will process groups of our characters at a time,
@@ -4932,7 +4934,7 @@
     /// iterator, finally producing the value for further use.
     ///
     /// This works essentially like `fold(|| init.clone(), fold_op)`, except
-    /// it doesn&#39;t require the `init` type to be `Sync`, nor any other form
+    /// it doesn't require the `init` type to be `Sync`, nor any other form
     /// of added synchronization.
     ///
     /// # Examples
@@ -4960,7 +4962,7 @@
     /// This is a variation of [`fold()`] for operations which can fail with
     /// `Option::None` or `Result::Err`.  The first such failure stops
     /// processing the local set of items, without affecting other folds in the
-    /// iterator&#39;s subdivisions.
+    /// iterator's subdivisions.
     ///
     /// Often, `try_fold()` will be followed by [`try_reduce()`]
     /// for a final reduction and global short-circuiting effect.
@@ -5340,7 +5342,7 @@
     /// [`by_exponential_blocks()`][IndexedParallelIterator::by_exponential_blocks].
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;first&quot; may be nebulous.  If you
+    /// sequential `HashMap` iteration, so "first" may be nebulous.  If you
     /// just want the first match that discovered anywhere in the iterator,
     /// `find_any` is a better choice.
     ///
@@ -5370,8 +5372,8 @@
     /// a later match is found.
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;last&quot; may be nebulous.  When the
-    /// order doesn&#39;t actually matter to you, `find_any` is a better choice.
+    /// sequential `HashMap` iteration, so "last" may be nebulous.  When the
+    /// order doesn't actually matter to you, `find_any` is a better choice.
     ///
     /// # Examples
     ///
@@ -5408,7 +5410,7 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let c = [&quot;lol&quot;, &quot;NaN&quot;, &quot;5&quot;, &quot;5&quot;];
+    /// let c = ["lol", "NaN", "5", "5"];
     ///
     /// let found_number = c.par_iter().find_map_any(|s| s.parse().ok());
     ///
@@ -5433,7 +5435,7 @@
     /// must continue in case an earlier match is found.
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;first&quot; may be nebulous. If you
+    /// sequential `HashMap` iteration, so "first" may be nebulous. If you
     /// just want the first non-None value discovered anywhere in the iterator,
     /// `find_map_any` is a better choice.
     ///
@@ -5442,7 +5444,7 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let c = [&quot;lol&quot;, &quot;NaN&quot;, &quot;2&quot;, &quot;5&quot;];
+    /// let c = ["lol", "NaN", "2", "5"];
     ///
     /// let first_number = c.par_iter().find_map_first(|s| s.parse().ok());
     ///
@@ -5467,7 +5469,7 @@
     /// must continue in case a later match is found.
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;first&quot; may be nebulous. If you
+    /// sequential `HashMap` iteration, so "first" may be nebulous. If you
     /// just want the first non-None value discovered anywhere in the iterator,
     /// `find_map_any` is a better choice.
     ///
@@ -5476,7 +5478,7 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let c = [&quot;lol&quot;, &quot;NaN&quot;, &quot;2&quot;, &quot;5&quot;];
+    /// let c = ["lol", "NaN", "2", "5"];
     ///
     /// let last_number = c.par_iter().find_map_last(|s| s.parse().ok());
     ///
@@ -5494,8 +5496,8 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    #[deprecated(note = <span class="string">&quot;parallel `find` does not search in order -- use `find_any`, \\
-                         `find_first`, or `find_last`&quot;</span>)]
+    #[deprecated(note = <span class="string">"parallel `find` does not search in order -- use `find_any`, \\
+                         `find_first`, or `find_last`"</span>)]
     </span><span class="kw">fn </span>find&lt;P&gt;(<span class="self">self</span>, predicate: P) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;
     <span class="kw">where
         </span>P: Fn(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool + Sync + Send,
@@ -5505,8 +5507,8 @@
 
     <span class="doccomment">/// Searches for **some** item in the parallel iterator that
     /// matches the given predicate, and if so returns true.  Once
-    /// a match is found, we&#39;ll attempt to stop process the rest
-    /// of the items.  Proving that there&#39;s no match, returning false,
+    /// a match is found, we'll attempt to stop process the rest
+    /// of the items.  Proving that there's no match, returning false,
     /// does require visiting every item.
     ///
     /// # Examples
@@ -5529,7 +5531,7 @@
 
     <span class="doccomment">/// Tests that every item in the parallel iterator matches the given
     /// predicate, and if so returns true.  If a counter-example is found,
-    /// we&#39;ll attempt to stop processing more items, then return false.
+    /// we'll attempt to stop processing more items, then return false.
     ///
     /// # Examples
     ///
@@ -5588,7 +5590,7 @@
     /// as soon as possible.
     ///
     /// Panics within parallel iterators are always propagated to the caller,
-    /// but they don&#39;t always halt the rest of the iterator right away, due to
+    /// but they don't always halt the rest of the iterator right away, due to
     /// the internal semantics of [`join`]. This adaptor makes a greater effort
     /// to stop processing other items sooner, with the cost of additional
     /// synchronization overhead, which may also inhibit some optimizations.
@@ -5597,7 +5599,7 @@
     ///
     /// # Examples
     ///
-    /// If this code didn&#39;t use `panic_fuse()`, it would continue processing
+    /// If this code didn't use `panic_fuse()`, it would continue processing
     /// many more items in other threads (with long sleep delays) before the
     /// panic is finally propagated.
     ///
@@ -5625,7 +5627,7 @@
     /// [`IndexedParallelIterator`], if your underlying iterator also implements
     /// it. [`collect_into_vec()`] allocates efficiently with precise knowledge
     /// of how many elements the iterator contains, and even allows you to reuse
-    /// an existing vector&#39;s backing store rather than allocating a fresh vector.
+    /// an existing vector's backing store rather than allocating a fresh vector.
     ///
     /// See also [`collect_vec_list()`][Self::collect_vec_list] for collecting
     /// into a `LinkedList&lt;Vec&lt;T&gt;&gt;`.
@@ -5731,7 +5733,7 @@
     /// You may prefer to use `unzip_into_vecs()`, which allocates more
     /// efficiently with precise knowledge of how many elements the
     /// iterator contains, and even allows you to reuse existing
-    /// vectors&#39; backing stores rather than allocating fresh vectors.
+    /// vectors' backing stores rather than allocating fresh vectors.
     ///
     /// # Examples
     ///
@@ -5874,7 +5876,7 @@
     <span class="doccomment">/// Creates an iterator that yields `n` elements from *anywhere* in the original iterator.
     ///
     /// This is similar to [`IndexedParallelIterator::take`] without being
-    /// constrained to the &quot;first&quot; `n` of the original iterator order. The
+    /// constrained to the "first" `n` of the original iterator order. The
     /// taken items will still maintain their relative order where that is
     /// visible in `collect`, `reduce`, and similar outputs.
     ///
@@ -5899,7 +5901,7 @@
     <span class="doccomment">/// Creates an iterator that skips `n` elements from *anywhere* in the original iterator.
     ///
     /// This is similar to [`IndexedParallelIterator::skip`] without being
-    /// constrained to the &quot;first&quot; `n` of the original iterator order. The
+    /// constrained to the "first" `n` of the original iterator order. The
     /// remaining items will still maintain their relative order where that is
     /// visible in `collect`, `reduce`, and similar outputs.
     ///
@@ -6097,7 +6099,7 @@
     </span>}
 }
 
-<span class="doccomment">/// An iterator that supports &quot;random access&quot; to its data, meaning
+<span class="doccomment">/// An iterator that supports "random access" to its data, meaning
 /// that you can split it at arbitrary indices and draw data from
 /// those points.
 ///
@@ -6165,7 +6167,7 @@
     /// ```
     </span><span class="attr">#[track_caller]
     </span><span class="kw">fn </span>by_uniform_blocks(<span class="self">self</span>, block_size: usize) -&gt; UniformBlocks&lt;<span class="self">Self</span>&gt; {
-        <span class="macro">assert!</span>(block_size != <span class="number">0</span>, <span class="string">&quot;block_size must not be zero&quot;</span>);
+        <span class="macro">assert!</span>(block_size != <span class="number">0</span>, <span class="string">"block_size must not be zero"</span>);
         UniformBlocks::new(<span class="self">self</span>, block_size)
     }
 
@@ -6234,10 +6236,10 @@
     ///
     /// let result: Vec&lt;_&gt; = (1..4)
     ///     .into_par_iter()
-    ///     .zip(vec![&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])
+    ///     .zip(vec!['a', 'b', 'c'])
     ///     .collect();
     ///
-    /// assert_eq!(result, [(1, &#39;a&#39;), (2, &#39;b&#39;), (3, &#39;c&#39;)]);
+    /// assert_eq!(result, [(1, 'a'), (2, 'b'), (3, 'c')]);
     /// ```
     </span><span class="kw">fn </span>zip&lt;Z&gt;(<span class="self">self</span>, zip_op: Z) -&gt; Zip&lt;<span class="self">Self</span>, Z::Iter&gt;
     <span class="kw">where
@@ -6276,7 +6278,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="self">self</span>.len(),
             zip_op_iter.len(),
-            <span class="string">&quot;iterators must have the same length&quot;
+            <span class="string">"iterators must have the same length"
         </span>);
         ZipEq::new(<span class="self">self</span>, zip_op_iter)
     }
@@ -6346,7 +6348,7 @@
     /// ```
     </span><span class="attr">#[track_caller]
     </span><span class="kw">fn </span>chunks(<span class="self">self</span>, chunk_size: usize) -&gt; Chunks&lt;<span class="self">Self</span>&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         Chunks::new(<span class="self">self</span>, chunk_size)
     }
 
@@ -6392,7 +6394,7 @@
         F: Fn(T, <span class="self">Self</span>::Item) -&gt; T + Send + Sync,
         T: Send,
     {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         FoldChunks::new(<span class="self">self</span>, chunk_size, identity, fold_op)
     }
 
@@ -6403,7 +6405,7 @@
     /// produced by this iterator.
     ///
     /// This works essentially like `fold_chunks(chunk_size, || init.clone(), fold_op)`,
-    /// except it doesn&#39;t require the `init` type to be `Sync`, nor any other form of
+    /// except it doesn't require the `init` type to be `Sync`, nor any other form of
     /// added synchronization.
     ///
     /// [`fold()`]: std::iter::Iterator#method.fold
@@ -6429,7 +6431,7 @@
         </span>T: Send + Clone,
         F: Fn(T, <span class="self">Self</span>::Item) -&gt; T + Send + Sync,
     {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         FoldChunksWith::new(<span class="self">self</span>, chunk_size, init, fold_op)
     }
 
@@ -6592,13 +6594,13 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let chars = vec![&#39;a&#39;, &#39;b&#39;, &#39;c&#39;];
+    /// let chars = vec!['a', 'b', 'c'];
     /// let result: Vec&lt;_&gt; = chars
     ///     .into_par_iter()
     ///     .enumerate()
     ///     .collect();
     ///
-    /// assert_eq!(result, [(0, &#39;a&#39;), (1, &#39;b&#39;), (2, &#39;c&#39;)]);
+    /// assert_eq!(result, [(0, 'a'), (1, 'b'), (2, 'c')]);
     /// ```
     </span><span class="kw">fn </span>enumerate(<span class="self">self</span>) -&gt; Enumerate&lt;<span class="self">Self</span>&gt; {
         Enumerate::new(<span class="self">self</span>)
@@ -6663,7 +6665,7 @@
     /// matches the given predicate, and returns its index.  Like
     /// `ParallelIterator::find_any`, the parallel search will not
     /// necessarily find the **first** match, and once a match is
-    /// found we&#39;ll attempt to stop processing any more.
+    /// found we'll attempt to stop processing any more.
     ///
     /// # Examples
     ///
@@ -6672,7 +6674,7 @@
     ///
     /// let a = [1, 2, 3, 3];
     ///
-    /// let i = a.par_iter().position_any(|&amp;x| x == 3).expect(&quot;found&quot;);
+    /// let i = a.par_iter().position_any(|&amp;x| x == 3).expect("found");
     /// assert!(i == 2 || i == 3);
     ///
     /// assert_eq!(a.par_iter().position_any(|&amp;x| x == 100), None);
@@ -6699,7 +6701,7 @@
     /// is found.
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;first&quot; may be nebulous.  If you
+    /// sequential `HashMap` iteration, so "first" may be nebulous.  If you
     /// just want the first match that discovered anywhere in the iterator,
     /// `position_any` is a better choice.
     ///
@@ -6736,8 +6738,8 @@
     /// is found.
     ///
     /// Note that not all parallel iterators have a useful order, much like
-    /// sequential `HashMap` iteration, so &quot;last&quot; may be nebulous.  When the
-    /// order doesn&#39;t actually matter to you, `position_any` is a better
+    /// sequential `HashMap` iteration, so "last" may be nebulous.  When the
+    /// order doesn't actually matter to you, `position_any` is a better
     /// choice.
     ///
     /// # Examples
@@ -6766,8 +6768,8 @@
 
     <span class="attr">#[doc(hidden)]
     #[deprecated(
-        note = <span class="string">&quot;parallel `position` does not search in order -- use `position_any`, \\
-                `position_first`, or `position_last`&quot;
+        note = <span class="string">"parallel `position` does not search in order -- use `position_any`, \\
+                `position_first`, or `position_last`"
     </span>)]
     </span><span class="kw">fn </span>position&lt;P&gt;(<span class="self">self</span>, predicate: P) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
     <span class="kw">where
@@ -6929,7 +6931,7 @@
 /// `FromParallelIterator` for a given type, you define how it will be
 /// created from an iterator.
 ///
-/// `FromParallelIterator` is used through [`ParallelIterator`]&#39;s [`collect()`] method.
+/// `FromParallelIterator` is used through [`ParallelIterator`]'s [`collect()`] method.
 ///
 /// [`ParallelIterator`]: trait.ParallelIterator.html
 /// [`collect()`]: trait.ParallelIterator.html#method.collect
@@ -6970,9 +6972,9 @@
     /// fastest) way to do this is often to collect `par_iter` into a
     /// [`LinkedList`] (via [`collect_vec_list`]) or another intermediate
     /// data structure and then sequentially extend your collection. However,
-    /// a more &#39;native&#39; technique is to use the [`par_iter.fold`] or
+    /// a more 'native' technique is to use the [`par_iter.fold`] or
     /// [`par_iter.fold_with`] methods to create the collection.
-    /// Alternatively, if your collection is &#39;natively&#39; parallel, you
+    /// Alternatively, if your collection is 'natively' parallel, you
     /// can use `par_iter.for_each` to process each element in turn.
     ///
     /// [`LinkedList`]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
@@ -7109,35 +7111,35 @@
     ///
     /// let squares: Vec&lt;i32&gt; = (0..10).map(|x| x * x).collect();
     ///
-    /// println!(&quot;RangeFull&quot;);
+    /// println!("RangeFull");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(..)
     ///            .eq(squares.par_iter().copied()));
     /// assert!(vec.is_empty());
     /// assert!(vec.capacity() &gt;= squares.len());
     ///
-    /// println!(&quot;RangeFrom&quot;);
+    /// println!("RangeFrom");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(5..)
     ///            .eq(squares[5..].par_iter().copied()));
     /// assert_eq!(&amp;vec[..], &amp;squares[..5]);
     /// assert!(vec.capacity() &gt;= squares.len());
     ///
-    /// println!(&quot;RangeTo&quot;);
+    /// println!("RangeTo");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(..5)
     ///            .eq(squares[..5].par_iter().copied()));
     /// assert_eq!(&amp;vec[..], &amp;squares[5..]);
     /// assert!(vec.capacity() &gt;= squares.len());
     ///
-    /// println!(&quot;RangeToInclusive&quot;);
+    /// println!("RangeToInclusive");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(..=5)
     ///            .eq(squares[..=5].par_iter().copied()));
     /// assert_eq!(&amp;vec[..], &amp;squares[6..]);
     /// assert!(vec.capacity() &gt;= squares.len());
     ///
-    /// println!(&quot;Range&quot;);
+    /// println!("Range");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(3..7)
     ///            .eq(squares[3..7].par_iter().copied()));
@@ -7145,7 +7147,7 @@
     /// assert_eq!(&amp;vec[3..], &amp;squares[7..]);
     /// assert!(vec.capacity() &gt;= squares.len());
     ///
-    /// println!(&quot;RangeInclusive&quot;);
+    /// println!("RangeInclusive");
     /// let mut vec = squares.clone();
     /// assert!(vec.par_drain(3..=7)
     ///            .eq(squares[3..=7].par_iter().copied()));
@@ -7156,8 +7158,8 @@
     </span><span class="kw">fn </span>par_drain&lt;R: RangeBounds&lt;Idx&gt;&gt;(<span class="self">self</span>, range: R) -&gt; <span class="self">Self</span>::Iter;
 }
 
-<span class="doccomment">/// We hide the `Try` trait in a private module, as it&#39;s only meant to be a
-/// stable clone of the standard library&#39;s `Try` trait, as yet unstable.
+<span class="doccomment">/// We hide the `Try` trait in a private module, as it's only meant to be a
+/// stable clone of the standard library's `Try` trait, as yet unstable.
 </span><span class="kw">mod </span>private {
     <span class="kw">use </span>std::convert::Infallible;
     <span class="kw">use </span>std::ops::ControlFlow::{<span class="self">self</span>, Break, Continue};

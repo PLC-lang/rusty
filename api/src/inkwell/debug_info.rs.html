@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/debug_info.rs`."><title>debug_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/debug_info.rs`."><title>debug_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1594,11 +1596,11 @@
 //! ## Setting up the module for holding debug info:
 //! ```ignore
 //! let context = Context::create();
-//! let module = context.create_module(&quot;bin&quot;);
+//! let module = context.create_module("bin");
 //!
 //! let debug_metadata_version = context.i32_type().const_int(3, false);
 //! module.add_basic_value_flag(
-//!     &quot;Debug Info Version&quot;,
+//!     "Debug Info Version",
 //!     inkwell::module::FlagBehavior::Warning,
 //!     debug_metadata_version,
 //! );
@@ -1606,13 +1608,13 @@
 //! let (dibuilder, compile_unit) = module.create_debug_info_builder(
 //!     true,
 //!     /* language */ inkwell::debug_info::DWARFSourceLanguage::C,
-//!     /* filename */ &quot;source_file&quot;,
-//!     /* directory */ &quot;.&quot;,
-//!     /* producer */ &quot;my llvm compiler frontend&quot;,
+//!     /* filename */ "source_file",
+//!     /* directory */ ".",
+//!     /* producer */ "my llvm compiler frontend",
 //!     /* is_optimized */ false,
-//!     /* compiler command line flags */ &quot;&quot;,
+//!     /* compiler command line flags */ "",
 //!     /* runtime_ver */ 0,
-//!     /* split_name */ &quot;&quot;,
+//!     /* split_name */ "",
 //!     /* kind */ inkwell::debug_info::DWARFEmissionKind::Full,
 //!     /* dwo_id */ 0,
 //!     /* split_debug_inling */ false,
@@ -1622,7 +1624,7 @@
 //! ## Creating function debug info
 //! ```ignore
 //!  let ditype = dibuilder.create_basic_type(
-//!      &quot;type_name&quot;,
+//!      "type_name",
 //!      0_u64,
 //!      0x00,
 //!      inkwell::debug_info::DIFlags::Public,
@@ -1633,9 +1635,9 @@
 //!      /* parameter types */ &amp;[],
 //!      inkwell::debug_info::DIFlags::Public,
 //!  );
-//!  let func_scope: DISubprogram&lt;&#39;_&gt; = dibuilder.create_function(
+//!  let func_scope: DISubprogram&lt;'_&gt; = dibuilder.create_function(
 //!      /* scope */ compile_unit.as_debug_info_scope(),
-//!      /* func name */ &quot;main&quot;,
+//!      /* func name */ "main",
 //!      /* linkage_name */ None,
 //!      /* file */ compile_unit.get_file(),
 //!      /* line_no */ 0,
@@ -1669,12 +1671,12 @@
 //! builder.set_current_debug_location(&amp;context, loc);
 //!
 //! // Create global variable
-//! let gv = module.add_global(context.i64_type(), Some(inkwell::AddressSpace::Global), &quot;gv&quot;);
+//! let gv = module.add_global(context.i64_type(), Some(inkwell::AddressSpace::Global), "gv");
 //!
 //!
 //! let const_v = di.create_constant_expression(10);
 //!
-//! let gv_debug = di.create_global_variable_expression(cu.get_file().as_debug_info_scope(), &quot;gv&quot;, &quot;&quot;, cu.get_file(), 1, ditype.as_type(), true, Some(const_v), None, 8);
+//! let gv_debug = di.create_global_variable_expression(cu.get_file().as_debug_info_scope(), "gv", "", cu.get_file(), 1, ditype.as_type(), true, Some(const_v), None, 8);
 //!
 //! let meta_value: inkwell::values::BasicMetadataValueEnum = gv_debug.as_metadata_value(&amp;context).into();
 //! let metadata = context.metadata_node(&amp;[meta_value]);
@@ -1732,21 +1734,21 @@
 /// IR. Created by `Module::create_debug_info_builder`. See `debug_info` module level
 /// documentation for more.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DebugInfoBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DebugInfoBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) builder: LLVMDIBuilderRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
 <span class="doccomment">/// Any kind of debug information scope (i.e. visibility of a source code symbol). Scopes are
 /// created by special `DebugInfoBuilder` methods (eg `create_lexical_block`) and can be turned
 /// into a `DIScope` with the `AsDIScope::as_debug_info_scope` trait method.
 </span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
     metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIScope` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
@@ -1755,11 +1757,11 @@
 
 <span class="doccomment">/// Specific scopes (i.e. `DILexicalBlock`) can be turned into a `DIScope` with the
 /// `AsDIScope::as_debug_info_scope` trait method.
-</span><span class="kw">pub trait </span>AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+</span><span class="kw">pub trait </span>AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DebugInfoBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DebugInfoBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
         module: <span class="kw-2">&amp;</span>Module,
         allow_unresolved: bool,
@@ -1776,24 +1778,24 @@
         split_debug_inlining: bool,
         debug_info_for_profiling: bool,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sysroot: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sdk: <span class="kw-2">&amp;</span>str,
-    ) -&gt; (<span class="self">Self</span>, DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    ) -&gt; (<span class="self">Self</span>, DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">let </span>builder = <span class="kw">unsafe </span>{
             <span class="kw">if </span>allow_unresolved {
                 LLVMCreateDIBuilder(module.module.get())
@@ -1822,21 +1824,21 @@
             split_debug_inlining,
             debug_info_for_profiling,
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>sysroot,
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>sdk,
         );
@@ -1857,7 +1859,7 @@
     /// * `is_optimized` - A boolean flag which indicates whether optimization is enabled or not.
     /// * `flags` - This string lists command line options. This string is directly embedded in debug info output which may be used by a tool analyzing generated debugging information.
     /// * `runtime_ver` - This indicates runtime version for languages like Objective-C.
-    /// * `split_name` - The name of the file that we&#39;ll split debug info out into.
+    /// * `split_name` - The name of the file that we'll split debug info out into.
     /// * `kind` - The kind of debug information to generate.
     /// * `dwo_id` - The DWOId if this is a split skeleton compile unit.
     /// * `split_debug_inlining` - Whether to emit inline debug info.
@@ -1865,7 +1867,7 @@
     </span><span class="kw">fn </span>create_compile_unit(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         language: DWARFSourceLanguage,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         producer: <span class="kw-2">&amp;</span>str,
         is_optimized: bool,
         flags: <span class="kw-2">&amp;</span>str,
@@ -1876,33 +1878,33 @@
         split_debug_inlining: bool,
         debug_info_for_profiling: bool,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sysroot: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sdk: <span class="kw-2">&amp;</span>str,
-    ) -&gt; DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm4-0&quot;</span>,
-                feature = <span class="string">&quot;llvm5-0&quot;</span>,
-                feature = <span class="string">&quot;llvm6-0&quot;</span>,
-                feature = <span class="string">&quot;llvm7-0&quot;</span>,
-                feature = <span class="string">&quot;llvm8-0&quot;</span>,
-                feature = <span class="string">&quot;llvm9-0&quot;</span>,
-                feature = <span class="string">&quot;llvm10-0&quot;
+                feature = <span class="string">"llvm4-0"</span>,
+                feature = <span class="string">"llvm5-0"</span>,
+                feature = <span class="string">"llvm6-0"</span>,
+                feature = <span class="string">"llvm7-0"</span>,
+                feature = <span class="string">"llvm8-0"</span>,
+                feature = <span class="string">"llvm9-0"</span>,
+                feature = <span class="string">"llvm10-0"
             </span>))]
             </span>{
                 LLVMDIBuilderCreateCompileUnit(
@@ -1925,12 +1927,12 @@
             }
 
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>{
                 LLVMDIBuilderCreateCompileUnit(
@@ -1973,26 +1975,26 @@
     /// * `line_no` - Line number.
     /// * `ty` - Function type.
     /// * `is_local_to_unit` - True if this function is not externally visible.
-    /// * `is_definition` - True if this is a function definition (&quot;When isDefinition: false,
+    /// * `is_definition` - True if this is a function definition ("When isDefinition: false,
     /// subprograms describe a declaration in the type tree as opposed to a definition of a
-    /// function&quot;).
+    /// function").
     /// * `scope_line` - Set to the beginning of the scope this starts
     /// * `flags` - E.g.: LLVMDIFlagLValueReference. These flags are used to emit dwarf attributes.
     /// * `is_optimized` - True if optimization is ON.
     </span><span class="kw">pub fn </span>create_function(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
         linkage_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
-        ditype: DISubroutineType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ditype: DISubroutineType&lt;<span class="lifetime">'ctx</span>&gt;,
         is_local_to_unit: bool,
         is_definition: bool,
         scope_line: u32,
         flags: DIFlags,
         is_optimized: bool,
-    ) -&gt; DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DISubprogram&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>linkage_name = linkage_name.unwrap_or(name);
 
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
@@ -2022,11 +2024,11 @@
     <span class="doccomment">/// Create a lexical block scope.
     </span><span class="kw">pub fn </span>create_lexical_block(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        parent_scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        parent_scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line: u32,
         column: u32,
-    ) -&gt; DILexicalBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DILexicalBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateLexicalBlock(
                 <span class="self">self</span>.builder,
@@ -2043,7 +2045,7 @@
     }
 
     <span class="doccomment">/// Create a file scope.
-    </span><span class="kw">pub fn </span>create_file(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>str, directory: <span class="kw-2">&amp;</span>str) -&gt; DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_file(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>str, directory: <span class="kw-2">&amp;</span>str) -&gt; DIFile&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateFile(
                 <span class="self">self</span>.builder,
@@ -2062,12 +2064,12 @@
     <span class="doccomment">/// Create a debug location.
     </span><span class="kw">pub fn </span>create_debug_location(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;,
         line: u32,
         column: u32,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        inlined_at: <span class="prelude-ty">Option</span>&lt;DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-    ) -&gt; DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
+        inlined_at: <span class="prelude-ty">Option</span>&lt;DILocation&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+    ) -&gt; DILocation&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateDebugLocation(
                 context.as_ctx_ref(),
@@ -2091,12 +2093,12 @@
         name: <span class="kw-2">&amp;</span>str,
         size_in_bits: u64,
         encoding: LLVMDWARFTypeEncoding,
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;llvm7-0&quot;</span>))] </span>flags: DIFlags,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DIBasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        <span class="attr">#[cfg(not(feature = <span class="string">"llvm7-0"</span>))] </span>flags: DIFlags,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DIBasicType&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>name.is_empty() {
             <span class="comment">// Also, LLVM returns the same type if you ask for the same
             // (name, size_in_bits, encoding).
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;basic types must have names&quot;</span>);
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"basic types must have names"</span>);
         }
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateBasicType(
@@ -2105,7 +2107,7 @@
                 name.len(),
                 size_in_bits,
                 encoding,
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;llvm7-0&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"llvm7-0"</span>))]
                 </span>flags,
             )
         };
@@ -2119,13 +2121,13 @@
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>create_typedef(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ditype: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ditype: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm8-0&quot;</span>, feature = <span class="string">&quot;llvm9-0&quot;</span>)))] </span>align_in_bits: u32,
-    ) -&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm8-0"</span>, feature = <span class="string">"llvm9-0"</span>)))] </span>align_in_bits: u32,
+    ) -&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateTypedef(
                 <span class="self">self</span>.builder,
@@ -2135,7 +2137,7 @@
                 file.metadata_ref,
                 line_no,
                 scope.metadata_ref,
-                <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm8-0&quot;</span>, feature = <span class="string">&quot;llvm9-0&quot;</span>)))]
+                <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm8-0"</span>, feature = <span class="string">"llvm9-0"</span>)))]
                 </span>align_in_bits,
             )
         };
@@ -2148,17 +2150,17 @@
     <span class="doccomment">/// Create union type of multiple types.
     </span><span class="kw">pub fn </span>create_union_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
         size_in_bits: u64,
         align_in_bits: u32,
         flags: DIFlags,
-        elements: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        elements: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">'ctx</span>&gt;],
         runtime_language: u32,
         unique_id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>elements: Vec&lt;LLVMMetadataRef&gt; = elements.iter().map(|dt| dt.metadata_ref).collect();
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateUnionType(
@@ -2187,16 +2189,16 @@
     <span class="doccomment">/// Create a type for a non-static member.
     </span><span class="kw">pub fn </span>create_member_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: libc::c_uint,
         size_in_bits: u64,
         align_in_bits: u32,
         offset_in_bits: u64,
         flags: DIFlags,
-        ty: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        ty: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateMemberType(
                 <span class="self">self</span>.builder,
@@ -2221,19 +2223,19 @@
     <span class="doccomment">/// Create a struct type.
     </span><span class="kw">pub fn </span>create_struct_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: libc::c_uint,
         size_in_bits: u64,
         align_in_bits: u32,
         flags: DIFlags,
-        derived_from: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        elements: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        derived_from: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        elements: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">'ctx</span>&gt;],
         runtime_language: libc::c_uint,
-        vtable_holder: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
+        vtable_holder: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
         unique_id: <span class="kw-2">&amp;</span>str,
-    ) -&gt; DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>elements: Vec&lt;LLVMMetadataRef&gt; = elements.iter().map(|dt| dt.metadata_ref).collect();
         <span class="kw">let </span>derived_from = derived_from.map_or(std::ptr::null_mut(), |dt| dt.metadata_ref);
         <span class="kw">let </span>vtable_holder = vtable_holder.map_or(std::ptr::null_mut(), |dt| dt.metadata_ref);
@@ -2266,11 +2268,11 @@
     <span class="doccomment">/// Create a function type
     </span><span class="kw">pub fn </span>create_subroutine_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        return_type: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        parameter_types: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
+        return_type: <span class="prelude-ty">Option</span>&lt;DIType&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        parameter_types: <span class="kw-2">&amp;</span>[DIType&lt;<span class="lifetime">'ctx</span>&gt;],
         flags: DIFlags,
-    ) -&gt; DISubroutineType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DISubroutineType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>p = <span class="macro">vec!</span>[return_type.map_or(std::ptr::null_mut(), |t| t.metadata_ref)];
         p.append(
             <span class="kw-2">&amp;mut </span>parameter_types
@@ -2297,11 +2299,11 @@
     </span><span class="kw">pub fn </span>create_pointer_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
-        pointee: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        pointee: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         size_in_bits: u64,
         align_in_bits: u32,
         address_space: AddressSpace,
-    ) -&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreatePointerType(
                 <span class="self">self</span>.builder,
@@ -2321,7 +2323,7 @@
     }
 
     <span class="doccomment">/// Creates a pointer type
-    </span><span class="kw">pub fn </span>create_reference_type(<span class="kw-2">&amp;</span><span class="self">self</span>, pointee: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;, tag: u32) -&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_reference_type(<span class="kw-2">&amp;</span><span class="self">self</span>, pointee: DIType&lt;<span class="lifetime">'ctx</span>&gt;, tag: u32) -&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{ LLVMDIBuilderCreateReferenceType(<span class="self">self</span>.builder, tag, pointee.metadata_ref) };
 
         DIDerivedType {
@@ -2333,11 +2335,11 @@
     <span class="doccomment">/// Creates an array type
     </span><span class="kw">pub fn </span>create_array_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        inner_type: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        inner_type: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         size_in_bits: u64,
         align_in_bits: u32,
         subscripts: <span class="kw-2">&amp;</span>[Range&lt;i64&gt;],
-    ) -&gt; DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="comment">//Create subranges
         </span><span class="kw">let </span><span class="kw-2">mut </span>subscripts = subscripts
             .iter()
@@ -2368,17 +2370,17 @@
     <span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>create_global_variable_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
         linkage: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
-        ty: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ty: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         local_to_unit: bool,
         expression: <span class="prelude-ty">Option</span>&lt;DIExpression&gt;,
         declaration: <span class="prelude-ty">Option</span>&lt;DIScope&gt;,
         align_in_bits: u32,
-    ) -&gt; DIGlobalVariableExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DIGlobalVariableExpression&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>expression_ptr = expression.map_or(std::ptr::null_mut(), |dt| dt.metadata_ref);
         <span class="kw">let </span>decl_ptr = declaration.map_or(std::ptr::null_mut(), |dt| dt.metadata_ref);
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
@@ -2405,7 +2407,7 @@
     }
 
     <span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>create_constant_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, value: i64) -&gt; DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_constant_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, value: i64) -&gt; DIExpression&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{ LLVMDIBuilderCreateConstantValueExpression(<span class="self">self</span>.builder, value <span class="kw">as _</span>) };
 
         DIExpression {
@@ -2417,15 +2419,15 @@
     <span class="doccomment">/// Create function parameter variable.
     </span><span class="kw">pub fn </span>create_parameter_variable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
         arg_no: u32,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
-        ty: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ty: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         always_preserve: bool,
         flags: DIFlags,
-    ) -&gt; DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateParameterVariable(
                 <span class="self">self</span>.builder,
@@ -2449,15 +2451,15 @@
     <span class="doccomment">/// Create local automatic storage variable.
     </span><span class="kw">pub fn </span>create_auto_variable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
         line_no: u32,
-        ty: DIType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ty: DIType&lt;<span class="lifetime">'ctx</span>&gt;,
         always_preserve: bool,
         flags: DIFlags,
         align_in_bits: u32,
-    ) -&gt; DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateAutoVariable(
                 <span class="self">self</span>.builder,
@@ -2478,7 +2480,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>create_namespace(<span class="kw-2">&amp;</span><span class="self">self</span>, scope: DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str, export_symbols: bool) -&gt; DINamespace&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>create_namespace(<span class="kw-2">&amp;</span><span class="self">self</span>, scope: DIScope&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str, export_symbols: bool) -&gt; DINamespace&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateNameSpace(
                 <span class="self">self</span>.builder,
@@ -2497,12 +2499,12 @@
     <span class="doccomment">/// Insert a variable declaration (`llvm.dbg.declare`) before a specified instruction.
     </span><span class="kw">pub fn </span>insert_declare_before_instruction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        storage: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        var_info: <span class="prelude-ty">Option</span>&lt;DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        debug_loc: DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        instruction: InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        storage: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        var_info: <span class="prelude-ty">Option</span>&lt;DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        debug_loc: DILocation&lt;<span class="lifetime">'ctx</span>&gt;,
+        instruction: InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderInsertDeclareBefore(
                 <span class="self">self</span>.builder,
@@ -2520,12 +2522,12 @@
     <span class="doccomment">/// Insert a variable declaration (`llvm.dbg.declare` intrinsic) at the end of `block`
     </span><span class="kw">pub fn </span>insert_declare_at_end(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        storage: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        var_info: <span class="prelude-ty">Option</span>&lt;DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        debug_loc: DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        storage: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        var_info: <span class="prelude-ty">Option</span>&lt;DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        debug_loc: DILocation&lt;<span class="lifetime">'ctx</span>&gt;,
+        block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderInsertDeclareAtEnd(
                 <span class="self">self</span>.builder,
@@ -2541,7 +2543,7 @@
     }
 
     <span class="doccomment">/// Create an expression
-    </span><span class="kw">pub fn </span>create_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>address_operations: Vec&lt;i64&gt;) -&gt; DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>address_operations: Vec&lt;i64&gt;) -&gt; DIExpression&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderCreateExpression(
                 <span class="self">self</span>.builder,
@@ -2558,12 +2560,12 @@
     <span class="doccomment">/// Insert a new llvm.dbg.value intrinsic call before an instruction.
     </span><span class="kw">pub fn </span>insert_dbg_value_before(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        value: BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        var_info: DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
-        debug_loc: DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        instruction: InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        value: BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;,
+        var_info: DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt;,
+        expr: <span class="prelude-ty">Option</span>&lt;DIExpression&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
+        debug_loc: DILocation&lt;<span class="lifetime">'ctx</span>&gt;,
+        instruction: InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value_ref = <span class="kw">unsafe </span>{
             LLVMDIBuilderInsertDbgValueBefore(
                 <span class="self">self</span>.builder,
@@ -2581,7 +2583,7 @@
     <span class="doccomment">/// Construct a placeholders derived type to be used when building debug info with circular references.
     ///
     /// All placeholders must be replaced before calling finalize().
-    </span><span class="kw">pub unsafe fn </span>create_placeholder_derived_type(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub unsafe fn </span>create_placeholder_derived_type(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>metadata_ref = LLVMTemporaryMDNode(context.as_ctx_ref(), std::ptr::null_mut(), <span class="number">0</span>);
         DIDerivedType {
             metadata_ref,
@@ -2596,8 +2598,8 @@
     /// become dangling pointers after calling this method.
     </span><span class="kw">pub unsafe fn </span>replace_placeholder_derived_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        placeholder: DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        other: DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        placeholder: DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt;,
+        other: DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt;,
     ) {
         LLVMMetadataReplaceAllUsesWith(placeholder.metadata_ref, other.metadata_ref);
     }
@@ -2611,7 +2613,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Drop <span class="kw">for </span>DebugInfoBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Drop <span class="kw">for </span>DebugInfoBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.finalize();
         <span class="kw">unsafe </span>{ LLVMDisposeDIBuilder(<span class="self">self</span>.builder) }
@@ -2620,13 +2622,13 @@
 
 <span class="doccomment">/// Source file scope for debug info
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIFile&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DIFile&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2634,7 +2636,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIFile&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIFile` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
@@ -2643,14 +2645,14 @@
 
 <span class="doccomment">/// Compilation unit scope for debug info
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    file: DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt; {
+    file: DIFile&lt;<span class="lifetime">'ctx</span>&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>get_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIFile&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>get_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIFile&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.file
     }
 
@@ -2660,8 +2662,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2671,20 +2673,20 @@
 
 <span class="doccomment">/// Namespace scope for debug info
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DINamespace&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DINamespace&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DINamespace&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DINamespace&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DINamespace` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DINamespace&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DINamespace&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2694,13 +2696,13 @@
 
 <span class="doccomment">/// Function body scope for debug info
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DISubprogram&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DISubprogram&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2708,7 +2710,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DISubprogram&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DISubprogram` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
@@ -2717,12 +2719,12 @@
 
 <span class="doccomment">/// Any kind of debug info type
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub fn </span>get_size_in_bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="kw">unsafe </span>{ LLVMDITypeGetSizeInBits(<span class="self">self</span>.metadata_ref) }
     }
@@ -2741,8 +2743,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DIType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2752,13 +2754,13 @@
 
 <span class="doccomment">/// A wrapper around a single type, such as a typedef or member type.
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">'ctx</span>&gt; {
         DIType {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2766,14 +2768,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DIDerivedType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DIDerivedType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2783,13 +2785,13 @@
 
 <span class="doccomment">/// A primitive debug info type created by `create_basic_type` method of `DebugInfoBuilder`
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIBasicType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIBasicType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIBasicType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIBasicType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">'ctx</span>&gt; {
         DIType {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2802,8 +2804,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DIBasicType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DIBasicType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2812,13 +2814,13 @@
 }
 <span class="doccomment">/// A wrapper around an array of types, such as a union or struct.
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>as_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIType&lt;<span class="lifetime">'ctx</span>&gt; {
         DIType {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2831,8 +2833,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DICompositeType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DICompositeType&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2842,20 +2844,20 @@
 
 <span class="doccomment">/// Metadata representing the type of a function
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DISubroutineType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DISubroutineType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
 <span class="doccomment">/// Lexical block scope for debug info
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DILexicalBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DILexicalBlock&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsDIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>DILexicalBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsDIScope&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>DILexicalBlock&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>as_debug_info_scope(<span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="self">self</span>.metadata_ref,
             _marker: PhantomData,
@@ -2863,7 +2865,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DILexicalBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DILexicalBlock&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DILexicalBlock` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
@@ -2879,12 +2881,12 @@
 /// Created by `create_debug_location` of `DebugInfoBuilder` and consumed by
 /// `set_current_debug_location` of `Builder`.
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DILocation&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DILocation&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub fn </span>get_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="kw">unsafe </span>{ LLVMDILocationGetLine(<span class="self">self</span>.metadata_ref) }
     }
@@ -2893,7 +2895,7 @@
         <span class="kw">unsafe </span>{ LLVMDILocationGetColumn(<span class="self">self</span>.metadata_ref) }
     }
 
-    <span class="kw">pub fn </span>get_scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>get_scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DIScope&lt;<span class="lifetime">'ctx</span>&gt; {
         DIScope {
             metadata_ref: <span class="kw">unsafe </span>{ LLVMDILocationGetScope(<span class="self">self</span>.metadata_ref) },
             _marker: PhantomData,
@@ -2908,12 +2910,12 @@
 
 <span class="doccomment">/// Metadata representing a variable inside a scope
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DILocalVariable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DILocalVariable&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DILocalVariable` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref
@@ -2921,13 +2923,13 @@
 }
 
 <span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIGlobalVariableExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIGlobalVariableExpression&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIGlobalVariableExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>as_metadata_value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIGlobalVariableExpression&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>as_metadata_value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ MetadataValue::new(LLVMMetadataAsValue(context.as_ctx_ref(), <span class="self">self</span>.metadata_ref)) }
     }
 
@@ -2939,12 +2941,12 @@
 
 <span class="doccomment">/// https://llvm.org/docs/LangRef.html#diexpression
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>DIExpression&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) metadata_ref: LLVMMetadataRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; DIExpression&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; DIExpression&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIExpression` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMMetadataRef {
         <span class="self">self</span>.metadata_ref

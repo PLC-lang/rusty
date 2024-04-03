@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-executor-1.8.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_executor/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_executor"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-executor-1.8.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_executor/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -987,8 +989,8 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Async executors.
 //!
 //! This crate provides two reference executors that trade performance for
-//! functionality. They should be considered reference executors that are &quot;good
-//! enough&quot; for most use cases. For more specialized use cases, consider writing
+//! functionality. They should be considered reference executors that are "good
+//! enough" for most use cases. For more specialized use cases, consider writing
 //! your own executor on top of [`async-task`].
 //!
 //! [`async-task`]: https://crates.io/crates/async-task
@@ -1004,7 +1006,7 @@
 //!
 //! // Spawn a task.
 //! let task = ex.spawn(async {
-//!     println!(&quot;Hello world&quot;);
+//!     println!("Hello world");
 //! });
 //!
 //! // Run the executor until the task completes.
@@ -1013,10 +1015,10 @@
 
 </span><span class="attr">#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
 </span><span class="kw">use </span>std::fmt;
@@ -1057,31 +1059,31 @@
 ///     .each(0..4, |_| future::block_on(ex.run(shutdown.recv())))
 ///     // Run the main future on the current thread.
 ///     .finish(|| future::block_on(async {
-///         println!(&quot;Hello world!&quot;);
+///         println!("Hello world!");
 ///         drop(signal);
 ///     }));
 /// ```
-</span><span class="kw">pub struct </span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Executor&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The executor state.
     </span>state: OnceCell&lt;Arc&lt;State&gt;&gt;,
 
-    <span class="doccomment">/// Makes the `&#39;a` lifetime invariant.
-    </span>_marker: PhantomData&lt;std::cell::UnsafeCell&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;&gt;,
+    <span class="doccomment">/// Makes the `'a` lifetime invariant.
+    </span>_marker: PhantomData&lt;std::cell::UnsafeCell&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>()&gt;&gt;,
 }
 
-<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {}
 
-<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {}
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        debug_executor(<span class="self">self</span>, <span class="string">&quot;Executor&quot;</span>, f)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        debug_executor(<span class="self">self</span>, <span class="string">"Executor"</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Executor&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Creates a new executor.
     ///
     /// # Examples
@@ -1091,7 +1093,7 @@
     ///
     /// let ex = Executor::new();
     /// ```
-    </span><span class="kw">pub const fn </span>new() -&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub const fn </span>new() -&gt; Executor&lt;<span class="lifetime">'a</span>&gt; {
         Executor {
             state: OnceCell::new(),
             _marker: PhantomData,
@@ -1109,7 +1111,7 @@
     /// assert!(ex.is_empty());
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// assert!(!ex.is_empty());
     ///
@@ -1130,10 +1132,10 @@
     /// let ex = Executor::new();
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// ```
-    </span><span class="kw">pub fn </span>spawn&lt;T: Send + <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + Send + <span class="lifetime">&#39;a</span>) -&gt; Task&lt;T&gt; {
+    </span><span class="kw">pub fn </span>spawn&lt;T: Send + <span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + Send + <span class="lifetime">'a</span>) -&gt; Task&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>active = <span class="self">self</span>.state().active.lock().unwrap();
 
         <span class="comment">// Remove the task from the set of active tasks when the future finishes.
@@ -1169,7 +1171,7 @@
     /// assert!(!ex.try_tick()); // no tasks to run
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// assert!(ex.try_tick()); // a task was found
     /// ```
@@ -1203,7 +1205,7 @@
     /// let ex = Executor::new();
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// future::block_on(ex.tick()); // runs the task
     /// ```
@@ -1248,7 +1250,7 @@
     </span>}
 
     <span class="doccomment">/// Returns a function that schedules a runnable task when it gets woken up.
-    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">&#39;static </span>{
+    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">'static </span>{
         <span class="kw">let </span>state = <span class="self">self</span>.state().clone();
 
         <span class="comment">// TODO: If possible, push into the current local queue and notify the ticker.
@@ -1260,22 +1262,22 @@
 
     <span class="doccomment">/// Returns a reference to the inner state.
     </span><span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;State&gt; {
-        <span class="attr">#[cfg(not(target_family = <span class="string">&quot;wasm&quot;</span>))]
+        <span class="attr">#[cfg(not(target_family = <span class="string">"wasm"</span>))]
         </span>{
             <span class="kw">return </span><span class="self">self</span>.state.get_or_init_blocking(|| Arc::new(State::new()));
         }
 
         <span class="comment">// Some projects use this on WASM for some reason. In this case get_or_init_blocking
-        // doesn&#39;t work. Just poll the future once and panic if there is contention.
-        </span><span class="attr">#[cfg(target_family = <span class="string">&quot;wasm&quot;</span>)]
+        // doesn't work. Just poll the future once and panic if there is contention.
+        </span><span class="attr">#[cfg(target_family = <span class="string">"wasm"</span>)]
         </span>future::block_on(future::poll_once(
             <span class="self">self</span>.state.get_or_init(|| <span class="kw">async </span>{ Arc::new(State::new()) }),
         ))
-        .expect(<span class="string">&quot;encountered contention on WASM&quot;</span>)
+        .expect(<span class="string">"encountered contention on WASM"</span>)
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Executor&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.state.get() {
             <span class="kw">let </span><span class="kw-2">mut </span>active = state.active.lock().unwrap();
@@ -1289,8 +1291,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>default() -&gt; Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>Executor&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>default() -&gt; Executor&lt;<span class="lifetime">'a</span>&gt; {
         Executor::new()
     }
 }
@@ -1308,27 +1310,27 @@
 /// let local_ex = LocalExecutor::new();
 ///
 /// future::block_on(local_ex.run(async {
-///     println!(&quot;Hello world!&quot;);
+///     println!("Hello world!");
 /// }));
 /// ```
-</span><span class="kw">pub struct </span>LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>LocalExecutor&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The inner executor.
-    </span>inner: Executor&lt;<span class="lifetime">&#39;a</span>&gt;,
+    </span>inner: Executor&lt;<span class="lifetime">'a</span>&gt;,
 
     <span class="doccomment">/// Makes the type `!Send` and `!Sync`.
     </span>_marker: PhantomData&lt;Rc&lt;()&gt;&gt;,
 }
 
-<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">'_</span>&gt; {}
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        debug_executor(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="string">&quot;LocalExecutor&quot;</span>, f)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        debug_executor(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="string">"LocalExecutor"</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; LocalExecutor&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Creates a single-threaded executor.
     ///
     /// # Examples
@@ -1338,7 +1340,7 @@
     ///
     /// let local_ex = LocalExecutor::new();
     /// ```
-    </span><span class="kw">pub const fn </span>new() -&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub const fn </span>new() -&gt; LocalExecutor&lt;<span class="lifetime">'a</span>&gt; {
         LocalExecutor {
             inner: Executor::new(),
             _marker: PhantomData,
@@ -1356,7 +1358,7 @@
     /// assert!(local_ex.is_empty());
     ///
     /// let task = local_ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// assert!(!local_ex.is_empty());
     ///
@@ -1377,10 +1379,10 @@
     /// let local_ex = LocalExecutor::new();
     ///
     /// let task = local_ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// ```
-    </span><span class="kw">pub fn </span>spawn&lt;T: <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <span class="lifetime">&#39;a</span>) -&gt; Task&lt;T&gt; {
+    </span><span class="kw">pub fn </span>spawn&lt;T: <span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <span class="lifetime">'a</span>) -&gt; Task&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>active = <span class="self">self</span>.inner().state().active.lock().unwrap();
 
         <span class="comment">// Remove the task from the set of active tasks when the future finishes.
@@ -1416,7 +1418,7 @@
     /// assert!(!ex.try_tick()); // no tasks to run
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// assert!(ex.try_tick()); // a task was found
     /// ```
@@ -1439,7 +1441,7 @@
     /// let ex = LocalExecutor::new();
     ///
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello world&quot;);
+    ///     println!("Hello world");
     /// });
     /// future::block_on(ex.tick()); // runs the task
     /// ```
@@ -1467,7 +1469,7 @@
     </span>}
 
     <span class="doccomment">/// Returns a function that schedules a runnable task when it gets woken up.
-    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">&#39;static </span>{
+    </span><span class="kw">fn </span>schedule(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Fn(Runnable) + Send + Sync + <span class="lifetime">'static </span>{
         <span class="kw">let </span>state = <span class="self">self</span>.inner().state().clone();
 
         <span class="kw">move </span>|runnable| {
@@ -1477,13 +1479,13 @@
     }
 
     <span class="doccomment">/// Returns a reference to the inner executor.
-    </span><span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Executor&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Executor&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>default() -&gt; LocalExecutor&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>LocalExecutor&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>default() -&gt; LocalExecutor&lt;<span class="lifetime">'a</span>&gt; {
         LocalExecutor::new()
     }
 }
@@ -1564,7 +1566,7 @@
         id
     }
 
-    <span class="doccomment">/// Re-inserts a sleeping ticker&#39;s waker if it was notified.
+    <span class="doccomment">/// Re-inserts a sleeping ticker's waker if it was notified.
     ///
     /// Returns `true` if the ticker was notified.
     </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: usize, waker: <span class="kw-2">&amp;</span>Waker) -&gt; bool {
@@ -1615,9 +1617,9 @@
 }
 
 <span class="doccomment">/// Runs task one by one.
-</span><span class="kw">struct </span>Ticker&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>Ticker&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The executor state.
-    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State,
+    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State,
 
     <span class="doccomment">/// Set to a non-zero sleeper ID when in sleeping state.
     ///
@@ -1628,9 +1630,9 @@
     </span>sleeping: AtomicUsize,
 }
 
-<span class="kw">impl </span>Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Ticker&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Creates a ticker.
-    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Ticker&lt;<span class="lifetime">'_</span>&gt; {
         Ticker {
             state,
             sleeping: AtomicUsize::new(<span class="number">0</span>),
@@ -1711,7 +1713,7 @@
     </span>}
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>Ticker&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Ticker&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// If this ticker is in sleeping state, it must be removed from the sleepers list.
         </span><span class="kw">let </span>id = <span class="self">self</span>.sleeping.swap(<span class="number">0</span>, Ordering::SeqCst);
@@ -1735,12 +1737,12 @@
 <span class="doccomment">/// A worker in a work-stealing executor.
 ///
 /// This is just a ticker that also has an associated local queue for improved cache locality.
-</span><span class="kw">struct </span>Runner&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>Runner&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The executor state.
-    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State,
+    </span>state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State,
 
     <span class="doccomment">/// Inner ticker.
-    </span>ticker: Ticker&lt;<span class="lifetime">&#39;a</span>&gt;,
+    </span>ticker: Ticker&lt;<span class="lifetime">'a</span>&gt;,
 
     <span class="doccomment">/// The local queue.
     </span>local: Arc&lt;ConcurrentQueue&lt;Runnable&gt;&gt;,
@@ -1749,9 +1751,9 @@
     </span>ticks: AtomicUsize,
 }
 
-<span class="kw">impl </span>Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Runner&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Creates a runner and registers it in the executor state.
-    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>new(state: <span class="kw-2">&amp;</span>State) -&gt; Runner&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">let </span>runner = Runner {
             state,
             ticker: Ticker::new(state),
@@ -1794,7 +1796,7 @@
                     .skip(start)
                     .take(n);
 
-                <span class="comment">// Remove this runner&#39;s local queue.
+                <span class="comment">// Remove this runner's local queue.
                 </span><span class="kw">let </span>iter = iter.filter(|local| !Arc::ptr_eq(local, <span class="kw-2">&amp;</span><span class="self">self</span>.local));
 
                 <span class="comment">// Try stealing from each local queue in the list.
@@ -1821,7 +1823,7 @@
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>Runner&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Runner&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Remove the local queue.
         </span><span class="self">self</span>.state
@@ -1839,11 +1841,11 @@
 
 <span class="doccomment">/// Steals some items from one queue into another.
 </span><span class="kw">fn </span>steal&lt;T&gt;(src: <span class="kw-2">&amp;</span>ConcurrentQueue&lt;T&gt;, dest: <span class="kw-2">&amp;</span>ConcurrentQueue&lt;T&gt;) {
-    <span class="comment">// Half of `src`&#39;s length rounded up.
+    <span class="comment">// Half of `src`'s length rounded up.
     </span><span class="kw">let </span><span class="kw-2">mut </span>count = (src.len() + <span class="number">1</span>) / <span class="number">2</span>;
 
     <span class="kw">if </span>count &gt; <span class="number">0 </span>{
-        <span class="comment">// Don&#39;t steal more than fits into the queue.
+        <span class="comment">// Don't steal more than fits into the queue.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = dest.capacity() {
             count = count.min(cap - dest.len());
         }
@@ -1860,7 +1862,7 @@
 }
 
 <span class="doccomment">/// Debug implementation for `Executor` and `LocalExecutor`.
-</span><span class="kw">fn </span>debug_executor(executor: <span class="kw-2">&amp;</span>Executor&lt;<span class="lifetime">&#39;_</span>&gt;, name: <span class="kw-2">&amp;</span>str, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+</span><span class="kw">fn </span>debug_executor(executor: <span class="kw-2">&amp;</span>Executor&lt;<span class="lifetime">'_</span>&gt;, name: <span class="kw-2">&amp;</span>str, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
     <span class="comment">// Get a reference to the state.
     </span><span class="kw">let </span>state = <span class="kw">match </span>executor.state.get() {
         <span class="prelude-val">Some</span>(state) =&gt; state,
@@ -1869,8 +1871,8 @@
             </span><span class="kw">struct </span>Uninitialized;
 
             <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Uninitialized {
-                <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-                    f.write_str(<span class="string">&quot;&lt;uninitialized&gt;&quot;</span>)
+                <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+                    f.write_str(<span class="string">"&lt;uninitialized&gt;"</span>)
                 }
             }
 
@@ -1879,52 +1881,52 @@
     };
 
     <span class="doccomment">/// Debug wrapper for the number of active tasks.
-    </span><span class="kw">struct </span>ActiveTasks&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;Slab&lt;Waker&gt;&gt;);
+    </span><span class="kw">struct </span>ActiveTasks&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;Slab&lt;Waker&gt;&gt;);
 
-    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ActiveTasks&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ActiveTasks&lt;<span class="lifetime">'_</span>&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
             <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.try_lock() {
                 <span class="prelude-val">Ok</span>(lock) =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span>lock.len(), f),
-                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>),
-                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">&quot;&lt;poisoned&gt;&quot;</span>),
+                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">"&lt;locked&gt;"</span>),
+                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">"&lt;poisoned&gt;"</span>),
             }
         }
     }
 
     <span class="doccomment">/// Debug wrapper for the local runners.
-    </span><span class="kw">struct </span>LocalRunners&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RwLock&lt;Vec&lt;Arc&lt;ConcurrentQueue&lt;Runnable&gt;&gt;&gt;&gt;);
+    </span><span class="kw">struct </span>LocalRunners&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>RwLock&lt;Vec&lt;Arc&lt;ConcurrentQueue&lt;Runnable&gt;&gt;&gt;&gt;);
 
-    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>LocalRunners&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>LocalRunners&lt;<span class="lifetime">'_</span>&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
             <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.try_read() {
                 <span class="prelude-val">Ok</span>(lock) =&gt; f
                     .debug_list()
                     .entries(lock.iter().map(|queue| queue.len()))
                     .finish(),
-                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>),
-                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">&quot;&lt;poisoned&gt;&quot;</span>),
+                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">"&lt;locked&gt;"</span>),
+                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">"&lt;poisoned&gt;"</span>),
             }
         }
     }
 
     <span class="doccomment">/// Debug wrapper for the sleepers.
-    </span><span class="kw">struct </span>SleepCount&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Mutex&lt;Sleepers&gt;);
+    </span><span class="kw">struct </span>SleepCount&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Mutex&lt;Sleepers&gt;);
 
-    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>SleepCount&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>SleepCount&lt;<span class="lifetime">'_</span>&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
             <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.try_lock() {
                 <span class="prelude-val">Ok</span>(lock) =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span>lock.count, f),
-                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">&quot;&lt;locked&gt;&quot;</span>),
-                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">&quot;&lt;poisoned&gt;&quot;</span>),
+                <span class="prelude-val">Err</span>(TryLockError::WouldBlock) =&gt; f.write_str(<span class="string">"&lt;locked&gt;"</span>),
+                <span class="prelude-val">Err</span>(TryLockError::Poisoned(<span class="kw">_</span>)) =&gt; f.write_str(<span class="string">"&lt;poisoned&gt;"</span>),
             }
         }
     }
 
     f.debug_struct(name)
-        .field(<span class="string">&quot;active&quot;</span>, <span class="kw-2">&amp;</span>ActiveTasks(<span class="kw-2">&amp;</span>state.active))
-        .field(<span class="string">&quot;global_tasks&quot;</span>, <span class="kw-2">&amp;</span>state.queue.len())
-        .field(<span class="string">&quot;local_runners&quot;</span>, <span class="kw-2">&amp;</span>LocalRunners(<span class="kw-2">&amp;</span>state.local_queues))
-        .field(<span class="string">&quot;sleepers&quot;</span>, <span class="kw-2">&amp;</span>SleepCount(<span class="kw-2">&amp;</span>state.sleepers))
+        .field(<span class="string">"active"</span>, <span class="kw-2">&amp;</span>ActiveTasks(<span class="kw-2">&amp;</span>state.active))
+        .field(<span class="string">"global_tasks"</span>, <span class="kw-2">&amp;</span>state.queue.len())
+        .field(<span class="string">"local_runners"</span>, <span class="kw-2">&amp;</span>LocalRunners(<span class="kw-2">&amp;</span>state.local_queues))
+        .field(<span class="string">"sleepers"</span>, <span class="kw-2">&amp;</span>SleepCount(<span class="kw-2">&amp;</span>state.sleepers))
         .finish()
 }
 
@@ -1943,8 +1945,8 @@
     <span class="kw">fn </span>is_send&lt;T: Send&gt;(<span class="kw">_</span>: T) {}
     <span class="kw">fn </span>is_sync&lt;T: Sync&gt;(<span class="kw">_</span>: T) {}
 
-    is_send::&lt;Executor&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(Executor::new());
-    is_sync::&lt;Executor&lt;<span class="lifetime">&#39;_</span>&gt;&gt;(Executor::new());
+    is_send::&lt;Executor&lt;<span class="lifetime">'_</span>&gt;&gt;(Executor::new());
+    is_sync::&lt;Executor&lt;<span class="lifetime">'_</span>&gt;&gt;(Executor::new());
 
     <span class="kw">let </span>ex = Executor::new();
     is_send(ex.run(pending::&lt;()&gt;()));
@@ -1959,8 +1961,8 @@
     /// fn is_send&lt;T: Send&gt;(_: T) {}
     /// fn is_sync&lt;T: Sync&gt;(_: T) {}
     ///
-    /// is_send::&lt;LocalExecutor&lt;&#39;_&gt;&gt;(LocalExecutor::new());
-    /// is_sync::&lt;LocalExecutor&lt;&#39;_&gt;&gt;(LocalExecutor::new());
+    /// is_send::&lt;LocalExecutor&lt;'_&gt;&gt;(LocalExecutor::new());
+    /// is_sync::&lt;LocalExecutor&lt;'_&gt;&gt;(LocalExecutor::new());
     ///
     /// let ex = LocalExecutor::new();
     /// is_send(ex.run(pending::&lt;()&gt;()));

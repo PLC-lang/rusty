@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver/const_evaluator.rs`."><title>const_evaluator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver/const_evaluator.rs`."><title>const_evaluator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -764,11 +766,11 @@
     }
 
     <span class="kw">pub fn </span>incomplete_initialzation(id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="self">Self </span>{
-        UnresolvableConstant::new(<span class="kw-2">*</span>id, <span class="string">&quot;Incomplete initialization - cannot evaluate const expressions&quot;</span>)
+        UnresolvableConstant::new(<span class="kw-2">*</span>id, <span class="string">"Incomplete initialization - cannot evaluate const expressions"</span>)
     }
 
     <span class="kw">pub fn </span>no_initial_value(id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="self">Self </span>{
-        UnresolvableConstant::new(<span class="kw-2">*</span>id, <span class="string">&quot;No initial value&quot;</span>)
+        UnresolvableConstant::new(<span class="kw-2">*</span>id, <span class="string">"No initial value"</span>)
     }
 }
 
@@ -816,7 +818,7 @@
                 );
 
                 <span class="kw">match </span>(initial_value_literal, <span class="kw-2">&amp;</span>candidates_type) {
-                    <span class="comment">//we found an Int-Value and we found the const&#39;s datatype to be an unsigned Integer type (e.g. WORD)
+                    <span class="comment">//we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     </span>(
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(AstNode {
                             stmt: AstStatement::Literal(AstLiteral::Integer(i)),
@@ -827,7 +829,7 @@
                     ) =&gt; {
                         <span class="comment">// since we store literal-ints as i128 we need to truncate all of them down to their
                         // original size to avoid negative numbers
-                        </span><span class="kw">let </span>mask = <span class="number">2_i128</span>.pow(<span class="kw-2">*</span>size) - <span class="number">1</span>; <span class="comment">// bitmask for this type&#39;s size
+                        </span><span class="kw">let </span>mask = <span class="number">2_i128</span>.pow(<span class="kw-2">*</span>size) - <span class="number">1</span>; <span class="comment">// bitmask for this type's size
                         </span><span class="kw">let </span>masked_value = i &amp; mask; <span class="comment">//delete all bits &gt; size of data_type
 
                         </span>index
@@ -836,7 +838,7 @@
                                 <span class="kw-2">&amp;</span>candidate,
                                 AstNode::new_literal(AstLiteral::new_integer(masked_value), id, location),
                             )
-                            .expect(<span class="string">&quot;unknown id for const-expression&quot;</span>); <span class="comment">//panic if we dont know the id
+                            .expect(<span class="string">"unknown id for const-expression"</span>); <span class="comment">//panic if we dont know the id
                         </span>failed_tries = <span class="number">0</span>;
                     }
 
@@ -865,7 +867,7 @@
                         index
                             .get_mut_const_expressions()
                             .mark_unresolvable(<span class="kw-2">&amp;</span>candidate, kind)
-                            .expect(<span class="string">&quot;unknown id for const-expression&quot;</span>); <span class="comment">//panic if we dont know the id
+                            .expect(<span class="string">"unknown id for const-expression"</span>); <span class="comment">//panic if we dont know the id
                     </span>}
                 }
             } <span class="kw">else </span>{
@@ -885,7 +887,7 @@
     index
         .get_mut_const_expressions()
         .mark_resolved(<span class="kw-2">&amp;</span>candidate, new_statement)
-        .expect(<span class="string">&quot;unknown id for const-expression&quot;</span>);
+        .expect(<span class="string">"unknown id for const-expression"</span>);
 }
 
 <span class="doccomment">/// returns true, if the given expression needs to be evaluated.
@@ -899,7 +901,7 @@
                 <span class="kw">_ </span>=&gt; needs_evaluation(elements.as_ref()),
             },
 
-            <span class="comment">// We want to check if literals will overflow, hence they&#39;ll need to be evaluated
+            <span class="comment">// We want to check if literals will overflow, hence they'll need to be evaluated
             </span>AstLiteral::Integer(<span class="kw">_</span>) | AstLiteral::Real(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
 
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
@@ -938,12 +940,12 @@
                 })
                 .cloned(),
             DataTypeInformation::Float { .. } =&gt; <span class="prelude-val">Some</span>(AstFactory::create_literal(
-                AstLiteral::new_real(<span class="string">&quot;0.0&quot;</span>.to_string()),
+                AstLiteral::new_real(<span class="string">"0.0"</span>.to_string()),
                 location.clone(),
                 id,
             )),
             DataTypeInformation::String { encoding, .. } =&gt; <span class="prelude-val">Some</span>(AstFactory::create_literal(
-                AstLiteral::new_string(<span class="string">&quot;&quot;</span>.to_string(), encoding == <span class="kw-2">&amp;</span>StringEncoding::Utf16),
+                AstLiteral::new_string(<span class="string">""</span>.to_string(), encoding == <span class="kw-2">&amp;</span>StringEncoding::Utf16),
                 location.clone(),
                 id,
             )),
@@ -1019,7 +1021,7 @@
                     <span class="kw-2">*</span>value &lt; min || <span class="kw-2">*</span>value &gt; max
                 }
 
-                <span class="comment">// XXX: Returning an error might be a better idea, as we&#39;ll be catching edge-cases we missed?
+                <span class="comment">// XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
                 </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             }
         }
@@ -1028,7 +1030,7 @@
             (AstLiteral::Real(value), <span class="number">32</span>) =&gt; value.parse::&lt;f32&gt;().map(f32::is_infinite).unwrap_or(<span class="bool-val">false</span>),
             (AstLiteral::Real(value), <span class="number">64</span>) =&gt; value.parse::&lt;f64&gt;().map(f64::is_infinite).unwrap_or(<span class="bool-val">false</span>),
 
-            <span class="comment">// XXX: Returning an error might be a better idea, as we&#39;ll be catching edge-cases we missed?
+            <span class="comment">// XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
             </span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         },
 
@@ -1096,7 +1098,7 @@
                 <span class="kw">let </span>dti = target_type.and_then(|it| index.find_effective_type_info(it));
                 <span class="kw">if </span>does_overflow(initial, dti) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Overflow(
-                        <span class="macro">format!</span>(<span class="string">&quot;This will overflow for type {}&quot;</span>, dti.unwrap().get_name()),
+                        <span class="macro">format!</span>(<span class="string">"This will overflow for type {}"</span>, dti.unwrap().get_name()),
                         initial.get_location(),
                     ));
                 }
@@ -1129,19 +1131,19 @@
                             .find_enum_element(enum_name, ref_name)
                             .ok_or_else(|| {
                                 UnresolvableKind::Misc(<span class="macro">format!</span>(
-                                    <span class="string">&quot;Cannot resolve constant enum {enum_name}#{ref_name}.&quot;
+                                    <span class="string">"Cannot resolve constant enum {enum_name}#{ref_name}."
                                 </span>))
                             })
                             .and_then(|v| resolve_const_reference(v, ref_name, index));
                     } <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.to_string()));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Cannot resolve unknown constant."</span>.to_string()));
                     }
                 }
                 <span class="prelude-val">Some</span>(dti) =&gt; {
                     evaluate_with_target_hint(target, scope, index, <span class="prelude-val">Some</span>(dti.get_name()))<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(get_cast_statement_literal(target, dti.get_name(), scope, index)<span class="question-mark">?</span>)
                 }
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Cannot resolve unknown Type-Cast.&quot;</span>.to_string())),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Cannot resolve unknown Type-Cast."</span>.to_string())),
             }
         }
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) =&gt; {
@@ -1163,31 +1165,31 @@
             <span class="kw">let </span>eval_right = evaluate(right, scope, index)<span class="question-mark">?</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>((left, right)) = eval_left.zip(eval_right).as_ref() {
                 <span class="kw">let </span>evalualted = <span class="kw">match </span>operator {
-                    Operator::Plus =&gt; <span class="macro">arithmetic_expression!</span>(left, +, right, <span class="string">&quot;+&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Minus =&gt; <span class="macro">arithmetic_expression!</span>(left, -, right, <span class="string">&quot;-&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Multiplication =&gt; <span class="macro">arithmetic_expression!</span>(left, <span class="kw-2">*</span>, right, <span class="string">&quot;*&quot;</span>, id)<span class="question-mark">?</span>,
+                    Operator::Plus =&gt; <span class="macro">arithmetic_expression!</span>(left, +, right, <span class="string">"+"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Minus =&gt; <span class="macro">arithmetic_expression!</span>(left, -, right, <span class="string">"-"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Multiplication =&gt; <span class="macro">arithmetic_expression!</span>(left, <span class="kw-2">*</span>, right, <span class="string">"*"</span>, id)<span class="question-mark">?</span>,
                     Operator::Division <span class="kw">if </span>right.is_zero() =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Attempt to divide by zero&quot;</span>.to_string()))
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Attempt to divide by zero"</span>.to_string()))
                     }
-                    Operator::Division =&gt; <span class="macro">arithmetic_expression!</span>(left, /, right, <span class="string">&quot;/&quot;</span>, id)<span class="question-mark">?</span>,
+                    Operator::Division =&gt; <span class="macro">arithmetic_expression!</span>(left, /, right, <span class="string">"/"</span>, id)<span class="question-mark">?</span>,
                     Operator::Modulo <span class="kw">if </span>right.is_zero() =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(
-                            <span class="string">&quot;Attempt to calculate the remainder with a divisor of zero&quot;</span>.to_string(),
+                            <span class="string">"Attempt to calculate the remainder with a divisor of zero"</span>.to_string(),
                         ))
                     }
-                    Operator::Modulo =&gt; <span class="macro">arithmetic_expression!</span>(left, %, right, <span class="string">&quot;MOD&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Equal =&gt; <span class="macro">compare_expression!</span>(left, ==, right, <span class="string">&quot;=&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::NotEqual =&gt; <span class="macro">compare_expression!</span>(left, !=, right, <span class="string">&quot;&lt;&gt;&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Greater =&gt; <span class="macro">compare_expression!</span>(left, &gt;, right, <span class="string">&quot;&gt;&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::GreaterOrEqual =&gt; <span class="macro">compare_expression!</span>(left, &gt;=, right, <span class="string">&quot;&gt;=&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Less =&gt; <span class="macro">compare_expression!</span>(left, &lt;, right, <span class="string">&quot;&lt;&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::LessOrEqual =&gt; <span class="macro">compare_expression!</span>(left, &lt;=, right, <span class="string">&quot;&lt;=&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::And =&gt; <span class="macro">bitwise_expression!</span>(left, &amp; , right, <span class="string">&quot;AND&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Or =&gt; <span class="macro">bitwise_expression!</span>(left, | , right, <span class="string">&quot;OR&quot;</span>, id)<span class="question-mark">?</span>,
-                    Operator::Xor =&gt; <span class="macro">bitwise_expression!</span>(left, ^, right, <span class="string">&quot;XOR&quot;</span>, id)<span class="question-mark">?</span>,
+                    Operator::Modulo =&gt; <span class="macro">arithmetic_expression!</span>(left, %, right, <span class="string">"MOD"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Equal =&gt; <span class="macro">compare_expression!</span>(left, ==, right, <span class="string">"="</span>, id)<span class="question-mark">?</span>,
+                    Operator::NotEqual =&gt; <span class="macro">compare_expression!</span>(left, !=, right, <span class="string">"&lt;&gt;"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Greater =&gt; <span class="macro">compare_expression!</span>(left, &gt;, right, <span class="string">"&gt;"</span>, id)<span class="question-mark">?</span>,
+                    Operator::GreaterOrEqual =&gt; <span class="macro">compare_expression!</span>(left, &gt;=, right, <span class="string">"&gt;="</span>, id)<span class="question-mark">?</span>,
+                    Operator::Less =&gt; <span class="macro">compare_expression!</span>(left, &lt;, right, <span class="string">"&lt;"</span>, id)<span class="question-mark">?</span>,
+                    Operator::LessOrEqual =&gt; <span class="macro">compare_expression!</span>(left, &lt;=, right, <span class="string">"&lt;="</span>, id)<span class="question-mark">?</span>,
+                    Operator::And =&gt; <span class="macro">bitwise_expression!</span>(left, &amp; , right, <span class="string">"AND"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Or =&gt; <span class="macro">bitwise_expression!</span>(left, | , right, <span class="string">"OR"</span>, id)<span class="question-mark">?</span>,
+                    Operator::Xor =&gt; <span class="macro">bitwise_expression!</span>(left, ^, right, <span class="string">"XOR"</span>, id)<span class="question-mark">?</span>,
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(
-                            <span class="string">&quot;Cannot resolve operator {operator:?} in constant evaluation&quot;
+                            <span class="string">"Cannot resolve operator {operator:?} in constant evaluation"
                         </span>)))
                     }
                 };
@@ -1213,7 +1215,7 @@
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="prelude-val">None </span><span class="comment">//not yet resolvable
                 </span>}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Not {value:?}&quot;</span>))),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant Not {value:?}"</span>))),
             }
         }
         <span class="comment">// - x
@@ -1225,9 +1227,9 @@
                 <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location }) =&gt; {
                     <span class="kw">let </span>lit = AstNode::new(
                         AstStatement::Literal(AstLiteral::new_real(<span class="macro">format!</span>(
-                            <span class="string">&quot;{:}&quot;</span>,
+                            <span class="string">"{:}"</span>,
                             -(v.parse::&lt;f64&gt;())
-                                .map_err(|err| UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;{err:}: {v:}&quot;</span>)))<span class="question-mark">?
+                                .map_err(|err| UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"{err:}: {v:}"</span>)))<span class="question-mark">?
                         </span>))),
                         id,
                         location,
@@ -1237,7 +1239,7 @@
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="prelude-val">None </span><span class="comment">//not yet resolvable
                 </span>}
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Minus {value:?}&quot;</span>))),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant Minus {value:?}"</span>))),
             }
         }
         AstStatement::ExpressionList(expressions) =&gt; {
@@ -1287,13 +1289,13 @@
             <span class="prelude-val">Some</span>(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) =&gt; evaluate_with_target_hint(expr, scope, index, target_type)<span class="question-mark">?</span>,
-        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {initial:#?}&quot;</span>))),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {initial:#?}"</span>))),
     };
     <span class="prelude-val">Ok</span>(literal)
 }
 
-<span class="doccomment">/// attempts to resolve the inital value of this reference&#39;s target
-/// may return Ok(None) if the variable&#39;s initial value can not be
+<span class="doccomment">/// attempts to resolve the inital value of this reference's target
+/// may return Ok(None) if the variable's initial value can not be
 /// resolved yet
 </span><span class="kw">fn </span>resolve_const_reference(
     variable: <span class="kw-2">&amp;</span><span class="kw">crate</span>::index::VariableIndexEntry,
@@ -1301,7 +1303,7 @@
     index: <span class="kw-2">&amp;</span>Index,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
     <span class="kw">if </span>!variable.is_constant() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;`{name}` is no const reference&quot;</span>)));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"`{name}` is no const reference"</span>)));
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ConstExpression::Resolved(statement)) =
@@ -1331,7 +1333,7 @@
                     <span class="kw">if let </span>AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
                         <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>value)
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Expected integer value, found {v:?}&quot;</span>)))
+                        <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Expected integer value, found {v:?}"</span>)))
                     }
                 })
                 .transpose()<span class="question-mark">?</span>;
@@ -1344,7 +1346,7 @@
                 ));
             }
 
-            <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {type_name}#{cast_statement:?}&quot;</span>)))
+            <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {type_name}#{cast_statement:?}"</span>)))
         }
 
         <span class="prelude-val">Some</span>(DataTypeInformation::Float { .. }) =&gt; {
@@ -1354,14 +1356,14 @@
                 <span class="prelude-val">Some</span>(AstStatement::Literal(AstLiteral::Real(value))) =&gt; value.parse::&lt;f64&gt;().ok(),
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(
-                        <span class="string">&quot;Expected floating point type, got: {evaluated:?}&quot;
+                        <span class="string">"Expected floating point type, got: {evaluated:?}"
                     </span>)))
                 }
             };
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(value) = value <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(
-                    <span class="string">&quot;cannot resolve constant: {type_name}#{cast_statement:?}&quot;
+                    <span class="string">"cannot resolve constant: {type_name}#{cast_statement:?}"
                 </span>)));
             };
 
@@ -1372,13 +1374,13 @@
             ))
         }
 
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {type_name}#{cast_statement:?}&quot;</span>))),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {type_name}#{cast_statement:?}"</span>))),
     }
 }
 
 <span class="macro">macro_rules! </span>cannot_eval_error {
     (<span class="macro-nonterminal">$left</span>:expr, <span class="macro-nonterminal">$op_text</span>:expr, <span class="macro-nonterminal">$right</span>:expr) =&gt; {
-        <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">&quot;Cannot evaluate {:?} {:} {:?}&quot;</span>, <span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>)))
+        <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot evaluate {:?} {:} {:?}"</span>, <span class="macro-nonterminal">$left</span>, <span class="macro-nonterminal">$op_text</span>, <span class="macro-nonterminal">$right</span>)))
     };
 }
 <span class="kw">use </span>cannot_eval_error;
@@ -1458,7 +1460,7 @@
             },
             (   AstStatement::Literal(AstLiteral::Real(..)),
                 AstStatement::Literal(AstLiteral::Real(..))) =&gt; {
-                    <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">&quot;Cannot compare Reals without epsilon&quot;</span>.into()))
+                    <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Cannot compare Reals without epsilon"</span>.into()))
             },
             (   AstStatement::Literal(AstLiteral::Bool(lvalue)),
                 AstStatement::Literal(AstLiteral::Bool(rvalue))) =&gt; {

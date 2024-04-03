@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/validator.rs`."><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/validator.rs`."><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -224,7 +226,7 @@
 <span class="kw">use </span>std::{collections::VecDeque, fmt};
 
 <span class="doccomment">/// The Validate trait represents a predicate over some JSON value. Some validators are very simple
-/// predicates such as &quot;a value which is a string&quot;, whereas others may be much more complex,
+/// predicates such as "a value which is a string", whereas others may be much more complex,
 /// consisting of several other validators composed together in various ways.
 ///
 /// Much of the time all an application cares about is whether the predicate returns true or false,
@@ -238,11 +240,11 @@
 /// `is_valid`. `apply` is only necessary for validators which compose other validators. See the
 /// documentation for `apply` for more information.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Validate: Send + Sync + core::fmt::Display {
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt;;
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt;;
     <span class="comment">// The same as above, but does not construct ErrorIterator.
     // It is faster for cases when the result is not needed (like anyOf), since errors are
     // not constructed
@@ -252,12 +254,12 @@
     /// question and collects the resulting annotations or errors. Note that the result of `apply`
     /// is a `PartialApplication`.
     ///
-    /// What does &quot;partial&quot; mean in this context? Each validator can produce annotations or errors
-    /// in the case of successful or unsuccessful validation respectively. We&#39;re ultimately
-    /// producing these errors and annotations to produce the &quot;basic&quot; output format as specified in
+    /// What does "partial" mean in this context? Each validator can produce annotations or errors
+    /// in the case of successful or unsuccessful validation respectively. We're ultimately
+    /// producing these errors and annotations to produce the "basic" output format as specified in
     /// the 2020-12 draft specification. In this format each annotation or error must include a
     /// json pointer to the keyword in the schema and to the property in the instance. However,
-    /// most validators don&#39;t know where they are in the schema tree so we allow them to return the
+    /// most validators don't know where they are in the schema tree so we allow them to return the
     /// errors or annotations they produce directly and leave it up to the parent validator to fill
     /// in the path information. This means that only validators which are composed of other
     /// validators must implement `apply`, for validators on the leaves of the validator tree the
@@ -289,13 +291,13 @@
     /// }
     /// ```
     ///
-    /// `BasicOutput` also implements `Sum&lt;BasicOutput&gt;` and `FromIterator&lt;BasicOutput&lt;&#39;a&gt;&gt; for PartialApplication&lt;&#39;a&gt;`
+    /// `BasicOutput` also implements `Sum&lt;BasicOutput&gt;` and `FromIterator&lt;BasicOutput&lt;'a&gt;&gt; for PartialApplication&lt;'a&gt;`
     /// so you can use `sum()` and `collect()` in simple cases.
-    </span><span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    </span><span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>errors: Vec&lt;ErrorDescription&gt; = <span class="self">self
             </span>.validate(instance, instance_path)
             .map(ErrorDescription::from)
@@ -309,15 +311,15 @@
 }
 
 <span class="doccomment">/// The result of applying a validator to an instance. As explained in the documentation for
-/// `Validate::apply` this is a &quot;partial&quot; result because it does not include information about
+/// `Validate::apply` this is a "partial" result because it does not include information about
 /// where the error or annotation occurred.
 </span><span class="attr">#[derive(Clone, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
     Valid {
         <span class="doccomment">/// Annotations produced by this validator
-        </span>annotations: <span class="prelude-ty">Option</span>&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>annotations: <span class="prelude-ty">Option</span>&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt;,
         <span class="doccomment">/// Any outputs produced by validators which are children of this validator
-        </span>child_results: VecDeque&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+        </span>child_results: VecDeque&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;,
     },
     Invalid {
         <span class="doccomment">/// Errors which caused this schema to be invalid
@@ -327,9 +329,9 @@
     },
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Create an empty `PartialApplication` which is valid
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>valid_empty() -&gt; PartialApplication&lt;<span class="lifetime">&#39;static</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>valid_empty() -&gt; PartialApplication&lt;<span class="lifetime">'static</span>&gt; {
         PartialApplication::Valid {
             annotations: <span class="prelude-val">None</span>,
             child_results: VecDeque::new(),
@@ -337,7 +339,7 @@
     }
 
     <span class="doccomment">/// Create an empty `PartialApplication` which is invalid
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_empty(errors: Vec&lt;ErrorDescription&gt;) -&gt; PartialApplication&lt;<span class="lifetime">&#39;static</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>invalid_empty(errors: Vec&lt;ErrorDescription&gt;) -&gt; PartialApplication&lt;<span class="lifetime">'static</span>&gt; {
         PartialApplication::Invalid {
             errors,
             child_results: VecDeque::new(),
@@ -355,7 +357,7 @@
 
     <span class="doccomment">/// Set the annotation that will be returned for the current validator. If this
     /// `PartialApplication` is invalid then this method does nothing
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_annotations: Annotations&lt;<span class="lifetime">&#39;a</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_annotations: Annotations&lt;<span class="lifetime">'a</span>&gt;) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Valid { annotations, .. } =&gt; <span class="kw-2">*</span>annotations = <span class="prelude-val">Some</span>(new_annotations),
             <span class="self">Self</span>::Invalid { .. } =&gt; {}
@@ -379,16 +381,16 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for dyn </span>Validate + Send + Sync {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         f.write_str(<span class="kw-2">&amp;</span><span class="self">self</span>.to_string())
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_validators&lt;<span class="lifetime">&#39;a</span>, I: ExactSizeIterator + Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BoxedValidator&gt;&gt;(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_validators&lt;<span class="lifetime">'a</span>, I: ExactSizeIterator + Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BoxedValidator&gt;&gt;(
     <span class="kw-2">mut </span>validators: I,
 ) -&gt; String {
     <span class="kw">match </span>validators.len() {
-        <span class="number">0 </span>=&gt; <span class="string">&quot;{}&quot;</span>.to_string(),
+        <span class="number">0 </span>=&gt; <span class="string">"{}"</span>.to_string(),
         <span class="number">1 </span>=&gt; {
             <span class="comment">// Unwrap is okay due to the check on len
             </span><span class="kw">let </span>validator = validators.next().unwrap();
@@ -396,36 +398,36 @@
             <span class="kw">match </span>name.as_str() {
                 <span class="comment">// boolean validators are represented as is, without brackets because if they
                 // occur in a vector, then the schema is not a key/value mapping
-                </span><span class="string">&quot;true&quot; </span>| <span class="string">&quot;false&quot; </span>=&gt; name,
-                <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{{{}}}&quot;</span>, name),
+                </span><span class="string">"true" </span>| <span class="string">"false" </span>=&gt; name,
+                <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">"{{{}}}"</span>, name),
             }
         }
         <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(
-            <span class="string">&quot;{{{}}}&quot;</span>,
+            <span class="string">"{{{}}}"</span>,
             validators
-                .map(|validator| <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, validator))
+                .map(|validator| <span class="macro">format!</span>(<span class="string">"{:?}"</span>, validator))
                 .collect::&lt;Vec&lt;String&gt;&gt;()
-                .join(<span class="string">&quot;, &quot;</span>)
+                .join(<span class="string">", "</span>)
         ),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_iter_of_validators&lt;<span class="lifetime">&#39;a</span>, G, I&gt;(validators: I) -&gt; String
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_iter_of_validators&lt;<span class="lifetime">'a</span>, G, I&gt;(validators: I) -&gt; String
 <span class="kw">where
     </span>I: Iterator&lt;Item = G&gt;,
-    G: ExactSizeIterator + Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BoxedValidator&gt;,
+    G: ExactSizeIterator + Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BoxedValidator&gt;,
 {
     validators
         .map(format_validators)
         .collect::&lt;Vec&lt;String&gt;&gt;()
-        .join(<span class="string">&quot;, &quot;</span>)
+        .join(<span class="string">", "</span>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format_key_value_validators(validators: <span class="kw-2">&amp;</span>[(String, SchemaNode)]) -&gt; String {
     validators
         .iter()
-        .map(|(name, node)| <span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, name, format_validators(node.validators())))
+        .map(|(name, node)| <span class="macro">format!</span>(<span class="string">"{}: {}"</span>, name, format_validators(node.validators())))
         .collect::&lt;Vec&lt;String&gt;&gt;()
-        .join(<span class="string">&quot;, &quot;</span>)
+        .join(<span class="string">", "</span>)
 }
 </code></pre></div></section></main></body></html>

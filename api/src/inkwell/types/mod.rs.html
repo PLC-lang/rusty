@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -219,7 +221,7 @@
 };
 <span class="kw">use </span>llvm_sys::prelude::{LLVMTypeRef, LLVMValueRef};
 <span class="kw">use </span>llvm_sys::LLVMTypeKind;
-<span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
 </span><span class="kw">use </span>static_alloc::Bump;
 
 <span class="kw">use </span>std::fmt;
@@ -233,12 +235,12 @@
 <span class="comment">// Worth noting that types seem to be singletons. At the very least, primitives are.
 // Though this is likely only true per thread since LLVM claims to not be very thread-safe.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Copy)]
-</span><span class="kw">struct </span>Type&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">struct </span>Type&lt;<span class="lifetime">'ctx</span>&gt; {
     ty: LLVMTypeRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>()&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>()&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Type&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Type&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">unsafe fn </span>new(ty: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!ty.is_null());
 
@@ -257,19 +259,19 @@
         }
     }
 
-    <span class="kw">fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ PointerType::new(LLVMPointerType(<span class="self">self</span>.ty, address_space.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-        <span class="macro">assert!</span>(size != <span class="number">0</span>, <span class="string">&quot;Vectors of size zero are not allowed.&quot;</span>);
+    <span class="kw">fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
+        <span class="macro">assert!</span>(size != <span class="number">0</span>, <span class="string">"Vectors of size zero are not allowed."</span>);
         <span class="comment">// -- https://llvm.org/docs/LangRef.html#vector-type
 
         </span><span class="kw">unsafe </span>{ VectorType::new(LLVMVectorType(<span class="self">self</span>.ty, size)) }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;experimental&quot;</span>))]
-    </span><span class="kw">fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="attr">#[cfg(not(feature = <span class="string">"experimental"</span>))]
+    </span><span class="kw">fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>param_types: Vec&lt;LLVMTypeRef&gt; = param_types.iter().map(|val| val.as_type_ref()).collect();
         <span class="kw">unsafe </span>{
             FunctionType::new(LLVMFunctionType(
@@ -281,13 +283,13 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-    </span><span class="kw">fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
+    </span><span class="kw">fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>pool: Bump&lt;[usize; <span class="number">16</span>]&gt; = Bump::uninit();
         <span class="kw">let </span><span class="kw-2">mut </span>pool_start = <span class="prelude-val">None</span>;
 
         <span class="kw">for </span>(i, param_type) <span class="kw">in </span>param_types.iter().enumerate() {
-            <span class="kw">let </span>addr = pool.leak(param_type.as_type_ref()).expect(<span class="string">&quot;Found more than 16 params&quot;</span>);
+            <span class="kw">let </span>addr = pool.leak(param_type.as_type_ref()).expect(<span class="string">"Found more than 16 params"</span>);
 
             <span class="kw">if </span>i == <span class="number">0 </span>{
                 pool_start = <span class="prelude-val">Some</span>(addr <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
@@ -304,7 +306,7 @@
         }
     }
 
-    <span class="kw">fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ ArrayType::new(LLVMArrayType(<span class="self">self</span>.ty, size)) }
     }
 
@@ -312,11 +314,11 @@
         <span class="kw">unsafe </span>{ LLVMGetUndef(<span class="self">self</span>.ty) }
     }
 
-    <span class="kw">fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntValue::new(LLVMAlignOf(<span class="self">self</span>.ty)) }
     }
 
-    <span class="kw">fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ ContextRef::new(LLVMGetTypeContext(<span class="self">self</span>.ty)) }
     }
 
@@ -327,7 +329,7 @@
         <span class="kw">unsafe </span>{ LLVMTypeIsSized(<span class="self">self</span>.ty) == <span class="number">1 </span>}
     }
 
-    <span class="kw">fn </span>size_of(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">fn </span>size_of(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_sized() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -339,18 +341,18 @@
         <span class="kw">unsafe </span>{ LLVMString::new(LLVMPrintTypeToString(<span class="self">self</span>.ty)) }
     }
 
-    <span class="kw">pub fn </span>get_element_type(<span class="self">self</span>) -&gt; AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>get_element_type(<span class="self">self</span>) -&gt; AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ AnyTypeEnum::new(LLVMGetElementType(<span class="self">self</span>.ty)) }
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Type&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Type&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>llvm_type = <span class="self">self</span>.print_to_string();
 
-        f.debug_struct(<span class="string">&quot;Type&quot;</span>)
-            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ty)
-            .field(<span class="string">&quot;llvm_type&quot;</span>, <span class="kw-2">&amp;</span>llvm_type)
+        f.debug_struct(<span class="string">"Type"</span>)
+            .field(<span class="string">"address"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ty)
+            .field(<span class="string">"llvm_type"</span>, <span class="kw-2">&amp;</span>llvm_type)
             .finish()
     }
 }

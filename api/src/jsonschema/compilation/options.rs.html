@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/compilation/options.rs`."><title>options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/compilation/options.rs`."><title>options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -722,152 +724,152 @@
 <span class="macro">macro_rules! </span>schema {
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$path</span>:expr) =&gt; {
         <span class="kw">static </span><span class="macro-nonterminal">$name</span>: Lazy&lt;serde_json::Value&gt; =
-            Lazy::new(|| serde_json::from_str(<span class="macro">include_str!</span>(<span class="macro-nonterminal">$path</span>)).expect(<span class="string">&quot;Invalid schema&quot;</span>));
+            Lazy::new(|| serde_json::from_str(<span class="macro">include_str!</span>(<span class="macro-nonterminal">$path</span>)).expect(<span class="string">"Invalid schema"</span>));
     };
 }
 
-<span class="macro">schema!</span>(DRAFT4, <span class="string">&quot;../../meta_schemas/draft4.json&quot;</span>);
-<span class="macro">schema!</span>(DRAFT6, <span class="string">&quot;../../meta_schemas/draft6.json&quot;</span>);
-<span class="macro">schema!</span>(DRAFT7, <span class="string">&quot;../../meta_schemas/draft7.json&quot;</span>);
-<span class="macro">schema!</span>(DRAFT201909, <span class="string">&quot;../../meta_schemas/draft2019-09/schema.json&quot;</span>);
+<span class="macro">schema!</span>(DRAFT4, <span class="string">"../../meta_schemas/draft4.json"</span>);
+<span class="macro">schema!</span>(DRAFT6, <span class="string">"../../meta_schemas/draft6.json"</span>);
+<span class="macro">schema!</span>(DRAFT7, <span class="string">"../../meta_schemas/draft7.json"</span>);
+<span class="macro">schema!</span>(DRAFT201909, <span class="string">"../../meta_schemas/draft2019-09/schema.json"</span>);
 <span class="macro">schema!</span>(
     DRAFT201909_APPLICATOR,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/applicator.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/applicator.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT201909_CONTENT,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/content.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/content.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT201909_CORE,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/core.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/core.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT201909_FORMAT,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/format.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/format.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT201909_META_DATA,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/meta-data.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/meta-data.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT201909_VALIDATION,
-    <span class="string">&quot;../../meta_schemas/draft2019-09/meta/validation.json&quot;
+    <span class="string">"../../meta_schemas/draft2019-09/meta/validation.json"
 </span>);
-<span class="macro">schema!</span>(DRAFT202012, <span class="string">&quot;../../meta_schemas/draft2020-12/schema.json&quot;</span>);
+<span class="macro">schema!</span>(DRAFT202012, <span class="string">"../../meta_schemas/draft2020-12/schema.json"</span>);
 <span class="macro">schema!</span>(
     DRAFT202012_CORE,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/core.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/core.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_APPLICATOR,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/applicator.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/applicator.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_UNEVALUATED,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/unevaluated.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/unevaluated.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_VALIDATION,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/validation.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/validation.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_META_DATA,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/meta-data.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/meta-data.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_FORMAT_ANNOTATION,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/format-annotation.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/format-annotation.json"
 </span>);
 <span class="macro">schema!</span>(
     DRAFT202012_CONTENT,
-    <span class="string">&quot;../../meta_schemas/draft2020-12/meta/content.json&quot;
+    <span class="string">"../../meta_schemas/draft2020-12/meta/content.json"
 </span>);
 
 <span class="kw">static </span>META_SCHEMAS: Lazy&lt;AHashMap&lt;String, Arc&lt;serde_json::Value&gt;&gt;&gt; = Lazy::new(|| {
     <span class="kw">let </span><span class="kw-2">mut </span>store = AHashMap::with_capacity(<span class="number">3</span>);
     store.insert(
-        <span class="string">&quot;http://json-schema.org/draft-04/schema&quot;</span>.to_string(),
+        <span class="string">"http://json-schema.org/draft-04/schema"</span>.to_string(),
         Arc::new(DRAFT4.clone()),
     );
     store.insert(
-        <span class="string">&quot;http://json-schema.org/draft-06/schema&quot;</span>.to_string(),
+        <span class="string">"http://json-schema.org/draft-06/schema"</span>.to_string(),
         Arc::new(DRAFT6.clone()),
     );
     store.insert(
-        <span class="string">&quot;http://json-schema.org/draft-07/schema&quot;</span>.to_string(),
+        <span class="string">"http://json-schema.org/draft-07/schema"</span>.to_string(),
         Arc::new(DRAFT7.clone()),
     );
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     </span>{
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/schema&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/schema"</span>.to_string(),
             Arc::new(DRAFT201909.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/applicator&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/applicator"</span>.to_string(),
             Arc::new(DRAFT201909_APPLICATOR.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/content&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/content"</span>.to_string(),
             Arc::new(DRAFT201909_CONTENT.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/core&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/core"</span>.to_string(),
             Arc::new(DRAFT201909_CORE.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/format&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/format"</span>.to_string(),
             Arc::new(DRAFT201909_FORMAT.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/meta-data&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/meta-data"</span>.to_string(),
             Arc::new(DRAFT201909_META_DATA.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/validation&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2019-09/meta/validation"</span>.to_string(),
             Arc::new(DRAFT201909_VALIDATION.clone()),
         );
     }
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
     </span>{
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/schema&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/schema"</span>.to_string(),
             Arc::new(DRAFT202012.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/core&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/core"</span>.to_string(),
             Arc::new(DRAFT202012_CORE.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/applicator&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/applicator"</span>.to_string(),
             Arc::new(DRAFT202012_APPLICATOR.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/unevaluated&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/unevaluated"</span>.to_string(),
             Arc::new(DRAFT202012_UNEVALUATED.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/validation&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/validation"</span>.to_string(),
             Arc::new(DRAFT202012_VALIDATION.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/meta-data&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/meta-data"</span>.to_string(),
             Arc::new(DRAFT202012_META_DATA.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/format-annotation&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/format-annotation"</span>.to_string(),
             Arc::new(DRAFT202012_FORMAT_ANNOTATION.clone()),
         );
         store.insert(
-            <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/content&quot;</span>.to_string(),
+            <span class="string">"https://json-schema.org/draft/2020-12/meta/content"</span>.to_string(),
             Arc::new(DRAFT202012_CONTENT.clone()),
         );
     }
     store
 });
 
-<span class="kw">const </span>EXPECT_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Invalid meta-schema&quot;</span>;
+<span class="kw">const </span>EXPECT_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">"Invalid meta-schema"</span>;
 <span class="kw">static </span>META_SCHEMA_VALIDATORS: Lazy&lt;AHashMap&lt;schemas::Draft, JSONSchema&gt;&gt; = Lazy::new(|| {
     <span class="kw">let </span><span class="kw-2">mut </span>store = AHashMap::with_capacity(<span class="number">3</span>);
     store.insert(
@@ -891,73 +893,73 @@
             .compile(<span class="kw-2">&amp;</span>DRAFT7)
             .expect(EXPECT_MESSAGE),
     );
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     </span>store.insert(
         schemas::Draft::Draft201909,
         JSONSchema::options()
             .without_schema_validation()
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/applicator&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/applicator"</span>.to_string(),
                 DRAFT201909_APPLICATOR.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/content&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/content"</span>.to_string(),
                 DRAFT201909_CONTENT.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/core&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/core"</span>.to_string(),
                 DRAFT201909_CORE.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/format&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/format"</span>.to_string(),
                 DRAFT201909_FORMAT.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/meta-data&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/meta-data"</span>.to_string(),
                 DRAFT201909_META_DATA.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2019-09/meta/validation&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2019-09/meta/validation"</span>.to_string(),
                 DRAFT201909_VALIDATION.clone(),
             )
             .compile(<span class="kw-2">&amp;</span>DRAFT201909)
             .expect(EXPECT_MESSAGE),
     );
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
     </span>store.insert(
         schemas::Draft::Draft202012,
         JSONSchema::options()
             .without_schema_validation()
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/applicator&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/applicator"</span>.to_string(),
                 DRAFT202012_APPLICATOR.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/core&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/core"</span>.to_string(),
                 DRAFT202012_CORE.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/applicator&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/applicator"</span>.to_string(),
                 DRAFT202012_APPLICATOR.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/unevaluated&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/unevaluated"</span>.to_string(),
                 DRAFT202012_UNEVALUATED.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/validation&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/validation"</span>.to_string(),
                 DRAFT202012_VALIDATION.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/meta-data&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/meta-data"</span>.to_string(),
                 DRAFT202012_META_DATA.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/format-annotation&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/format-annotation"</span>.to_string(),
                 DRAFT202012_FORMAT_ANNOTATION.clone(),
             )
             .with_document(
-                <span class="string">&quot;https://json-schema.org/draft/2020-12/meta/content&quot;</span>.to_string(),
+                <span class="string">"https://json-schema.org/draft/2020-12/meta/content"</span>.to_string(),
                 DRAFT202012_CONTENT.clone(),
             )
             .compile(<span class="kw-2">&amp;</span>DRAFT202012)
@@ -974,11 +976,11 @@
 </span><span class="kw">pub struct </span>CompilationOptions {
     external_resolver: Arc&lt;<span class="kw">dyn </span>SchemaResolver&gt;,
     draft: <span class="prelude-ty">Option</span>&lt;schemas::Draft&gt;,
-    content_media_type_checks: AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="prelude-ty">Option</span>&lt;ContentMediaTypeCheckType&gt;&gt;,
+    content_media_type_checks: AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="prelude-ty">Option</span>&lt;ContentMediaTypeCheckType&gt;&gt;,
     content_encoding_checks_and_converters:
-        AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="prelude-ty">Option</span>&lt;(ContentEncodingCheckType, ContentEncodingConverterType)&gt;&gt;,
+        AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="prelude-ty">Option</span>&lt;(ContentEncodingCheckType, ContentEncodingConverterType)&gt;&gt;,
     store: AHashMap&lt;String, Arc&lt;serde_json::Value&gt;&gt;,
-    formats: AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool&gt;,
+    formats: AHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool&gt;,
     validate_formats: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     validate_schema: bool,
     ignore_unknown_formats: bool,
@@ -1006,10 +1008,10 @@
     }
 
     <span class="doccomment">/// Compile `schema` into `JSONSchema` using the currently defined options.
-    </span><span class="kw">pub fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
+    </span><span class="kw">pub fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>serde_json::Value,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;JSONSchema, ValidationError&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>serde_json::Value,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;JSONSchema, ValidationError&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="comment">// Draft is detected in the following precedence order:
         //   - Explicitly specified;
         //   - $schema field in the document;
@@ -1048,11 +1050,11 @@
         <span class="kw">if </span><span class="self">self</span>.validate_schema {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>errors) = META_SCHEMA_VALIDATORS
                 .get(<span class="kw-2">&amp;</span>draft)
-                .expect(<span class="string">&quot;Existing draft&quot;</span>)
+                .expect(<span class="string">"Existing draft"</span>)
                 .validate(schema)
                 .err()
             {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(errors.next().expect(<span class="string">&quot;Should have at least one element&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(errors.next().expect(<span class="string">"Should have at least one element"</span>));
             }
         }
 
@@ -1088,7 +1090,7 @@
     <span class="doccomment">/// Ensure that compiled schema is going to support the provided content media type.
     ///
     /// Arguments:
-    /// * `media_type`: Name of the content media type to support (ie. &quot;application/json&quot;)
+    /// * `media_type`: Name of the content media type to support (ie. "application/json")
     /// * `media_type_check`: Method checking the validity of the input string according to
     ///     the media type.
     ///     The method should return `true` if the input is valid, `false` otherwise.
@@ -1099,14 +1101,14 @@
     /// # let mut options = CompilationOptions::default();
     /// fn check_custom_media_type(instance_string: &amp;str) -&gt; bool {
     ///     // In reality the check might be a bit more different ;)
-    ///     instance_string != &quot;not good&quot;
+    ///     instance_string != "not good"
     /// }
     /// // Add support for application/jsonschema-test
-    /// options.with_content_media_type(&quot;application/jsonschema-test&quot;, check_custom_media_type);
+    /// options.with_content_media_type("application/jsonschema-test", check_custom_media_type);
     /// ```
     </span><span class="kw">pub fn </span>with_content_media_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        media_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        media_type: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         media_type_check: ContentMediaTypeCheckType,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.content_media_type_checks
@@ -1115,7 +1117,7 @@
     </span>}
 
     <span class="doccomment">/// Use a custom resolver for resolving external schema references.
-    </span><span class="kw">pub fn </span>with_resolver(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resolver: <span class="kw">impl </span>SchemaResolver + <span class="lifetime">&#39;static</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_resolver(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resolver: <span class="kw">impl </span>SchemaResolver + <span class="lifetime">'static</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.external_resolver = Arc::new(resolver);
         <span class="self">self
     </span>}
@@ -1126,9 +1128,9 @@
     /// # use jsonschema::CompilationOptions;
     /// # let mut options = CompilationOptions::default();
     /// // Disable support for application/json (which is supported by jsonschema crate)
-    /// options.without_content_media_type_support(&quot;application/json&quot;);
+    /// options.without_content_media_type_support("application/json");
     /// ```
-    </span><span class="kw">pub fn </span>without_content_media_type_support(<span class="kw-2">&amp;mut </span><span class="self">self</span>, media_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>without_content_media_type_support(<span class="kw-2">&amp;mut </span><span class="self">self</span>, media_type: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.content_media_type_checks.insert(media_type, <span class="prelude-val">None</span>);
         <span class="self">self
     </span>}
@@ -1175,7 +1177,7 @@
     <span class="doccomment">/// Ensure that compiled schema is going to support the provided content encoding.
     ///
     /// Arguments:
-    /// * `content_encoding`: Name of the content encoding to support (ie. &quot;base64&quot;)
+    /// * `content_encoding`: Name of the content encoding to support (ie. "base64")
     /// * `content_encoding_check`: Method checking the validity of the input string
     ///     according to content encoding.
     ///     The method should return `true` if the input is valid, `false` otherwise.
@@ -1193,17 +1195,17 @@
     /// # let mut options = CompilationOptions::default();
     /// // The instance_string contains a number (representing the length of the string)
     /// // a space and then the string (whose length should match the expectation).
-    /// // Example: &quot;3 The&quot; or &quot;4  123&quot;
+    /// // Example: "3 The" or "4  123"
     /// fn check_custom_encoding(instance_string: &amp;str) -&gt; bool {
-    ///     if let Some(first_space_index) = instance_string.find(&#39; &#39;) {
+    ///     if let Some(first_space_index) = instance_string.find(' ') {
     ///         if let Ok(value) = instance_string[..first_space_index].parse::&lt;u64&gt;() {
     ///             return instance_string[first_space_index + 1..].chars().count() == value as usize;
     ///         }
     ///     }
     ///     false
     /// }
-    /// fn converter_custom_encoding(instance_string: &amp;str) -&gt; Result&lt;Option&lt;String&gt;, ValidationError&lt;&#39;static&gt;&gt; {
-    ///     if let Some(first_space_index) = instance_string.find(&#39; &#39;) {
+    /// fn converter_custom_encoding(instance_string: &amp;str) -&gt; Result&lt;Option&lt;String&gt;, ValidationError&lt;'static&gt;&gt; {
+    ///     if let Some(first_space_index) = instance_string.find(' ') {
     ///         if let Ok(value) = instance_string[..first_space_index].parse::&lt;u64&gt;() {
     ///             if instance_string[first_space_index + 1..].chars().count() == value as usize {
     ///                 return Ok(Some(instance_string[first_space_index + 1..].to_string()));
@@ -1213,11 +1215,11 @@
     ///     Ok(None)
     /// }
     /// // Add support for prefix-length-string
-    /// options.with_content_encoding(&quot;prefix-length-string&quot;, check_custom_encoding, converter_custom_encoding);
+    /// options.with_content_encoding("prefix-length-string", check_custom_encoding, converter_custom_encoding);
     /// ```
     </span><span class="kw">pub fn </span>with_content_encoding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        content_encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        content_encoding: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         content_encoding_check: ContentEncodingCheckType,
         content_encoding_converter: ContentEncodingConverterType,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
@@ -1235,11 +1237,11 @@
     /// # use serde_json::Value;
     /// # let mut options = CompilationOptions::default();
     /// // Disable support for base64 (which is supported by jsonschema crate)
-    /// options.without_content_encoding_support(&quot;base64&quot;);
+    /// options.without_content_encoding_support("base64");
     /// ```
     </span><span class="kw">pub fn </span>without_content_encoding_support(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        content_encoding: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        content_encoding: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.content_encoding_checks_and_converters
             .insert(content_encoding, <span class="prelude-val">None</span>);
@@ -1251,12 +1253,12 @@
     ///
     /// ```json
     /// {
-    ///     &quot;schema&quot;: {
-    ///         &quot;multipleOf&quot;: {
-    ///             &quot;$ref&quot;: &quot;http://json-schema.org/draft-04/schema#/properties/multipleOf&quot;
+    ///     "schema": {
+    ///         "multipleOf": {
+    ///             "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
     ///         },
-    ///         &quot;maximum&quot;: {
-    ///             &quot;$ref&quot;: &quot;http://json-schema.org/draft-04/schema#/properties/maximum&quot;
+    ///         "maximum": {
+    ///             "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
     ///         }
     ///     }
     /// }
@@ -1276,7 +1278,7 @@
         <span class="self">self</span>.store.insert(id, Arc::new(document));
         <span class="self">self
     </span>}
-    <span class="doccomment">/// Register a custom &quot;format&quot; validator.
+    <span class="doccomment">/// Register a custom "format" validator.
     ///
     /// ## Example
     ///
@@ -1285,27 +1287,27 @@
     /// # use serde_json::json;
     /// fn my_format(s: &amp;str) -&gt; bool {
     ///    // Your awesome format check!
-    ///    s.ends_with(&quot;42!&quot;)
+    ///    s.ends_with("42!")
     /// }
     /// # fn foo() {
-    /// let schema = json!({&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;custom&quot;});
+    /// let schema = json!({"type": "string", "format": "custom"});
     /// let compiled = JSONSchema::options()
-    ///     .with_format(&quot;custom&quot;, my_format)
+    ///     .with_format("custom", my_format)
     ///     .compile(&amp;schema)
-    ///     .expect(&quot;Valid schema&quot;);
+    ///     .expect("Valid schema");
     /// // Invalid string
-    /// assert!(!compiled.is_valid(&amp;json!(&quot;foo&quot;)));
+    /// assert!(!compiled.is_valid(&amp;json!("foo")));
     /// // Valid string
-    /// assert!(compiled.is_valid(&amp;json!(&quot;foo42!&quot;)));
+    /// assert!(compiled.is_valid(&amp;json!("foo42!")));
     /// # }
     /// ```
     ///
     /// The format check function should receive `&amp;str` and return `bool`.
-    </span><span class="kw">pub fn </span>with_format(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, format: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_format(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, format: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.formats.insert(name, format);
         <span class="self">self
     </span>}
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, format: <span class="kw-2">&amp;</span>str) -&gt; FormatKV&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, format: <span class="kw-2">&amp;</span>str) -&gt; FormatKV&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.formats.get_key_value(format)
     }
     <span class="doccomment">/// Do not perform schema validation during compilation.
@@ -1346,15 +1348,15 @@
     }
 }
 <span class="comment">// format name &amp; a pointer to a check function
-</span><span class="kw">type </span>FormatKV&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool)&gt;;
+</span><span class="kw">type </span>FormatKV&lt;<span class="lifetime">'a</span>&gt; = <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool)&gt;;
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>CompilationOptions {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;CompilationConfig&quot;</span>)
-            .field(<span class="string">&quot;draft&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.draft)
-            .field(<span class="string">&quot;content_media_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.content_media_type_checks.keys())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"CompilationConfig"</span>)
+            .field(<span class="string">"draft"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.draft)
+            .field(<span class="string">"content_media_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.content_media_type_checks.keys())
             .field(
-                <span class="string">&quot;content_encoding&quot;</span>,
+                <span class="string">"content_encoding"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.content_encoding_checks_and_converters.keys(),
             )
             .finish()
@@ -1369,7 +1371,7 @@
     <span class="kw">use </span>test_case::test_case;
 
     <span class="attr">#[test_case(<span class="prelude-val">Some</span>(Draft::Draft4), <span class="kw-2">&amp;</span><span class="macro">json!</span>({}) =&gt; Draft::Draft4)]
-    #[test_case(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;http://json-schema.org/draft-06/schema#&quot;</span>}) =&gt; Draft::Draft6)]
+    #[test_case(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-06/schema#"</span>}) =&gt; Draft::Draft6)]
     #[test_case(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({}) =&gt; Draft::default())]
     </span><span class="kw">fn </span>test_ensure_that_draft_detection_is_honored(
         draft_version_in_options: <span class="prelude-ty">Option</span>&lt;Draft&gt;,
@@ -1385,31 +1387,31 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_with_document() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;http://example.json/schema.json#/rule&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"$ref"</span>: <span class="string">"http://example.json/schema.json#/rule"</span>});
         <span class="kw">let </span>compiled = JSONSchema::options()
             .with_document(
-                <span class="string">&quot;http://example.json/schema.json&quot;</span>.to_string(),
-                <span class="macro">json!</span>({<span class="string">&quot;rule&quot;</span>: {<span class="string">&quot;minLength&quot;</span>: <span class="number">5</span>}}),
+                <span class="string">"http://example.json/schema.json"</span>.to_string(),
+                <span class="macro">json!</span>({<span class="string">"rule"</span>: {<span class="string">"minLength"</span>: <span class="number">5</span>}}),
             )
             .compile(<span class="kw-2">&amp;</span>schema)
-            .expect(<span class="string">&quot;Valid schema&quot;</span>);
-        <span class="macro">assert!</span>(!compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">&quot;foo&quot;</span>)));
-        <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">&quot;foobar&quot;</span>)));
+            .expect(<span class="string">"Valid schema"</span>);
+        <span class="macro">assert!</span>(!compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"foo"</span>)));
+        <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"foobar"</span>)));
     }
 
     <span class="kw">fn </span>custom(s: <span class="kw-2">&amp;</span>str) -&gt; bool {
-        s.ends_with(<span class="string">&quot;42!&quot;</span>)
+        s.ends_with(<span class="string">"42!"</span>)
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>custom_format() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>, <span class="string">&quot;format&quot;</span>: <span class="string">&quot;custom&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>, <span class="string">"format"</span>: <span class="string">"custom"</span>});
         <span class="kw">let </span>compiled = JSONSchema::options()
-            .with_format(<span class="string">&quot;custom&quot;</span>, custom)
+            .with_format(<span class="string">"custom"</span>, custom)
             .compile(<span class="kw-2">&amp;</span>schema)
-            .expect(<span class="string">&quot;Valid schema&quot;</span>);
-        <span class="macro">assert!</span>(!compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">&quot;foo&quot;</span>)));
-        <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">&quot;foo42!&quot;</span>)));
+            .expect(<span class="string">"Valid schema"</span>);
+        <span class="macro">assert!</span>(!compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"foo"</span>)));
+        <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"foo42!"</span>)));
     }
 }
 </code></pre></div></section></main></body></html>

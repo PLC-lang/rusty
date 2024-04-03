@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/expression_generator.rs`."><title>expression_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/expression_generator.rs`."><title>expression_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2786,15 +2788,15 @@
 
 <span class="kw">use super</span>::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 <span class="doccomment">/// the generator for expressions
-</span><span class="kw">pub struct </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    <span class="kw">pub </span>llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;a</span>&gt;,
-    <span class="kw">pub </span>index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-    <span class="kw">pub </span>llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>ExpressionCodeGenerator&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    <span class="kw">pub </span>llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'a</span>&gt;,
+    <span class="kw">pub </span>index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
+    <span class="kw">pub </span>llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'a</span>&gt;,
     <span class="doccomment">/// the current function to create blocks in
-    </span><span class="kw">pub </span>function_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;&gt;,
+    </span><span class="kw">pub </span>function_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;&gt;,
     <span class="doccomment">/// The debug context used to create breakpoint information
-    </span><span class="kw">pub </span>debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;a</span>&gt;,
+    </span><span class="kw">pub </span>debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>DebugBuilderEnum&lt;<span class="lifetime">'a</span>&gt;,
 
     <span class="doccomment">/// the string-prefix to use for temporary variables
     </span><span class="kw">pub </span>temp_variable_prefix: String,
@@ -2807,29 +2809,29 @@
 
 <span class="doccomment">/// context information to generate a parameter
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>CallParameterAssignment&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+</span><span class="kw">struct </span>CallParameterAssignment&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
     <span class="doccomment">/// the assignmentstatement in the call-argument list (a:=3)
-    </span>assignment_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstNode,
-    <span class="doccomment">/// the name of the function we&#39;re calling
-    </span>function_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
-    <span class="doccomment">/// the position of the argument in the POU&#39;s argument&#39;s list
+    </span>assignment_statement: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstNode,
+    <span class="doccomment">/// the name of the function we're calling
+    </span>function_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    <span class="doccomment">/// the position of the argument in the POU's argument's list
     </span>index: u32,
-    <span class="doccomment">/// a pointer to the struct instance that carries the call&#39;s arguments
-    </span>parameter_struct: PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;,
+    <span class="doccomment">/// a pointer to the struct instance that carries the call's arguments
+    </span>parameter_struct: PointerValue&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub enum </span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+</span><span class="kw">pub enum </span>ExpressionValue&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="doccomment">/// A Locator-Value
     /// An lvalue (locator value) represents an object that occupies some identifiable location in memory (i.e. has an address).
-    </span>LValue(PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;),
+    </span>LValue(PointerValue&lt;<span class="lifetime">'ink</span>&gt;),
     <span class="doccomment">/// An expression that does not represent an object occupying some identifiable location in memory.
-    </span>RValue(BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;),
+    </span>RValue(BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; ExpressionValue&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="doccomment">/// returns the value represented by this ExpressionValue
-    </span><span class="kw">pub fn </span>get_basic_value_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    </span><span class="kw">pub fn </span>get_basic_value_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ExpressionValue::LValue(it) =&gt; it.as_basic_value_enum(),
             ExpressionValue::RValue(it) =&gt; it.to_owned(),
@@ -2838,15 +2840,15 @@
 
     <span class="doccomment">/// returns the given expression value as an r-value which means that it will load
     /// the pointer, if this is an l_value
-    </span><span class="kw">pub fn </span>as_r_value(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;, load_name: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    </span><span class="kw">pub fn </span>as_r_value(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;, load_name: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            ExpressionValue::LValue(it) =&gt; llvm.load_pointer(it, load_name.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)),
+            ExpressionValue::LValue(it) =&gt; llvm.load_pointer(it, load_name.as_deref().unwrap_or(<span class="string">""</span>)),
             ExpressionValue::RValue(it) =&gt; it.to_owned(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
     <span class="doccomment">/// creates a new expression generator
     ///
     /// - `llvm` dependencies used to generate llvm IR
@@ -2854,13 +2856,13 @@
     /// - `type_hint` an optional type hint for generating literals
     /// - `function_context` the current function to create blocks
     </span><span class="kw">pub fn </span>new(
-        llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
-        annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        function_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
-        debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; {
+        llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
+        annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
+        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+        function_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;,
+        debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
         ExpressionCodeGenerator {
             llvm,
             index,
@@ -2868,8 +2870,8 @@
             annotations,
             function_context: <span class="prelude-val">Some</span>(function_context),
             debug,
-            temp_variable_prefix: <span class="string">&quot;load_&quot;</span>.to_string(),
-            temp_variable_suffix: <span class="string">&quot;&quot;</span>.to_string(),
+            temp_variable_prefix: <span class="string">"load_"</span>.to_string(),
+            temp_variable_suffix: <span class="string">""</span>.to_string(),
             string_len_provider: |<span class="kw">_</span>, actual_length| actual_length, <span class="comment">//when generating string-literals in a body, use the actual length
         </span>}
     }
@@ -2882,11 +2884,11 @@
     /// - `index` the index / global symbol table
     /// - `type_hint` an optional type hint for generating literals
     </span><span class="kw">pub fn </span>new_context_free(
-        llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
-        annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; {
+        llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
+        annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
+        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
         ExpressionCodeGenerator {
             llvm,
             index,
@@ -2894,8 +2896,8 @@
             annotations,
             function_context: <span class="prelude-val">None</span>,
             debug: <span class="kw-2">&amp;</span>DebugBuilderEnum::None,
-            temp_variable_prefix: <span class="string">&quot;load_&quot;</span>.to_string(),
-            temp_variable_suffix: <span class="string">&quot;&quot;</span>.to_string(),
+            temp_variable_prefix: <span class="string">"load_"</span>.to_string(),
+            temp_variable_suffix: <span class="string">""</span>.to_string(),
             string_len_provider: |type_length_declaration, <span class="kw">_</span>| type_length_declaration, <span class="comment">//when generating string-literals in declarations, use the declared length
         </span>}
     }
@@ -2904,13 +2906,13 @@
     </span><span class="kw">pub fn </span>get_function_context(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.function_context.ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
 
     <span class="doccomment">/// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
-    </span><span class="kw">pub fn </span>generate_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_expression(<span class="kw-2">&amp;</span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// If the expression was replaced by the resolver, generate the replacement
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) = <span class="self">self</span>.annotations.get(expression) {
             <span class="comment">// we trust that the validator only passed us valid parameters (so left &amp; right should be same type)
@@ -2932,7 +2934,7 @@
 
     <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">let </span>function_context =
-            <span class="self">self</span>.function_context.expect(<span class="string">&quot;Cannot generate debug info without function context&quot;</span>);
+            <span class="self">self</span>.function_context.expect(<span class="string">"Cannot generate debug info without function context"</span>);
         <span class="kw">let </span>line = statement.get_location().get_line_plus_one();
         <span class="kw">let </span>column = statement.get_location().get_column();
         <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context.function, line, column);
@@ -2941,7 +2943,7 @@
     <span class="kw">pub fn </span>generate_expression_value(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//see if this is a constant - maybe we can short curcuit this codegen
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable {
             qualified_name, constant: <span class="bool-val">true</span>, resulting_type, ..
@@ -2951,8 +2953,8 @@
                 <span class="kw">match </span><span class="self">self</span>.generate_constant_expression(qualified_name, expression) {
                     <span class="comment">// We return here if constant propagation worked
                     </span><span class="prelude-val">Ok</span>(expr) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(expr),
-                    <span class="comment">// ...and fall-back to generating the expression further down if it didn&#39;t
-                    </span><span class="prelude-val">Err</span>(why) =&gt; <span class="macro">log::info!</span>(<span class="string">&quot;{why}&quot;</span>),
+                    <span class="comment">// ...and fall-back to generating the expression further down if it didn't
+                    </span><span class="prelude-val">Err</span>(why) =&gt; <span class="macro">log::info!</span>(<span class="string">"{why}"</span>),
                 }
             }
         }
@@ -3004,24 +3006,24 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         qualified_name: <span class="kw-2">&amp;</span>str,
         expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>const_expression = <span class="self">self
             </span>.index
             <span class="comment">// try to find a constant variable
-            </span>.find_variable(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>qualified_name.split(<span class="string">&#39;.&#39;</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
+            </span>.find_variable(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>qualified_name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
             <span class="comment">// or else try to find an enum element
             </span>.or_else(|| <span class="self">self</span>.index.find_qualified_enum_element(qualified_name))
             <span class="comment">// if this is no constant we have a problem
             </span>.filter(|v| v.is_constant())
             .and_then(|v| v.initial_value)
-            <span class="comment">// fetch the constant&#39;s initial value fron the const-expressions arena
+            <span class="comment">// fetch the constant's initial value fron the const-expressions arena
             </span>.and_then(|constant_variable| {
                 <span class="self">self</span>.index.get_const_expressions().get_resolved_constant_statement(<span class="kw-2">&amp;</span>constant_variable)
             })
             .ok_or_else(|| {
-                <span class="comment">// We&#39;ll _probably_ land here because we&#39;re dealing with aggregate types, see also
+                <span class="comment">// We'll _probably_ land here because we're dealing with aggregate types, see also
                 // https://github.com/PLC-lang/rusty/issues/288
-                </span><span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Cannot propagate constant value for &#39;{qualified_name:}&#39;&quot;</span>);
+                </span><span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Cannot propagate constant value for '{qualified_name:}'"</span>);
                 Diagnostic::codegen_error(message, expression.get_location())
             })<span class="question-mark">?</span>;
 
@@ -3032,7 +3034,7 @@
     <span class="doccomment">/// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
     /// - `left` the AstStatement left of the operator
     /// - `right` the AstStatement right of the operator
-    /// - `operator` the binary expression&#39;s operator
+    /// - `operator` the binary expression's operator
     /// - `expression` the whole expression for diagnostic reasons
     </span><span class="kw">fn </span>generate_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3040,7 +3042,7 @@
         right: <span class="kw-2">&amp;</span>AstNode,
         operator: <span class="kw-2">&amp;</span>Operator,
         expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>l_type_hint = <span class="self">self</span>.get_type_hint_for(left)<span class="question-mark">?</span>;
         <span class="kw">let </span>ltype = <span class="self">self</span>.index.get_intrinsic_type_by_name(l_type_hint.get_name()).get_type_information();
         <span class="kw">let </span>r_type_hint = <span class="self">self</span>.get_type_hint_for(right)<span class="question-mark">?</span>;
@@ -3076,7 +3078,7 @@
         index: <span class="kw-2">&amp;</span>AstNode,
         access_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         target_type: <span class="kw-2">&amp;</span>DataType,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>reference = <span class="self">self</span>.generate_expression(index)<span class="question-mark">?</span>;
         <span class="comment">//Load the reference
         </span><span class="kw">if </span>reference.is_int_value() {
@@ -3092,13 +3094,13 @@
                 <span class="kw">let </span>bitwidth =
                     reference.get_type().const_int(access.get_bit_width(), access_type.is_signed_int());
 
-                <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_int_mul(reference, bitwidth, <span class="string">&quot;&quot;</span>))
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_int_mul(reference, bitwidth, <span class="string">""</span>))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(reference)
             }
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Cannot cast from {} to Integer Type&quot;</span>, access_type.get_name()))
-                .with_error_code(<span class="string">&quot;E051&quot;</span>)
+            <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Cannot cast from {} to Integer Type"</span>, access_type.get_name()))
+                .with_error_code(<span class="string">"E051"</span>)
                 .with_location(index.get_location()))
         }
     }
@@ -3108,7 +3110,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         unary_operator: <span class="kw-2">&amp;</span>Operator,
         expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>value = <span class="kw">match </span>unary_operator {
             Operator::Not =&gt; {
                 <span class="kw">let </span>operator = <span class="self">self</span>.generate_expression(expression)<span class="question-mark">?</span>.into_int_value();
@@ -3122,7 +3124,7 @@
                     operator
                 };
 
-                <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_not(operator, <span class="string">&quot;tmpVar&quot;</span>).as_basic_value_enum())
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_not(operator, <span class="string">"tmpVar"</span>).as_basic_value_enum())
             }
             Operator::Minus =&gt; {
                 <span class="kw">let </span>generated_exp = <span class="self">self</span>.generate_expression(expression)<span class="question-mark">?</span>;
@@ -3130,17 +3132,17 @@
                     <span class="prelude-val">Ok</span>(<span class="self">self
                         </span>.llvm
                         .builder
-                        .build_float_neg(generated_exp.into_float_value(), <span class="string">&quot;tmpVar&quot;</span>)
+                        .build_float_neg(generated_exp.into_float_value(), <span class="string">"tmpVar"</span>)
                         .as_basic_value_enum())
                 } <span class="kw">else if </span>generated_exp.is_int_value() {
                     <span class="prelude-val">Ok</span>(<span class="self">self
                         </span>.llvm
                         .builder
-                        .build_int_neg(generated_exp.into_int_value(), <span class="string">&quot;tmpVar&quot;</span>)
+                        .build_int_neg(generated_exp.into_int_value(), <span class="string">"tmpVar"</span>)
                         .as_basic_value_enum())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                        <span class="string">&quot;Negated expression must be numeric&quot;</span>,
+                        <span class="string">"Negated expression must be numeric"</span>,
                         expression.get_location(),
                     ))
                 }
@@ -3151,7 +3153,7 @@
     }
 
     <span class="doccomment">/// generates the given call-statement &lt;operator&gt;(&lt;parameters&gt;)
-    /// returns the call&#39;s result as a BasicValueEnum (may be a void-type for PROGRAMs)
+    /// returns the call's result as a BasicValueEnum (may be a void-type for PROGRAMs)
     ///
     /// - `operator` - the expression that points to the callable instance (e.g. a PROGRAM, FUNCTION or FUNCTION_BLOCK instance)
     /// - `parameters` - an optional StatementList of parameters
@@ -3159,14 +3161,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>AstNode,
         parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="comment">// find the pou we&#39;re calling
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
+        <span class="comment">// find the pou we're calling
         </span><span class="kw">let </span>pou = <span class="self">self</span>.annotations.get_call_name(operator).zip(<span class="self">self</span>.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| <span class="self">self</span>.index.find_pou(call_name)
             <span class="comment">// for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
             </span>.or_else(|| <span class="self">self</span>.index.find_pou(qualified_name)))
             .or_else(||
-                <span class="comment">// some rare situations have a callstatement that&#39;s not properly annotated (e.g. checkRange-call of ranged datatypes)
+                <span class="comment">// some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = operator.get_flat_reference_name() {
                     <span class="self">self</span>.index.find_pou(name)
                 } <span class="kw">else </span>{
@@ -3200,7 +3202,7 @@
             .find_associated_implementation(implementation_name) <span class="comment">// using the non error option to control the output error
             </span>.ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;No callable implementation associated to {implementation_name:?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"No callable implementation associated to {implementation_name:?}"</span>),
                     operator.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -3214,7 +3216,7 @@
             <span class="kw">if </span>data_type.is_aggregate_type() {
                 <span class="comment">// this is a function call with a return variable fed as an out-pointer
                 </span><span class="kw">let </span>llvm_type = <span class="self">self</span>.llvm_index.get_associated_type(data_type.get_name())<span class="question-mark">?</span>;
-                <span class="kw">let </span>out_pointer = <span class="self">self</span>.llvm.create_local_variable(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span>llvm_type);
+                <span class="kw">let </span>out_pointer = <span class="self">self</span>.llvm.create_local_variable(<span class="string">""</span>, <span class="kw-2">&amp;</span>llvm_type);
                 <span class="comment">// add the out-ptr as its first parameter
                 </span>arguments_list.insert(<span class="number">0</span>, out_pointer.into());
                 <span class="prelude-val">Some</span>(out_pointer)
@@ -3227,11 +3229,11 @@
 
         <span class="comment">// if the target is a function, declare the struct locally
         // assign all parameters into the struct values
-        </span><span class="kw">let </span>call = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder.build_call(function, <span class="kw-2">&amp;</span>arguments_list, <span class="string">&quot;call&quot;</span>);
+        </span><span class="kw">let </span>call = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder.build_call(function, <span class="kw-2">&amp;</span>arguments_list, <span class="string">"call"</span>);
 
         <span class="comment">// so grab either:
         // - the out-pointer if we generated one in by_ref_func_out
-        // - or the call&#39;s return value
+        // - or the call's return value
         // - or a null-ptr
         </span><span class="kw">let </span>value = by_ref_func_out.map(|it| <span class="prelude-val">Ok</span>(ExpressionValue::LValue(it))).unwrap_or_else(|| {
             <span class="kw">let </span>v = call.try_as_basic_value().either(<span class="prelude-val">Ok</span>, |<span class="kw">_</span>| {
@@ -3265,7 +3267,7 @@
     /// - `parameters` vec of passed parameters to the call
     </span><span class="kw">fn </span>assign_output_values(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        parameter_struct: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         function_name: <span class="kw-2">&amp;</span>str,
         parameters: Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
@@ -3309,9 +3311,9 @@
                     <span class="kw">let </span>assigned_output_type =
                         <span class="self">self</span>.annotations.get_type_or_void(expression, <span class="self">self</span>.index).get_type_information();
 
-                    <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">&quot;&quot;</span>).map_err(|<span class="kw">_</span>| {
+                    <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">""</span>).map_err(|<span class="kw">_</span>| {
                         Diagnostic::codegen_error(
-                            <span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {parameter:#?}&quot;</span>),
+                            <span class="macro">format!</span>(<span class="string">"Cannot build generate parameter: {parameter:#?}"</span>),
                             parameter.source_location.clone(),
                         )
                     })<span class="question-mark">?</span>;
@@ -3333,7 +3335,7 @@
                             parameter.source_location.clone(),
                         )<span class="question-mark">?</span>;
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span>output_value = builder.build_load(output, <span class="string">&quot;&quot;</span>);
+                        <span class="kw">let </span>output_value = builder.build_load(output, <span class="string">""</span>);
                         builder.build_store(assigned_output, output_value);
                     }
                 }
@@ -3344,7 +3346,7 @@
 
     <span class="kw">fn </span>generate_explicit_output_assignment(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        parameter_struct: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         function_name: <span class="kw-2">&amp;</span>str,
         left: <span class="kw-2">&amp;</span>AstNode,
         right: <span class="kw-2">&amp;</span>AstNode,
@@ -3374,10 +3376,10 @@
         passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
         implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry,
         operator: <span class="kw-2">&amp;</span>AstNode,
-        function_context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+        function_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>arguments_list = <span class="kw">if </span><span class="macro">matches!</span>(pou, PouIndexEntry::Function { .. }) {
-            <span class="comment">// we&#39;re calling a function
+            <span class="comment">// we're calling a function
             </span><span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_type_name());
             <span class="self">self</span>.generate_function_arguments(pou, passed_parameters, declared_parameters)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
@@ -3425,7 +3427,7 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
         declared_parameters: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>variadic_parameters = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>passed_param_indices = Vec::new();
@@ -3457,7 +3459,7 @@
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                     } <span class="kw">else </span>{
                         <span class="comment">// we are not variadic, we have too many parameters here
-                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Too many parameters&quot;</span>, parameter.get_location()))
+                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Too many parameters"</span>, parameter.get_location()))
                     }
                 })<span class="question-mark">?</span>;
 
@@ -3472,7 +3474,7 @@
                     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(param) = declared_parameters.get(i) {
                         <span class="self">self</span>.generate_empty_expression(param)<span class="question-mark">?
                     </span>} <span class="kw">else </span>{
-                        <span class="macro">unreachable!</span>(<span class="string">&quot;Statement param must have an index entry at this point.&quot;</span>);
+                        <span class="macro">unreachable!</span>(<span class="string">"Statement param must have an index entry at this point."</span>);
                     }
                 };
                 result.push((i, argument));
@@ -3509,7 +3511,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         type_name: <span class="kw-2">&amp;</span>str,
         param_statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(type_info) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) <span class="kw">else </span>{
             <span class="kw">return </span><span class="self">self</span>.generate_expression(param_statement);
         };
@@ -3531,7 +3533,7 @@
                 <span class="kw">let </span>cast = <span class="self">self</span>.llvm.builder.build_bitcast(
                     deref.get_basic_value_enum(),
                     ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 );
 
                 <span class="kw">let </span>load = <span class="self">self</span>.llvm.builder.build_load(
@@ -3560,13 +3562,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         type_info: <span class="kw-2">&amp;</span>DataType,
         argument: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">// allocate a temporary string of correct size and pass it
         </span><span class="kw">let </span>llvm_type = <span class="self">self
             </span>.llvm_index
             .find_associated_type(type_info.get_name())
             .ok_or_else(|| Diagnostic::unknown_type(type_info.get_name(), argument.get_location()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>temp_variable = <span class="self">self</span>.llvm.builder.build_alloca(llvm_type, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>temp_variable = <span class="self">self</span>.llvm.builder.build_alloca(llvm_type, <span class="string">""</span>);
         <span class="self">self</span>.llvm
             .builder
             .build_memset(
@@ -3579,7 +3581,7 @@
             )
             .map_err(|it| Diagnostic::codegen_error(it, argument.get_location()))<span class="question-mark">?</span>;
         <span class="self">self</span>.generate_store(temp_variable, type_info.get_type_information(), argument)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_load(temp_variable, <span class="string">&quot;&quot;</span>))
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_load(temp_variable, <span class="string">""</span>))
     }
 
     <span class="doccomment">/// generates a value that is passed by reference
@@ -3590,7 +3592,7 @@
         argument: <span class="kw-2">&amp;</span>AstNode,
         type_name: <span class="kw-2">&amp;</span>str,
         declared_parameter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if </span>argument.is_empty_statement() {
             <span class="comment">// Uninitialized var_output / var_in_out
             </span><span class="kw">let </span>v_type = <span class="self">self
@@ -3598,7 +3600,7 @@
                 .find_associated_type(type_name)
                 .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(v_type, <span class="string">&quot;&quot;</span>);
+            <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(v_type, <span class="string">""</span>);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = declared_parameter {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(initial_value) =
                     <span class="self">self</span>.get_initial_value(<span class="kw-2">&amp;</span>p.initial_value, <span class="kw-2">&amp;</span><span class="self">self</span>.get_parameter_type(p))
@@ -3619,7 +3621,7 @@
                 ExpressionValue::RValue(_v) =&gt; {
                     <span class="comment">// Passed a literal to a byref parameter?
                     </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?</span>;
-                    <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">&quot;&quot;</span>);
+                    <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">""</span>);
                     <span class="self">self</span>.llvm.builder.build_store(argument, value);
                     argument
                 }
@@ -3651,7 +3653,7 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_bitcast(
                     value,
                     <span class="self">self</span>.llvm_index.get_associated_type(hint.get_name())<span class="question-mark">?</span>,
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 ));
             }
         }
@@ -3666,7 +3668,7 @@
                     .into_array_type()
                     .get_element_type()
                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                <span class="string">&quot;&quot;</span>,
+                <span class="string">""</span>,
             );
 
             <span class="kw">return </span><span class="prelude-val">Ok</span>(res.into_pointer_value().into());
@@ -3680,7 +3682,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         variadic_params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="comment">// get the real varargs from the index
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((var_args, argument_type)) = <span class="self">self
             </span>.index
@@ -3725,7 +3727,7 @@
                 <span class="kw">let </span>size_param = <span class="self">self</span>.llvm.i32_type().const_int(size <span class="kw">as </span>u64, <span class="bool-val">true</span>);
 
                 <span class="kw">let </span>arr = ty.array_type(size <span class="kw">as </span>u32);
-                <span class="kw">let </span>arr_storage = <span class="self">self</span>.llvm.builder.build_alloca(arr, <span class="string">&quot;&quot;</span>);
+                <span class="kw">let </span>arr_storage = <span class="self">self</span>.llvm.builder.build_alloca(arr, <span class="string">""</span>);
                 <span class="kw">for </span>(i, ele) <span class="kw">in </span>generated_params.iter().enumerate() {
                     <span class="kw">let </span>ele_ptr = <span class="self">self</span>.llvm.load_array_element(
                         arr_storage,
@@ -3733,7 +3735,7 @@
                             <span class="self">self</span>.llvm.context.i32_type().const_zero(),
                             <span class="self">self</span>.llvm.context.i32_type().const_int(i <span class="kw">as </span>u64, <span class="bool-val">true</span>),
                         ],
-                        <span class="string">&quot;&quot;</span>,
+                        <span class="string">""</span>,
                     )<span class="question-mark">?</span>;
                     <span class="self">self</span>.llvm.builder.build_store(ele_ptr, <span class="kw-2">*</span>ele);
                 }
@@ -3742,7 +3744,7 @@
                 </span><span class="kw">let </span>arr_storage = <span class="self">self</span>.llvm.builder.build_bitcast(
                     arr_storage,
                     ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 );
 
                 <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[size_param.into(), arr_storage])
@@ -3750,7 +3752,7 @@
                 <span class="prelude-val">Ok</span>(generated_params)
             }
         } <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Function must be variadic&quot;</span>)
+            <span class="macro">unreachable!</span>(<span class="string">"Function must be variadic"</span>)
         }
     }
 
@@ -3763,14 +3765,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         function_name: <span class="kw-2">&amp;</span>str,
         context: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">&quot;{function_name}_instance&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">"{function_name}_instance"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
         </span><span class="kw">let </span>function_type = <span class="self">self
             </span>.llvm_index
             .find_associated_pou_type(function_name) <span class="comment">//Using find instead of get to control the compile error
             </span>.ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;No type associated with &#39;{instance_name:}&#39;&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"No type associated with '{instance_name:}'"</span>),
                     context.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -3778,19 +3780,19 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.create_local_variable(<span class="kw-2">&amp;</span>instance_name, <span class="kw-2">&amp;</span>function_type))
     }
 
-    <span class="doccomment">/// generates the assignments of a pou-call&#39;s parameters
+    <span class="doccomment">/// generates the assignments of a pou-call's parameters
     /// the call parameters are passed to the pou using a struct-instance with all the parameters
     ///
-    /// - `pou_name` the name of the pou we&#39;re calling
+    /// - `pou_name` the name of the pou we're calling
     /// - `parameter_struct` a pointer to a struct-instance that holds all pou-parameters
     /// - `passed_parameters` a vec of all passed parameters to the pou-call
     </span><span class="kw">fn </span>generate_stateful_pou_arguments(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pou_name: <span class="kw-2">&amp;</span>str,
-        class_struct: <span class="prelude-ty">Option</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
-        parameter_struct: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        class_struct: <span class="prelude-ty">Option</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+        parameter_struct: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         passed_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = class_struct
             .map(|class_struct| {
                 <span class="macro">vec!</span>[class_struct.as_basic_value_enum().into(), parameter_struct.as_basic_value_enum().into()]
@@ -3825,7 +3827,7 @@
     <span class="kw">fn </span>generate_empty_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         parameter: <span class="kw-2">&amp;</span>VariableIndexEntry,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>parameter_type_name = <span class="self">self</span>.get_parameter_type(parameter);
         <span class="kw">let </span>parameter_type = <span class="self">self</span>.llvm_index.get_associated_type(<span class="kw-2">&amp;</span>parameter_type_name)<span class="question-mark">?</span>;
         <span class="kw">match </span>parameter.get_declaration_type() {
@@ -3835,12 +3837,12 @@
                 {
                     <span class="self">self</span>.generate_expression(initial_value)
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(parameter_type, <span class="string">&quot;&quot;</span>);
-                    <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>ptr_value, <span class="string">&quot;&quot;</span>))
+                    <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(parameter_type, <span class="string">""</span>);
+                    <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>ptr_value, <span class="string">""</span>))
                 }
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(parameter_type, <span class="string">&quot;&quot;</span>);
+                <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(parameter_type, <span class="string">""</span>);
 
                 <span class="comment">// if default value is given for an output
                 // we need to initialize the pointer value before returning
@@ -3864,7 +3866,7 @@
         <span class="self">self</span>.index.get_initial_value(id).or_else(|| <span class="self">self</span>.index.get_initial_value_for_type(type_name))
     }
 
-    <span class="doccomment">/// generates an assignemnt of a single call&#39;s argument
+    <span class="doccomment">/// generates an assignemnt of a single call's argument
     ///
     /// - `CallParameterAssignment` containing following information
     /// - `assignment_statement` the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
@@ -3874,7 +3876,7 @@
     </span><span class="kw">fn </span>generate_call_struct_argument_assignment(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>parameter_value = <span class="kw">match </span>param_context.assignment_statement.get_stmt() {
             <span class="comment">// explicit call parameter: foo(param := value)
             </span>AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) =&gt; {
@@ -3889,11 +3891,11 @@
     }
 
     <span class="doccomment">/// generates the appropriate value for the given expression where the expression
-    /// is a call&#39;s implicit argument (hence: foo(3), not foo(in := 3))
+    /// is a call's implicit argument (hence: foo(3), not foo(in := 3))
     </span><span class="kw">fn </span>generate_nameless_parameter(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>function_name = param_context.function_name;
         <span class="kw">let </span>index = param_context.index;
@@ -3907,9 +3909,9 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
 
-            <span class="kw">let </span>pointer_to_param = builder.build_struct_gep(parameter_struct, index, <span class="string">&quot;&quot;</span>).map_err(|<span class="kw">_</span>| {
+            <span class="kw">let </span>pointer_to_param = builder.build_struct_gep(parameter_struct, index, <span class="string">""</span>).map_err(|<span class="kw">_</span>| {
                 Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {expression:#?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"Cannot build generate parameter: {expression:#?}"</span>),
                     expression.get_location(),
                 )
             })<span class="question-mark">?</span>;
@@ -3922,7 +3924,7 @@
                 .unwrap_or_else(|| <span class="self">self</span>.index.get_void_type().get_type_information());
 
             <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: <span class="bool-val">true</span>, inner_type_name, .. } = parameter {
-                <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer
+                <span class="comment">//this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
 
                 //expression may be empty -&gt; generate a local variable for it
                 </span><span class="kw">let </span>generated_exp = <span class="kw">if </span>expression.is_empty_statement() {
@@ -3930,7 +3932,7 @@
                         <span class="self">self</span>.llvm_index.find_associated_type(inner_type_name).ok_or_else(|| {
                             Diagnostic::unknown_type(parameter.get_name(), expression.get_location())
                         })<span class="question-mark">?</span>;
-                    builder.build_alloca(temp_type, <span class="string">&quot;empty_varinout&quot;</span>).as_basic_value_enum()
+                    builder.build_alloca(temp_type, <span class="string">"empty_varinout"</span>).as_basic_value_enum()
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.generate_lvalue(expression)<span class="question-mark">?</span>.as_basic_value_enum()
                 };
@@ -3947,7 +3949,7 @@
 
     <span class="doccomment">/// generates the appropriate value for the given `right` expression  that is passed in a call
     /// to the parameter represented by `left`
-    /// it&#39;s a call&#39;s explicit argument (hence: foo(left := right), not foo(right))
+    /// it's a call's explicit argument (hence: foo(left := right), not foo(right))
     </span><span class="kw">fn </span>generate_formal_parameter(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
@@ -3964,7 +3966,7 @@
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))<span class="question-mark">?</span>;
             <span class="kw">let </span>index = parameter.get_location_in_parent();
 
-            <span class="comment">// don&#39;t generate param assignments for empty statements, with the exception
+            <span class="comment">// don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
             </span><span class="kw">let </span>is_auto_deref = <span class="macro">matches!</span>(
                 <span class="self">self</span>.index
@@ -3988,11 +3990,11 @@
     <span class="doccomment">/// generates an gep-statement and returns the resulting pointer
     ///
     /// - `reference_statement` - the statement to get an lvalue from
-    </span><span class="kw">pub fn </span>generate_lvalue(<span class="kw-2">&amp;</span><span class="self">self</span>, reference_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_lvalue(<span class="kw-2">&amp;</span><span class="self">self</span>, reference_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.generate_expression_value(reference_statement).and_then(|it| {
             <span class="kw">let </span>v: <span class="prelude-ty">Result</span>&lt;PointerValue, <span class="kw">_</span>&gt; = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
-                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">&quot;{err:?}&quot;</span>).as_str(), reference_statement.get_location())
+                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"{err:?}"</span>).as_str(), reference_statement.get_location())
             })
         })
     }
@@ -4000,17 +4002,17 @@
     <span class="doccomment">/// geneartes a gep for the given reference with an optional qualifier
     ///
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
-    /// - `name` the name of the reference-name (e.g. myStruct.x where &#39;x&#39; is the reference-name)
+    /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
     /// - `context` the statement to obtain the location from when returning an error
     </span><span class="kw">fn </span>create_llvm_pointer_value_for_reference(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;,
+        qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
         name: <span class="kw-2">&amp;</span>str,
         context: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>offset = <span class="kw-2">&amp;</span>context.get_location();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
-            <span class="comment">//if we&#39;re loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
+            <span class="comment">//if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
             </span><span class="kw">match </span><span class="self">self</span>.annotations.get(context) {
                 <span class="prelude-val">Some</span>(StatementAnnotation::Function { qualified_name, .. })
@@ -4025,7 +4027,7 @@
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>gep: PointerValue&lt;<span class="lifetime">&#39;_</span>&gt; = <span class="self">self</span>.llvm.get_member_pointer_from_struct(
+                    <span class="kw">let </span>gep: PointerValue&lt;<span class="lifetime">'_</span>&gt; = <span class="self">self</span>.llvm.get_member_pointer_from_struct(
                         <span class="kw-2">*</span>qualifier,
                         member_location,
                         name,
@@ -4045,7 +4047,7 @@
             }
         }
 
-        <span class="comment">// no context ... so just something like &#39;x&#39;
+        <span class="comment">// no context ... so just something like 'x'
         </span><span class="kw">match </span><span class="self">self</span>.annotations.get(context) {
             <span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. })
             | <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name, .. }) =&gt; <span class="self">self
@@ -4056,38 +4058,38 @@
         }
     }
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>, accessor_ptr: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
-        <span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>accessor_ptr, <span class="string">&quot;deref&quot;</span>).into_pointer_value()
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>, accessor_ptr: PointerValue&lt;<span class="lifetime">'ink</span>&gt;) -&gt; PointerValue&lt;<span class="lifetime">'ink</span>&gt; {
+        <span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>accessor_ptr, <span class="string">"deref"</span>).into_pointer_value()
     }
 
-    <span class="kw">pub fn </span>ptr_as_value(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    <span class="kw">pub fn </span>ptr_as_value(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">'ink</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>int_type = <span class="self">self</span>.llvm.context.i64_type();
         <span class="kw">if </span>ptr.is_const() {
             ptr.const_to_int(int_type)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.llvm.builder.build_ptr_to_int(ptr, int_type, <span class="string">&quot;&quot;</span>)
+            <span class="self">self</span>.llvm.builder.build_ptr_to_int(ptr, int_type, <span class="string">""</span>)
         }
         .as_basic_value_enum()
     }
 
-    <span class="kw">pub fn </span>int_neg(<span class="kw-2">&amp;</span><span class="self">self</span>, value: IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    <span class="kw">pub fn </span>int_neg(<span class="kw-2">&amp;</span><span class="self">self</span>, value: IntValue&lt;<span class="lifetime">'ink</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">if </span>value.is_const() {
             value.const_neg()
         } <span class="kw">else </span>{
-            <span class="self">self</span>.llvm.builder.build_int_neg(value, <span class="string">&quot;&quot;</span>)
+            <span class="self">self</span>.llvm.builder.build_int_neg(value, <span class="string">""</span>)
         }
     }
 
     <span class="doccomment">/// automatically derefs an inout variable pointer so it can be used like a normal variable
     ///
     /// # Arguments
-    /// - `variable_type` the reference&#39;s data type, this type will be used to determine if this variable needs to be auto-derefeferenced (var_in_out)
+    /// - `variable_type` the reference's data type, this type will be used to determine if this variable needs to be auto-derefeferenced (var_in_out)
     /// - `access_ptr` the original pointer value loaded for the reference. will be returned if no auto-deref is necessary
     </span><span class="kw">fn </span>auto_deref_if_necessary(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        accessor_ptr: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        accessor_ptr: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { is_auto_deref: <span class="bool-val">true</span>, .. }) =
             <span class="self">self</span>.annotations.get(statement)
         {
@@ -4100,13 +4102,13 @@
     <span class="doccomment">/// generates the access-expression for an array-reference
     /// myArray[array_expression] where array_expression is the access-expression
     ///
-    /// - `dimension` the array&#39;s dimension
+    /// - `dimension` the array's dimension
     /// - `access_expression` the expression inside the array-statement
     </span><span class="kw">fn </span>generate_access_for_dimension(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         dimension: <span class="kw-2">&amp;</span>Dimension,
         access_expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>start_offset = dimension
             .start_offset
             .as_int_value(<span class="self">self</span>.index)
@@ -4120,7 +4122,7 @@
             <span class="self">self</span>.llvm.builder.build_int_sub(
                 access_int_value,
                 access_int_type.const_int(start_offset <span class="kw">as </span>u64, <span class="bool-val">true</span>), <span class="comment">//TODO error handling for cast
-                </span><span class="string">&quot;&quot;</span>,
+                </span><span class="string">""</span>,
             )
         } <span class="kw">else </span>{
             access_value.into_int_value()
@@ -4144,7 +4146,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         reference: <span class="kw-2">&amp;</span>AstNode,
         access: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//Load the reference
         </span><span class="self">self</span>.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
@@ -4155,7 +4157,7 @@
                     <span class="comment">// make sure dimensions match statement list
                     </span><span class="kw">let </span>statements = access.get_as_list();
                     <span class="kw">if </span>statements.is_empty() || statements.len() != dimensions.len() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access.get_location()));
                     }
 
                     <span class="comment">// e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -4165,7 +4167,7 @@
                         .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
                         .map_err(|msg| {
                             Diagnostic::codegen_error(
-                                <span class="macro">format!</span>(<span class="string">&quot;Invalid array dimensions access: {msg}&quot;</span>).as_str(),
+                                <span class="macro">format!</span>(<span class="string">"Invalid array dimensions access: {msg}"</span>).as_str(),
                                 access.get_location(),
                             )
                         })<span class="question-mark">?</span>;
@@ -4206,7 +4208,7 @@
                                         .i32_type()
                                         .const_int(current_portion <span class="kw">as </span>u64, <span class="bool-val">false</span>)
                                         .as_basic_value_enum();
-                                    <span class="comment">// multiply the accessor with the dimension&#39;s portion
+                                    <span class="comment">// multiply the accessor with the dimension's portion
                                     </span><span class="kw">let </span>m_v = <span class="self">self</span>.create_llvm_int_binary_expression(
                                         <span class="kw-2">&amp;</span>Operator::Multiplication,
                                         current_portion_value,
@@ -4224,7 +4226,7 @@
                     <span class="comment">// make sure we got an int-value
                     </span><span class="kw">let </span>index_access: IntValue = index_access.and_then(|it| {
                         it.try_into().map_err(|<span class="kw">_</span>| {
-                            Diagnostic::codegen_error(<span class="string">&quot;non-numeric index-access&quot;</span>, access.get_location())
+                            Diagnostic::codegen_error(<span class="string">"non-numeric index-access"</span>, access.get_location())
                         })
                     })<span class="question-mark">?</span>;
 
@@ -4239,16 +4241,16 @@
 
                         // IGNORE the additional first index (0)
                         // it would point to -&gt; i32
-                        // we can&#39;t access any element of i32
+                        // we can't access any element of i32
                         </span><span class="macro">vec!</span>[index_access]
                     };
 
                     <span class="comment">// load the access from that array
-                    </span><span class="kw">let </span>pointer = <span class="self">self</span>.llvm.load_array_element(lvalue, <span class="kw-2">&amp;</span>accessor_sequence, <span class="string">&quot;tmpVar&quot;</span>)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>pointer = <span class="self">self</span>.llvm.load_array_element(lvalue, <span class="kw-2">&amp;</span>accessor_sequence, <span class="string">"tmpVar"</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(pointer);
                 }
-                <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid array access&quot;</span>, access.get_location()))
+                <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access.get_location()))
             })
     }
 
@@ -4268,7 +4270,7 @@
         right: <span class="kw-2">&amp;</span>AstNode,
         right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>left_expr = <span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>;
         <span class="kw">let </span>right_expr = <span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>;
 
@@ -4277,12 +4279,12 @@
                 <span class="kw">let </span>(ptr, index, name) = <span class="kw">if </span>left_type.is_pointer() &amp;&amp; right_type.is_int() {
                     <span class="kw">let </span>ptr = left_expr.into_pointer_value();
                     <span class="kw">let </span>index = right_expr.into_int_value();
-                    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;access_{}&quot;</span>, left_type.get_name());
+                    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"access_{}"</span>, left_type.get_name());
                     (<span class="prelude-val">Some</span>(ptr), <span class="prelude-val">Some</span>(index), <span class="prelude-val">Some</span>(name))
                 } <span class="kw">else if </span>left_type.is_int() &amp;&amp; right_type.is_pointer() {
                     <span class="kw">let </span>ptr = right_expr.into_pointer_value();
                     <span class="kw">let </span>index = left_expr.into_int_value();
-                    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;access_{}&quot;</span>, right_type.get_name());
+                    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"access_{}"</span>, right_type.get_name());
                     (<span class="prelude-val">Some</span>(ptr), <span class="prelude-val">Some</span>(index), <span class="prelude-val">Some</span>(name))
                 } <span class="kw">else </span>{
                     <span class="comment">// if left and right are both pointers we can not perform plus/minus
@@ -4298,7 +4300,7 @@
                     <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.load_array_element(ptr, <span class="kw-2">&amp;</span>[index], name.as_str())<span class="question-mark">?</span>.as_basic_value_enum())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                        <span class="macro">format!</span>(<span class="string">&quot;&#39;{operator}&#39; operation must contain one int type&quot;</span>).as_str(),
+                        <span class="macro">format!</span>(<span class="string">"'{operator}' operation must contain one int type"</span>).as_str(),
                         expression.get_location(),
                     ))
                 }
@@ -4310,7 +4312,7 @@
                     IntPredicate::EQ,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             Operator::NotEqual =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4320,7 +4322,7 @@
                     IntPredicate::NE,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             Operator::Less =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4330,7 +4332,7 @@
                     IntPredicate::SLT,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             Operator::Greater =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4340,7 +4342,7 @@
                     IntPredicate::SGT,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             Operator::LessOrEqual =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4350,7 +4352,7 @@
                     IntPredicate::SLE,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             Operator::GreaterOrEqual =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4360,11 +4362,11 @@
                     IntPredicate::SGE,
                     <span class="self">self</span>.convert_to_int_value_if_pointer(left_expr),
                     <span class="self">self</span>.convert_to_int_value_if_pointer(right_expr),
-                    <span class="string">&quot;tmpVar&quot;</span>,
+                    <span class="string">"tmpVar"</span>,
                 )
                 .as_basic_value_enum()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Operator &#39;{operator}&#39; unimplemented for pointers&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"Operator '{operator}' unimplemented for pointers"</span>).as_str(),
                 expression.get_location(),
             )),
         };
@@ -4372,9 +4374,9 @@
         result
     }
 
-    <span class="doccomment">/// if the given `value` is a pointer value, it converts the pointer into an int_value to access the pointer&#39;s
+    <span class="doccomment">/// if the given `value` is a pointer value, it converts the pointer into an int_value to access the pointer's
     /// address, if the given `value` is already an IntValue it is returned as is
-    </span><span class="kw">pub fn </span>convert_to_int_value_if_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, value: BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    </span><span class="kw">pub fn </span>convert_to_int_value_if_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, value: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">match </span>value {
             BasicValueEnum::PointerValue(v) =&gt; <span class="self">self</span>.ptr_as_value(v).into_int_value(),
             BasicValueEnum::IntValue(v) =&gt; v,
@@ -4391,44 +4393,44 @@
     </span><span class="kw">pub fn </span>create_llvm_int_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>Operator,
-        left_value: BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        right_value: BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
+        left_value: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
+        right_value: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>int_lvalue = left_value.into_int_value();
         <span class="kw">let </span>int_rvalue = right_value.into_int_value();
 
         <span class="kw">let </span>value = <span class="kw">match </span>operator {
-            Operator::Plus =&gt; <span class="self">self</span>.llvm.builder.build_int_add(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::Minus =&gt; <span class="self">self</span>.llvm.builder.build_int_sub(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::Multiplication =&gt; <span class="self">self</span>.llvm.builder.build_int_mul(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::Division =&gt; <span class="self">self</span>.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::Modulo =&gt; <span class="self">self</span>.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
+            Operator::Plus =&gt; <span class="self">self</span>.llvm.builder.build_int_add(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::Minus =&gt; <span class="self">self</span>.llvm.builder.build_int_sub(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::Multiplication =&gt; <span class="self">self</span>.llvm.builder.build_int_mul(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::Division =&gt; <span class="self">self</span>.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::Modulo =&gt; <span class="self">self</span>.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
             Operator::Equal =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
 
             Operator::NotEqual =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
 
             Operator::Less =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
 
             Operator::Greater =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
 
             Operator::LessOrEqual =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
 
             Operator::GreaterOrEqual =&gt; {
-                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                <span class="self">self</span>.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)
             }
-            Operator::Xor =&gt; <span class="self">self</span>.llvm.builder.build_xor(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::And =&gt; <span class="self">self</span>.llvm.builder.build_and(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
-            Operator::Or =&gt; <span class="self">self</span>.llvm.builder.build_or(int_lvalue, int_rvalue, <span class="string">&quot;tmpVar&quot;</span>),
+            Operator::Xor =&gt; <span class="self">self</span>.llvm.builder.build_xor(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::And =&gt; <span class="self">self</span>.llvm.builder.build_and(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
+            Operator::Or =&gt; <span class="self">self</span>.llvm.builder.build_or(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>),
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
         };
         value.into()
@@ -4443,54 +4445,54 @@
     </span><span class="kw">fn </span>create_llvm_float_binary_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         operator: <span class="kw-2">&amp;</span>Operator,
-        lvalue: BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-        rvalue: BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt; {
+        lvalue: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
+        rvalue: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>float_lvalue = lvalue.into_float_value();
         <span class="kw">let </span>float_rvalue = rvalue.into_float_value();
 
         <span class="kw">let </span>value = <span class="kw">match </span>operator {
-            Operator::Plus =&gt; <span class="self">self</span>.llvm.builder.build_float_add(float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>).into(),
-            Operator::Minus =&gt; <span class="self">self</span>.llvm.builder.build_float_sub(float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>).into(),
+            Operator::Plus =&gt; <span class="self">self</span>.llvm.builder.build_float_add(float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>).into(),
+            Operator::Minus =&gt; <span class="self">self</span>.llvm.builder.build_float_sub(float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>).into(),
             Operator::Multiplication =&gt; {
-                <span class="self">self</span>.llvm.builder.build_float_mul(float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>).into()
+                <span class="self">self</span>.llvm.builder.build_float_mul(float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>).into()
             }
             Operator::Division =&gt; {
-                <span class="self">self</span>.llvm.builder.build_float_div(float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>).into()
+                <span class="self">self</span>.llvm.builder.build_float_div(float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>).into()
             }
             Operator::Modulo =&gt; {
-                <span class="self">self</span>.llvm.builder.build_float_rem(float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>).into()
+                <span class="self">self</span>.llvm.builder.build_float_rem(float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>).into()
             }
 
             Operator::Equal =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
             Operator::NotEqual =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
             Operator::Less =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
             Operator::Greater =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
             Operator::LessOrEqual =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
             Operator::GreaterOrEqual =&gt; <span class="self">self
                 </span>.llvm
                 .builder
-                .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, <span class="string">&quot;tmpVar&quot;</span>)
+                .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, <span class="string">"tmpVar"</span>)
                 .into(),
 
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
@@ -4502,7 +4504,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         stmt: <span class="kw-2">&amp;</span>AstNode,
         number: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>type_hint = <span class="self">self</span>.get_type_hint_for(stmt)<span class="question-mark">?</span>;
         <span class="kw">let </span>actual_type = <span class="self">self</span>.annotations.get_type_or_void(stmt, <span class="self">self</span>.index);
         <span class="kw">let </span>literal_type_name = <span class="kw">if </span>is_same_type_class(
@@ -4521,10 +4523,10 @@
     <span class="doccomment">/// generates the literal statement and returns the resulting value
     ///
     /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
-    </span><span class="kw">pub fn </span>generate_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, literal_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_literal(<span class="kw-2">&amp;</span><span class="self">self</span>, literal_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>cannot_generate_literal = || {
             Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Cannot generate Literal for {literal_statement:?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Cannot generate Literal for {literal_statement:?}"</span>),
                 literal_statement.get_location(),
             )
         };
@@ -4589,7 +4591,7 @@
         literal_statement: <span class="kw-2">&amp;</span>AstNode,
         value: <span class="kw-2">&amp;</span>str,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>expected_type = <span class="self">self</span>.get_type_hint_info_for(literal_statement)<span class="question-mark">?</span>;
         <span class="self">self</span>.generate_string_literal_for_type(expected_type, value, location)
     }
@@ -4599,12 +4601,12 @@
         expected_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         value: <span class="kw-2">&amp;</span>str,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>expected_type {
             DataTypeInformation::String { encoding, size, .. } =&gt; {
                 <span class="kw">let </span>declared_length = size.as_int_value(<span class="self">self</span>.index).map_err(|msg| {
                     Diagnostic::codegen_error(
-                        <span class="macro">format!</span>(<span class="string">&quot;Unable to generate string-literal: {msg}&quot;</span>).as_str(),
+                        <span class="macro">format!</span>(<span class="string">"Unable to generate string-literal: {msg}"</span>).as_str(),
                         location.clone(),
                     )
                 })<span class="question-mark">? </span><span class="kw">as </span>usize;
@@ -4657,10 +4659,10 @@
                 <span class="self">self</span>.llvm.create_llvm_const_i16_char(value, location).map(ExpressionValue::RValue)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
-                <span class="string">&quot;Cannot generate String-Literal for type {}&quot;</span>,
+                <span class="string">"Cannot generate String-Literal for type {}"</span>,
                 expected_type.get_name()
             ))
-            .with_error_code(<span class="string">&quot;E074&quot;</span>)
+            .with_error_code(<span class="string">"E074"</span>)
             .with_location(location.clone())),
         }
     }
@@ -4683,19 +4685,19 @@
             .or_else(|| <span class="self">self</span>.annotations.get_type(statement, <span class="self">self</span>.index))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;no type hint available for {statement:#?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"no type hint available for {statement:#?}"</span>),
                     statement.get_location(),
                 )
             })
     }
 
     <span class="doccomment">/// generates a struct literal value with the given value assignments (ExpressionList)
-    </span><span class="kw">fn </span>generate_literal_struct(<span class="kw-2">&amp;</span><span class="self">self</span>, assignments: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">fn </span>generate_literal_struct(<span class="kw-2">&amp;</span><span class="self">self</span>, assignments: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if let </span>DataTypeInformation::Struct { name: struct_name, members, .. } =
             <span class="self">self</span>.get_type_hint_info_for(assignments)<span class="question-mark">?
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>uninitialized_members: HashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = HashSet::from_iter(members);
-            <span class="kw">let </span><span class="kw-2">mut </span>member_values: Vec&lt;(u32, BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;)&gt; = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>member_values: Vec&lt;(u32, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;)&gt; = Vec::new();
             <span class="kw">for </span>assignment <span class="kw">in </span>flatten_expression_list(assignments) {
                 <span class="kw">if let </span>AstStatement::Assignment(data) = assignment.get_stmt() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) =
@@ -4713,13 +4715,13 @@
                         member_values.push((index_in_parent, value));
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                            <span class="string">&quot;struct member lvalue required as left operand of assignment&quot;</span>,
+                            <span class="string">"struct member lvalue required as left operand of assignment"</span>,
                             data.left.get_location(),
                         ));
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                        <span class="string">&quot;struct literal must consist of explicit assignments in the form of member := value&quot;</span>,
+                        <span class="string">"struct literal must consist of explicit assignments in the form of member := value"</span>,
                         assignment.get_location(),
                     ));
                 }
@@ -4744,7 +4746,7 @@
             <span class="kw">let </span>struct_type = <span class="self">self</span>.llvm_index.get_associated_type(struct_name)<span class="question-mark">?</span>.into_struct_type();
             <span class="kw">if </span>member_values.len() == struct_type.count_fields() <span class="kw">as </span>usize {
                 member_values.sort_by(|(a, <span class="kw">_</span>), (b, <span class="kw">_</span>)| a.cmp(b));
-                <span class="kw">let </span>ordered_values: Vec&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; =
+                <span class="kw">let </span>ordered_values: Vec&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt; =
                     member_values.iter().map(|(<span class="kw">_</span>, v)| <span class="kw-2">*</span>v).collect();
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(ExpressionValue::RValue(
@@ -4753,7 +4755,7 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;Expected {} fields for Struct {}, but found {}.&quot;</span>,
+                        <span class="string">"Expected {} fields for Struct {}, but found {}."</span>,
                         struct_type.count_fields(),
                         struct_name,
                         member_values.len()
@@ -4763,14 +4765,14 @@
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Expected Struct-literal, got {assignments:#?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Expected Struct-literal, got {assignments:#?}"</span>),
                 assignments.get_location(),
             ))
         }
     }
 
     <span class="doccomment">/// generates an array literal with the given optional elements (represented as an ExpressionList)
-    </span><span class="kw">pub fn </span>generate_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>, initializer: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>generate_literal_array(<span class="kw-2">&amp;</span><span class="self">self</span>, initializer: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>array_value = <span class="self">self</span>.generate_literal_array_value(
             initializer,
             <span class="self">self</span>.get_type_hint_info_for(initializer)<span class="question-mark">?</span>,
@@ -4789,7 +4791,7 @@
         elements: <span class="kw-2">&amp;</span>AstNode,
         data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>(inner_type, expected_len) =
             <span class="kw">if let </span>DataTypeInformation::Array { inner_type_name, dimensions, .. } = data_type {
                 <span class="kw">let </span>len: u32 = dimensions
@@ -4803,7 +4805,7 @@
                 <span class="self">self</span>.index.get_type(inner_type_name).map(|inner_type| (inner_type, len <span class="kw">as </span>usize))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Expected array type but found: {:}&quot;</span>, data_type.get_name()).as_str(),
+                    <span class="macro">format!</span>(<span class="string">"Expected array type but found: {:}"</span>, data_type.get_name()).as_str(),
                     location.clone(),
                 ))
             }<span class="question-mark">?</span>;
@@ -4815,7 +4817,7 @@
             <span class="kw">if </span><span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 <span class="kw">match </span>elements.get_stmt() {
                     AstStatement::ExpressionList(expressions) =&gt; expressions.iter().collect(),
-                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;This should always be an expression list&quot;</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"This should always be an expression list"</span>),
                 }
             } <span class="kw">else </span>{
                 flatten_expression_list(elements)
@@ -4874,7 +4876,7 @@
         operator: <span class="kw-2">&amp;</span>Operator,
         left: <span class="kw-2">&amp;</span>AstNode,
         right: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>operator {
             Operator::And | Operator::Or =&gt; {
                 <span class="self">self</span>.generate_bool_short_circuit_expression(operator, left, right)
@@ -4886,7 +4888,7 @@
                     IntPredicate::EQ,
                     to_i1(<span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
                     to_i1(<span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 )
                 .as_basic_value_enum()),
             Operator::NotEqual =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4896,7 +4898,7 @@
                     IntPredicate::NE,
                     to_i1(<span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
                     to_i1(<span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 )
                 .as_basic_value_enum()),
             Operator::Xor =&gt; <span class="prelude-val">Ok</span>(<span class="self">self
@@ -4905,11 +4907,11 @@
                 .build_xor(
                     to_i1(<span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
                     to_i1(<span class="self">self</span>.generate_expression(right)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 )
                 .as_basic_value_enum()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;illegal boolean expresspion for operator {operator:}&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"illegal boolean expresspion for operator {operator:}"</span>).as_str(),
                 left.get_location().span(<span class="kw-2">&amp;</span>right.get_location()),
             )),
         }
@@ -4925,13 +4927,13 @@
         operator: <span class="kw-2">&amp;</span>Operator,
         left: <span class="kw-2">&amp;</span>AstNode,
         right: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>lhs = to_i1(<span class="self">self</span>.generate_expression(left)<span class="question-mark">?</span>.into_int_value(), builder);
         <span class="kw">let </span>function = <span class="self">self</span>.get_function_context(left)<span class="question-mark">?</span>.function;
 
-        <span class="kw">let </span>right_branch = <span class="self">self</span>.llvm.context.append_basic_block(function, <span class="string">&quot;&quot;</span>);
-        <span class="kw">let </span>continue_branch = <span class="self">self</span>.llvm.context.append_basic_block(function, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>right_branch = <span class="self">self</span>.llvm.context.append_basic_block(function, <span class="string">""</span>);
+        <span class="kw">let </span>continue_branch = <span class="self">self</span>.llvm.context.append_basic_block(function, <span class="string">""</span>);
 
         <span class="kw">let </span>final_left_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         <span class="comment">//Compare left to 0
@@ -4941,7 +4943,7 @@
             Operator::And =&gt; builder.build_conditional_branch(lhs, right_branch, continue_branch),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Cannot generate phi-expression for operator {operator:}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"Cannot generate phi-expression for operator {operator:}"</span>),
                     left.get_location(),
                 ))
             }
@@ -4954,14 +4956,14 @@
 
         builder.position_at_end(continue_branch);
         <span class="comment">//Generate phi
-        </span><span class="kw">let </span>phi_value = builder.build_phi(lhs.get_type(), <span class="string">&quot;&quot;</span>);
+        </span><span class="kw">let </span>phi_value = builder.build_phi(lhs.get_type(), <span class="string">""</span>);
         <span class="comment">//assert
         </span>phi_value.add_incoming(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>lhs, final_left_block), (<span class="kw-2">&amp;</span>rhs, final_right_block)]);
 
         <span class="prelude-val">Ok</span>(phi_value.as_basic_value())
     }
 
-    <span class="kw">fn </span>create_const_int(<span class="kw-2">&amp;</span><span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    <span class="kw">fn </span>create_const_int(<span class="kw-2">&amp;</span><span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>value = <span class="self">self</span>.llvm.create_const_numeric(
             <span class="kw-2">&amp;</span><span class="self">self</span>.llvm_index.get_associated_type(LINT_TYPE)<span class="question-mark">?</span>,
             value.to_string().as_str(),
@@ -4980,7 +4982,7 @@
         left: <span class="kw-2">&amp;</span>AstNode,
         right: <span class="kw-2">&amp;</span>AstNode,
         binary_statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { statement }) =
             <span class="self">self</span>.annotations.get(binary_statement)
         {
@@ -4989,7 +4991,7 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;Invalid types, cannot generate binary expression for {:?} and {:?}&quot;</span>,
+                    <span class="string">"Invalid types, cannot generate binary expression for {:?} and {:?}"</span>,
                     <span class="self">self</span>.get_type_hint_for(left)<span class="question-mark">?</span>.get_name(),
                     <span class="self">self</span>.get_type_hint_for(right)<span class="question-mark">?</span>.get_name(),
                 )
@@ -5017,7 +5019,7 @@
                 <span class="self">self</span>.generate_expression_value(right_statement).map(|expr_value| <span class="kw">match </span>expr_value {
                     ExpressionValue::LValue(ptr) =&gt; ptr,
                     ExpressionValue::RValue(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(
-                        <span class="string">&quot;strings should be lvalues: {:?}, {:?}&quot;</span>,
+                        <span class="string">"strings should be lvalues: {:?}, {:?}"</span>,
                         right_statement.get_location(),
                         right_statement
                     ),
@@ -5040,7 +5042,7 @@
             <span class="kw">let </span>size =
                 <span class="self">self</span>.llvm_index.get_associated_type(right_type.get_name())<span class="question-mark">?</span>.size_of().ok_or_else(|| {
                     Diagnostic::codegen_error(
-                        <span class="macro">format!</span>(<span class="string">&quot;Unknown size of type {}.&quot;</span>, right_type.get_name()).as_str(),
+                        <span class="macro">format!</span>(<span class="string">"Unknown size of type {}."</span>, right_type.get_name()).as_str(),
                         right_statement.get_location(),
                     )
                 })<span class="question-mark">?</span>;
@@ -5058,13 +5060,13 @@
 
     <span class="kw">pub fn </span>generate_string_store(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: inkwell::values::PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        left: inkwell::values::PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         left_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         left_location: SourceLocation,
-        right: inkwell::values::PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        right: inkwell::values::PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
         right_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         right_location: SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>target_size = <span class="self">self</span>.get_string_size(left_type, left_location.clone())<span class="question-mark">?</span>;
         <span class="kw">let </span>value_size = <span class="self">self</span>.get_string_size(right_type, right_location)<span class="question-mark">?</span>;
         <span class="kw">let </span>size = std::cmp::min(target_size - <span class="number">1</span>, value_size);
@@ -5088,7 +5090,7 @@
             size.as_int_value(<span class="self">self</span>.index).map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;{} is not a String&quot;</span>, datatype.get_name()).as_str(),
+                <span class="macro">format!</span>(<span class="string">"{} is not a String"</span>, datatype.get_name()).as_str(),
                 location,
             ))
         }
@@ -5099,13 +5101,13 @@
         <span class="kw">match </span>expression.get_stmt() {
             AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. })
             | AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(<span class="kw">_</span>), .. }) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="string">&quot;load_tmpVar&quot;</span>.to_string())
+                <span class="prelude-val">Some</span>(<span class="string">"load_tmpVar"</span>.to_string())
             }
             AstStatement::ReferenceExpr { .. } =&gt; expression
                 .get_flat_reference_name()
-                .map(|name| <span class="macro">format!</span>(<span class="string">&quot;{}{}{}&quot;</span>, <span class="self">self</span>.temp_variable_prefix, name, <span class="self">self</span>.temp_variable_suffix))
+                .map(|name| <span class="macro">format!</span>(<span class="string">"{}{}{}"</span>, <span class="self">self</span>.temp_variable_prefix, name, <span class="self">self</span>.temp_variable_suffix))
                 .or_else(|| <span class="prelude-val">Some</span>(<span class="self">self</span>.temp_variable_prefix.clone())),
-            AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, name, <span class="self">self</span>.temp_variable_suffix)),
+            AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"{}{}"</span>, name, <span class="self">self</span>.temp_variable_suffix)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -5113,10 +5115,10 @@
     <span class="doccomment">/// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime
     </span><span class="kw">fn </span>generate_element_pointer_for_vla(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        reference: ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        reference: ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;,
         reference_annotation: <span class="kw-2">&amp;</span>StatementAnnotation,
         access: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;, ()&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, ()&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
 
         <span class="comment">// array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
@@ -5130,10 +5132,10 @@
 
         <span class="comment">// GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
-        </span><span class="kw">let </span>arr_ptr_gep = <span class="self">self</span>.llvm.builder.build_struct_gep(struct_ptr, <span class="number">0</span>, <span class="string">&quot;vla_arr_gep&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>vla_arr_ptr = builder.build_load(arr_ptr_gep, <span class="string">&quot;vla_arr_ptr&quot;</span>).into_pointer_value();
+        </span><span class="kw">let </span>arr_ptr_gep = <span class="self">self</span>.llvm.builder.build_struct_gep(struct_ptr, <span class="number">0</span>, <span class="string">"vla_arr_gep"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>vla_arr_ptr = builder.build_load(arr_ptr_gep, <span class="string">"vla_arr_ptr"</span>).into_pointer_value();
         <span class="comment">// get pointer to array containing dimension information
-        </span><span class="kw">let </span>dim_arr_gep = builder.build_struct_gep(struct_ptr, <span class="number">1</span>, <span class="string">&quot;dim_arr&quot;</span>).unwrap();
+        </span><span class="kw">let </span>dim_arr_gep = builder.build_struct_gep(struct_ptr, <span class="number">1</span>, <span class="string">"dim_arr"</span>).unwrap();
 
         <span class="comment">// get lengths of dimensions
         </span><span class="kw">let </span>type_ = <span class="self">self</span>.index.get_type_information_or_void(reference_type);
@@ -5147,13 +5149,13 @@
         </span><span class="kw">let </span>access_statements = access.get_as_list();
         <span class="kw">let </span>accessor = <span class="kw">if </span>access_statements.len() == <span class="number">1 </span>{
             <span class="kw">let </span><span class="prelude-val">Some</span>(stmt) = access_statements.first() <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Must have exactly 1 access statement&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"Must have exactly 1 access statement"</span>)
             };
             <span class="kw">let </span>access_value = <span class="self">self</span>.generate_expression(stmt).map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
 
             <span class="comment">// if start offset is not 0, adjust the access value accordingly
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(start_offset) = index_offsets.first().map(|(start, <span class="kw">_</span>)| <span class="kw-2">*</span>start) <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;VLA must have information about dimension offsets&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"VLA must have information about dimension offsets"</span>)
             };
             <span class="self">self</span>.create_llvm_int_binary_expression(<span class="kw-2">&amp;</span>Operator::Minus, access_value, start_offset.into())
                 .into_int_value()
@@ -5164,16 +5166,16 @@
                 .iter()
                 .map(|it| {
                     <span class="self">self</span>.generate_expression(it)
-                        .expect(<span class="string">&quot;Uncaught invalid accessor statement&quot;</span>)
+                        .expect(<span class="string">"Uncaught invalid accessor statement"</span>)
                         .into_int_value()
                 })
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
             <span class="kw">if </span>access_statements.len() != index_offsets.len() {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Amount of access statements and dimensions does not match.&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"Amount of access statements and dimensions does not match."</span>)
             }
 
-            <span class="comment">// length of a dimension is &#39;end - start + 1&#39;
+            <span class="comment">// length of a dimension is 'end - start + 1'
             </span><span class="kw">let </span>lengths = get_dimension_lengths(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>index_offsets);
 
             <span class="comment">// calculate the accessor multiplicators for each dimension.
@@ -5189,20 +5191,20 @@
             )
         };
 
-        <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ builder.build_in_bounds_gep(vla_arr_ptr, <span class="kw-2">&amp;</span>[accessor], <span class="string">&quot;arr_val&quot;</span>) })
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ builder.build_in_bounds_gep(vla_arr_ptr, <span class="kw-2">&amp;</span>[accessor], <span class="string">"arr_val"</span>) })
     }
 
     <span class="doccomment">/// generates a reference expression (member, index, deref, etc.)
     ///
     /// - `access` the ReferenceAccess of the reference to generate
-    /// - `base` the &quot;previous&quot; segment of an optional qualified reference-access
+    /// - `base` the "previous" segment of an optional qualified reference-access
     /// - `original_expression` the original ast-statement used to report Diagnostics
     </span><span class="kw">fn </span>generate_reference_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         access: <span class="kw-2">&amp;</span>ReferenceAccess,
         base: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
         original_expression: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>(access, base) {
 
             <span class="comment">// expressions like `base.member`, or just `member`
@@ -5211,11 +5213,11 @@
 
                 <span class="kw">if let </span>AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
                     <span class="kw">let </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(base_value)) = (base, base_value) <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Cannot generate DirectAccess without base value.&quot;</span>, original_expression.get_location()));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Cannot generate DirectAccess without base value."</span>, original_expression.get_location()));
                     };
                     <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, <span class="kw-2">&amp;</span>data.access, <span class="kw-2">&amp;</span>data.index)
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>member_name = member.get_flat_reference_name().unwrap_or(<span class="string">&quot;unknown&quot;</span>);
+                    <span class="kw">let </span>member_name = member.get_flat_reference_name().unwrap_or(<span class="string">"unknown"</span>);
                     <span class="self">self</span>.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
                         <span class="self">self</span>.get_load_name(member).as_deref().unwrap_or(member_name),
@@ -5231,10 +5233,10 @@
                     <span class="comment">// vla array needs special handling
                     </span><span class="self">self</span>.generate_element_pointer_for_vla(
                         <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>,
-                        <span class="self">self</span>.annotations.get(base).expect(<span class="string">&quot;&quot;</span>),
+                        <span class="self">self</span>.annotations.get(base).expect(<span class="string">""</span>),
                         array_idx.as_ref(),
                     )
-                    .map_err(|<span class="kw">_</span>| <span class="macro">unreachable!</span>(<span class="string">&quot;invalid access statement&quot;</span>))
+                    .map_err(|<span class="kw">_</span>| <span class="macro">unreachable!</span>(<span class="string">"invalid access statement"</span>))
                     .map(ExpressionValue::LValue)
                 } <span class="kw">else </span>{
                     <span class="comment">// normal array expression
@@ -5258,7 +5260,7 @@
                 <span class="kw">let </span>ptr = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(ExpressionValue::LValue(
                     <span class="self">self</span>.llvm
-                        .load_pointer(<span class="kw-2">&amp;</span>ptr.get_basic_value_enum().into_pointer_value(), <span class="string">&quot;deref&quot;</span>)
+                        .load_pointer(<span class="kw-2">&amp;</span>ptr.get_basic_value_enum().into_pointer_value(), <span class="string">"deref"</span>)
                         .into_pointer_value(),
                 ))
             }
@@ -5274,7 +5276,7 @@
             </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)  <span class="comment">// ^;
             </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>) <span class="comment">// &amp;;
                 </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="string">&quot;Expected a base-expressions, but found none.&quot;</span>,
+                <span class="string">"Expected a base-expressions, but found none."</span>,
                 original_expression.get_location(),
             )),
         }
@@ -5288,11 +5290,11 @@
     </span><span class="kw">fn </span>generate_direct_access_expression(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         qualifier: <span class="kw-2">&amp;</span>AstNode,
-        qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;,
         member: <span class="kw-2">&amp;</span>AstNode,
         access: <span class="kw-2">&amp;</span>DirectAccessType,
         index: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier));
         <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
         <span class="kw">let </span>base_type = <span class="self">self</span>.get_type_hint_for(qualifier)<span class="question-mark">?</span>;
@@ -5304,18 +5306,18 @@
             loaded_base_value.into_int_value(),
             rhs,
             base_type.get_type_information().is_signed_int(),
-            <span class="string">&quot;shift&quot;</span>,
+            <span class="string">"shift"</span>,
         );
         <span class="comment">//Trunc the result to the get only the target size
         </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
             shift,
             <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type(),
-            <span class="string">&quot;&quot;</span>,
+            <span class="string">""</span>,
         );
 
         <span class="kw">let </span>result = <span class="kw">if </span>datatype.get_type_information().is_bool() {
             <span class="comment">// since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
-            </span><span class="self">self</span>.llvm.builder.build_and(value, <span class="self">self</span>.llvm.context.i8_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">&quot;&quot;</span>)
+            </span><span class="self">self</span>.llvm.builder.build_and(value, <span class="self">self</span>.llvm.context.i8_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">""</span>)
         } <span class="kw">else </span>{
             value
         };
@@ -5330,19 +5332,19 @@
 /// it returns the location of the parameter in the function declaration
 /// as well as the parameter value (right side) ´param := value´ =&gt; ´value´
 /// and `true` for implicit / `false` for explicit parameters
-</span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">&#39;a</span>&gt;(
-    param_statement: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode,
+</span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">'a</span>&gt;(
+    param_statement: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode,
     declared_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
     idx: usize,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AstNode, bool), Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode, bool), Diagnostic&gt; {
     <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement.get_stmt() {
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
             <span class="comment">//explicit
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(
                     <span class="comment">//TODO: use global context to get an expression slice
-                    </span>Diagnostic::new(<span class="string">&quot;Expression is not assignable&quot;</span>)
-                        .with_error_code(<span class="string">&quot;E050&quot;</span>)
+                    </span>Diagnostic::new(<span class="string">"Expression is not assignable"</span>)
+                        .with_error_code(<span class="string">"E050"</span>)
                         .with_location(param_statement.get_location()),
                 );
             };
@@ -5361,9 +5363,9 @@
 }
 
 <span class="doccomment">/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
-</span><span class="kw">pub fn </span>to_i1&lt;<span class="lifetime">&#39;a</span>&gt;(value: IntValue&lt;<span class="lifetime">&#39;a</span>&gt;, builder: <span class="kw-2">&amp;</span>Builder&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub fn </span>to_i1&lt;<span class="lifetime">'a</span>&gt;(value: IntValue&lt;<span class="lifetime">'a</span>&gt;, builder: <span class="kw-2">&amp;</span>Builder&lt;<span class="lifetime">'a</span>&gt;) -&gt; IntValue&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">if </span>value.get_type().get_bit_width() &gt; <span class="number">1 </span>{
-        builder.build_int_compare(IntPredicate::NE, value, value.get_type().const_int(<span class="number">0</span>, <span class="bool-val">false</span>), <span class="string">&quot;&quot;</span>)
+        builder.build_int_compare(IntPredicate::NE, value, value.get_type().const_int(<span class="number">0</span>, <span class="bool-val">false</span>), <span class="string">""</span>)
     } <span class="kw">else </span>{
         value
     }
@@ -5374,67 +5376,67 @@
 /// # Safety
 ///
 /// performs in-bounds GEP operations at runtime
-</span><span class="kw">fn </span>get_indices&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
+</span><span class="kw">fn </span>get_indices&lt;<span class="lifetime">'ink</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
     ndims: usize,
-    dimensions_array: PointerValue&lt;<span class="lifetime">&#39;ink</span>&gt;,
-) -&gt; Vec&lt;(IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;)&gt; {
+    dimensions_array: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
+) -&gt; Vec&lt;(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)&gt; {
     (<span class="number">0</span>..ndims)
         .map(|i| <span class="kw">unsafe </span>{
             <span class="kw">let </span>(start_ptr, end_ptr) = (
                 llvm.builder.build_in_bounds_gep(
                     dimensions_array,
                     <span class="kw-2">&amp;</span>[llvm.i32_type().const_zero(), llvm.i32_type().const_int(i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
-                    <span class="macro">format!</span>(<span class="string">&quot;start_idx_ptr{i}&quot;</span>).as_str(),
+                    <span class="macro">format!</span>(<span class="string">"start_idx_ptr{i}"</span>).as_str(),
                 ),
                 llvm.builder.build_in_bounds_gep(
                     dimensions_array,
                     <span class="kw-2">&amp;</span>[llvm.i32_type().const_zero(), llvm.i32_type().const_int(<span class="number">1 </span>+ i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
-                    <span class="macro">format!</span>(<span class="string">&quot;end_idx_ptr{i}&quot;</span>).as_str(),
+                    <span class="macro">format!</span>(<span class="string">"end_idx_ptr{i}"</span>).as_str(),
                 ),
             );
             (
-                llvm.builder.build_load(start_ptr, <span class="macro">format!</span>(<span class="string">&quot;start_idx_value{i}&quot;</span>).as_str()).into_int_value(),
-                llvm.builder.build_load(end_ptr, <span class="macro">format!</span>(<span class="string">&quot;end_idx_value{i}&quot;</span>).as_str()).into_int_value(),
+                llvm.builder.build_load(start_ptr, <span class="macro">format!</span>(<span class="string">"start_idx_value{i}"</span>).as_str()).into_int_value(),
+                llvm.builder.build_load(end_ptr, <span class="macro">format!</span>(<span class="string">"end_idx_value{i}"</span>).as_str()).into_int_value(),
             )
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
 <span class="doccomment">/// Adjusts VLA accessor values to 0-indexed accessors
-</span><span class="kw">fn </span>normalize_offsets&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    accessors: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;],
-    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;)],
-) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {
+</span><span class="kw">fn </span>normalize_offsets&lt;<span class="lifetime">'ink</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    accessors: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
+    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {
     accessors
         .iter()
         .enumerate()
         .zip(offsets.iter().map(|(start, <span class="kw">_</span>)| start))
         .map(|((idx, accessor), start_offset)| {
-            llvm.builder.build_int_sub(<span class="kw-2">*</span>accessor, <span class="kw-2">*</span>start_offset, <span class="macro">format!</span>(<span class="string">&quot;adj_access{idx}&quot;</span>).as_str())
+            llvm.builder.build_int_sub(<span class="kw-2">*</span>accessor, <span class="kw-2">*</span>start_offset, <span class="macro">format!</span>(<span class="string">"adj_access{idx}"</span>).as_str())
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">fn </span>get_dimension_lengths&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;)],
-) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {
+<span class="kw">fn </span>get_dimension_lengths&lt;<span class="lifetime">'ink</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {
     offsets
         .iter()
         .enumerate()
         .map(|(idx, (start, end))| {
             llvm.builder.build_int_add(
                 llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>),
-                llvm.builder.build_int_sub(<span class="kw-2">*</span>end, <span class="kw-2">*</span>start, <span class="string">&quot;&quot;</span>),
-                <span class="macro">format!</span>(<span class="string">&quot;len_dim{idx}&quot;</span>).as_str(),
+                llvm.builder.build_int_sub(<span class="kw-2">*</span>end, <span class="kw-2">*</span>start, <span class="string">""</span>),
+                <span class="macro">format!</span>(<span class="string">"len_dim{idx}"</span>).as_str(),
             )
         })
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 }
 
-<span class="kw">fn </span>get_vla_accessor_factors&lt;<span class="lifetime">&#39;ink</span>&gt;(llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;, lengths: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;]) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;&gt; {
+<span class="kw">fn </span>get_vla_accessor_factors&lt;<span class="lifetime">'ink</span>&gt;(llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;, lengths: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;]) -&gt; Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {
     (<span class="number">0</span>..lengths.len())
         .map(|idx| {
             <span class="kw">if </span>idx == lengths.len() - <span class="number">1 </span>{
@@ -5451,47 +5453,47 @@
 <span class="doccomment">/// Computes the product of all elements in a collection of IntValues
 ///
 /// a &lt;- a * b
-</span><span class="kw">fn </span>int_value_product&lt;<span class="lifetime">&#39;ink</span>&gt;(llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;, values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;]) -&gt; IntValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+</span><span class="kw">fn </span>int_value_product&lt;<span class="lifetime">'ink</span>&gt;(llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;, values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;]) -&gt; IntValue&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="comment">// initialize the accumulator with 1
-    </span><span class="kw">let </span>accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), <span class="string">&quot;accum&quot;</span>);
+    </span><span class="kw">let </span>accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), <span class="string">"accum"</span>);
     llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>));
     <span class="kw">for </span>val <span class="kw">in </span>values {
         <span class="comment">// load previous value from accumulator and multiply with current value
         </span><span class="kw">let </span>product = llvm.builder.build_int_mul(
-            llvm.builder.build_load(accum_ptr, <span class="string">&quot;load_accum&quot;</span>).into_int_value(),
+            llvm.builder.build_load(accum_ptr, <span class="string">"load_accum"</span>).into_int_value(),
             <span class="kw-2">*</span>val,
-            <span class="string">&quot;product&quot;</span>,
+            <span class="string">"product"</span>,
         );
         <span class="comment">// store new value into accumulator
         </span>llvm.builder.build_store(accum_ptr, product);
     }
 
-    llvm.builder.build_load(accum_ptr, <span class="string">&quot;accessor_factor&quot;</span>).into_int_value()
+    llvm.builder.build_load(accum_ptr, <span class="string">"accessor_factor"</span>).into_int_value()
 }
 
 <span class="doccomment">/// Iterates over a collection of tuples, computes the product of the two numbers
 /// and adds that product to an accumulator.
 ///
 /// a &lt;- a + (b * c)
-</span><span class="kw">fn </span>int_value_multiply_accumulate&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    values: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;, <span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">&#39;ink</span>&gt;)],
-) -&gt; IntValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+</span><span class="kw">fn </span>int_value_multiply_accumulate&lt;<span class="lifetime">'ink</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    values: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;, <span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+) -&gt; IntValue&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="comment">// initialize the accumulator with 0
-    </span><span class="kw">let </span>accum = llvm.builder.build_alloca(llvm.i32_type(), <span class="string">&quot;accum&quot;</span>);
+    </span><span class="kw">let </span>accum = llvm.builder.build_alloca(llvm.i32_type(), <span class="string">"accum"</span>);
     llvm.builder.build_store(accum, llvm.i32_type().const_zero());
     <span class="kw">for </span>(left, right) <span class="kw">in </span>values {
         <span class="comment">// multiply accessor with dimension factor
-        </span><span class="kw">let </span>product = llvm.builder.build_int_mul(<span class="kw-2">**</span>left, <span class="kw-2">**</span>right, <span class="string">&quot;multiply&quot;</span>);
+        </span><span class="kw">let </span>product = llvm.builder.build_int_mul(<span class="kw-2">**</span>left, <span class="kw-2">**</span>right, <span class="string">"multiply"</span>);
         <span class="comment">// load previous value from accum and add product
         </span><span class="kw">let </span>curr = llvm.builder.build_int_add(
-            llvm.builder.build_load(accum, <span class="string">&quot;load_accum&quot;</span>).into_int_value(),
+            llvm.builder.build_load(accum, <span class="string">"load_accum"</span>).into_int_value(),
             product,
-            <span class="string">&quot;accumulate&quot;</span>,
+            <span class="string">"accumulate"</span>,
         );
         <span class="comment">// store new value into accumulator
         </span>llvm.builder.build_store(accum, curr);
     }
-    llvm.builder.build_load(accum, <span class="string">&quot;accessor&quot;</span>).into_int_value()
+    llvm.builder.build_load(accum, <span class="string">"accessor"</span>).into_int_value()
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.7.0/src/internal/fmt.rs`."><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.7.0/src/internal/fmt.rs`."><title>fmt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../value_bag/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -501,14 +503,14 @@
 
 <span class="kw">use super</span>::{Internal, InternalVisitor};
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ValueBag&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; ValueBag&lt;<span class="lifetime">'v</span>&gt; {
     <span class="doccomment">/// Get a value from a debuggable type.
     ///
     /// This method will attempt to capture the given value as a well-known primitive
     /// before resorting to using its `Debug` implementation.
-    </span><span class="kw">pub fn </span>capture_debug&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>T) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>capture_debug&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: Debug + <span class="lifetime">&#39;static</span>,
+        </span>T: Debug + <span class="lifetime">'static</span>,
     {
         <span class="self">Self</span>::try_capture(value).unwrap_or(ValueBag {
             inner: Internal::Debug(value),
@@ -519,9 +521,9 @@
     ///
     /// This method will attempt to capture the given value as a well-known primitive
     /// before resorting to using its `Display` implementation.
-    </span><span class="kw">pub fn </span>capture_display&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>T) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>capture_display&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>T: Display + <span class="lifetime">&#39;static</span>,
+        </span>T: Display + <span class="lifetime">'static</span>,
     {
         <span class="self">Self</span>::try_capture(value).unwrap_or(ValueBag {
             inner: Internal::Display(value),
@@ -529,7 +531,7 @@
     }
 
     <span class="doccomment">/// Get a value from a debuggable type without capturing support.
-    </span><span class="kw">pub const fn </span>from_debug&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>T) -&gt; <span class="self">Self
+    </span><span class="kw">pub const fn </span>from_debug&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Debug,
     {
@@ -539,7 +541,7 @@
     }
 
     <span class="doccomment">/// Get a value from a displayable type without capturing support.
-    </span><span class="kw">pub const fn </span>from_display&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>T) -&gt; <span class="self">Self
+    </span><span class="kw">pub const fn </span>from_display&lt;T&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Display,
     {
@@ -550,7 +552,7 @@
 
     <span class="doccomment">/// Get a value from a debuggable type without capturing support.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>from_dyn_debug(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>Debug) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>from_dyn_debug(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>Debug) -&gt; <span class="self">Self </span>{
         ValueBag {
             inner: Internal::AnonDebug(value),
         }
@@ -558,7 +560,7 @@
 
     <span class="doccomment">/// Get a value from a displayable type without capturing support.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub const fn </span>from_dyn_display(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>Display) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>from_dyn_display(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>Display) -&gt; <span class="self">Self </span>{
         ValueBag {
             inner: Internal::AnonDisplay(value),
         }
@@ -570,7 +572,7 @@
     <span class="kw">fn </span>as_super(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>fmt::Display;
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Display + <span class="lifetime">&#39;static</span>&gt; DowncastDisplay <span class="kw">for </span>T {
+<span class="kw">impl</span>&lt;T: fmt::Display + <span class="lifetime">'static</span>&gt; DowncastDisplay <span class="kw">for </span>T {
     <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
         <span class="self">self
     </span>}
@@ -585,7 +587,7 @@
     <span class="kw">fn </span>as_super(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>fmt::Debug;
 }
 
-<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="lifetime">&#39;static</span>&gt; DowncastDebug <span class="kw">for </span>T {
+<span class="kw">impl</span>&lt;T: fmt::Debug + <span class="lifetime">'static</span>&gt; DowncastDebug <span class="kw">for </span>T {
     <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
         <span class="self">self
     </span>}
@@ -595,10 +597,10 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, <span class="lifetime">&#39;f</span>&gt; Slot&lt;<span class="lifetime">&#39;s</span>, <span class="lifetime">&#39;f</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>, <span class="lifetime">'f</span>&gt; Slot&lt;<span class="lifetime">'s</span>, <span class="lifetime">'f</span>&gt; {
     <span class="doccomment">/// Fill the slot with a debuggable value.
     ///
-    /// The given value doesn&#39;t need to satisfy any particular lifetime constraints.
+    /// The given value doesn't need to satisfy any particular lifetime constraints.
     </span><span class="kw">pub fn </span>fill_debug&lt;T&gt;(<span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>T: Debug,
@@ -608,7 +610,7 @@
 
     <span class="doccomment">/// Fill the slot with a displayable value.
     ///
-    /// The given value doesn&#39;t need to satisfy any particular lifetime constraints.
+    /// The given value doesn't need to satisfy any particular lifetime constraints.
     </span><span class="kw">pub fn </span>fill_display&lt;T&gt;(<span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>T: Display,
@@ -619,11 +621,11 @@
 
 <span class="kw">pub use </span><span class="self">self</span>::fmt::{Debug, Display};
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; Debug <span class="kw">for </span>ValueBag&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; Debug <span class="kw">for </span>ValueBag&lt;<span class="lifetime">'v</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="kw">struct </span>DebugVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;b</span>&gt;);
+        <span class="kw">struct </span>DebugVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">'b</span>&gt;);
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span>DebugVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>, <span class="lifetime">'v</span>&gt; InternalVisitor&lt;<span class="lifetime">'v</span>&gt; <span class="kw">for </span>DebugVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
             <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 Debug::fmt(v, <span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
@@ -685,22 +687,22 @@
             }
 
             <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-                <span class="self">self</span>.debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;None&quot;</span>))
+                <span class="self">self</span>.debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"None"</span>))
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-            </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+            </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 Debug::fmt(v, <span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span><span class="kw">fn </span>sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><span class="kw">crate</span>::internal::sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 <span class="kw">crate</span>::internal::sval::v2::fmt(<span class="self">self</span>.<span class="number">0</span>, v)
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span><span class="kw">fn </span>serde1(
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><span class="kw">crate</span>::internal::serde::v1::Serialize,
@@ -708,8 +710,8 @@
                 <span class="kw">crate</span>::internal::serde::v1::fmt(<span class="self">self</span>.<span class="number">0</span>, v)
             }
 
-            <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-                <span class="macro">write!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="string">&quot;&lt;{msg}&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="macro">write!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="string">"&lt;{msg}&gt;"</span>)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
@@ -722,11 +724,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; Display <span class="kw">for </span>ValueBag&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; Display <span class="kw">for </span>ValueBag&lt;<span class="lifetime">'v</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="kw">struct </span>DisplayVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;b</span>&gt;);
+        <span class="kw">struct </span>DisplayVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>fmt::Formatter&lt;<span class="lifetime">'b</span>&gt;);
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>&gt; InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span>DisplayVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>, <span class="lifetime">'v</span>&gt; InternalVisitor&lt;<span class="lifetime">'v</span>&gt; <span class="kw">for </span>DisplayVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
             <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 Debug::fmt(v, <span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
@@ -788,22 +790,22 @@
             }
 
             <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-                <span class="self">self</span>.debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;None&quot;</span>))
+                <span class="self">self</span>.debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"None"</span>))
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-            </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+            </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 Display::fmt(v, <span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span><span class="kw">fn </span>sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><span class="kw">crate</span>::internal::sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
                 <span class="kw">crate</span>::internal::sval::v2::fmt(<span class="self">self</span>.<span class="number">0</span>, v)
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span><span class="kw">fn </span>serde1(
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 v: <span class="kw-2">&amp;</span><span class="kw">dyn </span><span class="kw">crate</span>::internal::serde::v1::Serialize,
@@ -811,8 +813,8 @@
                 <span class="kw">crate</span>::internal::serde::v1::fmt(<span class="self">self</span>.<span class="number">0</span>, v)
             }
 
-            <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-                <span class="macro">write!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="string">&quot;&lt;{msg}&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+                <span class="macro">write!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="string">"&lt;{msg}&gt;"</span>)<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(())
             }
@@ -825,7 +827,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;owned&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"owned"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>owned {
     <span class="kw">use </span><span class="kw">crate</span>::std::{boxed::Box, fmt, string::ToString};
 
@@ -845,7 +847,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>OwnedFmt(Box&lt;str&gt;);
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>buffer_debug(v: <span class="kw">impl </span>fmt::Debug) -&gt; OwnedFmt {
-        OwnedFmt(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, v).into())
+        OwnedFmt(<span class="macro">format!</span>(<span class="string">"{:?}"</span>, v).into())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>buffer_display(v: <span class="kw">impl </span>fmt::Display) -&gt; OwnedFmt {
@@ -867,7 +869,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
     </span><span class="kw">use </span>wasm_bindgen_test::<span class="kw-2">*</span>;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -877,7 +879,7 @@
     };
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_capture() {
         <span class="macro">assert_eq!</span>(
             ValueBag::capture_debug(<span class="kw-2">&amp;</span><span class="number">1u16</span>).to_test_token(),
@@ -895,41 +897,41 @@
     }
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_capture_args() {
         <span class="macro">assert_eq!</span>(
-            ValueBag::from_debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;a {}&quot;</span>, <span class="string">&quot;value&quot;</span>)).to_string(),
-            <span class="string">&quot;a value&quot;
+            ValueBag::from_debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"a {}"</span>, <span class="string">"value"</span>)).to_string(),
+            <span class="string">"a value"
         </span>);
     }
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_cast() {
         <span class="macro">assert_eq!</span>(
             <span class="number">42u64</span>,
             ValueBag::capture_debug(<span class="kw-2">&amp;</span><span class="number">42u64</span>)
                 .to_u64()
-                .expect(<span class="string">&quot;invalid value&quot;</span>)
+                .expect(<span class="string">"invalid value"</span>)
         );
 
         <span class="macro">assert_eq!</span>(
-            <span class="string">&quot;a string&quot;</span>,
-            ValueBag::capture_display(<span class="kw-2">&amp;</span><span class="string">&quot;a string&quot;</span>)
+            <span class="string">"a string"</span>,
+            ValueBag::capture_display(<span class="kw-2">&amp;</span><span class="string">"a string"</span>)
                 .to_borrowed_str()
-                .expect(<span class="string">&quot;invalid value&quot;</span>)
+                .expect(<span class="string">"invalid value"</span>)
         );
     }
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_downcast() {
         <span class="attr">#[derive(Debug, PartialEq, Eq)]
         </span><span class="kw">struct </span>Timestamp(usize);
 
         <span class="kw">impl </span>Display <span class="kw">for </span>Timestamp {
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-                <span class="macro">write!</span>(f, <span class="string">&quot;time is {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+                <span class="macro">write!</span>(f, <span class="string">"time is {}"</span>, <span class="self">self</span>.<span class="number">0</span>)
             }
         }
 
@@ -939,42 +941,42 @@
             <span class="kw-2">&amp;</span>ts,
             ValueBag::capture_debug(<span class="kw-2">&amp;</span>ts)
                 .downcast_ref::&lt;Timestamp&gt;()
-                .expect(<span class="string">&quot;invalid value&quot;</span>)
+                .expect(<span class="string">"invalid value"</span>)
         );
 
         <span class="macro">assert_eq!</span>(
             <span class="kw-2">&amp;</span>ts,
             ValueBag::capture_display(<span class="kw-2">&amp;</span>ts)
                 .downcast_ref::&lt;Timestamp&gt;()
-                .expect(<span class="string">&quot;invalid value&quot;</span>)
+                .expect(<span class="string">"invalid value"</span>)
         );
     }
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_debug() {
         <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="string">&quot;a string&quot;</span>),
-            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="string">&quot;a string&quot;</span>.into_value_bag().by_ref()),
+            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">"a string"</span>),
+            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">"a string"</span>.into_value_bag().by_ref()),
         );
 
         <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{:04?}&quot;</span>, <span class="number">42u64</span>),
-            <span class="macro">format!</span>(<span class="string">&quot;{:04?}&quot;</span>, <span class="number">42u64</span>.into_value_bag().by_ref()),
+            <span class="macro">format!</span>(<span class="string">"{:04?}"</span>, <span class="number">42u64</span>),
+            <span class="macro">format!</span>(<span class="string">"{:04?}"</span>, <span class="number">42u64</span>.into_value_bag().by_ref()),
         );
     }
 
     <span class="attr">#[test]
-    #[cfg_attr(target_arch = <span class="string">&quot;wasm32&quot;</span>, wasm_bindgen_test)]
+    #[cfg_attr(target_arch = <span class="string">"wasm32"</span>, wasm_bindgen_test)]
     </span><span class="kw">fn </span>fmt_display() {
         <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;a string&quot;</span>),
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;a string&quot;</span>.into_value_bag().by_ref()),
+            <span class="macro">format!</span>(<span class="string">"{}"</span>, <span class="string">"a string"</span>),
+            <span class="macro">format!</span>(<span class="string">"{}"</span>, <span class="string">"a string"</span>.into_value_bag().by_ref()),
         );
 
         <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{:04}&quot;</span>, <span class="number">42u64</span>),
-            <span class="macro">format!</span>(<span class="string">&quot;{:04}&quot;</span>, <span class="number">42u64</span>.into_value_bag().by_ref()),
+            <span class="macro">format!</span>(<span class="string">"{:04}"</span>, <span class="number">42u64</span>),
+            <span class="macro">format!</span>(<span class="string">"{:04}"</span>, <span class="number">42u64</span>.into_value_bag().by_ref()),
         );
     }
 }

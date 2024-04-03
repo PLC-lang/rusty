@@ -1,9 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Structured logging."><title>log::kv - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../log/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../log/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><h2><a href="../../log/index.html">log</a><span class="version">0.4.21</span></h2></div><h2 class="location"><a href="#">Module kv</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></section><h2><a href="../index.html">In crate log</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">log</a>::<wbr><a class="mod" href="#">kv</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/log/kv/mod.rs.html#1-265">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Structured logging.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Structured logging."><title>log::kv - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../../log/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../log/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><h2><a href="../../log/index.html">log</a><span class="version">0.4.21</span></h2></div><h2 class="location"><a href="#">Module kv</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></section><h2><a href="../index.html">In crate log</a></h2></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../log/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">log</a>::<wbr><a class="mod" href="#">kv</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/log/kv/mod.rs.html#1-265">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Structured logging.</p>
 <p>Add the <code>kv</code> feature to your <code>Cargo.toml</code> to enable
 this module:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.log]
 features = [&quot;kv&quot;]
-</code></pre></div><h2 id="structured-logging-in-log"><a href="#structured-logging-in-log">Structured logging in <code>log</code></a></h2>
+</code></pre></div><h2 id="structured-logging-in-log"><a class="doc-anchor" href="#structured-logging-in-log">§</a>Structured logging in <code>log</code></h2>
 <p>Structured logging enhances traditional text-based log records with user-defined
 attributes. Structured logs can be analyzed using a variety of data processing
 techniques, without needing to find and parse attributes from unstructured text first.</p>
@@ -12,20 +13,20 @@ Each attribute is a key-value; a pair of <a href="struct.Key.html" title="struct
 and values are a datum of any type that can be formatted or serialized. Simple types
 like strings, booleans, and numbers are supported, as well as arbitrarily complex
 structures involving nested objects and sequences.</p>
-<h3 id="adding-key-values-to-log-records"><a href="#adding-key-values-to-log-records">Adding key-values to log records</a></h3>
+<h3 id="adding-key-values-to-log-records"><a class="doc-anchor" href="#adding-key-values-to-log-records">§</a>Adding key-values to log records</h3>
 <p>Key-values appear before the message format in the <code>log!</code> macros:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">info!</span>(a = <span class="number">1</span>; <span class="string">&quot;Something of interest&quot;</span>);</code></pre></div>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">info!</span>(a = <span class="number">1</span>; <span class="string">"Something of interest"</span>);</code></pre></div>
 <p>Key-values support the same shorthand identifer syntax as <code>format_args</code>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>a = <span class="number">1</span>;
 
-<span class="macro">info!</span>(a; <span class="string">&quot;Something of interest&quot;</span>);</code></pre></div>
+<span class="macro">info!</span>(a; <span class="string">"Something of interest"</span>);</code></pre></div>
 <p>Values are capturing using the <a href="value/trait.ToValue.html" title="trait log::kv::value::ToValue"><code>ToValue</code></a> trait by default. To capture a value
 using a different trait implementation, use a modifier after its key. Here’s how
 the same example can capture <code>a</code> using its <code>Debug</code> implementation instead:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">info!</span>(a:<span class="question-mark">? </span>= <span class="number">1</span>; <span class="string">&quot;Something of interest&quot;</span>);</code></pre></div>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">info!</span>(a:<span class="question-mark">? </span>= <span class="number">1</span>; <span class="string">"Something of interest"</span>);</code></pre></div>
 <p>The following capturing modifiers are supported:</p>
 <ul>
 <li><code>:?</code> will capture the value using <code>Debug</code>.</li>
@@ -36,15 +37,15 @@ the same example can capture <code>a</code> using its <code>Debug</code> impleme
 <li><code>:sval</code> will capture the value using <code>sval::Value</code> (requires the <code>kv_sval</code> feature).</li>
 <li><code>:serde</code> will capture the value using <code>serde::Serialize</code> (requires the <code>kv_serde</code> feature).</li>
 </ul>
-<h3 id="working-with-key-values-on-log-records"><a href="#working-with-key-values-on-log-records">Working with key-values on log records</a></h3>
+<h3 id="working-with-key-values-on-log-records"><a class="doc-anchor" href="#working-with-key-values-on-log-records">§</a>Working with key-values on log records</h3>
 <p>Use the <a href="../struct.Record.html#method.key_values"><code>Record::key_values</code></a> method to access key-values.</p>
 <p>Individual values can be pulled from the source by their key:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>log::kv::{Source, Key, Value};
 
-<span class="comment">// info!(a = 1; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = 1; "Something of interest");
 
-</span><span class="kw">let </span>a: Value = record.key_values().get(Key::from(<span class="string">&quot;a&quot;</span>)).unwrap();
+</span><span class="kw">let </span>a: Value = record.key_values().get(Key::from(<span class="string">"a"</span>)).unwrap();
 <span class="macro">assert_eq!</span>(<span class="number">1</span>, a.to_i64().unwrap());</code></pre></div>
 <p>All key-values can also be enumerated using a <a href="source/trait.VisitSource.html" title="trait log::kv::source::VisitSource"><code>VisitSource</code></a>:</p>
 
@@ -52,10 +53,10 @@ the same example can capture <code>a</code> using its <code>Debug</code> impleme
 
 <span class="kw">use </span>log::kv::{<span class="self">self</span>, Source, Key, Value, VisitSource};
 
-<span class="kw">struct </span>Collect&lt;<span class="lifetime">&#39;kvs</span>&gt;(BTreeMap&lt;Key&lt;<span class="lifetime">&#39;kvs</span>&gt;, Value&lt;<span class="lifetime">&#39;kvs</span>&gt;&gt;);
+<span class="kw">struct </span>Collect&lt;<span class="lifetime">'kvs</span>&gt;(BTreeMap&lt;Key&lt;<span class="lifetime">'kvs</span>&gt;, Value&lt;<span class="lifetime">'kvs</span>&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;kvs</span>&gt; VisitSource&lt;<span class="lifetime">&#39;kvs</span>&gt; <span class="kw">for </span>Collect&lt;<span class="lifetime">&#39;kvs</span>&gt; {
-    <span class="kw">fn </span>visit_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key&lt;<span class="lifetime">&#39;kvs</span>&gt;, value: Value&lt;<span class="lifetime">&#39;kvs</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), kv::Error&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'kvs</span>&gt; VisitSource&lt;<span class="lifetime">'kvs</span>&gt; <span class="kw">for </span>Collect&lt;<span class="lifetime">'kvs</span>&gt; {
+    <span class="kw">fn </span>visit_pair(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key&lt;<span class="lifetime">'kvs</span>&gt;, value: Value&lt;<span class="lifetime">'kvs</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), kv::Error&gt; {
         <span class="self">self</span>.<span class="number">0</span>.insert(key, value);
 
         <span class="prelude-val">Ok</span>(())
@@ -64,14 +65,14 @@ the same example can capture <code>a</code> using its <code>Debug</code> impleme
 
 <span class="kw">let </span><span class="kw-2">mut </span>visitor = Collect(BTreeMap::new());
 
-<span class="comment">// info!(a = 1, b = 2, c = 3; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = 1, b = 2, c = 3; "Something of interest");
 
 </span>record.key_values().visit(<span class="kw-2">&amp;mut </span>visitor)<span class="question-mark">?</span>;
 
 <span class="kw">let </span>collected = visitor.<span class="number">0</span>;
 
 <span class="macro">assert_eq!</span>(
-    <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>],
+    <span class="macro">vec!</span>[<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>],
     collected
         .keys()
         .map(|k| k.as_str())
@@ -81,9 +82,9 @@ the same example can capture <code>a</code> using its <code>Debug</code> impleme
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>log::kv::{Source, Key};
 
-<span class="comment">// info!(a = 1; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = 1; "Something of interest");
 
-</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">&quot;a&quot;</span>)).unwrap();
+</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">"a"</span>)).unwrap();
 
 <span class="macro">assert_eq!</span>(<span class="number">1</span>, a.to_i64().unwrap());</code></pre></div>
 <p>Values also have their own <a href="value/trait.VisitValue.html" title="trait log::kv::value::VisitValue"><code>VisitValue</code></a> type. Value visitors are a lightweight
@@ -93,7 +94,7 @@ API for working with primitives types:</p>
 
 <span class="kw">struct </span>IsNumeric(bool);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;kvs</span>&gt; VisitValue&lt;<span class="lifetime">&#39;kvs</span>&gt; <span class="kw">for </span>IsNumeric {
+<span class="kw">impl</span>&lt;<span class="lifetime">'kvs</span>&gt; VisitValue&lt;<span class="lifetime">'kvs</span>&gt; <span class="kw">for </span>IsNumeric {
     <span class="kw">fn </span>visit_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _value: kv::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), kv::Error&gt; {
         <span class="self">self</span>.<span class="number">0 </span>= <span class="bool-val">false</span>;
         <span class="prelude-val">Ok</span>(())
@@ -125,9 +126,9 @@ API for working with primitives types:</p>
     }
 }
 
-<span class="comment">// info!(a = 1; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = 1; "Something of interest");
 
-</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">&quot;a&quot;</span>)).unwrap();
+</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">"a"</span>)).unwrap();
 
 <span class="kw">let </span><span class="kw-2">mut </span>visitor = IsNumeric(<span class="bool-val">false</span>);
 
@@ -141,16 +142,16 @@ a.visit(<span class="kw-2">&amp;mut </span>visitor)<span class="question-mark">?
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(serde::Serialize)]
 </span><span class="kw">struct </span>Data {
     a: i32, b: bool,
-    c: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    c: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
 }
 
-<span class="kw">let </span>data = Data { a: <span class="number">1</span>, b: <span class="bool-val">true</span>, c: <span class="string">&quot;Some data&quot; </span>};
+<span class="kw">let </span>data = Data { a: <span class="number">1</span>, b: <span class="bool-val">true</span>, c: <span class="string">"Some data" </span>};
 
-<span class="comment">// info!(a = data; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = data; "Something of interest");
 
-</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">&quot;a&quot;</span>)).unwrap();
+</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">"a"</span>)).unwrap();
 
-<span class="macro">assert_eq!</span>(<span class="string">&quot;{\&quot;a\&quot;:1,\&quot;b\&quot;:true,\&quot;c\&quot;:\&quot;Some data\&quot;}&quot;</span>, serde_json::to_string(<span class="kw-2">&amp;</span>a)<span class="question-mark">?</span>);</code></pre></div>
+<span class="macro">assert_eq!</span>(<span class="string">"{\"a\":1,\"b\":true,\"c\":\"Some data\"}"</span>, serde_json::to_string(<span class="kw-2">&amp;</span>a)<span class="question-mark">?</span>);</code></pre></div>
 <p>The choice of serialization framework depends on the needs of the consumer.
 If you’re in a no-std environment, you can use <code>sval</code>. In other cases, you can use <code>serde</code>.
 Log producers and log consumers don’t need to agree on the serialization framework.
@@ -162,14 +163,14 @@ traits:</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Data {
     a: i32,
     b: bool,
-    c: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    c: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
 }
 
-<span class="kw">let </span>data = Data { a: <span class="number">1</span>, b: <span class="bool-val">true</span>, c: <span class="string">&quot;Some data&quot; </span>};
+<span class="kw">let </span>data = Data { a: <span class="number">1</span>, b: <span class="bool-val">true</span>, c: <span class="string">"Some data" </span>};
 
-<span class="comment">// info!(a = data; &quot;Something of interest&quot;);
+<span class="comment">// info!(a = data; "Something of interest");
 
-</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">&quot;a&quot;</span>)).unwrap();
+</span><span class="kw">let </span>a = record.key_values().get(Key::from(<span class="string">"a"</span>)).unwrap();
 
-<span class="macro">assert_eq!</span>(<span class="string">&quot;Data { a: 1, b: true, c: \&quot;Some data\&quot; }&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{a:?}&quot;</span>));</code></pre></div>
-</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.Source"><code>pub use self::source::<a class="trait" href="source/trait.Source.html" title="trait log::kv::source::Source">Source</a>;</code></div></li><li><div class="item-name" id="reexport.VisitSource"><code>pub use self::source::<a class="trait" href="source/trait.VisitSource.html" title="trait log::kv::source::VisitSource">VisitSource</a>;</code></div></li><li><div class="item-name" id="reexport.ToValue"><code>pub use self::value::<a class="trait" href="value/trait.ToValue.html" title="trait log::kv::value::ToValue">ToValue</a>;</code></div></li><li><div class="item-name" id="reexport.Value"><code>pub use self::value::<a class="struct" href="value/struct.Value.html" title="struct log::kv::value::Value">Value</a>;</code></div></li><li><div class="item-name" id="reexport.VisitValue"><code>pub use self::value::<a class="trait" href="value/trait.VisitValue.html" title="trait log::kv::value::VisitValue">VisitValue</a>;</code></div></li><li><div class="item-name" id="reexport.Visitor"><code>pub use self::source::<a class="trait" href="source/trait.VisitSource.html" title="trait log::kv::source::VisitSource">Visitor</a>;</code></div></li></ul><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="source/index.html" title="mod log::kv::source">source</a></div><div class="desc docblock-short">Sources for key-values.</div></li><li><div class="item-name"><a class="mod" href="value/index.html" title="mod log::kv::value">value</a></div><div class="desc docblock-short">Structured values.</div></li></ul><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Error.html" title="struct log::kv::Error">Error</a></div><div class="desc docblock-short">An error encountered while working with structured data.</div></li><li><div class="item-name"><a class="struct" href="struct.Key.html" title="struct log::kv::Key">Key</a></div><div class="desc docblock-short">A key in a key-value.</div></li></ul><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.ToKey.html" title="trait log::kv::ToKey">ToKey</a></div><div class="desc docblock-short">A type that can be converted into a <a href="struct.Key.html"><code>Key</code></a>.</div></li></ul></section></div></main></body></html>
+<span class="macro">assert_eq!</span>(<span class="string">"Data { a: 1, b: true, c: \"Some data\" }"</span>, <span class="macro">format!</span>(<span class="string">"{a:?}"</span>));</code></pre></div>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.Source"><code>pub use self::source::<a class="trait" href="source/trait.Source.html" title="trait log::kv::source::Source">Source</a>;</code></div></li><li><div class="item-name" id="reexport.VisitSource"><code>pub use self::source::<a class="trait" href="source/trait.VisitSource.html" title="trait log::kv::source::VisitSource">VisitSource</a>;</code></div></li><li><div class="item-name" id="reexport.ToValue"><code>pub use self::value::<a class="trait" href="value/trait.ToValue.html" title="trait log::kv::value::ToValue">ToValue</a>;</code></div></li><li><div class="item-name" id="reexport.Value"><code>pub use self::value::<a class="struct" href="value/struct.Value.html" title="struct log::kv::value::Value">Value</a>;</code></div></li><li><div class="item-name" id="reexport.VisitValue"><code>pub use self::value::<a class="trait" href="value/trait.VisitValue.html" title="trait log::kv::value::VisitValue">VisitValue</a>;</code></div></li><li><div class="item-name" id="reexport.Visitor"><code>pub use self::source::<a class="trait" href="source/trait.VisitSource.html" title="trait log::kv::source::VisitSource">Visitor</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="source/index.html" title="mod log::kv::source">source</a></div><div class="desc docblock-short">Sources for key-values.</div></li><li><div class="item-name"><a class="mod" href="value/index.html" title="mod log::kv::value">value</a></div><div class="desc docblock-short">Structured values.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Error.html" title="struct log::kv::Error">Error</a></div><div class="desc docblock-short">An error encountered while working with structured data.</div></li><li><div class="item-name"><a class="struct" href="struct.Key.html" title="struct log::kv::Key">Key</a></div><div class="desc docblock-short">A key in a key-value.</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.ToKey.html" title="trait log::kv::ToKey">ToKey</a></div><div class="desc docblock-short">A type that can be converted into a <a href="struct.Key.html"><code>Key</code></a>.</div></li></ul></section></div></main></body></html>

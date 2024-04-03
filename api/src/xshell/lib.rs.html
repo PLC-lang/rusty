@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/xshell-0.2.5/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xshell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/xshell-0.2.5/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xshell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../xshell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1118,28 +1120,28 @@
 <a href="#1118" id="1118">1118</a>
 <a href="#1119" id="1119">1119</a>
 <a href="#1120" id="1120">1120</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! xshell is a swiss-army knife for writing cross-platform &quot;bash&quot; scripts in
+</pre></div><pre class="rust"><code><span class="doccomment">//! xshell is a swiss-army knife for writing cross-platform "bash" scripts in
 //! Rust.
 //!
-//! It doesn&#39;t use the shell directly, but rather re-implements parts of
+//! It doesn't use the shell directly, but rather re-implements parts of
 //! scripting environment in Rust. The intended use-case is various bits of glue
 //! code, which could be written in bash or python. The original motivation is
 //! [`xtask`](https://github.com/matklad/cargo-xtask) development.
 //!
-//! Here&#39;s a quick example:
+//! Here's a quick example:
 //!
 //! ```no_run
 //! use xshell::{Shell, cmd};
 //!
 //! let sh = Shell::new()?;
-//! let branch = &quot;main&quot;;
-//! let commit_hash = cmd!(sh, &quot;git rev-parse {branch}&quot;).read()?;
+//! let branch = "main";
+//! let commit_hash = cmd!(sh, "git rev-parse {branch}").read()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
 //! **Goals:**
 //!
-//! * Ergonomics and DWIM (&quot;do what I mean&quot;): `cmd!` macro supports
+//! * Ergonomics and DWIM ("do what I mean"): `cmd!` macro supports
 //!   interpolation, writing to a file automatically creates parent directories,
 //!   etc.
 //! * Reliability: no [shell injection] by construction, good error messages
@@ -1149,12 +1151,12 @@
 //!
 //! # Guide
 //!
-//! For a short API overview, let&#39;s implement a script to clone a github
+//! For a short API overview, let's implement a script to clone a github
 //! repository and publish it as a crates.io crate. The script will do the
 //! following:
 //!
 //! 1. Clone the repository.
-//! 2. `cd` into the repository&#39;s directory.
+//! 2. `cd` into the repository's directory.
 //! 3. Run the tests.
 //! 4. Create a git tag using a version from `Cargo.toml`.
 //! 5. Publish the crate with an optional `--dry-run`.
@@ -1174,14 +1176,14 @@
 //! Only two imports are needed -- the [`Shell`] struct the and [`cmd!`] macro.
 //! By convention, an instance of a [`Shell`] is stored in a variable named
 //! `sh`. All the API is available as methods, so a short name helps here. For
-//! &quot;scripts&quot;, the [`anyhow`](https://docs.rs/anyhow) crate is a great choice
+//! "scripts", the [`anyhow`](https://docs.rs/anyhow) crate is a great choice
 //! for an error-handling library.
 //!
 //! Next, clone the repository:
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! cmd!(sh, &quot;git clone https://github.com/matklad/xshell.git&quot;).run()?;
+//! cmd!(sh, "git clone https://github.com/matklad/xshell.git").run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
@@ -1191,7 +1193,7 @@
 //!
 //! ```console
 //! $ git clone https://github.com/matklad/xshell.git
-//! Cloning into &#39;xshell&#39;...
+//! Cloning into 'xshell'...
 //! remote: Enumerating objects: 676, done.
 //! remote: Counting objects: 100% (220/220), done.
 //! remote: Compressing objects: 100% (123/123), done.
@@ -1205,31 +1207,31 @@
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! cmd!(sh, &quot;git clone https://github.com/matklad/xshell.git&quot;)
+//! cmd!(sh, "git clone https://github.com/matklad/xshell.git")
 //!     .quiet()
 //!     .run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
-//! To make the code more general, let&#39;s use command interpolation to extract
+//! To make the code more general, let's use command interpolation to extract
 //! the username and the repository:
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let user = &quot;matklad&quot;;
-//! let repo = &quot;xshell&quot;;
-//! cmd!(sh, &quot;git clone https://github.com/{user}/{repo}.git&quot;).run()?;
+//! let user = "matklad";
+//! let repo = "xshell";
+//! cmd!(sh, "git clone https://github.com/{user}/{repo}.git").run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
 //! Note that the `cmd!` macro parses the command string at compile time, so you
-//! don&#39;t have to worry about escaping the arguments. For example, the following
-//! command &quot;touches&quot; a single file whose name is `contains a space`:
+//! don't have to worry about escaping the arguments. For example, the following
+//! command "touches" a single file whose name is `contains a space`:
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let file = &quot;contains a space&quot;;
-//! cmd!(sh, &quot;touch {file}&quot;).run()?;
+//! let file = "contains a space";
+//! cmd!(sh, "touch {file}").run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
@@ -1237,7 +1239,7 @@
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! # let repo = &quot;xshell&quot;;
+//! # let repo = "xshell";
 //! sh.change_dir(repo);
 //! ```
 //!
@@ -1249,33 +1251,33 @@
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let test_args = [&quot;-Zunstable-options&quot;, &quot;--report-time&quot;];
-//! cmd!(sh, &quot;cargo test -- {test_args...}&quot;).run()?;
+//! let test_args = ["-Zunstable-options", "--report-time"];
+//! cmd!(sh, "cargo test -- {test_args...}").run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
 //! Note how the so-called splat syntax (`...`) is used to interpolate an
 //! iterable of arguments.
 //!
-//! Next, read the Cargo.toml so that we can fetch crate&#39; declared version:
+//! Next, read the Cargo.toml so that we can fetch crate' declared version:
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let manifest = sh.read_file(&quot;Cargo.toml&quot;)?;
+//! let manifest = sh.read_file("Cargo.toml")?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
 //! [`Shell::read_file`] works like [`std::fs::read_to_string`], but paths are
 //! relative to the current directory of the [`Shell`]. Unlike [`std::fs`],
-//! error messages are much more useful. For example, if there isn&#39;t a
+//! error messages are much more useful. For example, if there isn't a
 //! `Cargo.toml` in the repository, the error message is:
 //!
 //! ```text
 //! Error: failed to read file `xshell/Cargo.toml`: no such file or directory (os error 2)
 //! ```
 //!
-//! `xshell` doesn&#39;t implement string processing utils like `grep`, `sed` or
-//! `awk` -- there&#39;s no need to, built-in language features work fine, and it&#39;s
+//! `xshell` doesn't implement string processing utils like `grep`, `sed` or
+//! `awk` -- there's no need to, built-in language features work fine, and it's
 //! always possible to pull extra functionality from crates.io.
 //!
 //! To extract the `version` field from Cargo.toml, [`str::split_once`] is
@@ -1283,29 +1285,29 @@
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let manifest = sh.read_file(&quot;Cargo.toml&quot;)?;
+//! let manifest = sh.read_file("Cargo.toml")?;
 //! let version = manifest
-//!     .split_once(&quot;version = \&quot;&quot;)
-//!     .and_then(|it| it.1.split_once(&#39;\&quot;&#39;))
+//!     .split_once("version = \"")
+//!     .and_then(|it| it.1.split_once('\"'))
 //!     .map(|it| it.0)
-//!     .ok_or_else(|| anyhow::format_err!(&quot;can&#39;t find version field in the manifest&quot;))?;
+//!     .ok_or_else(|| anyhow::format_err!("can't find version field in the manifest"))?;
 //!
-//! cmd!(sh, &quot;git tag {version}&quot;).run()?;
+//! cmd!(sh, "git tag {version}").run()?;
 //! # Ok::&lt;(), anyhow::Error&gt;(())
 //! ```
 //!
 //! The splat (`...`) syntax works with any iterable, and in Rust options are
 //! iterable. This means that `...` can be used to implement optional arguments.
-//! For example, here&#39;s how to pass `--dry-run` when *not* running in CI:
+//! For example, here's how to pass `--dry-run` when *not* running in CI:
 //!
 //! ```no_run
 //! # use xshell::{Shell, cmd}; let sh = Shell::new().unwrap();
-//! let dry_run = if sh.var(&quot;CI&quot;).is_ok() { None } else { Some(&quot;--dry-run&quot;) };
-//! cmd!(sh, &quot;cargo publish {dry_run...}&quot;).run()?;
+//! let dry_run = if sh.var("CI").is_ok() { None } else { Some("--dry-run") };
+//! cmd!(sh, "cargo publish {dry_run...}").run()?;
 //! # Ok::&lt;(), xshell::Error&gt;(())
 //! ```
 //!
-//! Putting everything altogether, here&#39;s the whole script:
+//! Putting everything altogether, here's the whole script:
 //!
 //! ```no_run
 //! use xshell::{cmd, Shell};
@@ -1313,25 +1315,25 @@
 //! fn main() -&gt; anyhow::Result&lt;()&gt; {
 //!     let sh = Shell::new()?;
 //!
-//!     let user = &quot;matklad&quot;;
-//!     let repo = &quot;xshell&quot;;
-//!     cmd!(sh, &quot;git clone https://github.com/{user}/{repo}.git&quot;).run()?;
+//!     let user = "matklad";
+//!     let repo = "xshell";
+//!     cmd!(sh, "git clone https://github.com/{user}/{repo}.git").run()?;
 //!     sh.change_dir(repo);
 //!
-//!     let test_args = [&quot;-Zunstable-options&quot;, &quot;--report-time&quot;];
-//!     cmd!(sh, &quot;cargo test -- {test_args...}&quot;).run()?;
+//!     let test_args = ["-Zunstable-options", "--report-time"];
+//!     cmd!(sh, "cargo test -- {test_args...}").run()?;
 //!
-//!     let manifest = sh.read_file(&quot;Cargo.toml&quot;)?;
+//!     let manifest = sh.read_file("Cargo.toml")?;
 //!     let version = manifest
-//!         .split_once(&quot;version = \&quot;&quot;)
-//!         .and_then(|it| it.1.split_once(&#39;\&quot;&#39;))
+//!         .split_once("version = \"")
+//!         .and_then(|it| it.1.split_once('\"'))
 //!         .map(|it| it.0)
-//!         .ok_or_else(|| anyhow::format_err!(&quot;can&#39;t find version field in the manifest&quot;))?;
+//!         .ok_or_else(|| anyhow::format_err!("can't find version field in the manifest"))?;
 //!
-//!     cmd!(sh, &quot;git tag {version}&quot;).run()?;
+//!     cmd!(sh, "git tag {version}").run()?;
 //!
-//!     let dry_run = if sh.var(&quot;CI&quot;).is_ok() { None } else { Some(&quot;--dry-run&quot;) };
-//!     cmd!(sh, &quot;cargo publish {dry_run...}&quot;).run()?;
+//!     let dry_run = if sh.var("CI").is_ok() { None } else { Some("--dry-run") };
+//!     cmd!(sh, "cargo publish {dry_run...}").run()?;
 //!
 //!     Ok(())
 //! }
@@ -1347,7 +1349,7 @@
 //! Minimum Supported Rust Version: 1.59.0. MSRV bump is not considered semver
 //! breaking. MSRV is updated conservatively.
 //!
-//! The crate isn&#39;t comprehensive yet, but this is a goal. You are hereby
+//! The crate isn't comprehensive yet, but this is a goal. You are hereby
 //! encouraged to submit PRs with missing functionality!
 //!
 //! # Related Crates
@@ -1357,7 +1359,7 @@
 //!
 //! Most of what this crate provides can be open-coded using
 //! [`std::process::Command`] and [`std::fs`]. If you only need to spawn a
-//! single process, using `std` is probably better (but don&#39;t forget to check
+//! single process, using `std` is probably better (but don't forget to check
 //! the exit status!).
 //!
 //! [`duct`]: https://github.com/oconnor663/duct.rs
@@ -1376,13 +1378,13 @@
 //!   Programs](https://docs.julialang.org/en/v1/manual/running-external-programs/)
 //! * [Filesystem](https://docs.julialang.org/en/v1/base/file/)
 //!
-//! Smaller influences are the [`duct`] crate and Ruby&#39;s
+//! Smaller influences are the [`duct`] crate and Ruby's
 //! [`FileUtils`](https://ruby-doc.org/stdlib-2.4.1/libdoc/fileutils/rdoc/FileUtils.html)
 //! module.
 //!
-//! The `cmd!` macro uses a simple proc-macro internally. It doesn&#39;t depend on
+//! The `cmd!` macro uses a simple proc-macro internally. It doesn't depend on
 //! helper libraries, so the fixed-cost impact on compile times is moderate.
-//! Compiling a trivial program with `cmd!(&quot;date +%Y-%m-%d&quot;)` takes one second.
+//! Compiling a trivial program with `cmd!("date +%Y-%m-%d")` takes one second.
 //! Equivalent program using only `std::process::Command` compiles in 0.25
 //! seconds.
 //!
@@ -1421,7 +1423,7 @@
 /// ```no_run
 /// # use xshell::{cmd, Shell};
 /// let sh = Shell::new()?;
-/// cmd!(sh, &quot;echo hello world&quot;).run()?;
+/// cmd!(sh, "echo hello world").run()?;
 /// # Ok::&lt;(), xshell::Error&gt;(())
 /// ```
 ///
@@ -1429,18 +1431,18 @@
 ///
 /// ```
 /// # use xshell::{cmd, Shell}; let sh = Shell::new()?;
-/// let greeting = &quot;hello world&quot;;
-/// let c = cmd!(sh, &quot;echo {greeting}&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo &quot;hello world&quot;&quot;#);
+/// let greeting = "hello world";
+/// let c = cmd!(sh, "echo {greeting}");
+/// assert_eq!(c.to_string(), r#"echo "hello world""#);
 ///
-/// let c = cmd!(sh, &quot;echo &#39;{greeting}&#39;&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo {greeting}&quot;#);
+/// let c = cmd!(sh, "echo '{greeting}'");
+/// assert_eq!(c.to_string(), r#"echo {greeting}"#);
 ///
-/// let c = cmd!(sh, &quot;echo {greeting}!&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo &quot;hello world!&quot;&quot;#);
+/// let c = cmd!(sh, "echo {greeting}!");
+/// assert_eq!(c.to_string(), r#"echo "hello world!""#);
 ///
-/// let c = cmd!(sh, &quot;echo &#39;spaces &#39;{greeting}&#39; around&#39;&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo &quot;spaces hello world around&quot;&quot;#);
+/// let c = cmd!(sh, "echo 'spaces '{greeting}' around'");
+/// assert_eq!(c.to_string(), r#"echo "spaces hello world around""#);
 ///
 /// # Ok::&lt;(), xshell::Error&gt;(())
 /// ```
@@ -1449,14 +1451,14 @@
 ///
 /// ```
 /// # use xshell::{cmd, Shell}; let sh = Shell::new()?;
-/// let args = [&quot;hello&quot;, &quot;world&quot;];
-/// let c = cmd!(sh, &quot;echo {args...}&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo hello world&quot;#);
+/// let args = ["hello", "world"];
+/// let c = cmd!(sh, "echo {args...}");
+/// assert_eq!(c.to_string(), r#"echo hello world"#);
 ///
-/// let arg1: Option&lt;&amp;str&gt; = Some(&quot;hello&quot;);
+/// let arg1: Option&lt;&amp;str&gt; = Some("hello");
 /// let arg2: Option&lt;&amp;str&gt; = None;
-/// let c = cmd!(sh, &quot;echo {arg1...} {arg2...}&quot;);
-/// assert_eq!(c.to_string(), r#&quot;echo hello&quot;#);
+/// let c = cmd!(sh, "echo {arg1...} {arg2...}");
+/// assert_eq!(c.to_string(), r#"echo hello"#);
 /// # Ok::&lt;(), xshell::Error&gt;(())
 /// ```
 </span><span class="attr">#[macro_export]
@@ -1472,11 +1474,11 @@
 
 <span class="doccomment">/// A `Shell` is the main API entry point.
 ///
-/// Almost all of the crate&#39;s functionality is available as methods of the
+/// Almost all of the crate's functionality is available as methods of the
 /// `Shell` object.
 ///
 /// `Shell` is a stateful object. It maintains a logical working directory and
-/// an environment map. They are independent from process&#39;s
+/// an environment map. They are independent from process's
 /// [`std::env::current_dir`] and [`std::env::var`], and only affect paths and
 /// commands passed to the [`Shell`].
 ///
@@ -1489,12 +1491,12 @@
 /// use xshell::{cmd, Shell};
 ///
 /// let sh = Shell::new()?;
-/// let _d = sh.push_dir(&quot;./target&quot;);
+/// let _d = sh.push_dir("./target");
 /// let cwd = sh.current_dir();
-/// cmd!(sh, &quot;echo current dir is {cwd}&quot;).run()?;
+/// cmd!(sh, "echo current dir is {cwd}").run()?;
 ///
 /// let process_cwd = std::env::current_dir().unwrap();
-/// assert_eq!(cwd, process_cwd.join(&quot;./target&quot;));
+/// assert_eq!(cwd, process_cwd.join("./target"));
 /// # Ok::&lt;(), xshell::Error&gt;(())
 /// ```
 </span><span class="attr">#[derive(Debug)]
@@ -1522,15 +1524,15 @@
     ///
     /// All relative paths are interpreted relative to this directory, rather
     /// than [`std::env::current_dir`].
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;pwd&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"pwd"</span>)]
     </span><span class="kw">pub fn </span>current_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
         <span class="self">self</span>.cwd.borrow().clone()
     }
 
     <span class="doccomment">/// Changes the working directory for this [`Shell`].
     ///
-    /// Note that this doesn&#39;t affect [`std::env::current_dir`].
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;pwd&quot;</span>)]
+    /// Note that this doesn't affect [`std::env::current_dir`].
+    </span><span class="attr">#[doc(alias = <span class="string">"pwd"</span>)]
     </span><span class="kw">pub fn </span>change_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, dir: P) {
         <span class="self">self</span>._change_dir(dir.as_ref())
     }
@@ -1544,12 +1546,12 @@
     /// Returns a RAII guard which reverts the working directory to the old
     /// value when dropped.
     ///
-    /// Note that this doesn&#39;t affect [`std::env::current_dir`].
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;pushd&quot;</span>)]
-    </span><span class="kw">pub fn </span>push_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; PushDir&lt;<span class="lifetime">&#39;_</span>&gt; {
+    /// Note that this doesn't affect [`std::env::current_dir`].
+    </span><span class="attr">#[doc(alias = <span class="string">"pushd"</span>)]
+    </span><span class="kw">pub fn </span>push_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; PushDir&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>._push_dir(path.as_ref())
     }
-    <span class="kw">fn </span>_push_dir(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; PushDir&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>_push_dir(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; PushDir&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">let </span>path = <span class="self">self</span>.path(path);
         PushDir::new(<span class="self">self</span>, path)
     }
@@ -1586,7 +1588,7 @@
     <span class="doccomment">/// Sets the value of `key` environment variable for this [`Shell`] to
     /// `val`.
     ///
-    /// Note that this doesn&#39;t affect [`std::env::var`].
+    /// Note that this doesn't affect [`std::env::var`].
     </span><span class="kw">pub fn </span>set_var&lt;K: AsRef&lt;OsStr&gt;, V: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, val: V) {
         <span class="self">self</span>._set_var(key.as_ref(), val.as_ref())
     }
@@ -1599,18 +1601,18 @@
     ///
     /// Returns a RAII guard which restores the old environment when dropped.
     ///
-    /// Note that this doesn&#39;t affect [`std::env::var`].
-    </span><span class="kw">pub fn </span>push_env&lt;K: AsRef&lt;OsStr&gt;, V: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, val: V) -&gt; PushEnv&lt;<span class="lifetime">&#39;_</span>&gt; {
+    /// Note that this doesn't affect [`std::env::var`].
+    </span><span class="kw">pub fn </span>push_env&lt;K: AsRef&lt;OsStr&gt;, V: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K, val: V) -&gt; PushEnv&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>._push_env(key.as_ref(), val.as_ref())
     }
-    <span class="kw">fn </span>_push_env(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>OsStr, val: <span class="kw-2">&amp;</span>OsStr) -&gt; PushEnv&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>_push_env(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>OsStr, val: <span class="kw-2">&amp;</span>OsStr) -&gt; PushEnv&lt;<span class="lifetime">'_</span>&gt; {
         PushEnv::new(<span class="self">self</span>, key.to_os_string(), val.to_os_string())
     }
     <span class="comment">// endregion:env
 
     // region:fs
     </span><span class="doccomment">/// Read the entire contents of a file into a string.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;cat&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"cat"</span>)]
     </span><span class="kw">pub fn </span>read_file&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
         <span class="self">self</span>._read_file(path.as_ref())
     }
@@ -1630,7 +1632,7 @@
 
     <span class="doccomment">/// Returns a sorted list of paths directly contained in the directory at
     /// `path`.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;ls&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"ls"</span>)]
     </span><span class="kw">pub fn </span>read_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;PathBuf&gt;&gt; {
         <span class="self">self</span>._read_dir(path.as_ref())
     }
@@ -1652,7 +1654,7 @@
     <span class="doccomment">/// Write a slice as the entire contents of a file.
     ///
     /// This function will create the file and all intermediate directories if
-    /// they don&#39;t exist.
+    /// they don't exist.
     </span><span class="comment">// TODO: probably want to make this an atomic rename write?
     </span><span class="kw">pub fn </span>write_file&lt;P: AsRef&lt;Path&gt;, C: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P, contents: C) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>._write_file(path.as_ref(), contents.as_ref())
@@ -1673,7 +1675,7 @@
     ///
     /// Otherwise, `dst` is a file or does not exist, and `src` will be copied into
     /// it.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;cp&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"cp"</span>)]
     </span><span class="kw">pub fn </span>copy_file&lt;S: AsRef&lt;Path&gt;, D: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, src: S, dst: D) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>._copy_file(src.as_ref(), dst.as_ref())
     }
@@ -1695,7 +1697,7 @@
     }
 
     <span class="doccomment">/// Hardlinks `src` to `dst`.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;ln&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"ln"</span>)]
     </span><span class="kw">pub fn </span>hard_link&lt;S: AsRef&lt;Path&gt;, D: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, src: S, dst: D) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>._hard_link(src.as_ref(), dst.as_ref())
     }
@@ -1708,7 +1710,7 @@
     <span class="doccomment">/// Creates the specified directory.
     ///
     /// All intermediate directories will also be created.
-    </span><span class="attr">#[doc(alias(<span class="string">&quot;mkdir_p&quot;</span>, <span class="string">&quot;mkdir&quot;</span>))]
+    </span><span class="attr">#[doc(alias(<span class="string">"mkdir_p"</span>, <span class="string">"mkdir"</span>))]
     </span><span class="kw">pub fn </span>create_dir&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf&gt; {
         <span class="self">self</span>._create_dir(path.as_ref())
     }
@@ -1728,7 +1730,7 @@
     ///
     /// Note that this is an **insecure method** -- any other process on the
     /// system will be able to read the data.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;mktemp&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"mktemp"</span>)]
     </span><span class="kw">pub fn </span>create_temp_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;TempDir&gt; {
         <span class="kw">let </span>base = std::env::temp_dir();
         <span class="self">self</span>.create_dir(<span class="kw-2">&amp;</span>base)<span class="question-mark">?</span>;
@@ -1738,7 +1740,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>n_try = <span class="number">0u32</span>;
         <span class="kw">loop </span>{
             <span class="kw">let </span>cnt = CNT.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
-            <span class="kw">let </span>path = base.join(<span class="macro">format!</span>(<span class="string">&quot;xshell-tmp-dir-{}&quot;</span>, cnt));
+            <span class="kw">let </span>path = base.join(<span class="macro">format!</span>(<span class="string">"xshell-tmp-dir-{}"</span>, cnt));
             <span class="kw">match </span>fs::create_dir(<span class="kw-2">&amp;</span>path) {
                 <span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(TempDir { path }),
                 <span class="prelude-val">Err</span>(err) <span class="kw">if </span>n_try == <span class="number">1024 </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new_create_dir(err, path)),
@@ -1748,7 +1750,7 @@
     }
 
     <span class="doccomment">/// Removes the file or directory at the given path.
-    </span><span class="attr">#[doc(alias(<span class="string">&quot;rm_rf&quot;</span>, <span class="string">&quot;rm&quot;</span>))]
+    </span><span class="attr">#[doc(alias(<span class="string">"rm_rf"</span>, <span class="string">"rm"</span>))]
     </span><span class="kw">pub fn </span>remove_path&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>._remove_path(path.as_ref())
     }
@@ -1763,14 +1765,14 @@
     }
 
     <span class="doccomment">/// Returns whether a file or directory exists at the given path.
-    </span><span class="attr">#[doc(alias(<span class="string">&quot;stat&quot;</span>))]
+    </span><span class="attr">#[doc(alias(<span class="string">"stat"</span>))]
     </span><span class="kw">pub fn </span>path_exists&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; bool {
         <span class="self">self</span>.path(path.as_ref()).exists()
     }
     <span class="comment">// endregion:fs
 
     </span><span class="doccomment">/// Creates a new [`Cmd`] that executes the given `program`.
-    </span><span class="kw">pub fn </span>cmd&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, program: P) -&gt; Cmd&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>cmd&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, program: P) -&gt; Cmd&lt;<span class="lifetime">'_</span>&gt; {
         <span class="comment">// TODO: path lookup?
         </span>Cmd::new(<span class="self">self</span>, program.as_ref())
     }
@@ -1787,18 +1789,18 @@
 /// old value.
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
-</span><span class="kw">pub struct </span>PushDir&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>PushDir&lt;<span class="lifetime">'a</span>&gt; {
     old_cwd: PathBuf,
-    shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell,
+    shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PushDir&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell, path: PathBuf) -&gt; PushDir&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PushDir&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell, path: PathBuf) -&gt; PushDir&lt;<span class="lifetime">'a</span>&gt; {
         PushDir { old_cwd: mem::replace(<span class="kw-2">&amp;mut *</span>shell.cwd.borrow_mut(), path), shell }
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>PushDir&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>PushDir&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         mem::swap(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.shell.cwd.borrow_mut(), <span class="kw-2">&amp;mut </span><span class="self">self</span>.old_cwd)
     }
@@ -1809,20 +1811,20 @@
 /// Dropping `PushEnv` restores the old value of the environmental variable.
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
-</span><span class="kw">pub struct </span>PushEnv&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>PushEnv&lt;<span class="lifetime">'a</span>&gt; {
     key: OsString,
     old_value: <span class="prelude-ty">Option</span>&lt;OsString&gt;,
-    shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell,
+    shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PushEnv&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell, key: OsString, val: OsString) -&gt; PushEnv&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PushEnv&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell, key: OsString, val: OsString) -&gt; PushEnv&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>old_value = shell.env.borrow_mut().insert(key.clone(), val);
         PushEnv { shell, key, old_value }
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>PushEnv&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>PushEnv&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>env = <span class="self">self</span>.shell.env.borrow_mut();
         <span class="kw">let </span>key = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.key);
@@ -1850,14 +1852,14 @@
 ///
 /// let sh = Shell::new()?;
 ///
-/// let branch = &quot;main&quot;;
-/// let cmd = cmd!(sh, &quot;git switch {branch}&quot;).quiet().run()?;
+/// let branch = "main";
+/// let cmd = cmd!(sh, "git switch {branch}").quiet().run()?;
 /// # Ok::&lt;(), xshell::Error&gt;(())
 /// ```
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
-</span><span class="kw">pub struct </span>Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
-    shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell,
+</span><span class="kw">pub struct </span>Cmd&lt;<span class="lifetime">'a</span>&gt; {
+    shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell,
     data: CmdData,
 }
 
@@ -1885,40 +1887,40 @@
     Clear,
 }
 
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Cmd&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Cmd&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.data, f)
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>CmdData {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.secret {
-            <span class="kw">return </span><span class="macro">write!</span>(f, <span class="string">&quot;&lt;secret&gt;&quot;</span>);
+            <span class="kw">return </span><span class="macro">write!</span>(f, <span class="string">"&lt;secret&gt;"</span>);
         }
 
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.prog.display())<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.prog.display())<span class="question-mark">?</span>;
         <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.args {
             <span class="comment">// TODO: this is potentially not copy-paste safe.
             </span><span class="kw">let </span>arg = arg.to_string_lossy();
             <span class="kw">if </span>arg.chars().any(|it| it.is_ascii_whitespace()) {
-                <span class="macro">write!</span>(f, <span class="string">&quot; \&quot;{}\&quot;&quot;</span>, arg.escape_default())<span class="question-mark">?
+                <span class="macro">write!</span>(f, <span class="string">" \"{}\""</span>, arg.escape_default())<span class="question-mark">?
             </span>} <span class="kw">else </span>{
-                <span class="macro">write!</span>(f, <span class="string">&quot; {}&quot;</span>, arg)<span class="question-mark">?
+                <span class="macro">write!</span>(f, <span class="string">" {}"</span>, arg)<span class="question-mark">?
             </span>};
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl </span>From&lt;Cmd&lt;<span class="lifetime">&#39;_</span>&gt;&gt; <span class="kw">for </span>Command {
-    <span class="kw">fn </span>from(cmd: Cmd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Command {
+<span class="kw">impl </span>From&lt;Cmd&lt;<span class="lifetime">'_</span>&gt;&gt; <span class="kw">for </span>Command {
+    <span class="kw">fn </span>from(cmd: Cmd&lt;<span class="lifetime">'_</span>&gt;) -&gt; Command {
         cmd.to_command()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Shell, prog: <span class="kw-2">&amp;</span>Path) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(shell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Shell, prog: <span class="kw-2">&amp;</span>Path) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>data = CmdData::default();
         data.prog = prog.to_path_buf();
         Cmd { shell, data }
@@ -1926,7 +1928,7 @@
 
     <span class="comment">// region:builder
     </span><span class="doccomment">/// Adds an argument to this commands.
-    </span><span class="kw">pub fn </span>arg&lt;P: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg: P) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>arg&lt;P: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg: P) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>._arg(arg.as_ref());
         <span class="self">self
     </span>}
@@ -1935,7 +1937,7 @@
     }
 
     <span class="doccomment">/// Adds all of the arguments to this command.
-    </span><span class="kw">pub fn </span>args&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, args: I) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt;
+    </span><span class="kw">pub fn </span>args&lt;I&gt;(<span class="kw-2">mut </span><span class="self">self</span>, args: I) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt;
     <span class="kw">where
         </span>I: IntoIterator,
         I::Item: AsRef&lt;OsStr&gt;,
@@ -1945,7 +1947,7 @@
     </span>}
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>__extend_arg&lt;P: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_fragment: P) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>__extend_arg&lt;P: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, arg_fragment: P) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.___extend_arg(arg_fragment.as_ref());
         <span class="self">self
     </span>}
@@ -1961,7 +1963,7 @@
     }
 
     <span class="doccomment">/// Overrides the value of the environmental variable for this command.
-    </span><span class="kw">pub fn </span>env&lt;K: AsRef&lt;OsStr&gt;, V: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K, val: V) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>env&lt;K: AsRef&lt;OsStr&gt;, V: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K, val: V) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>._env_set(key.as_ref(), val.as_ref());
         <span class="self">self
     </span>}
@@ -1972,7 +1974,7 @@
 
     <span class="doccomment">/// Overrides the values of specified environmental variables for this
     /// command.
-    </span><span class="kw">pub fn </span>envs&lt;I, K, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, vars: I) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt;
+    </span><span class="kw">pub fn </span>envs&lt;I, K, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, vars: I) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt;
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = (K, V)&gt;,
         K: AsRef&lt;OsStr&gt;,
@@ -1983,7 +1985,7 @@
     </span>}
 
     <span class="doccomment">/// Removes the environment variable from this command.
-    </span><span class="kw">pub fn </span>env_remove&lt;K: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>env_remove&lt;K: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>._env_remove(key.as_ref());
         <span class="self">self
     </span>}
@@ -1992,15 +1994,15 @@
     }
 
     <span class="doccomment">/// Removes all of the environment variables from this command.
-    </span><span class="kw">pub fn </span>env_clear(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>env_clear(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.data.env_changes.push(EnvChange::Clear);
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Don&#39;t return an error if command the command exits with non-zero status.
+    <span class="doccomment">/// Don't return an error if command the command exits with non-zero status.
     ///
     /// By default, non-zero exit status is considered an error.
-    </span><span class="kw">pub fn </span>ignore_status(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>ignore_status(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.set_ignore_status(<span class="bool-val">true</span>);
         <span class="self">self
     </span>}
@@ -2009,10 +2011,10 @@
         <span class="self">self</span>.data.ignore_status = yes;
     }
 
-    <span class="doccomment">/// Don&#39;t echo the command itself to stderr.
+    <span class="doccomment">/// Don't echo the command itself to stderr.
     ///
     /// By default, the command itself will be printed to stderr when executed via [`Cmd::run`].
-    </span><span class="kw">pub fn </span>quiet(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>quiet(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.set_quiet(<span class="bool-val">true</span>);
         <span class="self">self
     </span>}
@@ -2025,7 +2027,7 @@
     ///
     /// If a command is secret, it echoes `&lt;secret&gt;` instead of the program and
     /// its arguments, even in error messages.
-    </span><span class="kw">pub fn </span>secret(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>secret(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.set_secret(<span class="bool-val">true</span>);
         <span class="self">self
     </span>}
@@ -2035,7 +2037,7 @@
     }
 
     <span class="doccomment">/// Pass the given slice to the standard input of the spawned process.
-    </span><span class="kw">pub fn </span>stdin(<span class="kw-2">mut </span><span class="self">self</span>, stdin: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>stdin(<span class="kw-2">mut </span><span class="self">self</span>, stdin: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>._stdin(stdin.as_ref());
         <span class="self">self
     </span>}
@@ -2047,7 +2049,7 @@
     ///
     /// This is equivalent to redirecting stdout to `/dev/null`. By default, the
     /// stdout is inherited or captured.
-    </span><span class="kw">pub fn </span>ignore_stdout(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>ignore_stdout(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.set_ignore_stdout(<span class="bool-val">true</span>);
         <span class="self">self
     </span>}
@@ -2060,7 +2062,7 @@
     ///
     /// This is equivalent redirecting stderr to `/dev/null`. By default, the
     /// stderr is inherited or captured.
-    </span><span class="kw">pub fn </span>ignore_stderr(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>ignore_stderr(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Cmd&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.set_ignore_stderr(<span class="bool-val">true</span>);
         <span class="self">self
     </span>}
@@ -2078,7 +2080,7 @@
     /// behaviors can be overridden by using various builder methods of the [`Cmd`].
     </span><span class="kw">pub fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.data.quiet {
-            <span class="macro">eprintln!</span>(<span class="string">&quot;$ {}&quot;</span>, <span class="self">self</span>);
+            <span class="macro">eprintln!</span>(<span class="string">"$ {}"</span>, <span class="self">self</span>);
         }
         <span class="self">self</span>.output_impl(<span class="bool-val">false</span>, <span class="bool-val">false</span>).map(|<span class="kw">_</span>| ())
     }
@@ -2107,10 +2109,10 @@
         <span class="kw">let </span>stream = <span class="kw">if </span>read_stderr { output.stderr } <span class="kw">else </span>{ output.stdout };
         <span class="kw">let </span><span class="kw-2">mut </span>stream = String::from_utf8(stream).map_err(|err| Error::new_cmd_utf8(<span class="self">self</span>, err))<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>stream.ends_with(<span class="string">&#39;\n&#39;</span>) {
+        <span class="kw">if </span>stream.ends_with(<span class="string">'\n'</span>) {
             stream.pop();
         }
-        <span class="kw">if </span>stream.ends_with(<span class="string">&#39;\r&#39;</span>) {
+        <span class="kw">if </span>stream.ends_with(<span class="string">'\r'</span>) {
             stream.pop();
         }
 

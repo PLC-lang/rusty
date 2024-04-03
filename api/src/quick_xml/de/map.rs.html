@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/de/map.rs`."><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/de/map.rs`."><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../quick_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -930,7 +932,7 @@
     ///   variant2,
     /// }
     /// struct AnyName {
-    ///   #[serde(rename = &quot;$value&quot;)]
+    ///   #[serde(rename = "$value")]
     ///   field: Enum,
     /// }
     /// ```
@@ -974,7 +976,7 @@
     /// field name). So, if the field type is an `enum`, it cannot select its
     /// variant based on the tag name. If that is needed, then [`Content`] variant
     /// of this enum should be used. Such usage is enabled by annotating a struct
-    /// field as &quot;content&quot; field, which implemented as given the field a special
+    /// field as "content" field, which implemented as given the field a special
     /// [`VALUE_KEY`] name.
     ///
     /// [`Start`]: DeEvent::Start
@@ -998,21 +1000,21 @@
 ///
 /// # Lifetimes
 ///
-/// - `&#39;de` lifetime represents a buffer, from which deserialized values can
+/// - `'de` lifetime represents a buffer, from which deserialized values can
 ///   borrow their data. Depending on the underlying reader, there can be an
 ///   internal buffer of deserializer (i.e. deserializer itself) or an input
 ///   (in that case it is possible to approach zero-copy deserialization).
 ///
-/// - `&#39;a` lifetime represents a parent deserializer, which could own the data
+/// - `'a` lifetime represents a parent deserializer, which could own the data
 ///   buffer.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Tag -- owner of attributes
-    </span>start: BytesStart&lt;<span class="lifetime">&#39;de</span>&gt;,
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;de</span>, R, E&gt;,
+    </span>start: BytesStart&lt;<span class="lifetime">'de</span>&gt;,
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">'de</span>, R, E&gt;,
     <span class="doccomment">/// State of the iterator over attributes. Contains the next position in the
     /// inner `start` slice, from which next attribute should be parsed.
     </span>iter: IterState,
@@ -1020,7 +1022,7 @@
     /// methods should return.
     </span>source: ValueSource,
     <span class="doccomment">/// List of field names of the struct. It is empty for maps
-    </span>fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+    </span>fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
     <span class="doccomment">/// If `true`, then the deserialized struct has a field with a special name:
     /// [`VALUE_KEY`]. That field should be deserialized from the whole content
     /// of an XML node, including tag name:
@@ -1031,16 +1033,16 @@
     </span>has_value_field: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt; MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt; MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Create a new MapAccess
     </span><span class="kw">pub fn </span>new(
-        de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;de</span>, R, E&gt;,
-        start: BytesStart&lt;<span class="lifetime">&#39;de</span>&gt;,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        de: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">'de</span>, R, E&gt;,
+        start: BytesStart&lt;<span class="lifetime">'de</span>&gt;,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, DeError&gt; {
         <span class="prelude-val">Ok</span>(MapAccess {
             de,
@@ -1053,14 +1055,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="kw">type </span>Error = DeError;
 
-    <span class="kw">fn </span>next_key_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
+    <span class="kw">fn </span>next_key_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         seed: K,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, <span class="self">Self</span>::Error&gt; {
@@ -1071,7 +1073,7 @@
         <span class="kw">let </span>decoder = <span class="self">self</span>.de.reader.decoder();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(a) = <span class="self">self</span>.iter.next(slice).transpose()<span class="question-mark">? </span>{
-            <span class="comment">// try getting map from attributes (key= &quot;value&quot;)
+            <span class="comment">// try getting map from attributes (key= "value")
             </span><span class="kw">let </span>(key, value) = a.into();
             <span class="self">self</span>.source = ValueSource::Attribute(value.unwrap_or_default());
 
@@ -1080,7 +1082,7 @@
         } <span class="kw">else </span>{
             <span class="comment">// try getting from events (&lt;key&gt;value&lt;/key&gt;)
             </span><span class="kw">match </span><span class="self">self</span>.de.peek()<span class="question-mark">? </span>{
-                <span class="comment">// We shouldn&#39;t have both `$value` and `$text` fields in the same
+                <span class="comment">// We shouldn't have both `$value` and `$text` fields in the same
                 // struct, so if we have `$value` field, the we should deserialize
                 // text content to `$value`
                 </span>DeEvent::Text(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.has_value_field =&gt; {
@@ -1110,7 +1112,7 @@
                 //
                 // enum Enum { A, B, С }
                 // struct Root {
-                //     #[serde(rename = &quot;$value&quot;)]
+                //     #[serde(rename = "$value")]
                 //     items: Vec&lt;Enum&gt;,
                 // }
                 // TODO: This should be handled by #[serde(flatten)]
@@ -1138,7 +1140,7 @@
         }
     }
 
-    <span class="kw">fn </span>next_value_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
+    <span class="kw">fn </span>next_value_seed&lt;K: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         seed: K,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;K::Value, <span class="self">Self</span>::Error&gt; {
@@ -1156,7 +1158,7 @@
             // The whole map represented by an `&lt;any-tag&gt;` element, the map key
             // is implicit and equals to the `TEXT_KEY` constant, and the value
             // is a `Text` event (the value deserializer will see that event)
-            // This case are checked by &quot;xml_schema_lists::element&quot; tests in tests/serde-de.rs
+            // This case are checked by "xml_schema_lists::element" tests in tests/serde-de.rs
             </span>ValueSource::Text =&gt; <span class="kw">match </span><span class="self">self</span>.de.next()<span class="question-mark">? </span>{
                 DeEvent::Text(e) =&gt; seed.deserialize(SimpleTypeDeserializer::from_text_content(e)),
                 <span class="comment">// SAFETY: We set `Text` only when we seen `Text`
@@ -1199,7 +1201,7 @@
         )<span class="question-mark">?
     </span>) =&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span><span class="macro-nonterminal">$deserialize</span>&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
+        </span><span class="kw">fn </span><span class="macro-nonterminal">$deserialize</span>&lt;V: Visitor&lt;<span class="lifetime">'de</span>&gt;&gt;(
             <span class="self">self</span>,
             $($(<span class="macro-nonterminal">$name</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>,)<span class="kw-2">*</span>)<span class="question-mark">?
             </span><span class="macro-nonterminal">visitor</span>: V
@@ -1212,14 +1214,14 @@
 <span class="doccomment">/// A deserializer for a value of map or struct. That deserializer slightly
 /// differently processes events for a primitive types and sequences than
 /// a [`Deserializer`].
-</span><span class="kw">struct </span>MapValueDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+</span><span class="kw">struct </span>MapValueDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Access to the map that created this deserializer. Gives access to the
     /// context, such as list of fields, that current map known about.
-    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;,
+    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">'m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;,
     <span class="doccomment">/// Determines, should [`Deserializer::read_string_impl()`] expand the second
     /// level of tags or not.
     ///
@@ -1232,8 +1234,8 @@
     /// ```
     ///
     /// The whole map represented by an `&lt;any-tag&gt;` element, the map key is a `tag`,
-    /// and the value starts with is a `Start(&quot;tag&quot;)` (the value deserializer will
-    /// see that event first) and extended to the matching `End(&quot;tag&quot;)` event.
+    /// and the value starts with is a `Start("tag")` (the value deserializer will
+    /// see that event first) and extended to the matching `End("tag")` event.
     /// In order to deserialize primitives (such as `usize`) we need to allow to
     /// look inside the one levels of tags, so the
     ///
@@ -1275,13 +1277,13 @@
     /// a [`Text`], or a [`Start`] event (the value deserializer
     /// will see one of those events). In the first two cases the value of this
     /// field do not matter (because we already see the textual event and there
-    /// no reasons to look &quot;inside&quot; something), but in the last case the primitives
+    /// no reasons to look "inside" something), but in the last case the primitives
     /// should raise a deserialization error, because that means that you trying
     /// to deserialize the following struct:
     ///
     /// ```ignore
     /// struct AnyName {
-    ///   #[serde(rename = &quot;$text&quot;)]
+    ///   #[serde(rename = "$text")]
     ///   any_name: String,
     /// }
     /// ```
@@ -1290,16 +1292,16 @@
     /// Changing this can be valuable for &lt;https://github.com/tafia/quick-xml/issues/383&gt;,
     /// but those fields should be explicitly marked that they want to get any
     /// possible markup as a `String` and that mark is different from marking them
-    /// as accepting &quot;text content&quot; which the currently `$text` means.
+    /// as accepting "text content" which the currently `$text` means.
     ///
     /// [`Text`]: DeEvent::Text
     /// [`Start`]: DeEvent::Start
     </span>allow_start: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; MapValueDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; MapValueDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Returns a next string as concatenated content of consequent [`Text`] and
@@ -1308,14 +1310,14 @@
     /// [`Text`]: crate::events::Event::Text
     /// [`CData`]: crate::events::Event::CData
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;, DeError&gt; {
+    </span><span class="kw">fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;, DeError&gt; {
         <span class="self">self</span>.map.de.read_string_impl(<span class="self">self</span>.allow_start)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapValueDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapValueDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="kw">type </span>Error = DeError;
@@ -1326,13 +1328,13 @@
 
     <span class="macro">forward!</span>(deserialize_map);
     <span class="macro">forward!</span>(deserialize_struct(
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]
     ));
 
     <span class="macro">forward!</span>(deserialize_enum(
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]
     ));
 
     <span class="macro">forward!</span>(deserialize_any);
@@ -1340,7 +1342,7 @@
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="macro">deserialize_option!</span>(<span class="self">self</span>.map.de, <span class="self">self</span>, visitor)
     }
@@ -1357,7 +1359,7 @@
     /// and a `&lt;tag&gt;` is a sequential field of that map.
     </span><span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>filter = <span class="kw">if </span><span class="self">self</span>.allow_start {
             <span class="kw">match </span><span class="self">self</span>.map.de.peek()<span class="question-mark">? </span>{
@@ -1372,7 +1374,7 @@
             TagFilter::Exclude(<span class="self">self</span>.map.fields)
         };
         visitor.visit_seq(MapValueSeqAccess {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;overlapped-lists&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"overlapped-lists"</span>)]
             </span>checkpoint: <span class="self">self</span>.map.de.skip_checkpoint(),
 
             map: <span class="self">self</span>.map,
@@ -1393,7 +1395,7 @@
 ///
 /// Returns `true`, if `start` is not in the `fields` list and `false` otherwise.
 </span><span class="kw">fn </span>not_in(
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
     start: <span class="kw-2">&amp;</span>BytesStart,
     decoder: Decoder,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, DeError&gt; {
@@ -1411,7 +1413,7 @@
 /// The first variant could represent a collection of structs, the second --
 /// a collection of enum variants.
 ///
-/// In the second case we don&#39;t know what tag name should be expected as a
+/// In the second case we don't know what tag name should be expected as a
 /// sequence element, so we accept any element. Since the sequence are flattened
 /// into maps, we skip elements which have dedicated fields in a struct by using an
 /// `Exclude` filter that filters out elements with names matching field names
@@ -1419,10 +1421,10 @@
 ///
 /// # Lifetimes
 ///
-/// `&#39;de` represents a lifetime of the XML input, when filter stores the
+/// `'de` represents a lifetime of the XML input, when filter stores the
 /// dedicated tag name
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>TagFilter&lt;<span class="lifetime">&#39;de</span>&gt; {
+</span><span class="kw">enum </span>TagFilter&lt;<span class="lifetime">'de</span>&gt; {
     <span class="doccomment">/// A `SeqAccess` interested only in tags with specified name to deserialize
     /// an XML like this:
     ///
@@ -1435,15 +1437,15 @@
     /// &lt;/...&gt;
     /// ```
     ///
-    /// The tag name is stored inside (`b&quot;tag&quot;` for that example)
-    </span>Include(BytesStart&lt;<span class="lifetime">&#39;de</span>&gt;), <span class="comment">//TODO: Need to store only name instead of a whole tag
+    /// The tag name is stored inside (`b"tag"` for that example)
+    </span>Include(BytesStart&lt;<span class="lifetime">'de</span>&gt;), <span class="comment">//TODO: Need to store only name instead of a whole tag
     </span><span class="doccomment">/// A `SeqAccess` interested in tags with any name, except explicitly listed.
     /// Excluded tags are used as struct field names and therefore should not
     /// fall into a `$value` category
-    </span>Exclude(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]),
+    </span>Exclude(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; TagFilter&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; TagFilter&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">fn </span>is_suitable(<span class="kw-2">&amp;</span><span class="self">self</span>, start: <span class="kw-2">&amp;</span>BytesStart, decoder: Decoder) -&gt; <span class="prelude-ty">Result</span>&lt;bool, DeError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Include(n) =&gt; <span class="prelude-val">Ok</span>(n.name() == start.name()),
@@ -1475,14 +1477,14 @@
 ///
 /// [`Text`]: crate::events::Event::Text
 /// [`CData`]: crate::events::Event::CData
-</span><span class="kw">struct </span>MapValueSeqAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+</span><span class="kw">struct </span>MapValueSeqAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Accessor to a map that creates this accessor and to a deserializer for
     /// a sequence items.
-    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;,
+    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">'m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;,
     <span class="doccomment">/// Filter that determines whether a tag is a part of this sequence.
     ///
     /// When feature `overlapped-lists` is not activated, iteration will stop
@@ -1490,19 +1492,19 @@
     ///
     /// When feature `overlapped-lists` is activated, all tags, that not pass
     /// this check, will be skipped.
-    </span>filter: TagFilter&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>filter: TagFilter&lt;<span class="lifetime">'de</span>&gt;,
 
     <span class="doccomment">/// Checkpoint after which all skipped events should be returned. All events,
     /// that was skipped before creating this checkpoint, will still stay buffered
     /// and will not be returned
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;overlapped-lists&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"overlapped-lists"</span>)]
     </span>checkpoint: usize,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;overlapped-lists&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; Drop <span class="kw">for </span>MapValueSeqAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="attr">#[cfg(feature = <span class="string">"overlapped-lists"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; Drop <span class="kw">for </span>MapValueSeqAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1510,28 +1512,28 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapValueSeqAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; SeqAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapValueSeqAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="kw">type </span>Error = DeError;
 
     <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;, DeError&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>decoder = <span class="self">self</span>.map.de.reader.decoder();
         <span class="kw">loop </span>{
             <span class="kw">break match </span><span class="self">self</span>.map.de.peek()<span class="question-mark">? </span>{
                 <span class="comment">// If we see a tag that we not interested, skip it
-                </span><span class="attr">#[cfg(feature = <span class="string">&quot;overlapped-lists&quot;</span>)]
+                </span><span class="attr">#[cfg(feature = <span class="string">"overlapped-lists"</span>)]
                 </span>DeEvent::Start(e) <span class="kw">if </span>!<span class="self">self</span>.filter.is_suitable(e, decoder)<span class="question-mark">? </span>=&gt; {
                     <span class="self">self</span>.map.de.skip()<span class="question-mark">?</span>;
                     <span class="kw">continue</span>;
                 }
                 <span class="comment">// Stop iteration when list elements ends
-                </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;overlapped-lists&quot;</span>))]
+                </span><span class="attr">#[cfg(not(feature = <span class="string">"overlapped-lists"</span>))]
                 </span>DeEvent::Start(e) <span class="kw">if </span>!<span class="self">self</span>.filter.is_suitable(e, decoder)<span class="question-mark">? </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
 
                 <span class="comment">// Stop iteration after reaching a closing tag
@@ -1554,19 +1556,19 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A deserializer for a single item of a sequence.
-</span><span class="kw">struct </span>SeqItemDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+</span><span class="kw">struct </span>SeqItemDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Access to the map that created this deserializer. Gives access to the
     /// context, such as list of fields, that current map known about.
-    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, R, E&gt;,
+    </span>map: <span class="kw-2">&amp;</span><span class="lifetime">'m </span><span class="kw-2">mut </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, R, E&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; SeqItemDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; SeqItemDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="doccomment">/// Returns a next string as concatenated content of consequent [`Text`] and
@@ -1575,14 +1577,14 @@
     /// [`Text`]: crate::events::Event::Text
     /// [`CData`]: crate::events::Event::CData
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;, DeError&gt; {
+    </span><span class="kw">fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;, DeError&gt; {
         <span class="self">self</span>.map.de.read_string_impl(<span class="bool-val">true</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SeqItemDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;m</span>, R, E&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SeqItemDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, <span class="lifetime">'m</span>, R, E&gt;
 <span class="kw">where
-    </span>R: XmlRead&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>R: XmlRead&lt;<span class="lifetime">'de</span>&gt;,
     E: EntityResolver,
 {
     <span class="kw">type </span>Error = DeError;
@@ -1593,13 +1595,13 @@
 
     <span class="macro">forward!</span>(deserialize_map);
     <span class="macro">forward!</span>(deserialize_struct(
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]
     ));
 
     <span class="macro">forward!</span>(deserialize_enum(
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]
     ));
 
     <span class="macro">forward!</span>(deserialize_any);
@@ -1607,7 +1609,7 @@
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="macro">deserialize_option!</span>(<span class="self">self</span>.map.de, <span class="self">self</span>, visitor)
     }
@@ -1626,7 +1628,7 @@
     /// ```
     </span><span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.map.de.next()<span class="question-mark">? </span>{
             DeEvent::Text(e) =&gt; {
@@ -1641,7 +1643,7 @@
                         SimpleTypeDeserializer::from_text_content(e).deserialize_seq(visitor)
                     }
                     e =&gt; <span class="prelude-val">Err</span>(DeError::Unsupported(
-                        <span class="macro">format!</span>(<span class="string">&quot;unsupported event {:?}&quot;</span>, e).into(),
+                        <span class="macro">format!</span>(<span class="string">"unsupported event {:?}"</span>, e).into(),
                     )),
                 };
                 <span class="comment">// TODO: May be assert that here we expect only matching closing tag?
@@ -1664,15 +1666,15 @@
 
 </span><span class="attr">#[test]
 </span><span class="kw">fn </span>test_not_in() {
-    <span class="kw">let </span>tag = BytesStart::new(<span class="string">&quot;tag&quot;</span>);
+    <span class="kw">let </span>tag = BytesStart::new(<span class="string">"tag"</span>);
 
     <span class="macro">assert_eq!</span>(not_in(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>tag, Decoder::utf8()).unwrap(), <span class="bool-val">true</span>);
     <span class="macro">assert_eq!</span>(
-        not_in(<span class="kw-2">&amp;</span>[<span class="string">&quot;no&quot;</span>, <span class="string">&quot;such&quot;</span>, <span class="string">&quot;tags&quot;</span>], <span class="kw-2">&amp;</span>tag, Decoder::utf8()).unwrap(),
+        not_in(<span class="kw-2">&amp;</span>[<span class="string">"no"</span>, <span class="string">"such"</span>, <span class="string">"tags"</span>], <span class="kw-2">&amp;</span>tag, Decoder::utf8()).unwrap(),
         <span class="bool-val">true
     </span>);
     <span class="macro">assert_eq!</span>(
-        not_in(<span class="kw-2">&amp;</span>[<span class="string">&quot;some&quot;</span>, <span class="string">&quot;tag&quot;</span>, <span class="string">&quot;included&quot;</span>], <span class="kw-2">&amp;</span>tag, Decoder::utf8()).unwrap(),
+        not_in(<span class="kw-2">&amp;</span>[<span class="string">"some"</span>, <span class="string">"tag"</span>, <span class="string">"included"</span>], <span class="kw-2">&amp;</span>tag, Decoder::utf8()).unwrap(),
         <span class="bool-val">false
     </span>);
 }

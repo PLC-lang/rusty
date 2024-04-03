@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/clockid.rs`."><title>clockid.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/clockid.rs`."><title>clockid.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -173,69 +175,69 @@
 /// all of them are always supported.
 ///
 /// [`clock_gettime`]: crate::time::clock_gettime
-</span><span class="attr">#[cfg(not(any(apple, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(apple, target_os = <span class="string">"wasi"</span>)))]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-#[cfg_attr(not(any(target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>)), repr(i32))]
-#[cfg_attr(target_os = <span class="string">&quot;dragonfly&quot;</span>, repr(u64))]
-#[cfg_attr(target_os = <span class="string">&quot;aix&quot;</span>, repr(i64))]
+#[cfg_attr(not(any(target_os = <span class="string">"aix"</span>, target_os = <span class="string">"dragonfly"</span>)), repr(i32))]
+#[cfg_attr(target_os = <span class="string">"dragonfly"</span>, repr(u64))]
+#[cfg_attr(target_os = <span class="string">"aix"</span>, repr(i64))]
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>ClockId {
     <span class="doccomment">/// `CLOCK_REALTIME`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_REALTIME&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_REALTIME"</span>)]
     </span>Realtime = <span class="macro">bitcast!</span>(c::CLOCK_REALTIME),
 
     <span class="doccomment">/// `CLOCK_MONOTONIC`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_MONOTONIC&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_MONOTONIC"</span>)]
     </span>Monotonic = <span class="macro">bitcast!</span>(c::CLOCK_MONOTONIC),
 
     <span class="doccomment">/// `CLOCK_UPTIME`
-    </span><span class="attr">#[cfg(any(freebsdlike, target_os = <span class="string">&quot;openbsd&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_UPTIME&quot;</span>)]
+    </span><span class="attr">#[cfg(any(freebsdlike, target_os = <span class="string">"openbsd"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_UPTIME"</span>)]
     </span>Uptime = c::CLOCK_UPTIME,
 
     <span class="doccomment">/// `CLOCK_PROCESS_CPUTIME_ID`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;redox&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"redox"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
-    #[doc(alias = <span class="string">&quot;CLOCK_PROCESS_CPUTIME_ID&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_PROCESS_CPUTIME_ID"</span>)]
     </span>ProcessCPUTime = c::CLOCK_PROCESS_CPUTIME_ID,
 
     <span class="doccomment">/// `CLOCK_THREAD_CPUTIME_ID`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;redox&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"redox"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
-    #[doc(alias = <span class="string">&quot;CLOCK_THREAD_CPUTIME_ID&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_THREAD_CPUTIME_ID"</span>)]
     </span>ThreadCPUTime = c::CLOCK_THREAD_CPUTIME_ID,
 
     <span class="doccomment">/// `CLOCK_REALTIME_COARSE`
-    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;freebsd&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_REALTIME_COARSE&quot;</span>)]
+    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"freebsd"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_REALTIME_COARSE"</span>)]
     </span>RealtimeCoarse = c::CLOCK_REALTIME_COARSE,
 
     <span class="doccomment">/// `CLOCK_MONOTONIC_COARSE`
-    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;freebsd&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_MONOTONIC_COARSE&quot;</span>)]
+    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"freebsd"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_MONOTONIC_COARSE"</span>)]
     </span>MonotonicCoarse = c::CLOCK_MONOTONIC_COARSE,
 
     <span class="doccomment">/// `CLOCK_MONOTONIC_RAW`
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;CLOCK_MONOTONIC_RAW&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_MONOTONIC_RAW"</span>)]
     </span>MonotonicRaw = c::CLOCK_MONOTONIC_RAW,
 
     <span class="doccomment">/// `CLOCK_REALTIME_ALARM`
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;CLOCK_REALTIME_ALARM&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_REALTIME_ALARM"</span>)]
     </span>RealtimeAlarm = <span class="macro">bitcast!</span>(c::CLOCK_REALTIME_ALARM),
 
     <span class="doccomment">/// `CLOCK_TAI`, available on Linux &gt;= 3.10
-    </span><span class="attr">#[cfg(all(linux_kernel, feature = <span class="string">&quot;linux_4_11&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_TAI&quot;</span>)]
+    </span><span class="attr">#[cfg(all(linux_kernel, feature = <span class="string">"linux_4_11"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_TAI"</span>)]
     </span>Tai = <span class="macro">bitcast!</span>(c::CLOCK_TAI),
 
     <span class="doccomment">/// `CLOCK_BOOTTIME`
@@ -244,13 +246,13 @@
     /// `CLOCK_UPTIME`.
     ///
     /// [`Self::Uptime`]: https://docs.rs/rustix/*/x86_64-unknown-freebsd/rustix/time/enum.ClockId.html#variant.Uptime
-    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_BOOTTIME&quot;</span>)]
+    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"openbsd"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_BOOTTIME"</span>)]
     </span>Boottime = <span class="macro">bitcast!</span>(c::CLOCK_BOOTTIME),
 
     <span class="doccomment">/// `CLOCK_BOOTTIME_ALARM`
-    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_BOOTTIME_ALARM&quot;</span>)]
+    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_BOOTTIME_ALARM"</span>)]
     </span>BoottimeAlarm = <span class="macro">bitcast!</span>(c::CLOCK_BOOTTIME_ALARM),
 }
 
@@ -268,19 +270,19 @@
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>ClockId {
     <span class="doccomment">/// `CLOCK_REALTIME`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_REALTIME&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_REALTIME"</span>)]
     </span>Realtime = c::CLOCK_REALTIME,
 
     <span class="doccomment">/// `CLOCK_MONOTONIC`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_MONOTONIC&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_MONOTONIC"</span>)]
     </span>Monotonic = c::CLOCK_MONOTONIC,
 
     <span class="doccomment">/// `CLOCK_PROCESS_CPUTIME_ID`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_PROCESS_CPUTIME_ID&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_PROCESS_CPUTIME_ID"</span>)]
     </span>ProcessCPUTime = c::CLOCK_PROCESS_CPUTIME_ID,
 
     <span class="doccomment">/// `CLOCK_THREAD_CPUTIME_ID`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;CLOCK_THREAD_CPUTIME_ID&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"CLOCK_THREAD_CPUTIME_ID"</span>)]
     </span>ThreadCPUTime = c::CLOCK_THREAD_CPUTIME_ID,
 }
 
@@ -291,39 +293,39 @@
 /// clocks which are always supported at runtime.
 ///
 /// [`clock_gettime_dynamic`]: crate::time::clock_gettime_dynamic
-</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))]
+</span><span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
 #[derive(Debug, Copy, Clone)]
 #[non_exhaustive]
-</span><span class="kw">pub enum </span>DynamicClockId&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>DynamicClockId&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// `ClockId` values that are always supported at runtime.
     </span>Known(ClockId),
 
     <span class="doccomment">/// Linux dynamic clocks.
-    </span>Dynamic(BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;),
+    </span>Dynamic(BorrowedFd&lt;<span class="lifetime">'a</span>&gt;),
 
     <span class="doccomment">/// `CLOCK_REALTIME_ALARM`
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;CLOCK_REALTIME_ALARM&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_REALTIME_ALARM"</span>)]
     </span>RealtimeAlarm,
 
     <span class="doccomment">/// `CLOCK_TAI`, available on Linux &gt;= 3.10
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;CLOCK_TAI&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_TAI"</span>)]
     </span>Tai,
 
     <span class="doccomment">/// `CLOCK_BOOTTIME`
     </span><span class="attr">#[cfg(any(
         linux_kernel,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;fuchsia&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"openbsd"
     </span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_BOOTTIME&quot;</span>)]
+    #[doc(alias = <span class="string">"CLOCK_BOOTTIME"</span>)]
     </span>Boottime,
 
     <span class="doccomment">/// `CLOCK_BOOTTIME_ALARM`
-    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
-    #[doc(alias = <span class="string">&quot;CLOCK_BOOTTIME_ALARM&quot;</span>)]
+    </span><span class="attr">#[cfg(any(linux_kernel, target_os = <span class="string">"fuchsia"</span>))]
+    #[doc(alias = <span class="string">"CLOCK_BOOTTIME_ALARM"</span>)]
     </span>BoottimeAlarm,
 }
 </code></pre></div></section></main></body></html>

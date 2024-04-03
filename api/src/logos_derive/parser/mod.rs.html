@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/parser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../logos_derive/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos_derive"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/parser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../logos_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -323,7 +325,7 @@
                 <span class="self">self</span>.types.add(ty.ident);
             }
             GenericParam::Const(c) =&gt; {
-                <span class="self">self</span>.err(<span class="string">&quot;Logos doesn&#39;t support const generics.&quot;</span>, c.span());
+                <span class="self">self</span>.err(<span class="string">"Logos doesn't support const generics."</span>, c.span());
             }
         }
     }
@@ -342,16 +344,16 @@
     }
 
     <span class="doccomment">/// Try to parse the main `#[logos(...)]`, does nothing if
-    /// the attribute&#39;s name isn&#39;t `logos`.
+    /// the attribute's name isn't `logos`.
     </span><span class="kw">pub fn </span>try_parse_logos(<span class="kw-2">&amp;mut </span><span class="self">self</span>, attr: <span class="kw-2">&amp;mut </span>Attribute) {
-        <span class="kw">if </span>!attr.path.is_ident(<span class="string">&quot;logos&quot;</span>) {
+        <span class="kw">if </span>!attr.path.is_ident(<span class="string">"logos"</span>) {
             <span class="kw">return</span>;
         }
 
         <span class="kw">let </span>nested = <span class="kw">match </span><span class="self">self</span>.parse_attr(attr) {
             <span class="prelude-val">Some</span>(tokens) =&gt; tokens,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="self">self</span>.err(<span class="string">&quot;Expected #[logos(...)]&quot;</span>, attr.span());
+                <span class="self">self</span>.err(<span class="string">"Expected #[logos(...)]"</span>, attr.span());
                 <span class="kw">return</span>;
             }
         };
@@ -360,50 +362,50 @@
             <span class="kw">let </span>(name, value) = <span class="kw">match </span>nested {
                 Nested::Named(name, value) =&gt; (name, value),
                 Nested::Unexpected(tokens) | Nested::Unnamed(tokens) =&gt; {
-                    <span class="self">self</span>.err(<span class="string">&quot;Invalid nested attribute&quot;</span>, tokens.span());
+                    <span class="self">self</span>.err(<span class="string">"Invalid nested attribute"</span>, tokens.span());
                     <span class="kw">continue</span>;
                 }
             };
 
             <span class="kw">match </span>(name.to_string().as_str(), value) {
-                (<span class="string">&quot;extras&quot;</span>, NestedValue::Assign(value)) =&gt; {
+                (<span class="string">"extras"</span>, NestedValue::Assign(value)) =&gt; {
                     <span class="kw">let </span>span = value.span();
 
                     <span class="kw">if let </span>MaybeVoid::Some(previous) = <span class="self">self</span>.extras.replace(value) {
-                        <span class="self">self</span>.err(<span class="string">&quot;Extras can be defined only once&quot;</span>, span)
-                            .err(<span class="string">&quot;Previous definition here&quot;</span>, previous.span());
+                        <span class="self">self</span>.err(<span class="string">"Extras can be defined only once"</span>, span)
+                            .err(<span class="string">"Previous definition here"</span>, previous.span());
                     }
                 }
-                (<span class="string">&quot;extras&quot;</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="self">self</span>.err(<span class="string">&quot;Expected: extras = SomeType&quot;</span>, name.span());
+                (<span class="string">"extras"</span>, <span class="kw">_</span>) =&gt; {
+                    <span class="self">self</span>.err(<span class="string">"Expected: extras = SomeType"</span>, name.span());
                 }
-                (<span class="string">&quot;type&quot;</span>, NestedValue::KeywordAssign(generic, ty)) =&gt; {
+                (<span class="string">"type"</span>, NestedValue::KeywordAssign(generic, ty)) =&gt; {
                     <span class="self">self</span>.types.set(generic, ty, <span class="kw-2">&amp;mut </span><span class="self">self</span>.errors);
                 }
-                (<span class="string">&quot;type&quot;</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="self">self</span>.err(<span class="string">&quot;Expected: type T = SomeType&quot;</span>, name.span());
+                (<span class="string">"type"</span>, <span class="kw">_</span>) =&gt; {
+                    <span class="self">self</span>.err(<span class="string">"Expected: type T = SomeType"</span>, name.span());
                 }
-                (<span class="string">&quot;trivia&quot;</span>, <span class="kw">_</span>) =&gt; {
+                (<span class="string">"trivia"</span>, <span class="kw">_</span>) =&gt; {
                     <span class="comment">// TODO: Remove in future versions
                     </span><span class="self">self</span>.err(
-                        <span class="string">&quot;\
+                        <span class="string">"\
                         trivia are no longer supported.\n\
                         \n\
                         For help with migration see release notes: \
                         https://github.com/maciejhirsz/logos/releases\
-                        &quot;</span>,
+                        "</span>,
                         name.span(),
                     );
                 }
-                (<span class="string">&quot;subpattern&quot;</span>, NestedValue::KeywordAssign(name, value)) =&gt; {
+                (<span class="string">"subpattern"</span>, NestedValue::KeywordAssign(name, value)) =&gt; {
                     <span class="self">self</span>.subpatterns.add(name, value, <span class="kw-2">&amp;mut </span><span class="self">self</span>.errors);
                 }
-                (<span class="string">&quot;subpattern&quot;</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="self">self</span>.err(<span class="string">r#&quot;Expected: subpattern name = r&quot;regex&quot;&quot;#</span>, name.span());
+                (<span class="string">"subpattern"</span>, <span class="kw">_</span>) =&gt; {
+                    <span class="self">self</span>.err(<span class="string">r#"Expected: subpattern name = r"regex""#</span>, name.span());
                 }
                 (unknown, <span class="kw">_</span>) =&gt; {
                     <span class="self">self</span>.err(
-                        <span class="macro">format!</span>(<span class="string">&quot;Unknown nested attribute: {}&quot;</span>, unknown),
+                        <span class="macro">format!</span>(<span class="string">"Unknown nested attribute: {}"</span>, unknown),
                         name.span(),
                     );
                 }
@@ -427,7 +429,7 @@
                     Literal::Bytes(bytes)
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <span class="self">self</span>.err(<span class="string">&quot;Expected a &amp;str or &amp;[u8] slice&quot;</span>, lit.span());
+                    <span class="self">self</span>.err(<span class="string">"Expected a &amp;str or &amp;[u8] slice"</span>, lit.span());
 
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
@@ -444,17 +446,17 @@
         <span class="kw">for </span>(position, next) <span class="kw">in </span>nested.enumerate() {
             <span class="kw">match </span>next {
                 Nested::Unexpected(tokens) =&gt; {
-                    <span class="self">self</span>.err(<span class="string">&quot;Unexpected token in attribute&quot;</span>, tokens.span());
+                    <span class="self">self</span>.err(<span class="string">"Unexpected token in attribute"</span>, tokens.span());
                 }
                 Nested::Unnamed(tokens) =&gt; <span class="kw">match </span>position {
                     <span class="number">0 </span>=&gt; def.callback = <span class="self">self</span>.parse_callback(tokens),
                     <span class="kw">_ </span>=&gt; {
                         <span class="self">self</span>.err(
-                            <span class="string">&quot;\
+                            <span class="string">"\
                             Expected a named argument at this position\n\
                             \n\
                             hint: If you are trying to define a callback here use: callback = ...\
-                            &quot;</span>,
+                            "</span>,
                             tokens.span(),
                         );
                     }
@@ -472,7 +474,7 @@
         <span class="kw">let </span>span = tokens.span();
         <span class="kw">let </span><span class="kw-2">mut </span>tokens = tokens.into_iter();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(tt) = expect_punct(tokens.next(), <span class="string">&#39;|&#39;</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tt) = expect_punct(tokens.next(), <span class="string">'|'</span>) {
             <span class="kw">let </span><span class="kw-2">mut </span>label = TokenStream::from(tt);
 
             label.extend(tokens);
@@ -481,13 +483,13 @@
         }
 
         <span class="kw">let </span>first = tokens.next();
-        <span class="kw">let </span>error = expect_punct(tokens.next(), <span class="string">&#39;|&#39;</span>);
+        <span class="kw">let </span>error = expect_punct(tokens.next(), <span class="string">'|'</span>);
 
         <span class="kw">let </span>arg = <span class="kw">match </span>(error, first) {
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(TokenTree::Ident(arg))) =&gt; arg,
             <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.err(
-                    <span class="string">&quot;Inline callbacks must use closure syntax with exactly one parameter&quot;</span>,
+                    <span class="string">"Inline callbacks must use closure syntax with exactly one parameter"</span>,
                     span,
                 );
                 <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -503,7 +505,7 @@
                 body
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="self">self</span>.err(<span class="string">&quot;Callback missing a body&quot;</span>, span);
+                <span class="self">self</span>.err(<span class="string">"Callback missing a body"</span>, span);
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         };
@@ -530,7 +532,7 @@
                     }
                 }
             }
-            <span class="comment">// If `ty` is a concrete type, fix its lifetimes to &#39;source
+            <span class="comment">// If `ty` is a concrete type, fix its lifetimes to 'source
             </span>replace_lifetime(ty);
         });
 
@@ -539,7 +541,7 @@
 
     <span class="kw">pub fn </span>err&lt;M&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: M, span: Span) -&gt; <span class="kw-2">&amp;mut </span>Errors
     <span class="kw">where
-        </span>M: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>M: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.errors.err(message, span)
     }

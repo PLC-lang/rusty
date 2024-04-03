@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/renderer.rs`."><title>renderer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/renderer.rs`."><title>renderer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../codespan_reporting/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1026,7 +1028,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::files::{Error, Location};
 <span class="kw">use </span><span class="kw">crate</span>::term::{Chars, Config, Styles};
 
-<span class="doccomment">/// The &#39;location focus&#39; of a source code snippet.
+<span class="doccomment">/// The 'location focus' of a source code snippet.
 </span><span class="kw">pub struct </span>Locus {
     <span class="doccomment">/// The user-facing name of the file.
     </span><span class="kw">pub </span>name: String,
@@ -1039,12 +1041,12 @@
 /// ```text
 /// ^^^^^^^^^ blah blah
 /// ```
-</span><span class="kw">pub type </span>SingleLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt; = (LabelStyle, Range&lt;usize&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>str);
+</span><span class="kw">pub type </span>SingleLabel&lt;<span class="lifetime">'diagnostic</span>&gt; = (LabelStyle, Range&lt;usize&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>str);
 
 <span class="doccomment">/// A multi-line label to render.
 ///
 /// Locations are relative to the start of where the source code is rendered.
-</span><span class="kw">pub enum </span>MultiLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt; {
+</span><span class="kw">pub enum </span>MultiLabel&lt;<span class="lifetime">'diagnostic</span>&gt; {
     <span class="doccomment">/// Multi-line label top.
     /// The contained value indicates where the label starts.
     ///
@@ -1071,7 +1073,7 @@
     /// ```text
     /// ╰────────────^ blah blah
     /// ```
-    </span>Bottom(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>str),
+    </span>Bottom(usize, <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>str),
 }
 
 <span class="attr">#[derive(Copy, Clone)]
@@ -1084,7 +1086,7 @@
 
 <span class="doccomment">/// A renderer of display list entries.
 ///
-/// The following diagram gives an overview of each of the parts of the renderer&#39;s output:
+/// The following diagram gives an overview of each of the parts of the renderer's output:
 ///
 /// ```text
 ///                     ┌ outer gutter
@@ -1128,25 +1130,25 @@
 /// ```
 ///
 /// Filler text from http://www.cupcakeipsum.com
-</span><span class="kw">pub struct </span>Renderer&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;writer </span><span class="kw-2">mut </span><span class="kw">dyn </span>WriteColor,
-    config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Config,
+</span><span class="kw">pub struct </span>Renderer&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'writer </span><span class="kw-2">mut </span><span class="kw">dyn </span>WriteColor,
+    config: <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Config,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; Renderer&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; Renderer&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; {
     <span class="doccomment">/// Construct a renderer from the given writer and config.
     </span><span class="kw">pub fn </span>new(
-        writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;writer </span><span class="kw-2">mut </span><span class="kw">dyn </span>WriteColor,
-        config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Config,
-    ) -&gt; Renderer&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; {
+        writer: <span class="kw-2">&amp;</span><span class="lifetime">'writer </span><span class="kw-2">mut </span><span class="kw">dyn </span>WriteColor,
+        config: <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Config,
+    ) -&gt; Renderer&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; {
         Renderer { writer, config }
     }
 
-    <span class="kw">fn </span>chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Chars {
+    <span class="kw">fn </span>chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Chars {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config.chars
     }
 
-    <span class="kw">fn </span>styles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Styles {
+    <span class="kw">fn </span>styles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Styles {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config.styles
     }
 
@@ -1169,7 +1171,7 @@
         // ```
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(locus) = locus {
             <span class="self">self</span>.snippet_locus(locus)<span class="question-mark">?</span>;
-            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;: &quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">": "</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Write severity name
@@ -1179,11 +1181,11 @@
         // ```
         </span><span class="self">self</span>.set_color(<span class="self">self</span>.styles().header(severity))<span class="question-mark">?</span>;
         <span class="kw">match </span>severity {
-            Severity::Bug =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;bug&quot;</span>)<span class="question-mark">?</span>,
-            Severity::Error =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;error&quot;</span>)<span class="question-mark">?</span>,
-            Severity::Warning =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;warning&quot;</span>)<span class="question-mark">?</span>,
-            Severity::Help =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;help&quot;</span>)<span class="question-mark">?</span>,
-            Severity::Note =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;note&quot;</span>)<span class="question-mark">?</span>,
+            Severity::Bug =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"bug"</span>)<span class="question-mark">?</span>,
+            Severity::Error =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"error"</span>)<span class="question-mark">?</span>,
+            Severity::Warning =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"warning"</span>)<span class="question-mark">?</span>,
+            Severity::Help =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"help"</span>)<span class="question-mark">?</span>,
+            Severity::Note =&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"note"</span>)<span class="question-mark">?</span>,
         }
 
         <span class="comment">// Write error code
@@ -1192,7 +1194,7 @@
         // [E0001]
         // ```
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(code) = <span class="kw-2">&amp;</span>code.filter(|code| !code.is_empty()) {
-            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;[{}]&quot;</span>, code)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"[{}]"</span>, code)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Write diagnostic message
@@ -1201,7 +1203,7 @@
         // : unexpected type in `+` application
         // ```
         </span><span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().header_message)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;: {}&quot;</span>, message)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">": {}"</span>, message)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
 
         <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -1228,10 +1230,10 @@
         <span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().source_border)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().snippet_start)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().snippet_start)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
 
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.snippet_locus(<span class="kw-2">&amp;</span>locus)<span class="question-mark">?</span>;
 
         <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -1251,13 +1253,13 @@
         line_number: usize,
         source: <span class="kw-2">&amp;</span>str,
         severity: Severity,
-        single_labels: <span class="kw-2">&amp;</span>[SingleLabel&lt;<span class="lifetime">&#39;_</span>&gt;],
+        single_labels: <span class="kw-2">&amp;</span>[SingleLabel&lt;<span class="lifetime">'_</span>&gt;],
         num_multi_labels: usize,
-        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">&#39;_</span>&gt;)],
+        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">'_</span>&gt;)],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// Trim trailing newlines, linefeeds, and null chars from source, if they exist.
         // FIXME: Use the number of trimmed placeholders when rendering single line carets
-        </span><span class="kw">let </span>source = source.trim_end_matches([<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\0&#39;</span>].as_ref());
+        </span><span class="kw">let </span>source = source.trim_end_matches([<span class="string">'\n'</span>, <span class="string">'\r'</span>, <span class="string">'\0'</span>].as_ref());
 
         <span class="comment">// Write source line
         //
@@ -1292,7 +1294,7 @@
             }
 
             <span class="comment">// Write source text
-            </span><span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+            </span><span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>in_primary = <span class="bool-val">false</span>;
             <span class="kw">for </span>(metrics, ch) <span class="kw">in </span><span class="self">self</span>.char_metrics(source.char_indices()) {
                 <span class="kw">let </span>column_range = metrics.byte_index..(metrics.byte_index + ch.len_utf8());
@@ -1319,8 +1321,8 @@
                 }
 
                 <span class="kw">match </span>ch {
-                    <span class="string">&#39;\t&#39; </span>=&gt; (<span class="number">0</span>..metrics.unicode_width).try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>))<span class="question-mark">?</span>,
-                    <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, ch)<span class="question-mark">?</span>,
+                    <span class="string">'\t' </span>=&gt; (<span class="number">0</span>..metrics.unicode_width).try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>))<span class="question-mark">?</span>,
+                    <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, ch)<span class="question-mark">?</span>,
                 }
             }
             <span class="kw">if </span>in_primary {
@@ -1344,7 +1346,7 @@
             // 1. Do an initial scan to find:
             //    - The number of non-empty messages.
             //    - The right-most start and end positions of labels.
-            //    - A candidate for a trailing label (where the label&#39;s message
+            //    - A candidate for a trailing label (where the label's message
             //      is printed to the left of the caret).
             // 2. Check if the trailing label candidate overlaps another label -
             //    if so we print it underneath the carets with the other labels.
@@ -1390,7 +1392,7 @@
                 }
                 max_label_start = std::cmp::max(max_label_start, range.start);
                 max_label_end = std::cmp::max(max_label_end, range.end);
-                <span class="comment">// This is a candidate for the trailing label, so let&#39;s record it.
+                <span class="comment">// This is a candidate for the trailing label, so let's record it.
                 </span><span class="kw">if </span>range.end == max_label_end {
                     <span class="kw">if </span>message.is_empty() {
                         trailing_label = <span class="prelude-val">None</span>;
@@ -1408,7 +1410,7 @@
                     .filter(|(label_index, <span class="kw">_</span>)| <span class="kw-2">*</span>label_index != trailing_label_index)
                     .any(|(<span class="kw">_</span>, (<span class="kw">_</span>, range, <span class="kw">_</span>))| is_overlapping(trailing_range, range))
                 {
-                    <span class="comment">// If it does, we&#39;ll instead want to render it below the
+                    <span class="comment">// If it does, we'll instead want to render it below the
                     // carets along with the other hanging labels.
                     </span>trailing_label = <span class="prelude-val">None</span>;
                 }
@@ -1422,7 +1424,7 @@
             </span><span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
             <span class="self">self</span>.border_left()<span class="question-mark">?</span>;
             <span class="self">self</span>.inner_gutter(severity, num_multi_labels, multi_labels)<span class="question-mark">?</span>;
-            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>previous_label_style = <span class="prelude-val">None</span>;
             <span class="kw">let </span>placeholder_metrics = Metrics {
@@ -1438,7 +1440,7 @@
                 // 1 │ Hello world!
                 //   │             ^
                 // ```
-                </span>.chain(std::iter::once((placeholder_metrics, <span class="string">&#39;\0&#39;</span>)))
+                </span>.chain(std::iter::once((placeholder_metrics, <span class="string">'\0'</span>)))
             {
                 <span class="comment">// Find the current label style at this column
                 </span><span class="kw">let </span>column_range = metrics.byte_index..(metrics.byte_index + ch.len_utf8());
@@ -1462,12 +1464,12 @@
                     <span class="prelude-val">Some</span>(LabelStyle::Primary) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.chars().single_primary_caret),
                     <span class="prelude-val">Some</span>(LabelStyle::Secondary) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.chars().single_secondary_caret),
                     <span class="comment">// Only print padding if we are before the end of the last single line caret
-                    </span><span class="prelude-val">None </span><span class="kw">if </span>metrics.byte_index &lt; max_label_end =&gt; <span class="prelude-val">Some</span>(<span class="string">&#39; &#39;</span>),
+                    </span><span class="prelude-val">None </span><span class="kw">if </span>metrics.byte_index &lt; max_label_end =&gt; <span class="prelude-val">Some</span>(<span class="string">' '</span>),
                     <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
                 };
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(caret_ch) = caret_ch {
                     <span class="comment">// FIXME: improve rendering of carets between character boundaries
-                    </span>(<span class="number">0</span>..metrics.unicode_width).try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, caret_ch))<span class="question-mark">?</span>;
+                    </span>(<span class="number">0</span>..metrics.unicode_width).try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, caret_ch))<span class="question-mark">?</span>;
                 }
 
                 previous_label_style = current_label_style;
@@ -1478,9 +1480,9 @@
             }
             <span class="comment">// Write first trailing label message
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, (label_style, <span class="kw">_</span>, message))) = trailing_label {
-                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, <span class="kw-2">*</span>label_style))<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, message)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, message)<span class="question-mark">?</span>;
                 <span class="self">self</span>.reset()<span class="question-mark">?</span>;
             }
             <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -1502,7 +1504,7 @@
                 </span><span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
                 <span class="self">self</span>.border_left()<span class="question-mark">?</span>;
                 <span class="self">self</span>.inner_gutter(severity, num_multi_labels, multi_labels)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.caret_pointers(
                     severity,
                     max_label_start,
@@ -1525,7 +1527,7 @@
                     <span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
                     <span class="self">self</span>.border_left()<span class="question-mark">?</span>;
                     <span class="self">self</span>.inner_gutter(severity, num_multi_labels, multi_labels)<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.caret_pointers(
                         severity,
                         max_label_start,
@@ -1536,7 +1538,7 @@
                             .take_while(|(byte_index, <span class="kw">_</span>)| <span class="kw-2">*</span>byte_index &lt; range.start),
                     )<span class="question-mark">?</span>;
                     <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, <span class="kw-2">*</span>label_style))<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, message)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, message)<span class="question-mark">?</span>;
                     <span class="self">self</span>.reset()<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
                 }
@@ -1623,7 +1625,7 @@
         outer_padding: usize,
         severity: Severity,
         num_multi_labels: usize,
-        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">&#39;_</span>&gt;)],
+        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">'_</span>&gt;)],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
         <span class="self">self</span>.border_left()<span class="question-mark">?</span>;
@@ -1642,7 +1644,7 @@
         outer_padding: usize,
         severity: Severity,
         num_multi_labels: usize,
-        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">&#39;_</span>&gt;)],
+        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">'_</span>&gt;)],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.outer_gutter(outer_padding)<span class="question-mark">?</span>;
         <span class="self">self</span>.border_left_break()<span class="question-mark">?</span>;
@@ -1667,13 +1669,13 @@
             <span class="kw">match </span>note_line_index {
                 <span class="number">0 </span>=&gt; {
                     <span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().note_bullet)<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().note_bullet)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().note_bullet)<span class="question-mark">?</span>;
                     <span class="self">self</span>.reset()<span class="question-mark">?</span>;
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>,
+                <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>,
             }
             <span class="comment">// Write line of message
-            </span><span class="macro">writeln!</span>(<span class="self">self</span>, <span class="string">&quot; {}&quot;</span>, line)<span class="question-mark">?</span>;
+            </span><span class="macro">writeln!</span>(<span class="self">self</span>, <span class="string">" {}"</span>, line)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1695,8 +1697,8 @@
             <span class="kw">let </span>metrics = Metrics {
                 byte_index,
                 unicode_width: <span class="kw">match </span>(ch, tab_width) {
-                    (<span class="string">&#39;\t&#39;</span>, <span class="number">0</span>) =&gt; <span class="number">0</span>, <span class="comment">// Guard divide-by-zero
-                    </span>(<span class="string">&#39;\t&#39;</span>, <span class="kw">_</span>) =&gt; tab_width - (unicode_column % tab_width),
+                    (<span class="string">'\t'</span>, <span class="number">0</span>) =&gt; <span class="number">0</span>, <span class="comment">// Guard divide-by-zero
+                    </span>(<span class="string">'\t'</span>, <span class="kw">_</span>) =&gt; tab_width - (unicode_column % tab_width),
                     (ch, <span class="kw">_</span>) =&gt; ch.width().unwrap_or(<span class="number">0</span>),
                 },
             };
@@ -1710,7 +1712,7 @@
     </span><span class="kw">fn </span>snippet_locus(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locus: <span class="kw-2">&amp;</span>Locus) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="macro">write!</span>(
             <span class="self">self</span>,
-            <span class="string">&quot;{name}:{line_number}:{column_number}&quot;</span>,
+            <span class="string">"{name}:{line_number}:{column_number}"</span>,
             name = locus.name,
             line_number = locus.location.line_number,
             column_number = locus.location.column_number,
@@ -1720,7 +1722,7 @@
 
     <span class="doccomment">/// The outer gutter of a source line.
     </span><span class="kw">fn </span>outer_gutter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, outer_padding: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{space: &gt;width$} &quot;</span>, space = <span class="string">&quot;&quot;</span>, width = outer_padding)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{space: &gt;width$} "</span>, space = <span class="string">""</span>, width = outer_padding)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1733,19 +1735,19 @@
         <span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().line_number)<span class="question-mark">?</span>;
         <span class="macro">write!</span>(
             <span class="self">self</span>,
-            <span class="string">&quot;{line_number: &gt;width$}&quot;</span>,
+            <span class="string">"{line_number: &gt;width$}"</span>,
             line_number = line_number,
             width = outer_padding,
         )<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// The left-hand border of a source line.
     </span><span class="kw">fn </span>border_left(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().source_border)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().source_border_left)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().source_border_left)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -1753,7 +1755,7 @@
     <span class="doccomment">/// The broken left-hand border of a source line.
     </span><span class="kw">fn </span>border_left_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.set_color(<span class="kw-2">&amp;</span><span class="self">self</span>.styles().source_border)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().source_border_left_break)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().source_border_left_break)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -1763,8 +1765,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         severity: Severity,
         max_label_start: usize,
-        single_labels: <span class="kw-2">&amp;</span>[SingleLabel&lt;<span class="lifetime">&#39;_</span>&gt;],
-        trailing_label: <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span>SingleLabel&lt;<span class="lifetime">&#39;_</span>&gt;)&gt;,
+        single_labels: <span class="kw-2">&amp;</span>[SingleLabel&lt;<span class="lifetime">'_</span>&gt;],
+        trailing_label: <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span>SingleLabel&lt;<span class="lifetime">'_</span>&gt;)&gt;,
         char_indices: <span class="kw">impl </span>Iterator&lt;Item = (usize, char)&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">for </span>(metrics, ch) <span class="kw">in </span><span class="self">self</span>.char_metrics(char_indices) {
@@ -1778,14 +1780,14 @@
                 <span class="prelude-val">None </span>=&gt; <span class="number">0</span>..metrics.unicode_width,
                 <span class="prelude-val">Some</span>(label_style) =&gt; {
                     <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, label_style))<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().pointer_left)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().pointer_left)<span class="question-mark">?</span>;
                     <span class="self">self</span>.reset()<span class="question-mark">?</span>;
                     <span class="number">1</span>..metrics.unicode_width
                 }
             };
             <span class="comment">// Only print padding if we are before the end of the last single line caret
             </span><span class="kw">if </span>metrics.byte_index &lt;= max_label_start {
-                spaces.try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>))<span class="question-mark">?</span>;
+                spaces.try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>))<span class="question-mark">?</span>;
             }
         }
 
@@ -1804,16 +1806,16 @@
         underline: <span class="prelude-ty">Option</span>&lt;LabelStyle&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">match </span>underline {
-            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>,
             <span class="comment">// Continue an underline horizontally
             </span><span class="prelude-val">Some</span>(label_style) =&gt; {
                 <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, label_style))<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_top)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_top)<span class="question-mark">?</span>;
                 <span class="self">self</span>.reset()<span class="question-mark">?</span>;
             }
         }
         <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, label_style))<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_left)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_left)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -1828,9 +1830,9 @@
         severity: Severity,
         label_style: LabelStyle,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, label_style))<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_top_left)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_top_left)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -1845,9 +1847,9 @@
         severity: Severity,
         label_style: LabelStyle,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" "</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.set_color(<span class="self">self</span>.styles().label(severity, label_style))<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_bottom_left)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_bottom_left)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -1872,14 +1874,14 @@
         {
             <span class="comment">// FIXME: improve rendering of carets between character boundaries
             </span>(<span class="number">0</span>..metrics.unicode_width)
-                .try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_top))<span class="question-mark">?</span>;
+                .try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_top))<span class="question-mark">?</span>;
         }
 
         <span class="kw">let </span>caret_start = <span class="kw">match </span>label_style {
             LabelStyle::Primary =&gt; <span class="self">self</span>.config.chars.multi_primary_caret_start,
             LabelStyle::Secondary =&gt; <span class="self">self</span>.config.chars.multi_secondary_caret_start,
         };
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, caret_start)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, caret_start)<span class="question-mark">?</span>;
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -1906,16 +1908,16 @@
         {
             <span class="comment">// FIXME: improve rendering of carets between character boundaries
             </span>(<span class="number">0</span>..metrics.unicode_width)
-                .try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.chars().multi_bottom))<span class="question-mark">?</span>;
+                .try_for_each(|<span class="kw">_</span>| <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, <span class="self">self</span>.chars().multi_bottom))<span class="question-mark">?</span>;
         }
 
         <span class="kw">let </span>caret_end = <span class="kw">match </span>label_style {
             LabelStyle::Primary =&gt; <span class="self">self</span>.config.chars.multi_primary_caret_start,
             LabelStyle::Secondary =&gt; <span class="self">self</span>.config.chars.multi_secondary_caret_start,
         };
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{}&quot;</span>, caret_end)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{}"</span>, caret_end)<span class="question-mark">?</span>;
         <span class="kw">if </span>!message.is_empty() {
-            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot; {}&quot;</span>, message)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">" {}"</span>, message)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.reset()<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -1936,7 +1938,7 @@
                     VerticalBound::Top =&gt; <span class="self">self</span>.config.chars.multi_top,
                     VerticalBound::Bottom =&gt; <span class="self">self</span>.config.chars.multi_bottom,
                 };
-                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;{0}{0}&quot;</span>, ch)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"{0}{0}"</span>, ch)<span class="question-mark">?</span>;
                 <span class="self">self</span>.reset()<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1945,7 +1947,7 @@
 
     <span class="doccomment">/// Writes an empty gutter space.
     </span><span class="kw">fn </span>inner_gutter_space(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">&quot;  &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>, <span class="string">"  "</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1954,7 +1956,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         severity: Severity,
         num_multi_labels: usize,
-        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">&#39;_</span>&gt;)],
+        multi_labels: <span class="kw-2">&amp;</span>[(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">'_</span>&gt;)],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>multi_labels_iter = multi_labels.iter().peekable();
         <span class="kw">for </span>label_column <span class="kw">in </span><span class="number">0</span>..num_multi_labels {
@@ -1977,7 +1979,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; Write <span class="kw">for </span>Renderer&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; Write <span class="kw">for </span>Renderer&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.writer.write(buf)
     }
@@ -1987,7 +1989,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; WriteColor <span class="kw">for </span>Renderer&lt;<span class="lifetime">&#39;writer</span>, <span class="lifetime">&#39;config</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; WriteColor <span class="kw">for </span>Renderer&lt;<span class="lifetime">'writer</span>, <span class="lifetime">'config</span>&gt; {
     <span class="kw">fn </span>supports_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.writer.supports_color()
     }
@@ -2027,10 +2029,10 @@
 
 <span class="doccomment">/// Return an iterator that yields the labels that require hanging messages
 /// rendered underneath them.
-</span><span class="kw">fn </span>hanging_labels&lt;<span class="lifetime">&#39;labels</span>, <span class="lifetime">&#39;diagnostic</span>&gt;(
-    single_labels: <span class="kw-2">&amp;</span><span class="lifetime">&#39;labels </span>[SingleLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt;],
-    trailing_label: <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;labels </span>SingleLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt;)&gt;,
-) -&gt; <span class="kw">impl </span><span class="lifetime">&#39;labels </span>+ DoubleEndedIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;labels </span>SingleLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt;&gt; {
+</span><span class="kw">fn </span>hanging_labels&lt;<span class="lifetime">'labels</span>, <span class="lifetime">'diagnostic</span>&gt;(
+    single_labels: <span class="kw-2">&amp;</span><span class="lifetime">'labels </span>[SingleLabel&lt;<span class="lifetime">'diagnostic</span>&gt;],
+    trailing_label: <span class="prelude-ty">Option</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'labels </span>SingleLabel&lt;<span class="lifetime">'diagnostic</span>&gt;)&gt;,
+) -&gt; <span class="kw">impl </span><span class="lifetime">'labels </span>+ DoubleEndedIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'labels </span>SingleLabel&lt;<span class="lifetime">'diagnostic</span>&gt;&gt; {
     single_labels
         .iter()
         .enumerate()

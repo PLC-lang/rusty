@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/thread_pool/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/thread_pool/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -541,11 +543,11 @@
 /// let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
 /// ```
 ///
-/// [`install()`][`ThreadPool::install()`] executes a closure in one of the `ThreadPool`&#39;s
+/// [`install()`][`ThreadPool::install()`] executes a closure in one of the `ThreadPool`'s
 /// threads. In addition, any other rayon operations called inside of `install()` will also
 /// execute in the context of the `ThreadPool`.
 ///
-/// When the `ThreadPool` is dropped, that&#39;s a signal for the threads it manages to terminate,
+/// When the `ThreadPool` is dropped, that's a signal for the threads it manages to terminate,
 /// they will complete executing any remaining work that you have spawned, and automatically
 /// terminate.
 ///
@@ -561,7 +563,7 @@
 }
 
 <span class="kw">impl </span>ThreadPool {
-    <span class="attr">#[deprecated(note = <span class="string">&quot;Use `ThreadPoolBuilder::build`&quot;</span>)]
+    <span class="attr">#[deprecated(note = <span class="string">"Use `ThreadPoolBuilder::build`"</span>)]
     #[allow(deprecated)]
     </span><span class="doccomment">/// Deprecated in favor of `ThreadPoolBuilder::build`.
     </span><span class="kw">pub fn </span>new(configuration: <span class="kw">crate</span>::Configuration) -&gt; <span class="prelude-ty">Result</span>&lt;ThreadPool, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
@@ -602,9 +604,9 @@
     ///     rayon::ThreadPoolBuilder::new().num_threads(1).build_global().unwrap();
     ///     let pool = rayon_core::ThreadPoolBuilder::default().build().unwrap();
     ///     let do_it = || {
-    ///         print!(&quot;one &quot;);
+    ///         print!("one ");
     ///         pool.install(||{});
-    ///         print!(&quot;two &quot;);
+    ///         print!("two ");
     ///     };
     ///     rayon::join(|| do_it(), || do_it());
     /// }
@@ -636,7 +638,7 @@
     ///    fn main() {
     ///         let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
     ///         let n = pool.install(|| fib(20));
-    ///         println!(&quot;{}&quot;, n);
+    ///         println!("{}", n);
     ///    }
     ///
     ///    fn fib(n: usize) -&gt; usize {
@@ -699,7 +701,7 @@
     /// ```
     </span><span class="kw">pub fn </span>broadcast&lt;OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; Vec&lt;R&gt;
     <span class="kw">where
-        </span>OP: Fn(BroadcastContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; R + Sync,
+        </span>OP: Fn(BroadcastContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; R + Sync,
         R: Send,
     {
         <span class="comment">// We assert that `self.registry` has not terminated.
@@ -727,7 +729,7 @@
     /// thread, or called from a Rayon thread that belongs to a
     /// different thread-pool, returns `None`.
     ///
-    /// The index for a given thread will not change over the thread&#39;s
+    /// The index for a given thread will not change over the thread's
     /// lifetime. However, multiple threads may share the same index if
     /// they are in distinct thread-pools.
     ///
@@ -748,21 +750,21 @@
         <span class="prelude-val">Some</span>(curr.index())
     }
 
-    <span class="doccomment">/// Returns true if the current worker thread currently has &quot;local
-    /// tasks&quot; pending. This can be useful as part of a heuristic for
+    <span class="doccomment">/// Returns true if the current worker thread currently has "local
+    /// tasks" pending. This can be useful as part of a heuristic for
     /// deciding whether to spawn a new task or execute code on the
     /// current thread, particularly in breadth-first
     /// schedulers. However, keep in mind that this is an inherently
-    /// racy check, as other worker threads may be actively &quot;stealing&quot;
+    /// racy check, as other worker threads may be actively "stealing"
     /// tasks from our local deque.
     ///
-    /// **Background:** Rayon&#39;s uses a [work-stealing] scheduler. The
+    /// **Background:** Rayon's uses a [work-stealing] scheduler. The
     /// key idea is that each thread has its own [deque] of
     /// tasks. Whenever a new task is spawned -- whether through
     /// `join()`, `Scope::spawn()`, or some other means -- that new
-    /// task is pushed onto the thread&#39;s *local* deque. Worker threads
+    /// task is pushed onto the thread's *local* deque. Worker threads
     /// have a preference for executing their own tasks; if however
-    /// they run out of tasks, they will go try to &quot;steal&quot; tasks from
+    /// they run out of tasks, they will go try to "steal" tasks from
     /// other threads. This function therefore has an inherent race
     /// with other active worker threads, which may be removing items
     /// from the local deque.
@@ -794,9 +796,9 @@
     /// See also: [the `scope()` function][scope].
     ///
     /// [scope]: fn.scope.html
-    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">&#39;scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
+    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">'scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
     <span class="kw">where
-        </span>OP: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">&#39;scope</span>&gt;) -&gt; R + Send,
+        </span>OP: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">'scope</span>&gt;) -&gt; R + Send,
         R: Send,
     {
         <span class="self">self</span>.install(|| scope(op))
@@ -809,9 +811,9 @@
     /// See also: [the `scope_fifo()` function][scope_fifo].
     ///
     /// [scope_fifo]: fn.scope_fifo.html
-    </span><span class="kw">pub fn </span>scope_fifo&lt;<span class="lifetime">&#39;scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
+    </span><span class="kw">pub fn </span>scope_fifo&lt;<span class="lifetime">'scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
     <span class="kw">where
-        </span>OP: FnOnce(<span class="kw-2">&amp;</span>ScopeFifo&lt;<span class="lifetime">&#39;scope</span>&gt;) -&gt; R + Send,
+        </span>OP: FnOnce(<span class="kw-2">&amp;</span>ScopeFifo&lt;<span class="lifetime">'scope</span>&gt;) -&gt; R + Send,
         R: Send,
     {
         <span class="self">self</span>.install(|| scope_fifo(op))
@@ -822,9 +824,9 @@
     /// See also: [the `in_place_scope()` function][in_place_scope].
     ///
     /// [in_place_scope]: fn.in_place_scope.html
-    </span><span class="kw">pub fn </span>in_place_scope&lt;<span class="lifetime">&#39;scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
+    </span><span class="kw">pub fn </span>in_place_scope&lt;<span class="lifetime">'scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
     <span class="kw">where
-        </span>OP: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">&#39;scope</span>&gt;) -&gt; R,
+        </span>OP: FnOnce(<span class="kw-2">&amp;</span>Scope&lt;<span class="lifetime">'scope</span>&gt;) -&gt; R,
     {
         do_in_place_scope(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.registry), op)
     }
@@ -834,9 +836,9 @@
     /// See also: [the `in_place_scope_fifo()` function][in_place_scope_fifo].
     ///
     /// [in_place_scope_fifo]: fn.in_place_scope_fifo.html
-    </span><span class="kw">pub fn </span>in_place_scope_fifo&lt;<span class="lifetime">&#39;scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
+    </span><span class="kw">pub fn </span>in_place_scope_fifo&lt;<span class="lifetime">'scope</span>, OP, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP) -&gt; R
     <span class="kw">where
-        </span>OP: FnOnce(<span class="kw-2">&amp;</span>ScopeFifo&lt;<span class="lifetime">&#39;scope</span>&gt;) -&gt; R,
+        </span>OP: FnOnce(<span class="kw-2">&amp;</span>ScopeFifo&lt;<span class="lifetime">'scope</span>&gt;) -&gt; R,
     {
         do_in_place_scope_fifo(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.registry), op)
     }
@@ -851,7 +853,7 @@
     /// [spawn]: struct.Scope.html#method.spawn
     </span><span class="kw">pub fn </span>spawn&lt;OP&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP)
     <span class="kw">where
-        </span>OP: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+        </span>OP: FnOnce() + Send + <span class="lifetime">'static</span>,
     {
         <span class="comment">// We assert that `self.registry` has not terminated.
         </span><span class="kw">unsafe </span>{ spawn::spawn_in(op, <span class="kw-2">&amp;</span><span class="self">self</span>.registry) }
@@ -867,7 +869,7 @@
     /// [spawn_fifo]: struct.ScopeFifo.html#method.spawn_fifo
     </span><span class="kw">pub fn </span>spawn_fifo&lt;OP&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP)
     <span class="kw">where
-        </span>OP: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+        </span>OP: FnOnce() + Send + <span class="lifetime">'static</span>,
     {
         <span class="comment">// We assert that `self.registry` has not terminated.
         </span><span class="kw">unsafe </span>{ spawn::spawn_fifo_in(op, <span class="kw-2">&amp;</span><span class="self">self</span>.registry) }
@@ -879,7 +881,7 @@
     /// stack (you will likely need a `move` closure).
     </span><span class="kw">pub fn </span>spawn_broadcast&lt;OP&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, op: OP)
     <span class="kw">where
-        </span>OP: Fn(BroadcastContext&lt;<span class="lifetime">&#39;_</span>&gt;) + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>OP: Fn(BroadcastContext&lt;<span class="lifetime">'_</span>&gt;) + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="comment">// We assert that `self.registry` has not terminated.
         </span><span class="kw">unsafe </span>{ broadcast::spawn_broadcast_in(op, <span class="kw-2">&amp;</span><span class="self">self</span>.registry) }
@@ -917,10 +919,10 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ThreadPool {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;ThreadPool&quot;</span>)
-            .field(<span class="string">&quot;num_threads&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.current_num_threads())
-            .field(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.registry.id())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"ThreadPool"</span>)
+            .field(<span class="string">"num_threads"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.current_num_threads())
+            .field(<span class="string">"id"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.registry.id())
             .finish()
     }
 }
@@ -929,7 +931,7 @@
 /// thread within its current pool; if not called from a Rayon thread,
 /// returns `None`.
 ///
-/// The index for a given thread will not change over the thread&#39;s
+/// The index for a given thread will not change over the thread's
 /// lifetime. However, multiple threads may share the same index if
 /// they are in distinct thread-pools.
 ///
@@ -957,7 +959,7 @@
 }
 
 <span class="doccomment">/// If called from a Rayon worker thread, indicates whether that
-/// thread&#39;s local deque still has pending tasks. Otherwise, returns
+/// thread's local deque still has pending tasks. Otherwise, returns
 /// `None`. For more information, see [the
 /// `ThreadPool::current_thread_has_pending_tasks()` method][m].
 ///
@@ -992,7 +994,7 @@
 <span class="doccomment">/// Cooperatively yields execution to local Rayon work.
 ///
 /// If the current thread is part of a rayon thread pool, this looks for a
-/// single unit of pending work in this thread&#39;s queue, then executes it.
+/// single unit of pending work in this thread's queue, then executes it.
 /// Completion of that work might include nested work or further work stealing.
 ///
 /// This is similar to [`yield_now()`], but does not steal from other threads.

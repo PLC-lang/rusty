@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/piper-0.2.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="piper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../piper/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="piper"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/piper-0.2.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="piper" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../piper/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1171,10 +1173,10 @@
 //! consider wrapping them in an `Arc&lt;Mutex&lt;...&gt;&gt;` or similar.
 //!
 //! When the sender is dropped, remaining bytes in the pipe can still be read. After that, attempts
-//! to read will result in `Ok(0)`, i.e. they will always &#39;successfully&#39; read 0 bytes.
+//! to read will result in `Ok(0)`, i.e. they will always 'successfully' read 0 bytes.
 //!
 //! When the receiver is dropped, the pipe is closed and no more bytes and be written into it.
-//! Further writes will result in `Ok(0)`, i.e. they will always &#39;successfully&#39; write 0 bytes.
+//! Further writes will result in `Ok(0)`, i.e. they will always 'successfully' write 0 bytes.
 //!
 //! # Version 0.2.0 Notes
 //!
@@ -1236,7 +1238,7 @@
 //!     // Read all bytes from the pipe.
 //!     reader.read_to_end(&amp;mut buf).await.unwrap();
 //!
-//!     println!(&quot;Random data: {:#?}&quot;, buf);
+//!     println!("Random data: {:#?}", buf);
 //! });
 //!
 //! Parallel::new()
@@ -1268,7 +1270,7 @@
 //!
 //! // Spawn a thread for reading a file.
 //! thread::spawn(move || {
-//!     let mut file = File::open(&quot;Cargo.toml&quot;).unwrap();
+//!     let mut file = File::open("Cargo.toml").unwrap();
 //!
 //!     // Read the file into a buffer.
 //!     let mut buf = [0u8; 16384];
@@ -1295,7 +1297,7 @@
 //! let mut buf = vec![];
 //! r.read_to_end(&amp;mut buf).await.unwrap();
 //!
-//! println!(&quot;Read {} bytes&quot;, buf.len());
+//! println!("Read {} bytes", buf.len());
 //! # });
 //! ```
 //!
@@ -1327,13 +1329,13 @@
 //! [`poll_drain`]: struct.Reader.html#method.poll_drain
 //! [`blocking`]: https://docs.rs/blocking
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 #![forbid(missing_docs)]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
 </span><span class="kw">extern crate </span>alloc;
@@ -1348,7 +1350,7 @@
 <span class="kw">use </span>sync::atomic::{<span class="self">self</span>, AtomicBool, AtomicUsize, Ordering};
 <span class="kw">use </span>sync::Arc;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::{
     io::{<span class="self">self</span>, Read, Write},
     pin::Pin,
@@ -1356,7 +1358,7 @@
 
 <span class="kw">use </span>atomic_waker::AtomicWaker;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>futures_io::{AsyncRead, AsyncWrite};
 
 <span class="macro">macro_rules! </span>ready {
@@ -1378,8 +1380,8 @@
 ///
 /// This function panics if `cap` is 0 or if `cap * 2` overflows a `usize`.
 </span><span class="kw">pub fn </span>pipe(cap: usize) -&gt; (Reader, Writer) {
-    <span class="macro">assert!</span>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
-    <span class="macro">assert!</span>(cap.checked_mul(<span class="number">2</span>).is_some(), <span class="string">&quot;capacity is too large&quot;</span>);
+    <span class="macro">assert!</span>(cap &gt; <span class="number">0</span>, <span class="string">"capacity must be positive"</span>);
+    <span class="macro">assert!</span>(cap.checked_mul(<span class="number">2</span>).is_some(), <span class="string">"capacity is too large"</span>);
 
     <span class="comment">// Allocate the ring buffer.
     </span><span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(cap);
@@ -1473,7 +1475,7 @@
 ///
 /// The reason why indices are not in the range `0..cap` is because we need to distinguish between
 /// the pipe being empty and being full. If head and tail were in `0..cap`, then `head == tail`
-/// could mean the pipe is either empty or full, but we don&#39;t know which!
+/// could mean the pipe is either empty or full, but we don't know which!
 </span><span class="kw">struct </span>Pipe {
     <span class="doccomment">/// The head index, moved by the reader, in the range `0..2*cap`.
     </span>head: AtomicUsize,
@@ -1542,7 +1544,7 @@
 <span class="kw">impl </span>Reader {
     <span class="doccomment">/// Gets the total length of the data in the pipe.
     ///
-    /// This method returns the number of bytes that have been written into the pipe but haven&#39;t been
+    /// This method returns the number of bytes that have been written into the pipe but haven't been
     /// read yet.
     ///
     /// # Examples
@@ -1643,7 +1645,7 @@
 
     <span class="doccomment">/// Reads bytes from this reader and writes into blocking `dest`.
     ///
-    /// This method reads directly from the pipe&#39;s internal buffer into `dest`. This avoids an extra copy,
+    /// This method reads directly from the pipe's internal buffer into `dest`. This avoids an extra copy,
     /// but it may block the thread if `dest` blocks.
     ///
     /// If the pipe is empty, this method returns `Poll::Pending`. If the pipe is closed, this method
@@ -1664,20 +1666,20 @@
     /// let (mut r, mut w) = piper::pipe(1024);
     ///
     /// // Write some data to the pipe.
-    /// w.write_all(b&quot;hello world&quot;).await.unwrap();
+    /// w.write_all(b"hello world").await.unwrap();
     ///
     /// // Try reading from the pipe.
     /// let mut buf = [0; 1024];
     /// let n = future::poll_fn(|cx| r.poll_drain(cx, &amp;mut buf[..])).await.unwrap();
     ///
     /// // The data was written to the buffer.
-    /// assert_eq!(&amp;buf[..n], b&quot;hello world&quot;);
+    /// assert_eq!(&amp;buf[..n], b"hello world");
     /// # });
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">pub fn </span>poll_drain(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         dest: <span class="kw">impl </span>Write,
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="self">self</span>.drain_inner(<span class="prelude-val">Some</span>(cx), dest)
@@ -1700,17 +1702,17 @@
     /// let (mut r, mut w) = piper::pipe(1024);
     ///
     /// // Write some data to the pipe.
-    /// w.write_all(b&quot;hello world&quot;).await.unwrap();
+    /// w.write_all(b"hello world").await.unwrap();
     ///
     /// // Try reading from the pipe.
     /// let mut buf = [0; 1024];
     /// let n = future::poll_fn(|cx| r.poll_drain_bytes(cx, &amp;mut buf[..])).await;
     ///
     /// // The data was written to the buffer.
-    /// assert_eq!(&amp;buf[..n], b&quot;hello world&quot;);
+    /// assert_eq!(&amp;buf[..n], b"hello world");
     /// # });
     /// ```
-    </span><span class="kw">pub fn </span>poll_drain_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, dest: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;usize&gt; {
+    </span><span class="kw">pub fn </span>poll_drain_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, dest: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self</span>.drain_inner(<span class="prelude-val">Some</span>(cx), WriteBytes(dest)) {
             Poll::Ready(<span class="prelude-val">Ok</span>(n)) =&gt; Poll::Ready(n),
             Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">match </span>e {},
@@ -1748,7 +1750,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>drain_inner&lt;W: WriteLike&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>cx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
+        <span class="kw-2">mut </span>cx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;&gt;,
         <span class="kw-2">mut </span>dest: W,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, W::Error&gt;&gt; {
         <span class="kw">let </span>cap = <span class="self">self</span>.inner.cap;
@@ -1764,7 +1766,7 @@
 
         <span class="comment">// If the pipe appears to be empty...
         </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == <span class="number">0 </span>{
-            <span class="comment">// Reload the tail in case it&#39;s become stale.
+            <span class="comment">// Reload the tail in case it's become stale.
             </span><span class="self">self</span>.tail = <span class="self">self</span>.inner.tail.load(Ordering::Acquire);
 
             <span class="comment">// If the pipe is now really empty...
@@ -1814,7 +1816,7 @@
             <span class="comment">// Calculate how many bytes to read in this iteration.
             </span><span class="kw">let </span>n = (<span class="number">128 </span>* <span class="number">1024</span>) <span class="comment">// Not too many bytes in one go - better to wake the writer soon!
                 </span>.min(distance(<span class="self">self</span>.head, <span class="self">self</span>.tail)) <span class="comment">// No more than bytes in the pipe.
-                </span>.min(cap - real_index(<span class="self">self</span>.head)); <span class="comment">// Don&#39;t go past the buffer boundary.
+                </span>.min(cap - real_index(<span class="self">self</span>.head)); <span class="comment">// Don't go past the buffer boundary.
 
             // Create a slice of data in the pipe buffer.
             </span><span class="kw">let </span>pipe_slice =
@@ -1845,11 +1847,11 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>AsyncRead <span class="kw">for </span>Reader {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="self">self</span>.poll_drain_bytes(cx, buf).map(<span class="prelude-val">Ok</span>)
@@ -1859,7 +1861,7 @@
 <span class="kw">impl </span>Writer {
     <span class="doccomment">/// Gets the total length of the data in the pipe.
     ///
-    /// This method returns the number of bytes that have been written into the pipe but haven&#39;t been
+    /// This method returns the number of bytes that have been written into the pipe but haven't been
     /// read yet.
     ///
     /// # Examples
@@ -1960,7 +1962,7 @@
 
     <span class="doccomment">/// Reads bytes from blocking `src` and writes into this writer.
     ///
-    /// This method writes directly from `src` into the pipe&#39;s internal buffer. This avoids an extra copy,
+    /// This method writes directly from `src` into the pipe's internal buffer. This avoids an extra copy,
     /// but it may block the thread if `src` blocks.
     ///
     /// If the pipe is full, this method returns `Poll::Pending`. If the pipe is closed, this method
@@ -1982,7 +1984,7 @@
     /// let (mut reader, mut writer) = piper::pipe(1024);
     ///
     /// // Fill the pipe with some bytes.
-    /// let data = b&quot;hello world&quot;;
+    /// let data = b"hello world";
     /// let n = future::poll_fn(|cx| writer.poll_fill(cx, &amp;data[..])).await.unwrap();
     /// assert_eq!(n, data.len());
     ///
@@ -1992,8 +1994,8 @@
     /// assert_eq!(&amp;buf[..data.len()], data);
     /// # });
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-    </span><span class="kw">pub fn </span>poll_fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, src: <span class="kw">impl </span>Read) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+    </span><span class="kw">pub fn </span>poll_fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, src: <span class="kw">impl </span>Read) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="self">self</span>.fill_inner(<span class="prelude-val">Some</span>(cx), src)
     }
 
@@ -2016,7 +2018,7 @@
     /// let (mut reader, mut writer) = piper::pipe(1024);
     ///
     /// // Fill the pipe with some bytes.
-    /// let data = b&quot;hello world&quot;;
+    /// let data = b"hello world";
     /// let n = future::poll_fn(|cx| writer.poll_fill_bytes(cx, &amp;data[..])).await;
     /// assert_eq!(n, data.len());
     ///
@@ -2026,7 +2028,7 @@
     /// assert_eq!(&amp;buf[..data.len()], data);
     /// # });
     /// ```
-    </span><span class="kw">pub fn </span>poll_fill_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;usize&gt; {
+    </span><span class="kw">pub fn </span>poll_fill_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self</span>.fill_inner(<span class="prelude-val">Some</span>(cx), ReadBytes(bytes)) {
             Poll::Ready(<span class="prelude-val">Ok</span>(n)) =&gt; Poll::Ready(n),
             Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">match </span>e {},
@@ -2060,7 +2062,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>fill_inner&lt;R: ReadLike&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>cx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;&gt;,
+        <span class="kw-2">mut </span>cx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;&gt;,
         <span class="kw-2">mut </span>src: R,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, R::Error&gt;&gt; {
         <span class="comment">// Just a quick check if the pipe is closed, which is why a relaxed load is okay.
@@ -2080,7 +2082,7 @@
 
         <span class="comment">// If the pipe appears to be full...
         </span><span class="kw">if </span>distance(<span class="self">self</span>.head, <span class="self">self</span>.tail) == cap {
-            <span class="comment">// Reload the head in case it&#39;s become stale.
+            <span class="comment">// Reload the head in case it's become stale.
             </span><span class="self">self</span>.head = <span class="self">self</span>.inner.head.load(Ordering::Acquire);
 
             <span class="comment">// If the pipe is now really empty...
@@ -2129,9 +2131,9 @@
         <span class="kw">loop </span>{
             <span class="comment">// Calculate how many bytes to write in this iteration.
             </span><span class="kw">let </span>n = (<span class="number">128 </span>* <span class="number">1024</span>) <span class="comment">// Not too many bytes in one go - better to wake the reader soon!
-                </span>.min(<span class="self">self</span>.zeroed_until * <span class="number">2 </span>+ <span class="number">4096</span>) <span class="comment">// Don&#39;t zero too many bytes when starting.
+                </span>.min(<span class="self">self</span>.zeroed_until * <span class="number">2 </span>+ <span class="number">4096</span>) <span class="comment">// Don't zero too many bytes when starting.
                 </span>.min(cap - distance(<span class="self">self</span>.head, <span class="self">self</span>.tail)) <span class="comment">// No more than space in the pipe.
-                </span>.min(cap - real_index(<span class="self">self</span>.tail)); <span class="comment">// Don&#39;t go past the buffer boundary.
+                </span>.min(cap - real_index(<span class="self">self</span>.tail)); <span class="comment">// Don't go past the buffer boundary.
 
             // Create a slice of available space in the pipe buffer.
             </span><span class="kw">let </span>pipe_slice_mut = <span class="kw">unsafe </span>{
@@ -2175,22 +2177,22 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Writer {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="self">self</span>.poll_fill_bytes(cx, buf).map(<span class="prelude-val">Ok</span>)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="comment">// Nothing to flush.
         </span>Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="comment">// Set the closed flag.
         </span><span class="self">self</span>.inner.closed.store(<span class="bool-val">true</span>, Ordering::Release);
 
@@ -2212,7 +2214,7 @@
     </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, <span class="self">Self</span>::Error&gt;;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;R: Read&gt; ReadLike <span class="kw">for </span>R {
     <span class="kw">type </span>Error = io::Error;
 
@@ -2222,9 +2224,9 @@
 }
 
 <span class="doccomment">/// Implements `no_std` reading around a byte slice.
-</span><span class="kw">struct </span>ReadBytes&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]);
+</span><span class="kw">struct </span>ReadBytes&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]);
 
-<span class="kw">impl </span>ReadLike <span class="kw">for </span>ReadBytes&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ReadLike <span class="kw">for </span>ReadBytes&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Error = Infallible;
 
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, <span class="self">Self</span>::Error&gt; {
@@ -2244,7 +2246,7 @@
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, <span class="self">Self</span>::Error&gt;;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;W: Write&gt; WriteLike <span class="kw">for </span>W {
     <span class="kw">type </span>Error = io::Error;
 
@@ -2254,9 +2256,9 @@
 }
 
 <span class="doccomment">/// Implements `no_std` writing around a byte slice.
-</span><span class="kw">struct </span>WriteBytes&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]);
+</span><span class="kw">struct </span>WriteBytes&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]);
 
-<span class="kw">impl </span>WriteLike <span class="kw">for </span>WriteBytes&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>WriteLike <span class="kw">for </span>WriteBytes&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Error = Infallible;
 
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize, <span class="self">Self</span>::Error&gt; {
@@ -2275,7 +2277,7 @@
 }
 
 <span class="doccomment">/// Yield with some small probability.
-</span><span class="kw">fn </span>maybe_yield(rng: <span class="kw-2">&amp;mut </span>fastrand::Rng, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;()&gt; {
+</span><span class="kw">fn </span>maybe_yield(rng: <span class="kw-2">&amp;mut </span>fastrand::Rng, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;()&gt; {
     <span class="kw">if </span>rng.usize(..<span class="number">100</span>) == <span class="number">0 </span>{
         cx.waker().wake_by_ref();
         Poll::Pending
@@ -2285,7 +2287,7 @@
 }
 
 <span class="doccomment">/// Get a random number generator.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 #[inline]
 </span><span class="kw">fn </span>rng() -&gt; fastrand::Rng {
     fastrand::Rng::new()
@@ -2294,7 +2296,7 @@
 <span class="doccomment">/// Get a random number generator.
 ///
 /// This uses a fixed seed due to the lack of a good RNG in `no_std` environments.
-</span><span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 #[inline]
 </span><span class="kw">fn </span>rng() -&gt; fastrand::Rng {
     <span class="comment">// Chosen by fair roll of the dice.
@@ -2310,16 +2312,16 @@
 </span><span class="kw">fn </span>_assert_send_sync() {}
 
 <span class="kw">mod </span>sync {
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;portable-atomic&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"portable-atomic"</span>))]
     </span><span class="kw">pub use </span>core::sync::atomic;
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;portable-atomic&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"portable-atomic"</span>))]
     </span><span class="kw">pub use </span>alloc::sync::Arc;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;portable-atomic&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"portable-atomic"</span>)]
     </span><span class="kw">pub use </span>portable_atomic_crate <span class="kw">as </span>atomic;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;portable-atomic&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"portable-atomic"</span>)]
     </span><span class="kw">pub use </span>portable_atomic_util::Arc;
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/io.rs`."><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_lite/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="futures_lite"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/io.rs`."><title>io.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../futures_lite/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3106,7 +3108,7 @@
 //! use futures_lite::io::{self, AsyncReadExt};
 //!
 //! # spin_on::spin_on(async {
-//! let input: &amp;[u8] = b&quot;hello&quot;;
+//! let input: &amp;[u8] = b"hello";
 //! let mut reader = io::BufReader::new(input);
 //!
 //! let mut contents = String::new();
@@ -3151,7 +3153,7 @@
 /// use futures_lite::io::{self, BufReader, BufWriter};
 ///
 /// # spin_on::spin_on(async {
-/// let input: &amp;[u8] = b&quot;hello&quot;;
+/// let input: &amp;[u8] = b"hello";
 /// let reader = BufReader::new(input);
 ///
 /// let mut output = Vec::new();
@@ -3182,7 +3184,7 @@
     {
         <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
-        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
             <span class="kw">loop </span>{
                 <span class="kw">let </span>buffer = <span class="macro">ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
@@ -3219,7 +3221,7 @@
 /// ```
 /// use futures_lite::io::{AssertAsync, AsyncReadExt};
 ///
-/// let reader: &amp;[u8] = b&quot;hello&quot;;
+/// let reader: &amp;[u8] = b"hello";
 ///
 /// # spin_on::spin_on(async {
 /// let mut async_reader = AssertAsync::new(reader);
@@ -3242,7 +3244,7 @@
     /// ```
     /// use futures_lite::io::AssertAsync;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     ///
     /// let async_reader = AssertAsync::new(reader);
     /// ```
@@ -3258,7 +3260,7 @@
     /// ```
     /// use futures_lite::io::AssertAsync;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     ///
     /// let async_reader = AssertAsync::new(reader);
     /// let r = async_reader.get_ref();
@@ -3275,7 +3277,7 @@
     /// ```
     /// use futures_lite::io::AssertAsync;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     ///
     /// let mut async_reader = AssertAsync::new(reader);
     /// let r = async_reader.get_mut();
@@ -3292,7 +3294,7 @@
     /// ```
     /// use futures_lite::io::AssertAsync;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     ///
     /// let async_reader = AssertAsync::new(reader);
     /// let inner = async_reader.into_inner();
@@ -3319,7 +3321,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.read(buf))
@@ -3328,8 +3330,8 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll_read_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.read_vectored(bufs))
     }
@@ -3339,7 +3341,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.write(buf))
@@ -3348,19 +3350,19 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll_write_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.write_vectored(bufs))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.flush())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 }
@@ -3369,7 +3371,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>poll_seek(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;u64&gt;&gt; {
         assert_async_wrapio(<span class="kw">move </span>|| <span class="self">self</span>.<span class="number">0</span>.seek(pos))
@@ -3388,8 +3390,8 @@
 /// use std::io::Read;
 /// use std::task::{Poll, Context};
 ///
-/// fn poll_for_io(cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;usize&gt; {
-///     // Assume we have a library that&#39;s built around `Read` and `Write` traits.
+/// fn poll_for_io(cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;usize&gt; {
+///     // Assume we have a library that's built around `Read` and `Write` traits.
 ///     use cooltls::Session;
 ///
 ///     // We want to use it with our writer that implements `AsyncWrite`.
@@ -3406,7 +3408,7 @@
 ///     match session.read(&amp;mut [0; 1024]) {
 ///         Ok(n) =&gt; Poll::Ready(n),
 ///         Err(err) if err.kind() == std::io::ErrorKind::WouldBlock =&gt; Poll::Pending,
-///         Err(err) =&gt; panic!(&quot;unexpected error: {}&quot;, err),
+///         Err(err) =&gt; panic!("unexpected error: {}", err),
 ///     }
 /// }
 ///
@@ -3422,7 +3424,7 @@
 /// #     }
 /// # }
 /// # impl futures_lite::io::AsyncRead for Stream {
-/// #     fn poll_read(self: std::pin::Pin&lt;&amp;mut Self&gt;, _: &amp;mut Context&lt;&#39;_&gt;, _: &amp;mut [u8]) -&gt; Poll&lt;std::io::Result&lt;usize&gt;&gt; {
+/// #     fn poll_read(self: std::pin::Pin&lt;&amp;mut Self&gt;, _: &amp;mut Context&lt;'_&gt;, _: &amp;mut [u8]) -&gt; Poll&lt;std::io::Result&lt;usize&gt;&gt; {
 /// #         Poll::Ready(Ok(0))
 /// #     }
 /// # }
@@ -3443,15 +3445,15 @@
 /// # }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>AsyncAsSync&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;ctx</span>, T&gt; {
+</span><span class="kw">pub struct </span>AsyncAsSync&lt;<span class="lifetime">'r</span>, <span class="lifetime">'ctx</span>, T&gt; {
     <span class="doccomment">/// The context we are using to poll the future.
-    </span><span class="kw">pub </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span><span class="kw">pub </span>context: <span class="kw-2">&amp;</span><span class="lifetime">'r </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">'ctx</span>&gt;,
 
     <span class="doccomment">/// The actual reader/writer we are wrapping.
     </span><span class="kw">pub </span>inner: T,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;ctx</span>, T&gt; AsyncAsSync&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;ctx</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, <span class="lifetime">'ctx</span>, T&gt; AsyncAsSync&lt;<span class="lifetime">'r</span>, <span class="lifetime">'ctx</span>, T&gt; {
     <span class="doccomment">/// Wraps an I/O handle implementing [`AsyncRead`] or [`AsyncWrite`] traits.
     ///
     /// # Examples
@@ -3461,14 +3463,14 @@
     /// use std::task::Context;
     /// use waker_fn::waker_fn;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// let waker = waker_fn(|| {});
     /// let mut context = Context::from_waker(&amp;waker);
     ///
     /// let async_reader = AsyncAsSync::new(&amp;mut context, reader);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;ctx</span>&gt;, inner: T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">'r </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">'ctx</span>&gt;, inner: T) -&gt; <span class="self">Self </span>{
         AsyncAsSync { context, inner }
     }
 
@@ -3481,7 +3483,7 @@
     /// use std::task::Context;
     /// use waker_fn::waker_fn;
     ///
-    /// let reader: Vec&lt;u8&gt; = b&quot;hello&quot;.to_vec();
+    /// let reader: Vec&lt;u8&gt; = b"hello".to_vec();
     /// let waker = waker_fn(|| {});
     /// let mut context = Context::from_waker(&amp;waker);
     ///
@@ -3505,7 +3507,7 @@
     /// use std::task::Context;
     /// use waker_fn::waker_fn;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// let waker = waker_fn(|| {});
     /// let mut context = Context::from_waker(&amp;waker);
     ///
@@ -3516,7 +3518,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>poll_with&lt;R&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        f: <span class="kw">impl </span>FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;R&gt;&gt;,
+        f: <span class="kw">impl </span>FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;R&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;R&gt;
     <span class="kw">where
         </span>T: Unpin,
@@ -3528,26 +3530,26 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsyncRead + Unpin&gt; std::io::Read <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: AsyncRead + Unpin&gt; std::io::Read <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="self">self</span>.poll_with(|io, cx| io.poll_read(cx, buf))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    </span><span class="kw">fn </span>read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="self">self</span>.poll_with(|io, cx| io.poll_read_vectored(cx, bufs))
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsyncWrite + Unpin&gt; std::io::Write <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: AsyncWrite + Unpin&gt; std::io::Write <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="self">self</span>.poll_with(|io, cx| io.poll_write(cx, buf))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    </span><span class="kw">fn </span>write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="self">self</span>.poll_with(|io, cx| io.poll_write_vectored(cx, bufs))
     }
 
@@ -3557,35 +3559,35 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsyncSeek + Unpin&gt; std::io::Seek <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: AsyncSeek + Unpin&gt; std::io::Seek <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; <span class="prelude-ty">Result</span>&lt;u64&gt; {
         <span class="self">self</span>.poll_with(|io, cx| io.poll_seek(cx, pos))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; AsRef&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; AsRef&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; AsMut&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; AsMut&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Borrow&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Borrow&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; BorrowMut&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; BorrowMut&lt;T&gt; <span class="kw">for </span>AsyncAsSync&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>borrow_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
@@ -3612,7 +3614,7 @@
 /// use futures_lite::pin;
 /// use std::io::Read;
 ///
-/// let reader: &amp;[u8] = b&quot;hello&quot;;
+/// let reader: &amp;[u8] = b"hello";
 /// pin!(reader);
 ///
 /// let mut blocking_reader = BlockOn::new(reader);
@@ -3634,7 +3636,7 @@
     /// use futures_lite::io::BlockOn;
     /// use futures_lite::pin;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// pin!(reader);
     ///
     /// let blocking_reader = BlockOn::new(reader);
@@ -3651,7 +3653,7 @@
     /// use futures_lite::io::BlockOn;
     /// use futures_lite::pin;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// pin!(reader);
     ///
     /// let blocking_reader = BlockOn::new(reader);
@@ -3669,7 +3671,7 @@
     /// use futures_lite::io::BlockOn;
     /// use futures_lite::pin;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// pin!(reader);
     ///
     /// let mut blocking_reader = BlockOn::new(reader);
@@ -3687,7 +3689,7 @@
     /// use futures_lite::io::BlockOn;
     /// use futures_lite::pin;
     ///
-    /// let reader: &amp;[u8] = b&quot;hello&quot;;
+    /// let reader: &amp;[u8] = b"hello";
     /// pin!(reader);
     ///
     /// let blocking_reader = BlockOn::new(reader);
@@ -3751,7 +3753,7 @@
     /// use futures_lite::io::{AsyncBufReadExt, BufReader};
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::new(input);
     ///
     /// let mut line = String::new();
@@ -3777,7 +3779,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let reader = BufReader::new(input);
     /// ```
     </span><span class="kw">pub fn </span>new(inner: R) -&gt; BufReader&lt;R&gt; {
@@ -3791,7 +3793,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let reader = BufReader::with_capacity(1024, input);
     /// ```
     </span><span class="kw">pub fn </span>with_capacity(capacity: usize, inner: R) -&gt; BufReader&lt;R&gt; {
@@ -3814,7 +3816,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let reader = BufReader::new(input);
     ///
     /// let r = reader.get_ref();
@@ -3832,7 +3834,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::new(input);
     ///
     /// let r = reader.get_mut();
@@ -3857,7 +3859,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let reader = BufReader::new(input);
     ///
     /// // The internal buffer is empty until the first read request.
@@ -3876,7 +3878,7 @@
     /// ```
     /// use futures_lite::io::BufReader;
     ///
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let reader = BufReader::new(input);
     ///
     /// assert_eq!(reader.into_inner(), input);
@@ -3897,10 +3899,10 @@
 <span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-        <span class="comment">// If we don&#39;t have any buffered data and we&#39;re doing a massive read
+        <span class="comment">// If we don't have any buffered data and we're doing a massive read
         // (larger than our internal buffer), bypass our internal buffer
         // entirely.
         </span><span class="kw">if </span><span class="self">self</span>.pos == <span class="self">self</span>.cap &amp;&amp; buf.len() &gt;= <span class="self">self</span>.buf.len() {
@@ -3916,8 +3918,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span>total_len = bufs.iter().map(|b| b.len()).sum::&lt;usize&gt;();
         <span class="kw">if </span><span class="self">self</span>.pos == <span class="self">self</span>.cap &amp;&amp; total_len &gt;= <span class="self">self</span>.buf.len() {
@@ -3933,10 +3935,10 @@
 }
 
 <span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncBufRead <span class="kw">for </span>BufReader&lt;R&gt; {
-    <span class="kw">fn </span>poll_fill_buf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>poll_fill_buf&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <span class="comment">// If we&#39;ve reached the end of our internal buffer then we need to fetch
+        <span class="comment">// If we've reached the end of our internal buffer then we need to fetch
         // some more data from the underlying reader.
         // Branch using `&gt;=` instead of the more correct `==`
         // to tell the compiler that the pos..cap slice is always valid.
@@ -3955,12 +3957,12 @@
 }
 
 <span class="kw">impl</span>&lt;R: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>BufReader&lt;R&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;BufReader&quot;</span>)
-            .field(<span class="string">&quot;reader&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"BufReader"</span>)
+            .field(<span class="string">"reader"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
             .field(
-                <span class="string">&quot;buffer&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}/{}&quot;</span>, <span class="self">self</span>.cap - <span class="self">self</span>.pos, <span class="self">self</span>.buf.len()),
+                <span class="string">"buffer"</span>,
+                <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"{}/{}"</span>, <span class="self">self</span>.cap - <span class="self">self</span>.pos, <span class="self">self</span>.buf.len()),
             )
             .finish()
     }
@@ -3978,21 +3980,21 @@
     ///
     /// See [`AsyncSeek`] for more details.
     ///
-    /// Note: In the edge case where you&#39;re seeking with `SeekFrom::Current(n)` where `n` minus the
+    /// Note: In the edge case where you're seeking with `SeekFrom::Current(n)` where `n` minus the
     /// internal buffer length overflows an `i64`, two seeks will be performed instead of one. If
     /// the second seek returns `Err`, the underlying reader will be left at the same position it
     /// would have if you called [`seek()`][`AsyncSeekExt::seek()`] with `SeekFrom::Current(0)`.
     </span><span class="kw">fn </span>poll_seek(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;u64&gt;&gt; {
         <span class="kw">let </span>result: u64;
         <span class="kw">if let </span>SeekFrom::Current(n) = pos {
             <span class="kw">let </span>remainder = (<span class="self">self</span>.cap - <span class="self">self</span>.pos) <span class="kw">as </span>i64;
             <span class="comment">// it should be safe to assume that remainder fits within an i64 as the alternative
-            // means we managed to allocate 8 exbibytes and that&#39;s absurd.
-            // But it&#39;s not out of the realm of possibility for some weird underlying reader to
+            // means we managed to allocate 8 exbibytes and that's absurd.
+            // But it's not out of the realm of possibility for some weird underlying reader to
             // support seeking by i64::min_value() so we need to handle underflow when subtracting
             // remainder.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(offset) = n.checked_sub(remainder) {
@@ -4013,7 +4015,7 @@
                     .poll_seek(cx, SeekFrom::Current(n)))<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
-            <span class="comment">// Seeking with Start/End doesn&#39;t care about our buffer length.
+            <span class="comment">// Seeking with Start/End doesn't care about our buffer length.
             </span>result = <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().get_pin_mut().poll_seek(cx, pos))<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.discard_buffer();
@@ -4024,17 +4026,17 @@
 <span class="kw">impl</span>&lt;R: AsyncWrite&gt; AsyncWrite <span class="kw">for </span>BufReader&lt;R&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="self">self</span>.as_mut().get_pin_mut().poll_write(cx, buf)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.as_mut().get_pin_mut().poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.as_mut().get_pin_mut().poll_close(cx)
     }
 }
@@ -4065,7 +4067,7 @@
     /// let mut output = Vec::new();
     /// let mut writer = BufWriter::new(&amp;mut output);
     ///
-    /// writer.write_all(b&quot;hello&quot;).await?;
+    /// writer.write_all(b"hello").await?;
     /// writer.flush().await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -4155,7 +4157,7 @@
 
     <span class="doccomment">/// Unwraps the buffered writer, returning the underlying writer.
     ///
-    /// Note that any leftover data in the internal buffer will be lost. If you don&#39;t want to lose
+    /// Note that any leftover data in the internal buffer will be lost. If you don't want to lose
     /// that data, flush the buffered writer before unwrapping it.
     ///
     /// # Examples
@@ -4194,7 +4196,7 @@
     }
 
     <span class="doccomment">/// Flush the buffer.
-    </span><span class="kw">fn </span>poll_flush_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_flush_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>len = this.buf.len();
         <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="prelude-val">Ok</span>(());
@@ -4208,7 +4210,7 @@
                 Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>)) =&gt; {
                     ret = <span class="prelude-val">Err</span>(Error::new(
                         ErrorKind::WriteZero,
-                        <span class="string">&quot;Failed to write buffered data&quot;</span>,
+                        <span class="string">"Failed to write buffered data"</span>,
                     ));
                     <span class="kw">break</span>;
                 }
@@ -4232,10 +4234,10 @@
 }
 
 <span class="kw">impl</span>&lt;W: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>BufWriter&lt;W&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;BufWriter&quot;</span>)
-            .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
-            .field(<span class="string">&quot;buf&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.buf)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"BufWriter"</span>)
+            .field(<span class="string">"writer"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+            .field(<span class="string">"buf"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.buf)
             .finish()
     }
 }
@@ -4243,7 +4245,7 @@
 <span class="kw">impl</span>&lt;W: AsyncWrite&gt; AsyncWrite <span class="kw">for </span>BufWriter&lt;W&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.buf.len() + buf.len() &gt; <span class="self">self</span>.buf.capacity() {
@@ -4256,12 +4258,12 @@
         }
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
         <span class="self">self</span>.get_pin_mut().poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
         <span class="self">self</span>.get_pin_mut().poll_close(cx)
     }
@@ -4273,7 +4275,7 @@
     /// Seeking always writes out the internal buffer before seeking.
     </span><span class="kw">fn </span>poll_seek(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;u64&gt;&gt; {
         <span class="macro">ready!</span>(<span class="self">self</span>.as_mut().poll_flush_buf(cx))<span class="question-mark">?</span>;
@@ -4289,11 +4291,11 @@
 /// use futures_lite::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt, Cursor, SeekFrom};
 ///
 /// # spin_on::spin_on(async {
-/// let mut bytes = b&quot;hello&quot;.to_vec();
+/// let mut bytes = b"hello".to_vec();
 /// let mut cursor = Cursor::new(&amp;mut bytes);
 ///
-/// // Overwrite &#39;h&#39; with &#39;H&#39;.
-/// cursor.write_all(b&quot;H&quot;).await?;
+/// // Overwrite 'h' with 'H'.
+/// cursor.write_all(b"H").await?;
 ///
 /// // Move the cursor one byte forward.
 /// cursor.seek(SeekFrom::Current(1)).await?;
@@ -4301,10 +4303,10 @@
 /// // Read a byte.
 /// let mut byte = [0];
 /// cursor.read_exact(&amp;mut byte).await?;
-/// assert_eq!(&amp;byte, b&quot;l&quot;);
+/// assert_eq!(&amp;byte, b"l");
 ///
 /// // Check the final buffer.
-/// assert_eq!(bytes, b&quot;Hello&quot;);
+/// assert_eq!(bytes, b"Hello");
 /// # std::io::Result::Ok(()) });
 /// ```
 </span><span class="attr">#[derive(Clone, Debug, Default)]
@@ -4315,7 +4317,7 @@
 <span class="kw">impl</span>&lt;T&gt; Cursor&lt;T&gt; {
     <span class="doccomment">/// Creates a cursor for an in-memory buffer.
     ///
-    /// Cursor&#39;s initial position is 0 even if the underlying buffer is not empty. Writing using
+    /// Cursor's initial position is 0 even if the underlying buffer is not empty. Writing using
     /// [`Cursor`] will overwrite the existing contents unless the cursor is moved to the end of
     /// the buffer using [`set_position()`][Cursor::set_position()`] or
     /// [`seek()`][`AsyncSeekExt::seek()`].
@@ -4383,7 +4385,7 @@
     /// use futures_lite::io::{AsyncSeekExt, Cursor, SeekFrom};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut cursor = Cursor::new(b&quot;hello&quot;);
+    /// let mut cursor = Cursor::new(b"hello");
     /// assert_eq!(cursor.position(), 0);
     ///
     /// cursor.seek(SeekFrom::Start(2)).await?;
@@ -4401,7 +4403,7 @@
     /// ```
     /// use futures_lite::io::Cursor;
     ///
-    /// let mut cursor = Cursor::new(b&quot;hello&quot;);
+    /// let mut cursor = Cursor::new(b"hello");
     /// assert_eq!(cursor.position(), 0);
     ///
     /// cursor.set_position(2);
@@ -4418,7 +4420,7 @@
 {
     <span class="kw">fn </span>poll_seek(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;u64&gt;&gt; {
         Poll::Ready(std::io::Seek::seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, pos))
@@ -4431,7 +4433,7 @@
 {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Read::read(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, buf))
@@ -4439,8 +4441,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Read::read_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, bufs))
     }
@@ -4450,7 +4452,7 @@
 <span class="kw">where
     </span>T: AsRef&lt;[u8]&gt; + Unpin,
 {
-    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         Poll::Ready(std::io::BufRead::fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>.get_mut().inner))
     }
 
@@ -4462,7 +4464,7 @@
 <span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Cursor&lt;<span class="kw-2">&amp;mut </span>[u8]&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Write::write(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, buf))
@@ -4470,17 +4472,17 @@
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Write::write_vectored(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, bufs))
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         Poll::Ready(std::io::Write::flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner))
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 }
@@ -4488,17 +4490,17 @@
 <span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Cursor&lt;<span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Write::write(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, buf))
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         Poll::Ready(std::io::Write::flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner))
     }
 }
@@ -4506,17 +4508,17 @@
 <span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Cursor&lt;Vec&lt;u8&gt;&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(std::io::Write::write(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, buf))
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         Poll::Ready(std::io::Write::flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner))
     }
 }
@@ -4546,21 +4548,21 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Empty {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.pad(<span class="string">&quot;Empty { .. }&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.pad(<span class="string">"Empty { .. }"</span>)
     }
 }
 
 <span class="kw">impl </span>AsyncRead <span class="kw">for </span>Empty {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_read(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
+    </span><span class="kw">fn </span>poll_read(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>))
     }
 }
 
 <span class="kw">impl </span>AsyncBufRead <span class="kw">for </span>Empty {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_fill_buf&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt; {
+    </span><span class="kw">fn </span>poll_fill_buf&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[]))
     }
 
@@ -4576,11 +4578,11 @@
 /// use futures_lite::io::{self, AsyncReadExt};
 ///
 /// # spin_on::spin_on(async {
-/// let mut reader = io::repeat(b&#39;a&#39;);
+/// let mut reader = io::repeat(b'a');
 ///
 /// let mut contents = vec![0; 5];
 /// reader.read_exact(&amp;mut contents).await?;
-/// assert_eq!(contents, b&quot;aaaaa&quot;);
+/// assert_eq!(contents, b"aaaaa");
 /// # std::io::Result::Ok(()) });
 /// ```
 </span><span class="kw">pub fn </span>repeat(byte: u8) -&gt; Repeat {
@@ -4595,7 +4597,7 @@
 
 <span class="kw">impl </span>AsyncRead <span class="kw">for </span>Repeat {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_read(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
+    </span><span class="kw">fn </span>poll_read(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">for </span>b <span class="kw">in </span><span class="kw-2">&amp;mut *</span>buf {
             <span class="kw-2">*</span>b = <span class="self">self</span>.byte;
         }
@@ -4612,7 +4614,7 @@
 ///
 /// # spin_on::spin_on(async {
 /// let mut writer = io::sink();
-/// writer.write_all(b&quot;hello&quot;).await?;
+/// writer.write_all(b"hello").await?;
 /// # std::io::Result::Ok(()) });
 /// ```
 </span><span class="kw">pub fn </span>sink() -&gt; Sink {
@@ -4627,17 +4629,17 @@
 
 <span class="kw">impl </span>AsyncWrite <span class="kw">for </span>Sink {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_write(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
+    </span><span class="kw">fn </span>poll_write(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(buf.len()))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -4655,17 +4657,17 @@
     /// use std::pin::Pin;
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello world&quot;;
+    /// let input: &amp;[u8] = b"hello world";
     /// let mut reader = BufReader::with_capacity(5, input);
     ///
-    /// assert_eq!(reader.fill_buf().await?, b&quot;hello&quot;);
+    /// assert_eq!(reader.fill_buf().await?, b"hello");
     /// reader.consume(2);
-    /// assert_eq!(reader.fill_buf().await?, b&quot;llo&quot;);
+    /// assert_eq!(reader.fill_buf().await?, b"llo");
     /// reader.consume(3);
-    /// assert_eq!(reader.fill_buf().await?, b&quot; worl&quot;);
+    /// assert_eq!(reader.fill_buf().await?, b" worl");
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FillBuf&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FillBuf&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -4687,12 +4689,12 @@
     /// use std::pin::Pin;
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::with_capacity(4, input);
     ///
-    /// assert_eq!(reader.fill_buf().await?, b&quot;hell&quot;);
+    /// assert_eq!(reader.fill_buf().await?, b"hell");
     /// reader.consume(2);
-    /// assert_eq!(reader.fill_buf().await?, b&quot;ll&quot;);
+    /// assert_eq!(reader.fill_buf().await?, b"ll");
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">fn </span>consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: usize)
@@ -4715,14 +4717,14 @@
     /// use futures_lite::io::{AsyncBufReadExt, BufReader};
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::new(input);
     ///
     /// let mut buf = Vec::new();
-    /// let n = reader.read_until(b&#39;\n&#39;, &amp;mut buf).await?;
+    /// let n = reader.read_until(b'\n', &amp;mut buf).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read_until&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, byte: u8, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; ReadUntilFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_until&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, byte: u8, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; ReadUntilFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -4748,14 +4750,14 @@
     /// use futures_lite::io::{AsyncBufReadExt, BufReader};
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::new(input);
     ///
     /// let mut line = String::new();
     /// let n = reader.read_line(&amp;mut line).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read_line&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String) -&gt; ReadLineFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_line&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>String) -&gt; ReadLineFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -4781,12 +4783,12 @@
     /// use futures_lite::stream::StreamExt;
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello\nworld\n&quot;;
+    /// let input: &amp;[u8] = b"hello\nworld\n";
     /// let mut reader = BufReader::new(input);
     /// let mut lines = reader.lines();
     ///
     /// while let Some(line) = lines.next().await {
-    ///     println!(&quot;{}&quot;, line?);
+    ///     println!("{}", line?);
     /// }
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -4815,12 +4817,12 @@
     /// use futures_lite::stream::StreamExt;
     ///
     /// # spin_on::spin_on(async {
-    /// let cursor = Cursor::new(b&quot;lorem-ipsum-dolor&quot;);
-    /// let items: Vec&lt;Vec&lt;u8&gt;&gt; = cursor.split(b&#39;-&#39;).try_collect().await?;
+    /// let cursor = Cursor::new(b"lorem-ipsum-dolor");
+    /// let items: Vec&lt;Vec&lt;u8&gt;&gt; = cursor.split(b'-').try_collect().await?;
     ///
-    /// assert_eq!(items[0], b&quot;lorem&quot;);
-    /// assert_eq!(items[1], b&quot;ipsum&quot;);
-    /// assert_eq!(items[2], b&quot;dolor&quot;);
+    /// assert_eq!(items[0], b"lorem");
+    /// assert_eq!(items[1], b"ipsum");
+    /// assert_eq!(items[2], b"dolor");
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">fn </span>split(<span class="self">self</span>, byte: u8) -&gt; Split&lt;<span class="self">Self</span>&gt;
@@ -4840,30 +4842,30 @@
 
 <span class="doccomment">/// Future for the [`AsyncBufReadExt::fill_buf()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>FillBuf&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R&gt;,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>FillBuf&lt;<span class="lifetime">'a</span>, R: <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R&gt;,
 }
 
-<span class="kw">impl</span>&lt;R: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>FillBuf&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>FillBuf&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R&gt; Future <span class="kw">for </span>FillBuf&lt;<span class="lifetime">&#39;a</span>, R&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, R&gt; Future <span class="kw">for </span>FillBuf&lt;<span class="lifetime">'a</span>, R&gt;
 <span class="kw">where
     </span>R: AsyncBufRead + Unpin + <span class="question-mark">?</span>Sized,
 {
-    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;;
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
         <span class="kw">let </span>reader = this
             .reader
             .take()
-            .expect(<span class="string">&quot;polled `FillBuf` after completion&quot;</span>);
+            .expect(<span class="string">"polled `FillBuf` after completion"</span>);
 
         <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut *</span>reader).poll_fill_buf(cx) {
             Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="kw">match </span>Pin::new(reader).poll_fill_buf(cx) {
                 Poll::Ready(<span class="prelude-val">Ok</span>(slice)) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(slice)),
-                poll =&gt; <span class="macro">panic!</span>(<span class="string">&quot;`poll_fill_buf()` was ready but now it isn&#39;t: {:?}&quot;</span>, poll),
+                poll =&gt; <span class="macro">panic!</span>(<span class="string">"`poll_fill_buf()` was ready but now it isn't: {:?}"</span>, poll),
             },
             Poll::Ready(<span class="prelude-val">Err</span>(err)) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(err)),
             Poll::Pending =&gt; {
@@ -4876,20 +4878,20 @@
 
 <span class="doccomment">/// Future for the [`AsyncBufReadExt::read_until()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadUntilFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadUntilFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
     byte: u8,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
     read: usize,
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadUntilFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadUntilFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncBufRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadUntilFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncBufRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadUntilFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             reader,
             byte,
@@ -4902,7 +4904,7 @@
 
 <span class="kw">fn </span>read_until_internal&lt;R: AsyncBufReadExt + <span class="question-mark">?</span>Sized&gt;(
     <span class="kw-2">mut </span>reader: Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;,
-    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
     byte: u8,
     buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     read: <span class="kw-2">&amp;mut </span>usize,
@@ -4931,20 +4933,20 @@
 
 <span class="doccomment">/// Future for the [`AsyncBufReadExt::read_line()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadLineFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadLineFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>String,
     bytes: Vec&lt;u8&gt;,
     read: usize,
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadLineFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadLineFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncBufRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadLineFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncBufRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadLineFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             reader,
             buf,
@@ -4958,7 +4960,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`AsyncBufReadExt::lines()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Lines&lt;R&gt; {
         <span class="attr">#[pin]
         </span>reader: R,
@@ -4971,7 +4973,7 @@
 <span class="kw">impl</span>&lt;R: AsyncBufRead&gt; Stream <span class="kw">for </span>Lines&lt;R&gt; {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;String&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">let </span>n = <span class="macro">ready!</span>(read_line_internal(
@@ -4985,9 +4987,9 @@
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">if </span>this.buf.ends_with(<span class="string">&#39;\n&#39;</span>) {
+        <span class="kw">if </span>this.buf.ends_with(<span class="string">'\n'</span>) {
             this.buf.pop();
-            <span class="kw">if </span>this.buf.ends_with(<span class="string">&#39;\r&#39;</span>) {
+            <span class="kw">if </span>this.buf.ends_with(<span class="string">'\r'</span>) {
                 this.buf.pop();
             }
         }
@@ -4997,12 +4999,12 @@
 
 <span class="kw">fn </span>read_line_internal&lt;R: AsyncBufRead + <span class="question-mark">?</span>Sized&gt;(
     reader: Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;,
-    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;mut </span>String,
     bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     read: <span class="kw-2">&amp;mut </span>usize,
 ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-    <span class="kw">let </span>ret = <span class="macro">ready!</span>(read_until_internal(reader, cx, <span class="string">b&#39;\n&#39;</span>, bytes, read));
+    <span class="kw">let </span>ret = <span class="macro">ready!</span>(read_until_internal(reader, cx, <span class="string">b'\n'</span>, bytes, read));
 
     <span class="kw">match </span>String::from_utf8(mem::take(bytes)) {
         <span class="prelude-val">Ok</span>(s) =&gt; {
@@ -5014,7 +5016,7 @@
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Poll::Ready(ret.and_then(|<span class="kw">_</span>| {
             <span class="prelude-val">Err</span>(Error::new(
                 ErrorKind::InvalidData,
-                <span class="string">&quot;stream did not contain valid UTF-8&quot;</span>,
+                <span class="string">"stream did not contain valid UTF-8"</span>,
             ))
         })),
     }
@@ -5023,7 +5025,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`AsyncBufReadExt::split()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Split&lt;R&gt; {
         <span class="attr">#[pin]
         </span>reader: R,
@@ -5036,7 +5038,7 @@
 <span class="kw">impl</span>&lt;R: AsyncBufRead&gt; Stream <span class="kw">for </span>Split&lt;R&gt; {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">let </span>n = <span class="macro">ready!</span>(read_until_internal(
@@ -5068,7 +5070,7 @@
     /// filled with `n` bytes of data. If `n` is `0`, then it can indicate one of two
     /// scenarios:
     ///
-    /// 1. This reader has reached its &quot;end of file&quot; and will likely no longer be able to
+    /// 1. This reader has reached its "end of file" and will likely no longer be able to
     ///    produce bytes. Note that this does not mean that the reader will always no
     ///    longer be able to produce bytes.
     /// 2. The buffer specified was 0 bytes in length.
@@ -5079,14 +5081,14 @@
     /// use futures_lite::io::{AsyncReadExt, BufReader};
     ///
     /// # spin_on::spin_on(async {
-    /// let input: &amp;[u8] = b&quot;hello&quot;;
+    /// let input: &amp;[u8] = b"hello";
     /// let mut reader = BufReader::new(input);
     ///
     /// let mut buf = vec![0; 1024];
     /// let n = reader.read(&amp;mut buf).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; ReadFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]) -&gt; ReadFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5098,10 +5100,10 @@
     /// Data is copied to fill each buffer in order, with the final buffer possibly being
     /// only partially filled. This method must behave same as a single call to
     /// [`read()`][`AsyncReadExt::read()`] with the buffers concatenated would.
-    </span><span class="kw">fn </span>read_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
-        bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;a</span>&gt;],
-    ) -&gt; ReadVectoredFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_vectored&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        bufs: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[IoSliceMut&lt;<span class="lifetime">'a</span>&gt;],
+    ) -&gt; ReadVectoredFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5126,7 +5128,7 @@
     /// assert_eq!(contents, [1, 2, 3]);
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read_to_end&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; ReadToEndFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_to_end&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; ReadToEndFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5148,15 +5150,15 @@
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut reader = Cursor::new(&amp;b&quot;hello&quot;);
+    /// let mut reader = Cursor::new(&amp;b"hello");
     /// let mut contents = String::new();
     ///
     /// let n = reader.read_to_string(&amp;mut contents).await?;
     /// assert_eq!(n, 5);
-    /// assert_eq!(contents, &quot;hello&quot;);
+    /// assert_eq!(contents, "hello");
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read_to_string&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String) -&gt; ReadToStringFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_to_string&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>String) -&gt; ReadToStringFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5178,14 +5180,14 @@
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut reader = Cursor::new(&amp;b&quot;hello&quot;);
+    /// let mut reader = Cursor::new(&amp;b"hello");
     /// let mut contents = vec![0; 3];
     ///
     /// reader.read_exact(&amp;mut contents).await?;
-    /// assert_eq!(contents, b&quot;hel&quot;);
+    /// assert_eq!(contents, b"hel");
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>read_exact&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; ReadExactFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>read_exact&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]) -&gt; ReadExactFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5203,12 +5205,12 @@
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut reader = Cursor::new(&amp;b&quot;hello&quot;);
+    /// let mut reader = Cursor::new(&amp;b"hello");
     /// let mut contents = String::new();
     ///
     /// let n = reader.take(3).read_to_string(&amp;mut contents).await?;
     /// assert_eq!(n, 3);
-    /// assert_eq!(contents, &quot;hel&quot;);
+    /// assert_eq!(contents, "hel");
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">fn </span>take(<span class="self">self</span>, limit: u64) -&gt; Take&lt;<span class="self">Self</span>&gt;
@@ -5227,11 +5229,11 @@
     /// use futures_lite::stream::StreamExt;
     ///
     /// # spin_on::spin_on(async {
-    /// let reader = Cursor::new(&amp;b&quot;hello&quot;);
+    /// let reader = Cursor::new(&amp;b"hello");
     /// let mut bytes = reader.bytes();
     ///
     /// while let Some(byte) = bytes.next().await {
-    ///     println!(&quot;byte: {}&quot;, byte?);
+    ///     println!("byte: {}", byte?);
     /// }
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -5253,13 +5255,13 @@
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
     /// # spin_on::spin_on(async {
-    /// let r1 = Cursor::new(&amp;b&quot;hello&quot;);
-    /// let r2 = Cursor::new(&amp;b&quot;world&quot;);
+    /// let r1 = Cursor::new(&amp;b"hello");
+    /// let r2 = Cursor::new(&amp;b"world");
     /// let mut reader = r1.chain(r2);
     ///
     /// let mut contents = String::new();
     /// reader.read_to_string(&amp;mut contents).await?;
-    /// assert_eq!(contents, &quot;helloworld&quot;);
+    /// assert_eq!(contents, "helloworld");
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">fn </span>chain&lt;R: AsyncRead&gt;(<span class="self">self</span>, next: R) -&gt; Chain&lt;<span class="self">Self</span>, R&gt;
@@ -5273,7 +5275,7 @@
         }
     }
 
-    <span class="doccomment">/// Boxes the reader and changes its type to `dyn AsyncRead + Send + &#39;a`.
+    <span class="doccomment">/// Boxes the reader and changes its type to `dyn AsyncRead + Send + 'a`.
     ///
     /// # Examples
     ///
@@ -5282,10 +5284,10 @@
     ///
     /// let reader = [1, 2, 3].boxed_reader();
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed_reader&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncRead + Send + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed_reader&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncRead + Send + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }
@@ -5295,18 +5297,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncReadExt::read()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8],
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{ reader, buf } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
         Pin::new(reader).poll_read(cx, buf)
     }
@@ -5314,18 +5316,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncReadExt::read_vectored()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadVectoredFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;a</span>&gt;],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadVectoredFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    bufs: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[IoSliceMut&lt;<span class="lifetime">'a</span>&gt;],
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadVectoredFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadVectoredFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadVectoredFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadVectoredFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{ reader, bufs } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
         Pin::new(reader).poll_read_vectored(cx, bufs)
     }
@@ -5333,19 +5335,19 @@
 
 <span class="doccomment">/// Future for the [`AsyncReadExt::read_to_end()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadToEndFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadToEndFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
     start_len: usize,
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadToEndFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadToEndFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadToEndFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadToEndFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             reader,
             buf,
@@ -5357,20 +5359,20 @@
 
 <span class="doccomment">/// Future for the [`AsyncReadExt::read_to_string()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadToStringFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>String,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadToStringFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>String,
     bytes: Vec&lt;u8&gt;,
     start_len: usize,
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadToStringFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadToStringFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadToStringFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadToStringFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             reader,
             buf,
@@ -5390,7 +5392,7 @@
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Poll::Ready(ret.and_then(|<span class="kw">_</span>| {
                 <span class="prelude-val">Err</span>(Error::new(
                     ErrorKind::InvalidData,
-                    <span class="string">&quot;stream did not contain valid UTF-8&quot;</span>,
+                    <span class="string">"stream did not contain valid UTF-8"</span>,
                 ))
             })),
         }
@@ -5404,20 +5406,20 @@
 // time is 4,500 times (!) slower than this if the reader has a very small
 // amount of data to return.
 //
-// Because we&#39;re extending the buffer with uninitialized data for trusted
+// Because we're extending the buffer with uninitialized data for trusted
 // readers, we need to make sure to truncate that if any of this panics.
 </span><span class="kw">fn </span>read_to_end_internal&lt;R: AsyncRead + <span class="question-mark">?</span>Sized&gt;(
     <span class="kw-2">mut </span>rd: Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;,
-    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
     start_len: usize,
 ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-    <span class="kw">struct </span>Guard&lt;<span class="lifetime">&#39;a</span>&gt; {
-        buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
+    <span class="kw">struct </span>Guard&lt;<span class="lifetime">'a</span>&gt; {
+        buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;,
         len: usize,
     }
 
-    <span class="kw">impl </span>Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">impl </span>Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="self">self</span>.buf.resize(<span class="self">self</span>.len, <span class="number">0</span>);
         }
@@ -5453,18 +5455,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncReadExt::read_exact()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>ReadExactFuture&lt;<span class="lifetime">&#39;a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>ReadExactFuture&lt;<span class="lifetime">'a</span>, R: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8],
 }
 
-<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadExactFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {}
+<span class="kw">impl</span>&lt;R: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>ReadExactFuture&lt;<span class="lifetime">'_</span>, R&gt; {}
 
-<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadExactFuture&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+<span class="kw">impl</span>&lt;R: AsyncRead + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>ReadExactFuture&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{ reader, buf } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
 
         <span class="kw">while </span>!buf.is_empty() {
@@ -5501,7 +5503,7 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let reader = Cursor::new(&quot;hello&quot;);
+    /// let reader = Cursor::new("hello");
     ///
     /// let reader = reader.take(3);
     /// assert_eq!(reader.limit(), 3);
@@ -5519,7 +5521,7 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let reader = Cursor::new(&quot;hello&quot;);
+    /// let reader = Cursor::new("hello");
     ///
     /// let mut reader = reader.take(10);
     /// assert_eq!(reader.limit(), 10);
@@ -5538,7 +5540,7 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let reader = Cursor::new(&quot;hello&quot;);
+    /// let reader = Cursor::new("hello");
     ///
     /// let reader = reader.take(3);
     /// let r = reader.get_ref();
@@ -5554,7 +5556,7 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let reader = Cursor::new(&quot;hello&quot;);
+    /// let reader = Cursor::new("hello");
     ///
     /// let mut reader = reader.take(3);
     /// let r = reader.get_mut();
@@ -5570,7 +5572,7 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let reader = Cursor::new(&quot;hello&quot;);
+    /// let reader = Cursor::new("hello");
     ///
     /// let reader = reader.take(3);
     /// let reader = reader.into_inner();
@@ -5583,7 +5585,7 @@
 <span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>Take&lt;R&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
@@ -5593,11 +5595,11 @@
 
 <span class="kw">fn </span>take_read_internal&lt;R: AsyncRead + <span class="question-mark">?</span>Sized&gt;(
     <span class="kw-2">mut </span>rd: Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;,
-    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
     buf: <span class="kw-2">&amp;mut </span>[u8],
     limit: <span class="kw-2">&amp;mut </span>u64,
 ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
-    <span class="comment">// Don&#39;t call into inner reader at all at EOF because it may still block
+    <span class="comment">// Don't call into inner reader at all at EOF because it may still block
     </span><span class="kw">if </span><span class="kw-2">*</span>limit == <span class="number">0 </span>{
         <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="number">0</span>));
     }
@@ -5614,7 +5616,7 @@
 }
 
 <span class="kw">impl</span>&lt;R: AsyncBufRead&gt; AsyncBufRead <span class="kw">for </span>Take&lt;R&gt; {
-    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.limit == <span class="number">0 </span>{
@@ -5632,7 +5634,7 @@
 
     <span class="kw">fn </span>consume(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, amt: usize) {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
-        <span class="comment">// Don&#39;t let callers reset the limit by passing an overlarge value
+        <span class="comment">// Don't let callers reset the limit by passing an overlarge value
         </span><span class="kw">let </span>amt = cmp::min(amt <span class="kw">as </span>u64, <span class="kw-2">*</span>this.limit) <span class="kw">as </span>usize;
         <span class="kw-2">*</span>this.limit -= amt <span class="kw">as </span>u64;
 
@@ -5652,7 +5654,7 @@
 <span class="kw">impl</span>&lt;R: AsyncRead + Unpin&gt; Stream <span class="kw">for </span>Bytes&lt;R&gt; {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;u8&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>byte = <span class="number">0</span>;
 
         <span class="kw">let </span>rd = Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner);
@@ -5669,7 +5671,7 @@
 <span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>Bytes&lt;R&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="self">self</span>.project().inner.poll_read(cx, buf)
@@ -5677,8 +5679,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="self">self</span>.project().inner.poll_read_vectored(cx, bufs)
     }
@@ -5703,8 +5705,8 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let r1 = Cursor::new(b&quot;hello&quot;);
-    /// let r2 = Cursor::new(b&quot;world&quot;);
+    /// let r1 = Cursor::new(b"hello");
+    /// let r2 = Cursor::new(b"world");
     ///
     /// let reader = r1.chain(r2);
     /// let (r1, r2) = reader.get_ref();
@@ -5720,8 +5722,8 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let r1 = Cursor::new(b&quot;hello&quot;);
-    /// let r2 = Cursor::new(b&quot;world&quot;);
+    /// let r1 = Cursor::new(b"hello");
+    /// let r2 = Cursor::new(b"world");
     ///
     /// let mut reader = r1.chain(r2);
     /// let (r1, r2) = reader.get_mut();
@@ -5737,8 +5739,8 @@
     /// ```
     /// use futures_lite::io::{AsyncReadExt, Cursor};
     ///
-    /// let r1 = Cursor::new(b&quot;hello&quot;);
-    /// let r2 = Cursor::new(b&quot;world&quot;);
+    /// let r1 = Cursor::new(b"hello");
+    /// let r2 = Cursor::new(b"world");
     ///
     /// let reader = r1.chain(r2);
     /// let (r1, r2) = reader.into_inner();
@@ -5749,10 +5751,10 @@
 }
 
 <span class="kw">impl</span>&lt;R1: fmt::Debug, R2: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Chain&lt;R1, R2&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Chain&quot;</span>)
-            .field(<span class="string">&quot;r1&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.first)
-            .field(<span class="string">&quot;r2&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.second)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Chain"</span>)
+            .field(<span class="string">"r1"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.first)
+            .field(<span class="string">"r2"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.second)
             .finish()
     }
 }
@@ -5760,7 +5762,7 @@
 <span class="kw">impl</span>&lt;R1: AsyncRead, R2: AsyncRead&gt; AsyncRead <span class="kw">for </span>Chain&lt;R1, R2&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
@@ -5777,8 +5779,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">if </span>!<span class="kw-2">*</span>this.done_first {
@@ -5794,7 +5796,7 @@
 }
 
 <span class="kw">impl</span>&lt;R1: AsyncBufRead, R2: AsyncBufRead&gt; AsyncBufRead <span class="kw">for </span>Chain&lt;R1, R2&gt; {
-    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>poll_fill_buf(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">if </span>!<span class="kw-2">*</span>this.done_first {
             <span class="kw">match </span><span class="macro">ready!</span>(this.first.poll_fill_buf(cx)) {
@@ -5831,7 +5833,7 @@
     /// use futures_lite::io::{AsyncSeekExt, Cursor, SeekFrom};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut cursor = Cursor::new(&quot;hello&quot;);
+    /// let mut cursor = Cursor::new("hello");
     ///
     /// // Move the cursor to the end.
     /// cursor.seek(SeekFrom::End(0)).await?;
@@ -5840,7 +5842,7 @@
     /// assert_eq!(cursor.seek(SeekFrom::Current(0)).await?, 5);
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; SeekFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; SeekFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5852,18 +5854,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncSeekExt::seek()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>SeekFuture&lt;<span class="lifetime">&#39;a</span>, S: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    seeker: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>SeekFuture&lt;<span class="lifetime">'a</span>, S: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    seeker: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     pos: SeekFrom,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>SeekFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>SeekFuture&lt;<span class="lifetime">'_</span>, S&gt; {}
 
-<span class="kw">impl</span>&lt;S: AsyncSeek + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>SeekFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {
+<span class="kw">impl</span>&lt;S: AsyncSeek + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>SeekFuture&lt;<span class="lifetime">'_</span>, S&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;u64&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>pos = <span class="self">self</span>.pos;
         Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.seeker).poll_seek(cx, pos)
     }
@@ -5889,10 +5891,10 @@
     /// let mut output = Vec::new();
     /// let mut writer = BufWriter::new(&amp;mut output);
     ///
-    /// let n = writer.write(b&quot;hello&quot;).await?;
+    /// let n = writer.write(b"hello").await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>write&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; WriteFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>write&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]) -&gt; WriteFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5904,7 +5906,7 @@
     /// Data is copied from each buffer in order, with the final buffer possibly being only
     /// partially consumed. This method must behave same as a call to
     /// [`write()`][`AsyncWriteExt::write()`] with the buffers concatenated would.
-    </span><span class="kw">fn </span>write_vectored&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[IoSlice&lt;<span class="lifetime">&#39;a</span>&gt;]) -&gt; WriteVectoredFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>write_vectored&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, bufs: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[IoSlice&lt;<span class="lifetime">'a</span>&gt;]) -&gt; WriteVectoredFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5926,10 +5928,10 @@
     /// let mut output = Vec::new();
     /// let mut writer = BufWriter::new(&amp;mut output);
     ///
-    /// let n = writer.write_all(b&quot;hello&quot;).await?;
+    /// let n = writer.write_all(b"hello").await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>write_all&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; WriteAllFuture&lt;<span class="lifetime">&#39;a</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>write_all&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]) -&gt; WriteAllFuture&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5947,11 +5949,11 @@
     /// let mut output = Vec::new();
     /// let mut writer = BufWriter::new(&amp;mut output);
     ///
-    /// writer.write_all(b&quot;hello&quot;).await?;
+    /// writer.write_all(b"hello").await?;
     /// writer.flush().await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FlushFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FlushFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -5972,14 +5974,14 @@
     /// writer.close().await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; CloseFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; CloseFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
         CloseFuture { writer: <span class="self">self </span>}
     }
 
-    <span class="doccomment">/// Boxes the writer and changes its type to `dyn AsyncWrite + Send + &#39;a`.
+    <span class="doccomment">/// Boxes the writer and changes its type to `dyn AsyncWrite + Send + 'a`.
     ///
     /// # Examples
     ///
@@ -5988,10 +5990,10 @@
     ///
     /// let writer = Vec::&lt;u8&gt;::new().boxed_writer();
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed_writer&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncWrite + Send + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed_writer&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncWrite + Send + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }
@@ -6001,18 +6003,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncWriteExt::write()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>WriteFuture&lt;<span class="lifetime">&#39;a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>WriteFuture&lt;<span class="lifetime">'a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
 }
 
-<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {}
+<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteFuture&lt;<span class="lifetime">'_</span>, W&gt; {}
 
-<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {
+<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteFuture&lt;<span class="lifetime">'_</span>, W&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>buf = <span class="self">self</span>.buf;
         Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.writer).poll_write(cx, buf)
     }
@@ -6020,18 +6022,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncWriteExt::write_vectored()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>WriteVectoredFuture&lt;<span class="lifetime">&#39;a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
-    bufs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[IoSlice&lt;<span class="lifetime">&#39;a</span>&gt;],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>WriteVectoredFuture&lt;<span class="lifetime">'a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
+    bufs: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[IoSlice&lt;<span class="lifetime">'a</span>&gt;],
 }
 
-<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteVectoredFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {}
+<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteVectoredFuture&lt;<span class="lifetime">'_</span>, W&gt; {}
 
-<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteVectoredFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {
+<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteVectoredFuture&lt;<span class="lifetime">'_</span>, W&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>bufs = <span class="self">self</span>.bufs;
         Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.writer).poll_write_vectored(cx, bufs)
     }
@@ -6039,18 +6041,18 @@
 
 <span class="doccomment">/// Future for the [`AsyncWriteExt::write_all()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>WriteAllFuture&lt;<span class="lifetime">&#39;a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
-    buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>WriteAllFuture&lt;<span class="lifetime">'a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
 }
 
-<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteAllFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {}
+<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>WriteAllFuture&lt;<span class="lifetime">'_</span>, W&gt; {}
 
-<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteAllFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {
+<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>WriteAllFuture&lt;<span class="lifetime">'_</span>, W&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{ writer, buf } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>;
 
         <span class="kw">while </span>!buf.is_empty() {
@@ -6069,39 +6071,39 @@
 
 <span class="doccomment">/// Future for the [`AsyncWriteExt::flush()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>FlushFuture&lt;<span class="lifetime">&#39;a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>FlushFuture&lt;<span class="lifetime">'a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
 }
 
-<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>FlushFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {}
+<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>FlushFuture&lt;<span class="lifetime">'_</span>, W&gt; {}
 
-<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>FlushFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {
+<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>FlushFuture&lt;<span class="lifetime">'_</span>, W&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.writer).poll_flush(cx)
     }
 }
 
 <span class="doccomment">/// Future for the [`AsyncWriteExt::close()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>CloseFuture&lt;<span class="lifetime">&#39;a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>CloseFuture&lt;<span class="lifetime">'a</span>, W: Unpin + <span class="question-mark">?</span>Sized&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
 }
 
-<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>CloseFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {}
+<span class="kw">impl</span>&lt;W: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>CloseFuture&lt;<span class="lifetime">'_</span>, W&gt; {}
 
-<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>CloseFuture&lt;<span class="lifetime">&#39;_</span>, W&gt; {
+<span class="kw">impl</span>&lt;W: AsyncWrite + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>CloseFuture&lt;<span class="lifetime">'_</span>, W&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         Pin::new(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.writer).poll_close(cx)
     }
 }
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn AsyncRead + Send + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn AsyncRead + Send + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -6110,10 +6112,10 @@
 ///
 /// let reader = [1, 2, 3].boxed_reader();
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>BoxedReader = Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncRead + Send + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>BoxedReader = Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncRead + Send + <span class="lifetime">'static</span>&gt;&gt;;
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn AsyncWrite + Send + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn AsyncWrite + Send + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -6122,8 +6124,8 @@
 ///
 /// let writer = Vec::&lt;u8&gt;::new().boxed_writer();
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>BoxedWriter = Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncWrite + Send + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>BoxedWriter = Pin&lt;Box&lt;<span class="kw">dyn </span>AsyncWrite + Send + <span class="lifetime">'static</span>&gt;&gt;;
 
 <span class="doccomment">/// Splits a stream into [`AsyncRead`] and [`AsyncWrite`] halves.
 ///
@@ -6156,7 +6158,7 @@
 <span class="kw">impl</span>&lt;T: AsyncRead + Unpin&gt; AsyncRead <span class="kw">for </span>ReadHalf&lt;T&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
@@ -6165,8 +6167,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
         Pin::new(<span class="kw-2">&amp;mut *</span>inner).poll_read_vectored(cx, bufs)
@@ -6174,27 +6176,27 @@
 }
 
 <span class="kw">impl</span>&lt;T: AsyncWrite + Unpin&gt; AsyncWrite <span class="kw">for </span>WriteHalf&lt;T&gt; {
-    <span class="kw">fn </span>poll_write(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
+    <span class="kw">fn </span>poll_write(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
         Pin::new(<span class="kw-2">&amp;mut *</span>inner).poll_write(cx, buf)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
         Pin::new(<span class="kw-2">&amp;mut *</span>inner).poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.lock().unwrap();
         Pin::new(<span class="kw-2">&amp;mut *</span>inner).poll_close(cx)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;memchr&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"memchr"</span>)]
 </span><span class="kw">use </span>memchr::memchr;
 
 <span class="doccomment">/// Unoptimized memchr fallback.
-</span><span class="attr">#[cfg(not(feature = <span class="string">&quot;memchr&quot;</span>))]
+</span><span class="attr">#[cfg(not(feature = <span class="string">"memchr"</span>))]
 </span><span class="kw">fn </span>memchr(needle: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     haystack.iter().position(|<span class="kw-2">&amp;</span>b| b == needle)
 }

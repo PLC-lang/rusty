@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/vdso_wrappers.rs`."><title>vdso_wrappers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/vdso_wrappers.rs`."><title>vdso_wrappers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -617,40 +619,40 @@
 //! functions.
 </span><span class="attr">#![allow(unsafe_code)]
 
-#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::reg::{ArgReg, RetReg, SyscallNumber, A0, A1, A2, A3, A4, A5, R0};
 <span class="kw">use </span><span class="kw">super</span>::vdso;
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">use </span>core::arch::global_asm;
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
 </span><span class="kw">use </span>core::ffi::c_void;
 <span class="kw">use </span>core::mem::transmute;
 <span class="kw">use </span>core::ptr::null_mut;
 <span class="kw">use </span>core::sync::atomic::AtomicPtr;
 <span class="kw">use </span>core::sync::atomic::Ordering::Relaxed;
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
-#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
+#[cfg(feature = <span class="string">"time"</span>)]
 </span><span class="kw">use </span>linux_raw_sys::general::timespec <span class="kw">as </span>__kernel_old_timespec;
 <span class="attr">#[cfg(any(
     all(
-        feature = <span class="string">&quot;process&quot;</span>,
+        feature = <span class="string">"process"</span>,
         any(
-            target_arch = <span class="string">&quot;x86_64&quot;</span>,
-            target_arch = <span class="string">&quot;x86&quot;</span>,
-            target_arch = <span class="string">&quot;riscv64&quot;</span>,
-            target_arch = <span class="string">&quot;powerpc64&quot;
+            target_arch = <span class="string">"x86_64"</span>,
+            target_arch = <span class="string">"x86"</span>,
+            target_arch = <span class="string">"riscv64"</span>,
+            target_arch = <span class="string">"powerpc64"
         </span>)
     ),
-    feature = <span class="string">&quot;time&quot;
+    feature = <span class="string">"time"
 </span>))]
 </span><span class="kw">use </span>{<span class="kw">super</span>::c, <span class="kw">super</span>::conv::ret, core::mem::MaybeUninit};
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
 </span><span class="kw">use </span>{
     <span class="kw">super</span>::conv::c_int,
     <span class="kw">crate</span>::clockid::{ClockId, DynamicClockId},
@@ -659,7 +661,7 @@
     linux_raw_sys::general::{__kernel_clockid_t, __kernel_timespec},
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
 #[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clock_gettime(which_clock: ClockId) -&gt; __kernel_timespec {
     <span class="comment">// SAFETY: `CLOCK_GETTIME` contains either null or the address of a
@@ -675,20 +677,20 @@
         <span class="comment">// The `ClockId` enum only contains clocks which never fail. It may be
         // tempting to change this to `debug_assert_eq`, however they can still
         // fail on uncommon kernel configs, so we leave this in place to ensure
-        // that we don&#39;t execute undefined behavior if they ever do fail.
+        // that we don't execute undefined behavior if they ever do fail.
         </span><span class="macro">assert_eq!</span>(r0, <span class="number">0</span>);
         result.assume_init()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clock_gettime_dynamic(which_clock: DynamicClockId&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;Timespec&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clock_gettime_dynamic(which_clock: DynamicClockId&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;Timespec&gt; {
     <span class="kw">let </span>id = <span class="kw">match </span>which_clock {
         DynamicClockId::Known(id) =&gt; id <span class="kw">as </span>__kernel_clockid_t,
 
         DynamicClockId::Dynamic(fd) =&gt; {
-            <span class="comment">// See `FD_TO_CLOCKID` in Linux&#39;s `clock_gettime` documentation.
+            <span class="comment">// See `FD_TO_CLOCKID` in Linux's `clock_gettime` documentation.
             </span><span class="kw">use </span><span class="kw">crate</span>::backend::fd::AsRawFd;
             <span class="kw">const </span>CLOCKFD: i32 = <span class="number">3</span>;
             ((!fd.as_raw_fd() &lt;&lt; <span class="number">3</span>) | CLOCKFD) <span class="kw">as </span>__kernel_clockid_t
@@ -719,12 +721,12 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
 #[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sched_getcpu() -&gt; usize {
@@ -743,13 +745,13 @@
     }
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>x86_via_vdso {
     <span class="kw">use super</span>::{transmute, ArgReg, Relaxed, RetReg, SyscallNumber, A0, A1, A2, A3, A4, A5, R0};
     <span class="kw">use </span><span class="kw">crate</span>::backend::arch::asm;
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall0(nr: SyscallNumber&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; RetReg&lt;R0&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall0(nr: SyscallNumber&lt;<span class="lifetime">'_</span>&gt;) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
             <span class="prelude-val">None </span>=&gt; <span class="kw">super</span>::init_syscall(),
@@ -758,9 +760,9 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall1&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall1&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -770,9 +772,9 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall1_noreturn&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall1_noreturn&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
     ) -&gt; ! {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -782,10 +784,10 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall2&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
-        a1: ArgReg&lt;<span class="lifetime">&#39;a</span>, A1&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall2&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
+        a1: ArgReg&lt;<span class="lifetime">'a</span>, A1&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -795,11 +797,11 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall3&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
-        a1: ArgReg&lt;<span class="lifetime">&#39;a</span>, A1&gt;,
-        a2: ArgReg&lt;<span class="lifetime">&#39;a</span>, A2&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall3&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
+        a1: ArgReg&lt;<span class="lifetime">'a</span>, A1&gt;,
+        a2: ArgReg&lt;<span class="lifetime">'a</span>, A2&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -809,12 +811,12 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall4&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
-        a1: ArgReg&lt;<span class="lifetime">&#39;a</span>, A1&gt;,
-        a2: ArgReg&lt;<span class="lifetime">&#39;a</span>, A2&gt;,
-        a3: ArgReg&lt;<span class="lifetime">&#39;a</span>, A3&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall4&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
+        a1: ArgReg&lt;<span class="lifetime">'a</span>, A1&gt;,
+        a2: ArgReg&lt;<span class="lifetime">'a</span>, A2&gt;,
+        a3: ArgReg&lt;<span class="lifetime">'a</span>, A3&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -824,13 +826,13 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall5&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
-        a1: ArgReg&lt;<span class="lifetime">&#39;a</span>, A1&gt;,
-        a2: ArgReg&lt;<span class="lifetime">&#39;a</span>, A2&gt;,
-        a3: ArgReg&lt;<span class="lifetime">&#39;a</span>, A3&gt;,
-        a4: ArgReg&lt;<span class="lifetime">&#39;a</span>, A4&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall5&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
+        a1: ArgReg&lt;<span class="lifetime">'a</span>, A1&gt;,
+        a2: ArgReg&lt;<span class="lifetime">'a</span>, A2&gt;,
+        a3: ArgReg&lt;<span class="lifetime">'a</span>, A3&gt;,
+        a4: ArgReg&lt;<span class="lifetime">'a</span>, A4&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -840,14 +842,14 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall6&lt;<span class="lifetime">&#39;a</span>&gt;(
-        nr: SyscallNumber&lt;<span class="lifetime">&#39;a</span>&gt;,
-        a0: ArgReg&lt;<span class="lifetime">&#39;a</span>, A0&gt;,
-        a1: ArgReg&lt;<span class="lifetime">&#39;a</span>, A1&gt;,
-        a2: ArgReg&lt;<span class="lifetime">&#39;a</span>, A2&gt;,
-        a3: ArgReg&lt;<span class="lifetime">&#39;a</span>, A3&gt;,
-        a4: ArgReg&lt;<span class="lifetime">&#39;a</span>, A4&gt;,
-        a5: ArgReg&lt;<span class="lifetime">&#39;a</span>, A5&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">unsafe fn </span>syscall6&lt;<span class="lifetime">'a</span>&gt;(
+        nr: SyscallNumber&lt;<span class="lifetime">'a</span>&gt;,
+        a0: ArgReg&lt;<span class="lifetime">'a</span>, A0&gt;,
+        a1: ArgReg&lt;<span class="lifetime">'a</span>, A1&gt;,
+        a2: ArgReg&lt;<span class="lifetime">'a</span>, A2&gt;,
+        a3: ArgReg&lt;<span class="lifetime">'a</span>, A3&gt;,
+        a4: ArgReg&lt;<span class="lifetime">'a</span>, A4&gt;,
+        a5: ArgReg&lt;<span class="lifetime">'a</span>, A5&gt;,
     ) -&gt; RetReg&lt;R0&gt; {
         <span class="kw">let </span>callee = <span class="kw">match </span>transmute(<span class="kw">super</span>::SYSCALL.load(Relaxed)) {
             <span class="prelude-val">Some</span>(callee) =&gt; callee,
@@ -856,7 +858,7 @@
         asm::indirect_syscall6(callee, nr, a0, a1, a2, a3, a4, a5)
     }
 
-    <span class="comment">// With the indirect call, it isn&#39;t meaningful to do a separate
+    <span class="comment">// With the indirect call, it isn't meaningful to do a separate
     // `_readonly` optimization.
     </span><span class="attr">#[allow(unused_imports)]
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::backend) <span class="kw">use </span>{
@@ -867,26 +869,26 @@
     };
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-</span><span class="kw">type </span>ClockGettimeType = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(c::c_int, <span class="kw-2">*mut </span>Timespec) -&gt; c::c_int;
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+</span><span class="kw">type </span>ClockGettimeType = <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(c::c_int, <span class="kw-2">*mut </span>Timespec) -&gt; c::c_int;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
-</span><span class="kw">type </span>GetcpuType = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>u32, <span class="kw-2">*mut </span>u32, <span class="kw-2">*mut </span>c_void) -&gt; c::c_int;
+</span><span class="kw">type </span>GetcpuType = <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>u32, <span class="kw-2">*mut </span>u32, <span class="kw-2">*mut </span>c_void) -&gt; c::c_int;
 
 <span class="doccomment">/// The underlying syscall functions are only called from asm, using the
 /// special syscall calling convention to pass arguments and return values,
-/// which the signature here doesn&#39;t reflect.
-</span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>SyscallType = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>();
+/// which the signature here doesn't reflect.
+</span><span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>SyscallType = <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>();
 
 <span class="doccomment">/// Initialize `CLOCK_GETTIME` and return its value.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
 #[cold]
 </span><span class="kw">fn </span>init_clock_gettime() -&gt; ClockGettimeType {
     init();
@@ -896,12 +898,12 @@
 }
 
 <span class="doccomment">/// Initialize `GETCPU` and return its value.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
 #[cold]
 </span><span class="kw">fn </span>init_getcpu() -&gt; GetcpuType {
@@ -912,7 +914,7 @@
 }
 
 <span class="doccomment">/// Initialize `SYSCALL` and return its value.
-</span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+</span><span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 #[cold]
 </span><span class="kw">fn </span>init_syscall() -&gt; SyscallType {
     init();
@@ -921,24 +923,24 @@
     </span><span class="kw">unsafe </span>{ transmute(SYSCALL.load(Relaxed)) }
 }
 
-<span class="doccomment">/// `AtomicPtr` can&#39;t hold a `fn` pointer, so we use a `*` pointer to this
+<span class="doccomment">/// `AtomicPtr` can't hold a `fn` pointer, so we use a `*` pointer to this
 /// placeholder type, and cast it as needed.
 </span><span class="kw">struct </span>Function;
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
 </span><span class="kw">static </span><span class="kw-2">mut </span>CLOCK_GETTIME: AtomicPtr&lt;Function&gt; = AtomicPtr::new(null_mut());
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
 </span><span class="kw">static </span><span class="kw-2">mut </span>GETCPU: AtomicPtr&lt;Function&gt; = AtomicPtr::new(null_mut());
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">static </span><span class="kw-2">mut </span>SYSCALL: AtomicPtr&lt;Function&gt; = AtomicPtr::new(null_mut());
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-</span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>rustix_clock_gettime_via_syscall(
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+</span><span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>rustix_clock_gettime_via_syscall(
     clockid: c::c_int,
     res: <span class="kw-2">*mut </span>Timespec,
 ) -&gt; c::c_int {
@@ -948,8 +950,8 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+#[cfg(target_pointer_width = <span class="string">"32"</span>)]
 </span><span class="kw">unsafe fn </span>_rustix_clock_gettime_via_syscall(
     clockid: c::c_int,
     res: <span class="kw-2">*mut </span>Timespec,
@@ -961,15 +963,15 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+#[cfg(target_pointer_width = <span class="string">"32"</span>)]
 </span><span class="kw">unsafe fn </span>_rustix_clock_gettime_via_syscall_old(
     clockid: c::c_int,
     res: <span class="kw-2">*mut </span>Timespec,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="comment">// Ordinarily `rustix` doesn&#39;t like to emulate system calls, but in the
-    // case of time APIs, it&#39;s specific to Linux, specific to 32-bit
-    // architectures *and* specific to old kernel versions, and it&#39;s not that
+    <span class="comment">// Ordinarily `rustix` doesn't like to emulate system calls, but in the
+    // case of time APIs, it's specific to Linux, specific to 32-bit
+    // architectures *and* specific to old kernel versions, and it's not that
     // hard to fix up here, so that no other code needs to worry about this.
     </span><span class="kw">let </span><span class="kw-2">mut </span>old_result = MaybeUninit::&lt;__kernel_old_timespec&gt;::uninit();
     <span class="kw">let </span>r0 = <span class="macro">syscall!</span>(__NR_clock_gettime, c_int(clockid), <span class="kw-2">&amp;mut </span>old_result);
@@ -986,8 +988,8 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+#[cfg(target_pointer_width = <span class="string">"64"</span>)]
 </span><span class="kw">unsafe fn </span>_rustix_clock_gettime_via_syscall(
     clockid: c::c_int,
     res: <span class="kw-2">*mut </span>Timespec,
@@ -995,14 +997,14 @@
     ret(<span class="macro">syscall!</span>(__NR_clock_gettime, c_int(clockid), res))
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 #[cfg(any(
-    target_arch = <span class="string">&quot;x86_64&quot;</span>,
-    target_arch = <span class="string">&quot;x86&quot;</span>,
-    target_arch = <span class="string">&quot;riscv64&quot;</span>,
-    target_arch = <span class="string">&quot;powerpc64&quot;
+    target_arch = <span class="string">"x86_64"</span>,
+    target_arch = <span class="string">"x86"</span>,
+    target_arch = <span class="string">"riscv64"</span>,
+    target_arch = <span class="string">"powerpc64"
 </span>))]
-</span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>rustix_getcpu_via_syscall(
+</span><span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>rustix_getcpu_via_syscall(
     cpu: <span class="kw-2">*mut </span>u32,
     node: <span class="kw-2">*mut </span>u32,
     unused: <span class="kw-2">*mut </span>c_void,
@@ -1013,21 +1015,21 @@
     }
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
-</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+</span><span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// A symbol pointing to an `int 0x80` instruction. This “function” is only
     /// called from assembly, and only with the x86 syscall calling convention,
     /// so its signature here is not its true signature.
     ///
     /// This extern block and the `global_asm!` below can be replaced with
-    /// `#[naked]` if it&#39;s stabilized.
+    /// `#[naked]` if it's stabilized.
     </span><span class="kw">fn </span>rustix_int_0x80();
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="macro">global_asm!</span>(
-    <span class="string">r#&quot;
-    .section    .text.rustix_int_0x80,&quot;ax&quot;,@progbits
+    <span class="string">r#"
+    .section    .text.rustix_int_0x80,"ax",@progbits
     .p2align    4
     .weak       rustix_int_0x80
     .hidden     rustix_int_0x80
@@ -1038,16 +1040,16 @@ rustix_int_0x80:
     ret
     .cfi_endproc
     .size rustix_int_0x80, .-rustix_int_0x80
-&quot;#
+"#
 </span>);
 
 <span class="kw">fn </span>minimal_init() {
     <span class="comment">// SAFETY: Store default function addresses in static storage so that if we
-    // end up making any system calls while we read the vDSO, they&#39;ll work. If
+    // end up making any system calls while we read the vDSO, they'll work. If
     // the memory happens to already be initialized, this is redundant, but not
     // harmful.
     </span><span class="kw">unsafe </span>{
-        <span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
         </span>{
             CLOCK_GETTIME
                 .compare_exchange(
@@ -1059,12 +1061,12 @@ rustix_int_0x80:
                 .ok();
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
         #[cfg(any(
-            target_arch = <span class="string">&quot;x86_64&quot;</span>,
-            target_arch = <span class="string">&quot;x86&quot;</span>,
-            target_arch = <span class="string">&quot;riscv64&quot;</span>,
-            target_arch = <span class="string">&quot;powerpc64&quot;
+            target_arch = <span class="string">"x86_64"</span>,
+            target_arch = <span class="string">"x86"</span>,
+            target_arch = <span class="string">"riscv64"</span>,
+            target_arch = <span class="string">"powerpc64"
         </span>))]
         </span>{
             GETCPU
@@ -1077,7 +1079,7 @@ rustix_int_0x80:
                 .ok();
         }
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span>{
             SYSCALL
                 .compare_exchange(
@@ -1095,42 +1097,42 @@ rustix_int_0x80:
     minimal_init();
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(vdso) = vdso::Vdso::new() {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
         </span>{
             <span class="comment">// Look up the platform-specific `clock_gettime` symbol as
             // documented [here], except on 32-bit platforms where we look up
-            // the `64`-suffixed variant and fail if we don&#39;t find it.
+            // the `64`-suffixed variant and fail if we don't find it.
             //
             // [here]: https://man7.org/linux/man-pages/man7/vdso.7.html
-            </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;arm&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime64&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;aarch64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6.39&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__kernel_clock_gettime&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime64&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;riscv64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_4.15&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;powerpc64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6.15&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__kernel_clock_gettime&quot;</span>));
-            <span class="attr">#[cfg(any(target_arch = <span class="string">&quot;mips&quot;</span>, target_arch = <span class="string">&quot;mips32r6&quot;</span>))]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime64&quot;</span>));
-            <span class="attr">#[cfg(any(target_arch = <span class="string">&quot;mips64&quot;</span>, target_arch = <span class="string">&quot;mips64r6&quot;</span>))]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_clock_gettime&quot;</span>));
+            </span><span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"arm"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime64"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"aarch64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6.39"</span>), <span class="macro">cstr!</span>(<span class="string">"__kernel_clock_gettime"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime64"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"riscv64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_4.15"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"powerpc64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6.15"</span>), <span class="macro">cstr!</span>(<span class="string">"__kernel_clock_gettime"</span>));
+            <span class="attr">#[cfg(any(target_arch = <span class="string">"mips"</span>, target_arch = <span class="string">"mips32r6"</span>))]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime64"</span>));
+            <span class="attr">#[cfg(any(target_arch = <span class="string">"mips64"</span>, target_arch = <span class="string">"mips64r6"</span>))]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_clock_gettime"</span>));
 
             <span class="comment">// On all 64-bit platforms, the 64-bit `clock_gettime` symbols are
             // always available.
-            </span><span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+            </span><span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
             </span><span class="kw">let </span>ok = <span class="bool-val">true</span>;
 
             <span class="comment">// On some 32-bit platforms, the 64-bit `clock_gettime` symbols are
             // not available on older kernel versions.
             </span><span class="attr">#[cfg(any(
-                target_arch = <span class="string">&quot;arm&quot;</span>,
-                target_arch = <span class="string">&quot;mips&quot;</span>,
-                target_arch = <span class="string">&quot;mips32r6&quot;</span>,
-                target_arch = <span class="string">&quot;x86&quot;
+                target_arch = <span class="string">"arm"</span>,
+                target_arch = <span class="string">"mips"</span>,
+                target_arch = <span class="string">"mips32r6"</span>,
+                target_arch = <span class="string">"x86"
             </span>))]
             </span><span class="kw">let </span>ok = !ptr.is_null();
 
@@ -1138,53 +1140,53 @@ rustix_int_0x80:
                 <span class="macro">assert!</span>(!ptr.is_null());
 
                 <span class="comment">// SAFETY: Store the computed function addresses in static
-                // storage so that we don&#39;t need to compute it again (but if
-                // we do, it doesn&#39;t hurt anything).
+                // storage so that we don't need to compute it again (but if
+                // we do, it doesn't hurt anything).
                 </span><span class="kw">unsafe </span>{
                     CLOCK_GETTIME.store(ptr.cast(), Relaxed);
                 }
             }
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
         #[cfg(any(
-            target_arch = <span class="string">&quot;x86_64&quot;</span>,
-            target_arch = <span class="string">&quot;x86&quot;</span>,
-            target_arch = <span class="string">&quot;riscv64&quot;</span>,
-            target_arch = <span class="string">&quot;powerpc64&quot;
+            target_arch = <span class="string">"x86_64"</span>,
+            target_arch = <span class="string">"x86"</span>,
+            target_arch = <span class="string">"riscv64"</span>,
+            target_arch = <span class="string">"powerpc64"
         </span>))]
         </span>{
             <span class="comment">// Look up the platform-specific `getcpu` symbol as documented
             // [here].
             //
             // [here]: https://man7.org/linux/man-pages/man7/vdso.7.html
-            </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86_64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_getcpu&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__vdso_getcpu&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;riscv64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_4.15&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__kernel_getcpu&quot;</span>));
-            <span class="attr">#[cfg(target_arch = <span class="string">&quot;powerpc64&quot;</span>)]
-            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.6.15&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__kernel_getcpu&quot;</span>));
+            </span><span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_getcpu"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6"</span>), <span class="macro">cstr!</span>(<span class="string">"__vdso_getcpu"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"riscv64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_4.15"</span>), <span class="macro">cstr!</span>(<span class="string">"__kernel_getcpu"</span>));
+            <span class="attr">#[cfg(target_arch = <span class="string">"powerpc64"</span>)]
+            </span><span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.6.15"</span>), <span class="macro">cstr!</span>(<span class="string">"__kernel_getcpu"</span>));
 
             <span class="attr">#[cfg(any(
-                target_arch = <span class="string">&quot;x86_64&quot;</span>,
-                target_arch = <span class="string">&quot;riscv64&quot;</span>,
-                target_arch = <span class="string">&quot;powerpc64&quot;
+                target_arch = <span class="string">"x86_64"</span>,
+                target_arch = <span class="string">"riscv64"</span>,
+                target_arch = <span class="string">"powerpc64"
             </span>))]
             </span><span class="kw">let </span>ok = <span class="bool-val">true</span>;
 
-            <span class="comment">// On 32-bit x86, the symbol doesn&#39;t appear present sometimes.
-            </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+            <span class="comment">// On 32-bit x86, the symbol doesn't appear present sometimes.
+            </span><span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
             </span><span class="kw">let </span>ok = !ptr.is_null();
 
             <span class="attr">#[cfg(any(
-                target_arch = <span class="string">&quot;aarch64&quot;</span>,
-                target_arch = <span class="string">&quot;arm&quot;</span>,
-                target_arch = <span class="string">&quot;mips&quot;</span>,
-                target_arch = <span class="string">&quot;mips32r6&quot;</span>,
-                target_arch = <span class="string">&quot;mips64&quot;</span>,
-                target_arch = <span class="string">&quot;mips64r6&quot;
+                target_arch = <span class="string">"aarch64"</span>,
+                target_arch = <span class="string">"arm"</span>,
+                target_arch = <span class="string">"mips"</span>,
+                target_arch = <span class="string">"mips32r6"</span>,
+                target_arch = <span class="string">"mips64"</span>,
+                target_arch = <span class="string">"mips64r6"
             </span>))]
             </span><span class="kw">let </span>ok = <span class="bool-val">false</span>;
 
@@ -1192,8 +1194,8 @@ rustix_int_0x80:
                 <span class="macro">assert!</span>(!ptr.is_null());
 
                 <span class="comment">// SAFETY: Store the computed function addresses in static
-                // storage so that we don&#39;t need to compute it again (but if
-                // we do, it doesn&#39;t hurt anything).
+                // storage so that we don't need to compute it again (but if
+                // we do, it doesn't hurt anything).
                 </span><span class="kw">unsafe </span>{
                     GETCPU.store(ptr.cast(), Relaxed);
                 }
@@ -1201,9 +1203,9 @@ rustix_int_0x80:
         }
 
         <span class="comment">// On x86, also look up the vsyscall entry point.
-        </span><span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+        </span><span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
         </span>{
-            <span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">&quot;LINUX_2.5&quot;</span>), <span class="macro">cstr!</span>(<span class="string">&quot;__kernel_vsyscall&quot;</span>));
+            <span class="kw">let </span>ptr = vdso.sym(<span class="macro">cstr!</span>(<span class="string">"LINUX_2.5"</span>), <span class="macro">cstr!</span>(<span class="string">"__kernel_vsyscall"</span>));
             <span class="macro">assert!</span>(!ptr.is_null());
 
             <span class="comment">// SAFETY: As above, store the computed function addresses in

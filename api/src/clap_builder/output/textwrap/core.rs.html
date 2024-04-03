@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/textwrap/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/textwrap/core.rs`."><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -203,7 +205,7 @@
 /// Modern browsers typically do a great job at combining characters
 /// as shown above, but terminals often struggle more. As an example,
 /// Gnome Terminal version 3.38.1, shows “❤️” as a big red heart, but
-/// shows &quot;👨‍🦰&quot; as “👨🦰”.
+/// shows "👨‍🦰" as “👨🦰”.
 ///
 /// [combining characters]: https://en.wikipedia.org/wiki/Combining_character
 /// [Unicode equivalence]: https://en.wikipedia.org/wiki/Unicode_equivalence
@@ -214,7 +216,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>width = <span class="number">0</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>control_sequence = <span class="bool-val">false</span>;
-    <span class="kw">let </span>control_terminate: char = <span class="string">&#39;m&#39;</span>;
+    <span class="kw">let </span>control_terminate: char = <span class="string">'m'</span>;
 
     <span class="kw">for </span>ch <span class="kw">in </span>text.chars() {
         <span class="kw">if </span>ch.is_ascii_control() {
@@ -231,12 +233,12 @@
     width
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
 </span><span class="kw">fn </span>ch_width(ch: char) -&gt; usize {
     unicode_width::UnicodeWidthChar::width(ch).unwrap_or(<span class="number">0</span>)
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"unicode"</span>))]
 </span><span class="kw">fn </span>ch_width(<span class="kw">_</span>: char) -&gt; usize {
     <span class="number">1
 </span>}
@@ -245,7 +247,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">use </span>unicode_width::UnicodeWidthChar;
 
     <span class="attr">#[test]
@@ -254,16 +256,16 @@
 
         <span class="comment">// Emojis in the Basic Latin (ASCII) and Latin-1 Supplement
         // blocks all have a width of 1 column. This includes
-        // characters such as &#39;#&#39; and &#39;©&#39;.
-        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">&#39;\u{1}&#39;</span>..<span class="string">&#39;\u{FF}&#39; </span>{
+        // characters such as '#' and '©'.
+        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">'\u{1}'</span>..<span class="string">'\u{FF}' </span>{
             <span class="kw">if </span>is_emoji(ch) {
-                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, ch, ch <span class="kw">as </span>u32);
+                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">"{:?} U+{:04X}"</span>, ch, ch <span class="kw">as </span>u32);
 
-                <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-                </span><span class="macro">assert_eq!</span>(ch.width().unwrap(), <span class="number">1</span>, <span class="string">&quot;char: {desc}&quot;</span>);
+                <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+                </span><span class="macro">assert_eq!</span>(ch.width().unwrap(), <span class="number">1</span>, <span class="string">"char: {desc}"</span>);
 
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode&quot;</span>))]
-                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">1</span>, <span class="string">&quot;char: {desc}&quot;</span>);
+                <span class="attr">#[cfg(not(feature = <span class="string">"unicode"</span>))]
+                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">1</span>, <span class="string">"char: {desc}"</span>);
             }
         }
 
@@ -273,15 +275,15 @@
         // or 2 columns wide when unicode-width is used, and always 2
         // columns wide otherwise. This includes all of our favorite
         // emojis such as 😊.
-        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">&#39;\u{FF}&#39;</span>..<span class="string">&#39;\u{2FFFF}&#39; </span>{
+        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="string">'\u{FF}'</span>..<span class="string">'\u{2FFFF}' </span>{
             <span class="kw">if </span>is_emoji(ch) {
-                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">&quot;{:?} U+{:04X}&quot;</span>, ch, ch <span class="kw">as </span>u32);
+                <span class="kw">let </span>desc = <span class="macro">format!</span>(<span class="string">"{:?} U+{:04X}"</span>, ch, ch <span class="kw">as </span>u32);
 
-                <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-                </span><span class="macro">assert!</span>(ch.width().unwrap() &lt;= <span class="number">2</span>, <span class="string">&quot;char: {desc}&quot;</span>);
+                <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+                </span><span class="macro">assert!</span>(ch.width().unwrap() &lt;= <span class="number">2</span>, <span class="string">"char: {desc}"</span>);
 
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode&quot;</span>))]
-                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">1</span>, <span class="string">&quot;char: {desc}&quot;</span>);
+                <span class="attr">#[cfg(not(feature = <span class="string">"unicode"</span>))]
+                </span><span class="macro">assert_eq!</span>(ch_width(ch), <span class="number">1</span>, <span class="string">"char: {desc}"</span>);
             }
         }
 
@@ -290,28 +292,28 @@
     </span>}
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_works() {
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;Café Plain&quot;</span>.len(), <span class="number">11</span>); <span class="comment">// “é” is two bytes
-        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;Café Plain&quot;</span>), <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="string">"Café Plain"</span>.len(), <span class="number">11</span>); <span class="comment">// “é” is two bytes
+        </span><span class="macro">assert_eq!</span>(display_width(<span class="string">"Café Plain"</span>), <span class="number">10</span>);
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_narrow_emojis() {
-        <span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉&quot;</span>), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(display_width(<span class="string">"⁉"</span>), <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_narrow_emojis_variant_selector() {
-        <span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;⁉\u{fe0f}&quot;</span>), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(display_width(<span class="string">"⁉\u{fe0f}"</span>), <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_emojis() {
-        <span class="macro">assert_eq!</span>(display_width(<span class="string">&quot;😂😭🥺🤣✨😍🙏🥰😊🔥&quot;</span>), <span class="number">20</span>);
+        <span class="macro">assert_eq!</span>(display_width(<span class="string">"😂😭🥺🤣✨😍🙏🥰😊🔥"</span>), <span class="number">20</span>);
     }
 }
 </code></pre></div></section></main></body></html>

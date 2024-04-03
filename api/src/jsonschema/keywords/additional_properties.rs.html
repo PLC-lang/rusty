@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/additional_properties.rs`."><title>additional_properties.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/additional_properties.rs`."><title>additional_properties.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1702,7 +1704,7 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: {&quot;type&quot;: &quot;integer&quot;},
+///     "additionalProperties": {"type": "integer"},
 /// }
 /// ```
 ///
@@ -1710,7 +1712,7 @@
 ///
 /// ```json
 /// {
-///     &quot;bar&quot;: 6
+///     "bar": 6
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesValidator {
@@ -1718,11 +1720,11 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;additionalProperties&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"additionalProperties"</span>);
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesValidator {
             node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
         }))
@@ -1738,11 +1740,11 @@
     }
 
     <span class="attr">#[allow(clippy::needless_collect)]
-    </span><span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    </span><span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span>errors: Vec&lt;<span class="kw">_</span>&gt; = item
                 .iter()
@@ -1754,11 +1756,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>matched_props = Vec::with_capacity(item.len());
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
@@ -1777,10 +1779,10 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>AdditionalPropertiesValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;additionalProperties: {}&quot;</span>,
+            <span class="string">"additionalProperties: {}"</span>,
             format_validators(<span class="self">self</span>.node.validators())
         )
     }
@@ -1790,7 +1792,7 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: false
+///     "additionalProperties": false
 /// }
 /// ```
 ///
@@ -1804,7 +1806,7 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesFalseValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(schema_path: JSONPointer) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(schema_path: JSONPointer) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesFalseValidator { schema_path }))
     }
 }
@@ -1817,11 +1819,11 @@
         </span>}
     }
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, value)) = item.iter().next() {
                 <span class="kw">return </span>error(ValidationError::false_schema(
@@ -1835,8 +1837,8 @@
     }
 }
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>AdditionalPropertiesFalseValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="string">&quot;additionalProperties: false&quot;</span>.fmt(f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="string">"additionalProperties: false"</span>.fmt(f)
     }
 }
 
@@ -1844,9 +1846,9 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: false,
-///     &quot;properties&quot;: {
-///         &quot;foo&quot;: {&quot;type&quot;: &quot;string&quot;}
+///     "additionalProperties": false,
+///     "properties": {
+///         "foo": {"type": "string"}
 ///     },
 /// }
 /// ```
@@ -1855,7 +1857,7 @@
 ///
 /// ```json
 /// {
-///     &quot;foo&quot;: &quot;bar&quot;,
+///     "foo": "bar",
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesNotEmptyFalseValidator&lt;M: PropertiesValidatorsMap&gt; {
@@ -1864,25 +1866,25 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesNotEmptyFalseValidator&lt;SmallValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesNotEmptyFalseValidator {
             properties: compile_small_map(map, context)<span class="question-mark">?</span>,
-            schema_path: context.as_pointer_with(<span class="string">&quot;additionalProperties&quot;</span>),
+            schema_path: context.as_pointer_with(<span class="string">"additionalProperties"</span>),
         }))
     }
 }
 <span class="kw">impl </span>AdditionalPropertiesNotEmptyFalseValidator&lt;BigValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesNotEmptyFalseValidator {
             properties: compile_big_map(map, context)<span class="question-mark">?</span>,
-            schema_path: context.as_pointer_with(<span class="string">&quot;additionalProperties&quot;</span>),
+            schema_path: context.as_pointer_with(<span class="string">"additionalProperties"</span>),
         }))
     }
 }
@@ -1895,11 +1897,11 @@
         </span>}
     }
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <span class="macro">vec!</span>[];
@@ -1926,11 +1928,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = Vec::with_capacity(item.len());
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
@@ -1964,8 +1966,8 @@
 <span class="kw">impl</span>&lt;M: PropertiesValidatorsMap&gt; core::fmt::Display
     <span class="kw">for </span>AdditionalPropertiesNotEmptyFalseValidator&lt;M&gt;
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="string">&quot;additionalProperties: false&quot;</span>.fmt(f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="string">"additionalProperties: false"</span>.fmt(f)
     }
 }
 
@@ -1973,9 +1975,9 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: {&quot;type&quot;: &quot;integer&quot;},
-///     &quot;properties&quot;: {
-///         &quot;foo&quot;: {&quot;type&quot;: &quot;string&quot;}
+///     "additionalProperties": {"type": "integer"},
+///     "properties": {
+///         "foo": {"type": "string"}
 ///     }
 /// }
 /// ```
@@ -1984,8 +1986,8 @@
 ///
 /// ```json
 /// {
-///     &quot;foo&quot;: &quot;bar&quot;,
-///     &quot;bar&quot;: 6
+///     "foo": "bar",
+///     "bar": 6
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesNotEmptyValidator&lt;M: PropertiesValidatorsMap&gt; {
@@ -1994,12 +1996,12 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesNotEmptyValidator&lt;SmallValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;additionalProperties&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"additionalProperties"</span>);
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesNotEmptyValidator {
             properties: compile_small_map(map, context)<span class="question-mark">?</span>,
             node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
@@ -2008,12 +2010,12 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesNotEmptyValidator&lt;BigValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;additionalProperties&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"additionalProperties"</span>);
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesNotEmptyValidator {
             properties: compile_big_map(map, context)<span class="question-mark">?</span>,
             node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
@@ -2031,11 +2033,11 @@
         </span>}
     }
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(map) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">for </span>(property, value) <span class="kw">in </span>map {
@@ -2053,11 +2055,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(map) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>matched_propnames = Vec::with_capacity(map.len());
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
@@ -2084,10 +2086,10 @@
 }
 
 <span class="kw">impl</span>&lt;M: PropertiesValidatorsMap&gt; core::fmt::Display <span class="kw">for </span>AdditionalPropertiesNotEmptyValidator&lt;M&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;additionalProperties: {}&quot;</span>,
+            <span class="string">"additionalProperties: {}"</span>,
             format_validators(<span class="self">self</span>.node.validators())
         )
     }
@@ -2097,10 +2099,10 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: {&quot;type&quot;: &quot;integer&quot;},
-///     &quot;patternProperties&quot;: {
-///         &quot;^x-&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 5},
-///         &quot;-x$&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 10}
+///     "additionalProperties": {"type": "integer"},
+///     "patternProperties": {
+///         "^x-": {"type": "integer", "minimum": 5},
+///         "-x$": {"type": "integer", "maximum": 10}
 ///     }
 /// }
 /// ```
@@ -2109,9 +2111,9 @@
 ///
 /// ```json
 /// {
-///     &quot;x-foo&quot;: 6,
-///     &quot;foo-x&quot;: 7,
-///     &quot;bar&quot;: 8
+///     "x-foo": 6,
+///     "foo-x": 7,
+///     "bar": 8
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesWithPatternsValidator {
@@ -2119,24 +2121,24 @@
     patterns: PatternedValidators,
     <span class="doccomment">/// We need this because `compile_validators` uses the additionalProperties keyword to compile
     /// this validator. That means that the schema node which contains this validator has
-    /// &quot;additionalProperties&quot; as it&#39;s path. However, we need to produce annotations which have the
+    /// "additionalProperties" as it's path. However, we need to produce annotations which have the
     /// patternProperties keyword as their path so we store the paths here.
     </span>pattern_keyword_path: JSONPointer,
     pattern_keyword_absolute_path: <span class="prelude-ty">Option</span>&lt;AbsolutePath&gt;,
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         patterns: PatternedValidators,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesWithPatternsValidator {
-            node: compile_validators(schema, <span class="kw-2">&amp;</span>context.with_path(<span class="string">&quot;additionalProperties&quot;</span>))<span class="question-mark">?</span>,
+            node: compile_validators(schema, <span class="kw-2">&amp;</span>context.with_path(<span class="string">"additionalProperties"</span>))<span class="question-mark">?</span>,
             patterns,
-            pattern_keyword_path: context.as_pointer_with(<span class="string">&quot;patternProperties&quot;</span>),
+            pattern_keyword_path: context.as_pointer_with(<span class="string">"patternProperties"</span>),
             pattern_keyword_absolute_path: context
-                .with_path(<span class="string">&quot;patternProperties&quot;</span>)
+                .with_path(<span class="string">"patternProperties"</span>)
                 .base_uri()
                 .map(Into::into),
         }))
@@ -2161,11 +2163,11 @@
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">for </span>(property, value) <span class="kw">in </span>item.iter() {
@@ -2189,11 +2191,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
             <span class="kw">let </span><span class="kw-2">mut </span>pattern_matched_propnames = Vec::with_capacity(item.len());
@@ -2214,7 +2216,7 @@
                 }
             }
             <span class="kw">if </span>!pattern_matched_propnames.is_empty() {
-                output += OutputUnit::&lt;Annotations&lt;<span class="lifetime">&#39;_</span>&gt;&gt;::annotations(
+                output += OutputUnit::&lt;Annotations&lt;<span class="lifetime">'_</span>&gt;&gt;::annotations(
                     <span class="self">self</span>.pattern_keyword_path.clone(),
                     instance_path.into(),
                     <span class="self">self</span>.pattern_keyword_absolute_path.clone(),
@@ -2234,10 +2236,10 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>AdditionalPropertiesWithPatternsValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;additionalProperties: {}&quot;</span>,
+            <span class="string">"additionalProperties: {}"</span>,
             format_validators(<span class="self">self</span>.node.validators())
         )
     }
@@ -2247,10 +2249,10 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: false,
-///     &quot;patternProperties&quot;: {
-///         &quot;^x-&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 5},
-///         &quot;-x$&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 10}
+///     "additionalProperties": false,
+///     "patternProperties": {
+///         "^x-": {"type": "integer", "minimum": 5},
+///         "-x$": {"type": "integer", "maximum": 10}
 ///     }
 /// }
 /// ```
@@ -2259,9 +2261,9 @@
 ///
 /// ```json
 /// {
-///     &quot;x-bar&quot;: 6,
-///     &quot;spam-x&quot;: 7,
-///     &quot;x-baz-x&quot;: 8,
+///     "x-bar": 6,
+///     "spam-x": 7,
+///     "x-baz-x": 8,
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesWithPatternsFalseValidator {
@@ -2272,16 +2274,16 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsFalseValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
         patterns: PatternedValidators,
-        context: <span class="kw-2">&amp;</span>CompilationContext&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+        context: <span class="kw-2">&amp;</span>CompilationContext&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(AdditionalPropertiesWithPatternsFalseValidator {
             patterns,
-            schema_path: context.as_pointer_with(<span class="string">&quot;additionalProperties&quot;</span>),
-            pattern_keyword_path: context.as_pointer_with(<span class="string">&quot;patternProperties&quot;</span>),
+            schema_path: context.as_pointer_with(<span class="string">"additionalProperties"</span>),
+            pattern_keyword_path: context.as_pointer_with(<span class="string">"patternProperties"</span>),
             pattern_keyword_absolute_path: context
-                .with_path(<span class="string">&quot;patternProperties&quot;</span>)
+                .with_path(<span class="string">"patternProperties"</span>)
                 .base_uri()
                 .map(Into::into),
         }))
@@ -2298,11 +2300,11 @@
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <span class="macro">vec!</span>[];
@@ -2335,11 +2337,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = Vec::with_capacity(item.len());
@@ -2359,7 +2361,7 @@
                 }
             }
             <span class="kw">if </span>!pattern_matched_props.is_empty() {
-                output += OutputUnit::&lt;Annotations&lt;<span class="lifetime">&#39;_</span>&gt;&gt;::annotations(
+                output += OutputUnit::&lt;Annotations&lt;<span class="lifetime">'_</span>&gt;&gt;::annotations(
                     <span class="self">self</span>.pattern_keyword_path.clone(),
                     instance_path.into(),
                     <span class="self">self</span>.pattern_keyword_absolute_path.clone(),
@@ -2387,8 +2389,8 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>AdditionalPropertiesWithPatternsFalseValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="string">&quot;additionalProperties: false&quot;</span>.fmt(f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="string">"additionalProperties: false"</span>.fmt(f)
     }
 }
 
@@ -2396,13 +2398,13 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: {&quot;type&quot;: &quot;integer&quot;},
-///     &quot;properties&quot;: {
-///         &quot;foo&quot;: {&quot;type&quot;: &quot;string&quot;}
+///     "additionalProperties": {"type": "integer"},
+///     "properties": {
+///         "foo": {"type": "string"}
 ///     },
-///     &quot;patternProperties&quot;: {
-///         &quot;^x-&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 5},
-///         &quot;-x$&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 10}
+///     "patternProperties": {
+///         "^x-": {"type": "integer", "minimum": 5},
+///         "-x$": {"type": "integer", "maximum": 10}
 ///     }
 /// }
 /// ```
@@ -2411,11 +2413,11 @@
 ///
 /// ```json
 /// {
-///     &quot;foo&quot;: &quot;a&quot;,
-///     &quot;x-spam&quot;: 6,
-///     &quot;spam-x&quot;: 7,
-///     &quot;x-spam-x&quot;: 8,
-///     &quot;bar&quot;: 42
+///     "foo": "a",
+///     "x-spam": 6,
+///     "spam-x": 7,
+///     "x-spam-x": 8,
+///     "bar": 42
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesWithPatternsNotEmptyValidator&lt;M: PropertiesValidatorsMap&gt; {
@@ -2425,13 +2427,13 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsNotEmptyValidator&lt;SmallValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         patterns: PatternedValidators,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;additionalProperties&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"additionalProperties"</span>);
         <span class="prelude-val">Ok</span>(Box::new(
             AdditionalPropertiesWithPatternsNotEmptyValidator {
                 node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
@@ -2443,13 +2445,13 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsNotEmptyValidator&lt;BigValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         patterns: PatternedValidators,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;additionalProperties&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"additionalProperties"</span>);
         <span class="prelude-val">Ok</span>(Box::new(
             AdditionalPropertiesWithPatternsNotEmptyValidator {
                 node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
@@ -2496,11 +2498,11 @@
         </span>}
     }
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">for </span>(property, value) <span class="kw">in </span>item.iter() {
@@ -2534,11 +2536,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
             <span class="kw">let </span><span class="kw-2">mut </span>additional_matches = Vec::with_capacity(item.len());
@@ -2576,10 +2578,10 @@
 <span class="kw">impl</span>&lt;M: PropertiesValidatorsMap&gt; core::fmt::Display
     <span class="kw">for </span>AdditionalPropertiesWithPatternsNotEmptyValidator&lt;M&gt;
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;additionalProperties: {}&quot;</span>,
+            <span class="string">"additionalProperties: {}"</span>,
             format_validators(<span class="self">self</span>.node.validators())
         )
     }
@@ -2589,13 +2591,13 @@
 ///
 /// ```json
 /// {
-///     &quot;additionalProperties&quot;: false,
-///     &quot;properties&quot;: {
-///         &quot;foo&quot;: {&quot;type&quot;: &quot;string&quot;}
+///     "additionalProperties": false,
+///     "properties": {
+///         "foo": {"type": "string"}
 ///     },
-///     &quot;patternProperties&quot;: {
-///         &quot;^x-&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 5},
-///         &quot;-x$&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 10}
+///     "patternProperties": {
+///         "^x-": {"type": "integer", "minimum": 5},
+///         "-x$": {"type": "integer", "maximum": 10}
 ///     }
 /// }
 /// ```
@@ -2604,10 +2606,10 @@
 ///
 /// ```json
 /// {
-///     &quot;foo&quot;: &quot;bar&quot;,
-///     &quot;x-bar&quot;: 6,
-///     &quot;spam-x&quot;: 7,
-///     &quot;x-baz-x&quot;: 8,
+///     "foo": "bar",
+///     "x-bar": 6,
+///     "spam-x": 7,
+///     "x-baz-x": 8,
 /// }
 /// ```
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AdditionalPropertiesWithPatternsNotEmptyFalseValidator&lt;M: PropertiesValidatorsMap&gt;
@@ -2618,32 +2620,32 @@
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsNotEmptyFalseValidator&lt;SmallValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
         patterns: PatternedValidators,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(
             AdditionalPropertiesWithPatternsNotEmptyFalseValidator::&lt;SmallValidatorsMap&gt; {
                 properties: compile_small_map(map, context)<span class="question-mark">?</span>,
                 patterns,
-                schema_path: context.schema_path.push(<span class="string">&quot;additionalProperties&quot;</span>).into(),
+                schema_path: context.schema_path.push(<span class="string">"additionalProperties"</span>).into(),
             },
         ))
     }
 }
 <span class="kw">impl </span>AdditionalPropertiesWithPatternsNotEmptyFalseValidator&lt;BigValidatorsMap&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
         patterns: PatternedValidators,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(
             AdditionalPropertiesWithPatternsNotEmptyFalseValidator {
                 properties: compile_big_map(map, context)<span class="question-mark">?</span>,
                 patterns,
-                schema_path: context.schema_path.push(<span class="string">&quot;additionalProperties&quot;</span>).into(),
+                schema_path: context.schema_path.push(<span class="string">"additionalProperties"</span>).into(),
             },
         ))
     }
@@ -2677,11 +2679,11 @@
         <span class="bool-val">true
     </span>}
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <span class="macro">vec!</span>[];
@@ -2725,11 +2727,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Object(item) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>output = BasicOutput::default();
             <span class="kw">let </span><span class="kw-2">mut </span>unexpected = <span class="macro">vec!</span>[];
@@ -2778,23 +2780,23 @@
 <span class="kw">impl</span>&lt;M: PropertiesValidatorsMap&gt; core::fmt::Display
     <span class="kw">for </span>AdditionalPropertiesWithPatternsNotEmptyFalseValidator&lt;M&gt;
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="string">&quot;additionalProperties: false&quot;</span>.fmt(f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="string">"additionalProperties: false"</span>.fmt(f)
     }
 }
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     context: <span class="kw-2">&amp;</span>CompilationContext,
-) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <span class="kw">let </span>properties = parent.get(<span class="string">&quot;properties&quot;</span>);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(patterns) = parent.get(<span class="string">&quot;patternProperties&quot;</span>) {
+) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    <span class="kw">let </span>properties = parent.get(<span class="string">"properties"</span>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(patterns) = parent.get(<span class="string">"patternProperties"</span>) {
         <span class="kw">if let </span>Value::Object(obj) = patterns {
             <span class="comment">// Compile all patterns &amp; their validators to avoid doing work in the `patternProperties` validator
             </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(compiled_patterns) = compile_patterns(obj, context) {
                 <span class="kw">match </span>schema {
-                    Value::Bool(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// &quot;additionalProperties&quot; are &quot;true&quot; by default
+                    Value::Bool(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// "additionalProperties" are "true" by default
                     </span>Value::Bool(<span class="bool-val">false</span>) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(properties) = properties {
                             <span class="macro">compile_dynamic_prop_map_validator!</span>(
@@ -2836,7 +2838,7 @@
         }
     } <span class="kw">else </span>{
         <span class="kw">match </span>schema {
-            Value::Bool(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// &quot;additionalProperties&quot; are &quot;true&quot; by default
+            Value::Bool(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// "additionalProperties" are "true" by default
             </span>Value::Bool(<span class="bool-val">false</span>) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(properties) = properties {
                     <span class="macro">compile_dynamic_prop_map_validator!</span>(
@@ -2845,7 +2847,7 @@
                         context
                     )
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">&quot;additionalProperties&quot;</span>);
+                    <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">"additionalProperties"</span>);
                     <span class="prelude-val">Some</span>(AdditionalPropertiesFalseValidator::compile(schema_path))
                 }
             }
@@ -2874,14 +2876,14 @@
     <span class="kw">fn </span>schema_1() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesWithPatternsNotEmptyFalseValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: <span class="bool-val">false</span>,
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>},
-                <span class="string">&quot;barbaz&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;multipleOf&quot;</span>: <span class="number">3</span>},
+            <span class="string">"additionalProperties"</span>: <span class="bool-val">false</span>,
+            <span class="string">"properties"</span>: {
+                <span class="string">"foo"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+                <span class="string">"barbaz"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"multipleOf"</span>: <span class="number">3</span>},
             },
-            <span class="string">&quot;patternProperties&quot;</span>: {
-                <span class="string">&quot;^bar&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;minimum&quot;</span>: <span class="number">5</span>},
-                <span class="string">&quot;spam$&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;maximum&quot;</span>: <span class="number">10</span>},
+            <span class="string">"patternProperties"</span>: {
+                <span class="string">"^bar"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">5</span>},
+                <span class="string">"spam$"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"maximum"</span>: <span class="number">10</span>},
             }
         })
     }
@@ -2891,61 +2893,61 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `properties.foo`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}))]
     </span><span class="comment">// Match `properties.barbaz` &amp; `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barbaz&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barbaz"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on different values
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on the same value
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All combined
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;barbaz&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>, <span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>, <span class="string">"foo"</span>: <span class="string">"a"</span>, <span class="string">"barbaz"</span>: <span class="number">6</span>}))]
     </span><span class="kw">fn </span>schema_1_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_1();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
     <span class="comment">// `properties.foo` - should be a string
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/properties/foo/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/properties/foo/type"</span>])]
     <span class="comment">// `additionalProperties` - extra keyword &amp; not in `properties` / `patternProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="number">1</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties&quot;</span>])]
-    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="number">1</span>, <span class="string">&quot;haz&quot;</span>: <span class="number">1</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39;, \&#39;haz\&#39; were unexpected)&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="number">1</span>}), <span class="kw-2">&amp;</span>[<span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties"</span>])]
+    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="number">1</span>, <span class="string">"haz"</span>: <span class="number">1</span>}), <span class="kw-2">&amp;</span>[<span class="string">"Additional properties are not allowed (\'faz\', \'haz\' were unexpected)"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties"</span>])]
     <span class="comment">// `properties.foo` - should be a string &amp; `patternProperties.^bar` - invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/properties/foo/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/properties/foo/type"</span>])]
     <span class="comment">// `properties.barbaz` - valid; `patternProperties.^bar` - invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barbaz&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barbaz"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` (should be &gt;=5)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` (should be &lt;=10)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - both values are invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is valid, `spam` is invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is invalid, `spam` is valid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` - (should be &gt;=5), but valid for `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` - (should be &lt;=10), but valid for `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// All combined
     </span><span class="attr">#[test_case(
-      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>, <span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;faz&quot;</span>: <span class="number">1</span>}),
+      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>, <span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"faz"</span>: <span class="number">1</span>}),
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;4 is less than the minimum of 5&quot;</span>,
-          <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>,
-          <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>,
-          <span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;
+          <span class="string">"4 is less than the minimum of 5"</span>,
+          <span class="string">"3 is not of type \"string\""</span>,
+          <span class="string">"11 is greater than the maximum of 10"</span>,
+          <span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"
       </span>]</span>,
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>,
-          <span class="string">&quot;/properties/foo/type&quot;</span>,
-          <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>,
-          <span class="string">&quot;/additionalProperties&quot;
+          <span class="string">"/patternProperties/^bar/minimum"</span>,
+          <span class="string">"/properties/foo/type"</span>,
+          <span class="string">"/patternProperties/spam$/maximum"</span>,
+          <span class="string">"/additionalProperties"
       </span>]
     )]
     <span class="kw">fn </span>schema_1_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
@@ -2958,10 +2960,10 @@
     <span class="kw">fn </span>schema_2() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesWithPatternsFalseValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: <span class="bool-val">false</span>,
-            <span class="string">&quot;patternProperties&quot;</span>: {
-                <span class="string">&quot;^bar&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;minimum&quot;</span>: <span class="number">5</span>},
-                <span class="string">&quot;spam$&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;maximum&quot;</span>: <span class="number">10</span>},
+            <span class="string">"additionalProperties"</span>: <span class="bool-val">false</span>,
+            <span class="string">"patternProperties"</span>: {
+                <span class="string">"^bar"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">5</span>},
+                <span class="string">"spam$"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"maximum"</span>: <span class="number">10</span>},
             }
         })
     }
@@ -2971,48 +2973,48 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on different values
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on the same value
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All combined
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>, <span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="kw">fn </span>schema_2_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_2();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
     <span class="comment">// `additionalProperties` - extra keyword &amp; not in `patternProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties"</span>])]
     <span class="comment">// `patternProperties.^bar` (should be &gt;=5)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` (should be &lt;=10)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - both values are invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is valid, `spam` is invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is invalid, `spam` is valid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` - (should be &gt;=5), but valid for `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` - (should be &lt;=10), but valid for `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// All combined
     </span><span class="attr">#[test_case(
-      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>, <span class="string">&quot;faz&quot;</span>: <span class="number">1</span>}),
+      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>, <span class="string">"faz"</span>: <span class="number">1</span>}),
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;4 is less than the minimum of 5&quot;</span>,
-          <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>,
-          <span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;
+          <span class="string">"4 is less than the minimum of 5"</span>,
+          <span class="string">"11 is greater than the maximum of 10"</span>,
+          <span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"
       </span>]</span>,
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>,
-          <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>,
-          <span class="string">&quot;/additionalProperties&quot;
+          <span class="string">"/patternProperties/^bar/minimum"</span>,
+          <span class="string">"/patternProperties/spam$/maximum"</span>,
+          <span class="string">"/additionalProperties"
       </span>]
     )]
     <span class="kw">fn </span>schema_2_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
@@ -3025,9 +3027,9 @@
     <span class="kw">fn </span>schema_3() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesNotEmptyFalseValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: <span class="bool-val">false</span>,
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>}
+            <span class="string">"additionalProperties"</span>: <span class="bool-val">false</span>,
+            <span class="string">"properties"</span>: {
+                <span class="string">"foo"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>}
             }
         })
     }
@@ -3037,27 +3039,27 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `properties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}))]
     </span><span class="kw">fn </span>schema_3_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_3();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
     <span class="comment">// `properties` - should be a string
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/properties/foo/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/properties/foo/type"</span>])]
     <span class="comment">// `additionalProperties` - extra keyword &amp; not in `properties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties"</span>])]
     <span class="comment">// All combined
     </span><span class="attr">#[test_case(
       <span class="kw-2">&amp;</span><span class="macro">json!</span>(
-        {<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>}),
+        {<span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"faz"</span>: <span class="string">"a"</span>}),
         <span class="kw-2">&amp;</span>[
-            <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>,
-            <span class="string">&quot;Additional properties are not allowed (\&#39;faz\&#39; was unexpected)&quot;</span>,
+            <span class="string">"3 is not of type \"string\""</span>,
+            <span class="string">"Additional properties are not allowed (\'faz\' was unexpected)"</span>,
         ]</span>,
         <span class="kw-2">&amp;</span>[
-            <span class="string">&quot;/properties/foo/type&quot;</span>,
-            <span class="string">&quot;/additionalProperties&quot;</span>,
+            <span class="string">"/properties/foo/type"</span>,
+            <span class="string">"/additionalProperties"</span>,
         ]
     )]
     <span class="kw">fn </span>schema_3_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
@@ -3070,9 +3072,9 @@
     <span class="kw">fn </span>schema_4() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesNotEmptyValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>},
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>}
+            <span class="string">"additionalProperties"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>},
+            <span class="string">"properties"</span>: {
+                <span class="string">"foo"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>}
             }
         })
     }
@@ -3082,31 +3084,31 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `properties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}))]
     </span><span class="comment">// Match `additionalProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>}))]
     </span><span class="comment">// All combined
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>, <span class="string">"bar"</span>: <span class="number">4</span>}))]
     </span><span class="kw">fn </span>schema_4_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_4();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
     <span class="comment">// `properties` - should be a string
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/properties/foo/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/properties/foo/type"</span>])]
     <span class="comment">// `additionalProperties` - should be an integer
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties/type"</span>])]
     <span class="comment">// All combined
     </span><span class="attr">#[test_case(
       <span class="kw-2">&amp;</span><span class="macro">json!</span>(
-        {<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;bar&quot;</span>: <span class="string">&quot;a&quot;</span>}),
+        {<span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"bar"</span>: <span class="string">"a"</span>}),
         <span class="kw-2">&amp;</span>[
-            <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>,
-            <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;
+            <span class="string">"\"a\" is not of type \"integer\""</span>,
+            <span class="string">"3 is not of type \"string\""
         </span>]</span>,
         <span class="kw-2">&amp;</span>[
-            <span class="string">&quot;/additionalProperties/type&quot;</span>,
-            <span class="string">&quot;/properties/foo/type&quot;</span>,
+            <span class="string">"/additionalProperties/type"</span>,
+            <span class="string">"/properties/foo/type"</span>,
         ]
     )]
     <span class="kw">fn </span>schema_4_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
@@ -3119,14 +3121,14 @@
     <span class="kw">fn </span>schema_5() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesWithPatternsNotEmptyValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>},
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;foo&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>},
-                <span class="string">&quot;barbaz&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;multipleOf&quot;</span>: <span class="number">3</span>},
+            <span class="string">"additionalProperties"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>},
+            <span class="string">"properties"</span>: {
+                <span class="string">"foo"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+                <span class="string">"barbaz"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"multipleOf"</span>: <span class="number">3</span>},
             },
-            <span class="string">&quot;patternProperties&quot;</span>: {
-                <span class="string">&quot;^bar&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;minimum&quot;</span>: <span class="number">5</span>},
-                <span class="string">&quot;spam$&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;maximum&quot;</span>: <span class="number">10</span>},
+            <span class="string">"patternProperties"</span>: {
+                <span class="string">"^bar"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">5</span>},
+                <span class="string">"spam$"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"maximum"</span>: <span class="number">10</span>},
             }
         })
     }
@@ -3136,63 +3138,63 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `properties.foo`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>}))]
     </span><span class="comment">// Match `additionalProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="number">42</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="number">42</span>}))]
     </span><span class="comment">// Match `properties.barbaz` &amp; `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barbaz&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barbaz"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on different values
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on the same value
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All combined
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;barbaz&quot;</span>: <span class="number">6</span>, <span class="string">&quot;faz&quot;</span>: <span class="number">42</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>, <span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>, <span class="string">"foo"</span>: <span class="string">"a"</span>, <span class="string">"barbaz"</span>: <span class="number">6</span>, <span class="string">"faz"</span>: <span class="number">42</span>}))]
     </span><span class="kw">fn </span>schema_5_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_5();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
     <span class="comment">// `properties.bar` - should be a string
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/properties/foo/type&quot;</span>])]
-    <span class="comment">// `additionalProperties` - extra keyword that doesn&#39;t match `additionalProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties/type&quot;</span>])]
-    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;haz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>, <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties/type&quot;</span>, <span class="string">&quot;/additionalProperties/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/properties/foo/type"</span>])]
+    <span class="comment">// `additionalProperties` - extra keyword that doesn't match `additionalProperties`
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties/type"</span>])]
+    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>, <span class="string">"haz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"\"a\" is not of type \"integer\""</span>, <span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties/type"</span>, <span class="string">"/additionalProperties/type"</span>])]
     <span class="comment">// `properties.foo` - should be a string &amp; `patternProperties.^bar` - invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/properties/foo/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"3 is not of type \"string\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/properties/foo/type"</span>])]
     <span class="comment">// `properties.barbaz` - valid; `patternProperties.^bar` - invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barbaz&quot;</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;3 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barbaz"</span>: <span class="number">3</span>}), <span class="kw-2">&amp;</span>[<span class="string">"3 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` (should be &gt;=5)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` (should be &lt;=10)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - both values are invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is valid, `spam` is invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is invalid, `spam` is valid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` - (should be &gt;=5), but valid for `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` - (should be &lt;=10), but valid for `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// All combined + valid via `additionalProperties`
     </span><span class="attr">#[test_case(
-      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>, <span class="string">&quot;foo&quot;</span>: <span class="number">3</span>, <span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;fam&quot;</span>: <span class="number">42</span>}),
+      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>, <span class="string">"foo"</span>: <span class="number">3</span>, <span class="string">"faz"</span>: <span class="string">"a"</span>, <span class="string">"fam"</span>: <span class="number">42</span>}),
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;4 is less than the minimum of 5&quot;</span>,
-          <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>,
-          <span class="string">&quot;3 is not of type \&quot;string\&quot;&quot;</span>,
-          <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>,
+          <span class="string">"4 is less than the minimum of 5"</span>,
+          <span class="string">"\"a\" is not of type \"integer\""</span>,
+          <span class="string">"3 is not of type \"string\""</span>,
+          <span class="string">"11 is greater than the maximum of 10"</span>,
       ]</span>,
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>,
-          <span class="string">&quot;/additionalProperties/type&quot;</span>,
-          <span class="string">&quot;/properties/foo/type&quot;</span>,
-          <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>,
+          <span class="string">"/patternProperties/^bar/minimum"</span>,
+          <span class="string">"/additionalProperties/type"</span>,
+          <span class="string">"/properties/foo/type"</span>,
+          <span class="string">"/patternProperties/spam$/maximum"</span>,
       ]
     )]
     <span class="kw">fn </span>schema_5_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
@@ -3205,10 +3207,10 @@
     <span class="kw">fn </span>schema_6() -&gt; Value {
         <span class="comment">// For `AdditionalPropertiesWithPatternsValidator`
         </span><span class="macro">json!</span>({
-            <span class="string">&quot;additionalProperties&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>},
-            <span class="string">&quot;patternProperties&quot;</span>: {
-                <span class="string">&quot;^bar&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;minimum&quot;</span>: <span class="number">5</span>},
-                <span class="string">&quot;spam$&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>, <span class="string">&quot;maximum&quot;</span>: <span class="number">10</span>},
+            <span class="string">"additionalProperties"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>},
+            <span class="string">"patternProperties"</span>: {
+                <span class="string">"^bar"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">5</span>},
+                <span class="string">"spam$"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"maximum"</span>: <span class="number">10</span>},
             }
         })
     }
@@ -3218,53 +3220,53 @@
     <span class="comment">// The right type
     </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({}))]
     </span><span class="comment">// Match `additionalProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="number">42</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="number">42</span>}))]
     </span><span class="comment">// Match `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>}))]
     </span><span class="comment">// Match `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on different values
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All `patternProperties` rules match on the same value
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>}))]
     </span><span class="comment">// All combined
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">7</span>, <span class="string">&quot;faz&quot;</span>: <span class="number">42</span>}))]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">7</span>, <span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">7</span>, <span class="string">"faz"</span>: <span class="number">42</span>}))]
     </span><span class="kw">fn </span>schema_6_valid(instance: <span class="kw-2">&amp;</span>Value) {
         <span class="kw">let </span>schema = schema_6();
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, instance)
     }
 
-    <span class="comment">// `additionalProperties` - extra keyword that doesn&#39;t match `additionalProperties`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties/type&quot;</span>])]
-    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;haz&quot;</span>: <span class="string">&quot;a&quot;</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>, <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/additionalProperties/type&quot;</span>, <span class="string">&quot;/additionalProperties/type&quot;</span>])]
+    <span class="comment">// `additionalProperties` - extra keyword that doesn't match `additionalProperties`
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties/type"</span>])]
+    <span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"faz"</span>: <span class="string">"a"</span>, <span class="string">"haz"</span>: <span class="string">"a"</span>}), <span class="kw-2">&amp;</span>[<span class="string">"\"a\" is not of type \"integer\""</span>, <span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/additionalProperties/type"</span>, <span class="string">"/additionalProperties/type"</span>])]
     <span class="comment">// `additionalProperties` - should be an integer &amp; `patternProperties.^bar` - invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;foo&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/additionalProperties/type&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"foo"</span>: <span class="string">"a"</span>, <span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"\"a\" is not of type \"integer\""</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/additionalProperties/type"</span>])]
     <span class="comment">// `patternProperties.^bar` (should be &gt;=5)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` (should be &lt;=10)
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - both values are invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>, <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>, <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>, <span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>, <span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is valid, `spam` is invalid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">6</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">6</span>, <span class="string">"spam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// `patternProperties` - `bar` is invalid, `spam` is valid
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">8</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.^bar` - (should be &gt;=5), but valid for `patternProperties.spam$`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;4 is less than the minimum of 5&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">4</span>}), <span class="kw-2">&amp;</span>[<span class="string">"4 is less than the minimum of 5"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/^bar/minimum"</span>])]
     <span class="comment">// `patternProperties.spam$` - (should be &lt;=10), but valid for `patternProperties.^bar`
-    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;barspam&quot;</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">&quot;11 is greater than the maximum of 10&quot;</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>])]
+    </span><span class="attr">#[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"barspam"</span>: <span class="number">11</span>}), <span class="kw-2">&amp;</span>[<span class="string">"11 is greater than the maximum of 10"</span>]</span>, <span class="kw-2">&amp;</span>[<span class="string">"/patternProperties/spam$/maximum"</span>])]
     <span class="comment">// All combined + valid via `additionalProperties`
     </span><span class="attr">#[test_case(
-      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;bar&quot;</span>: <span class="number">4</span>, <span class="string">&quot;spam&quot;</span>: <span class="number">11</span>, <span class="string">&quot;faz&quot;</span>: <span class="string">&quot;a&quot;</span>, <span class="string">&quot;fam&quot;</span>: <span class="number">42</span>}),
+      <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"bar"</span>: <span class="number">4</span>, <span class="string">"spam"</span>: <span class="number">11</span>, <span class="string">"faz"</span>: <span class="string">"a"</span>, <span class="string">"fam"</span>: <span class="number">42</span>}),
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;4 is less than the minimum of 5&quot;</span>,
-          <span class="string">&quot;\&quot;a\&quot; is not of type \&quot;integer\&quot;&quot;</span>,
-          <span class="string">&quot;11 is greater than the maximum of 10&quot;</span>,
+          <span class="string">"4 is less than the minimum of 5"</span>,
+          <span class="string">"\"a\" is not of type \"integer\""</span>,
+          <span class="string">"11 is greater than the maximum of 10"</span>,
       ]</span>,
       <span class="kw-2">&amp;</span>[
-          <span class="string">&quot;/patternProperties/^bar/minimum&quot;</span>,
-          <span class="string">&quot;/additionalProperties/type&quot;</span>,
-          <span class="string">&quot;/patternProperties/spam$/maximum&quot;</span>,
+          <span class="string">"/patternProperties/^bar/minimum"</span>,
+          <span class="string">"/additionalProperties/type"</span>,
+          <span class="string">"/patternProperties/spam$/maximum"</span>,
       ]
     )]
     <span class="kw">fn </span>schema_6_invalid(instance: <span class="kw-2">&amp;</span>Value, expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str], schema_paths: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/./src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/./src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_driver/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -468,7 +470,7 @@
 <span class="comment">//Not a [test] because it is used in external integration tests
 </span><span class="kw">pub mod </span>runner;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_OUTPUT_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;out&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_OUTPUT_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"out"</span>;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>CompileOptions {
@@ -532,7 +534,7 @@
     <span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
             CompileError::Diagnostic(err) =&gt; {
-                <span class="macro">println!</span>(<span class="string">&quot;{err}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{err}"</span>);
                 std::process::exit(<span class="number">1</span>)
             }
             CompileError::Parameter(err) =&gt; err.exit(),
@@ -546,7 +548,7 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>CompileError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             CompileError::Diagnostic(err) =&gt; Display::fmt(err, f),
             CompileError::Parameter(err) =&gt; Display::fmt(err, f),
@@ -571,18 +573,18 @@
     <span class="kw">let </span>output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
     <span class="kw">let </span>location = project.get_location().map(|it| it.to_path_buf());
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>location {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;PROJECT_ROOT={}&quot;</span>, location.to_string_lossy());
-        env::set_var(<span class="string">&quot;PROJECT_ROOT&quot;</span>, location);
+        <span class="macro">log::debug!</span>(<span class="string">"PROJECT_ROOT={}"</span>, location.to_string_lossy());
+        env::set_var(<span class="string">"PROJECT_ROOT"</span>, location);
     }
     <span class="kw">let </span>build_location = compile_parameters.get_build_location();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>build_location {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;BUILD_LOCATION={}&quot;</span>, location.to_string_lossy());
-        env::set_var(<span class="string">&quot;BUILD_LOCATION&quot;</span>, location);
+        <span class="macro">log::debug!</span>(<span class="string">"BUILD_LOCATION={}"</span>, location.to_string_lossy());
+        env::set_var(<span class="string">"BUILD_LOCATION"</span>, location);
     }
     <span class="kw">let </span>lib_location = compile_parameters.get_lib_location();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>lib_location {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;LIB_LOCATION={}&quot;</span>, location.to_string_lossy());
-        env::set_var(<span class="string">&quot;LIB_LOCATION&quot;</span>, location);
+        <span class="macro">log::debug!</span>(<span class="string">"LIB_LOCATION={}"</span>, location.to_string_lossy());
+        env::set_var(<span class="string">"LIB_LOCATION"</span>, location);
     }
     <span class="comment">//Create diagnostics registry
     //Create a diagnostican with the specified registry
@@ -640,14 +642,14 @@
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(SubCommands::Explain { error }) = <span class="kw-2">&amp;</span>compile_parameters.commands {
         <span class="comment">//Explain the given error
-        </span><span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, diagnostician.explain(error));
+        </span><span class="macro">println!</span>(<span class="string">"{}"</span>, diagnostician.explain(error));
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
     <span class="comment">//Set the global thread count
     </span><span class="kw">let </span>thread_pool = rayon::ThreadPoolBuilder::new();
     <span class="kw">let </span>global_pool = <span class="kw">if let </span><span class="prelude-val">Some</span>(Threads::Fix(threads)) = compile_parameters.threads {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Using {threads} parallel threads&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">"Using {threads} parallel threads"</span>);
         thread_pool.num_threads(threads)
     } <span class="kw">else </span>{
         thread_pool
@@ -655,7 +657,7 @@
     .build_global();
     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = global_pool {
         <span class="comment">// Ignore the error here as the global threadpool might have been initialized
-        </span><span class="macro">log::info!</span>(<span class="string">&quot;{err}&quot;</span>)
+        </span><span class="macro">log::info!</span>(<span class="string">"{err}"</span>)
     }
 
     <span class="comment">// TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
@@ -693,8 +695,8 @@
             .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         <span class="kw">if let </span><span class="prelude-val">Err</span>(res) = res {
             diagnostician.handle(<span class="kw-2">&amp;</span>[res]);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to previous errors&quot;</span>)
-                .with_error_code(<span class="string">&quot;E071&quot;</span>)
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">"Compilation aborted due to previous errors"</span>)
+                .with_error_code(<span class="string">"E071"</span>)
                 .into());
         }
     }
@@ -709,8 +711,8 @@
         <span class="comment">//Only report the hint if we are using rich error reporting
         </span><span class="kw">if </span><span class="macro">matches!</span>(format, ErrorFormat::Rich) {
             <span class="macro">anyhow!</span>(
-                <span class="string">&quot;{err}.
-Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
+                <span class="string">"{err}.
+Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
             </span>)
         } <span class="kw">else </span>{
             err
@@ -725,10 +727,10 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
 ) -&gt; std::result::Result&lt;(), anyhow::Error&gt; {
     <span class="kw">match </span>option {
         cli::ConfigOption::Schema =&gt; {
-            <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, project.get_validation_schema().as_ref())
+            <span class="macro">println!</span>(<span class="string">"{}"</span>, project.get_validation_schema().as_ref())
         }
         cli::ConfigOption::Diagnostics =&gt; {
-            <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, diagnostician.get_diagnostic_configuration())
+            <span class="macro">println!</span>(<span class="string">"{}"</span>, diagnostician.get_diagnostic_configuration())
         }
     };
 
@@ -752,7 +754,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
 }
 
 <span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
-</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     generate_to_string_internal(name, src, <span class="bool-val">false</span>)
 }
 
@@ -780,7 +782,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
     }
     <span class="kw">let </span>module = project.generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>options)<span class="question-mark">?</span>;
 
-    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">&quot;Cannot generate module&quot;</span>))
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">"Cannot generate module"</span>))
 }
 
 <span class="kw">fn </span>generate(
@@ -790,7 +792,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
     annotated_project: AnnotatedProject&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
     <span class="kw">let </span>res = <span class="kw">if </span>compile_options.single_module {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Using single module mode&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">"Using single module mode"</span>);
         annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
         annotated_project.codegen(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
@@ -858,6 +860,6 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information&quot;
 }
 
 <span class="kw">fn </span>get_config(root: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
-    root.join(<span class="string">&quot;plc.json&quot;</span>)
+    root.join(<span class="string">"plc.json"</span>)
 }
 </code></pre></div></section></main></body></html>

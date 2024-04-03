@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/spawn/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/spawn/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -167,10 +169,10 @@
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="doccomment">/// Puts the task into the Rayon threadpool&#39;s job queue in the &quot;static&quot;
-/// or &quot;global&quot; scope. Just like a standard thread, this task is not
+<span class="doccomment">/// Puts the task into the Rayon threadpool's job queue in the "static"
+/// or "global" scope. Just like a standard thread, this task is not
 /// tied to the current stack frame, and hence it cannot hold any
-/// references other than those with `&#39;static` lifetime. If you want
+/// references other than those with `'static` lifetime. If you want
 /// to spawn a task that references stack data, use [the `scope()`
 /// function][scope] to create a scope.
 ///
@@ -190,9 +192,9 @@
 /// other threads may steal tasks at any time. However, they are
 /// generally prioritized in a LIFO order on the thread from which
 /// they were spawned. Other threads always steal from the other end of
-/// the deque, like FIFO order.  The idea is that &quot;recent&quot; tasks are
-/// most likely to be fresh in the local CPU&#39;s cache, while other
-/// threads can steal older &quot;stale&quot; tasks.  For an alternate approach,
+/// the deque, like FIFO order.  The idea is that "recent" tasks are
+/// most likely to be fresh in the local CPU's cache, while other
+/// threads can steal older "stale" tasks.  For an alternate approach,
 /// consider [`spawn_fifo()`] instead.
 ///
 /// [`spawn_fifo()`]: fn.spawn_fifo.html
@@ -222,7 +224,7 @@
 /// ```
 </span><span class="kw">pub fn </span>spawn&lt;F&gt;(func: F)
 <span class="kw">where
-    </span>F: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce() + Send + <span class="lifetime">'static</span>,
 {
     <span class="comment">// We assert that current registry has not terminated.
     </span><span class="kw">unsafe </span>{ spawn_in(func, <span class="kw-2">&amp;</span>Registry::current()) }
@@ -233,12 +235,12 @@
 /// Unsafe because `registry` must not yet have terminated.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>spawn_in&lt;F&gt;(func: F, registry: <span class="kw-2">&amp;</span>Arc&lt;Registry&gt;)
 <span class="kw">where
-    </span>F: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce() + Send + <span class="lifetime">'static</span>,
 {
     <span class="comment">// We assert that this does not hold any references (we know
-    // this because of the `&#39;static` bound in the interface);
+    // this because of the `'static` bound in the interface);
     // moreover, we assert that the code below is not supposed to
-    // be able to panic, and hence the data won&#39;t leak but will be
+    // be able to panic, and hence the data won't leak but will be
     // enqueued into some deque for later execution.
     </span><span class="kw">let </span>abort_guard = unwind::AbortIfPanic; <span class="comment">// just in case we are wrong, and code CAN panic
     </span><span class="kw">let </span>job_ref = spawn_job(func, registry);
@@ -248,7 +250,7 @@
 
 <span class="kw">unsafe fn </span>spawn_job&lt;F&gt;(func: F, registry: <span class="kw-2">&amp;</span>Arc&lt;Registry&gt;) -&gt; JobRef
 <span class="kw">where
-    </span>F: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce() + Send + <span class="lifetime">'static</span>,
 {
     <span class="comment">// Ensure that registry cannot terminate until this job has
     // executed. This ref is decremented at the (*) below.
@@ -264,10 +266,10 @@
     .into_static_job_ref()
 }
 
-<span class="doccomment">/// Fires off a task into the Rayon threadpool in the &quot;static&quot; or
-/// &quot;global&quot; scope.  Just like a standard thread, this task is not
+<span class="doccomment">/// Fires off a task into the Rayon threadpool in the "static" or
+/// "global" scope.  Just like a standard thread, this task is not
 /// tied to the current stack frame, and hence it cannot hold any
-/// references other than those with `&#39;static` lifetime. If you want
+/// references other than those with `'static` lifetime. If you want
 /// to spawn a task that references stack data, use [the `scope_fifo()`
 /// function](fn.scope_fifo.html) to create a scope.
 ///
@@ -292,7 +294,7 @@
 /// [ph]: struct.ThreadPoolBuilder.html#method.panic_handler
 </span><span class="kw">pub fn </span>spawn_fifo&lt;F&gt;(func: F)
 <span class="kw">where
-    </span>F: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce() + Send + <span class="lifetime">'static</span>,
 {
     <span class="comment">// We assert that current registry has not terminated.
     </span><span class="kw">unsafe </span>{ spawn_fifo_in(func, <span class="kw-2">&amp;</span>Registry::current()) }
@@ -303,18 +305,18 @@
 /// Unsafe because `registry` must not yet have terminated.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>spawn_fifo_in&lt;F&gt;(func: F, registry: <span class="kw-2">&amp;</span>Arc&lt;Registry&gt;)
 <span class="kw">where
-    </span>F: FnOnce() + Send + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce() + Send + <span class="lifetime">'static</span>,
 {
     <span class="comment">// We assert that this does not hold any references (we know
-    // this because of the `&#39;static` bound in the interface);
+    // this because of the `'static` bound in the interface);
     // moreover, we assert that the code below is not supposed to
-    // be able to panic, and hence the data won&#39;t leak but will be
+    // be able to panic, and hence the data won't leak but will be
     // enqueued into some deque for later execution.
     </span><span class="kw">let </span>abort_guard = unwind::AbortIfPanic; <span class="comment">// just in case we are wrong, and code CAN panic
     </span><span class="kw">let </span>job_ref = spawn_job(func, registry);
 
-    <span class="comment">// If we&#39;re in the pool, use our thread&#39;s private fifo for this thread to execute
-    // in a locally-FIFO order.  Otherwise, just use the pool&#39;s global injector.
+    <span class="comment">// If we're in the pool, use our thread's private fifo for this thread to execute
+    // in a locally-FIFO order.  Otherwise, just use the pool's global injector.
     </span><span class="kw">match </span>registry.current_thread() {
         <span class="prelude-val">Some</span>(worker) =&gt; worker.push_fifo(job_ref),
         <span class="prelude-val">None </span>=&gt; registry.inject(job_ref),

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/par_bridge.rs`."><title>par_bridge.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/par_bridge.rs`."><title>par_bridge.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -157,10 +159,10 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(not(feature = <span class="string">&quot;web_spin_lock&quot;</span>))]
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(not(feature = <span class="string">"web_spin_lock"</span>))]
 </span><span class="kw">use </span>std::sync::Mutex;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;web_spin_lock&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"web_spin_lock"</span>)]
 </span><span class="kw">use </span>wasm_sync::Mutex;
 
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -171,15 +173,15 @@
 
 <span class="doccomment">/// Conversion trait to convert an `Iterator` to a `ParallelIterator`.
 ///
-/// This creates a &quot;bridge&quot; from a sequential iterator to a parallel one, by distributing its items
+/// This creates a "bridge" from a sequential iterator to a parallel one, by distributing its items
 /// across the Rayon thread pool. This has the advantage of being able to parallelize just about
 /// anything, but the resulting `ParallelIterator` can be less efficient than if you started with
 /// `par_iter` instead. However, it can still be useful for iterators that are difficult to
 /// parallelize by other means, like channels or file or network I/O.
 ///
 /// Iterator items are pulled by `next()` one at a time, synchronized from each thread that is
-/// ready for work, so this may become a bottleneck if the serial iterator can&#39;t keep up with the
-/// parallel demand. The items are not buffered by `IterBridge`, so it&#39;s fine to use this with
+/// ready for work, so this may become a bottleneck if the serial iterator can't keep up with the
+/// parallel demand. The items are not buffered by `IterBridge`, so it's fine to use this with
 /// large or even unbounded iterators.
 ///
 /// The resulting iterator is not guaranteed to keep the order of the original iterator.
@@ -197,17 +199,17 @@
 /// let rx = {
 ///     let (tx, rx) = channel();
 ///
-///     tx.send(&quot;one!&quot;);
-///     tx.send(&quot;two!&quot;);
-///     tx.send(&quot;three!&quot;);
+///     tx.send("one!");
+///     tx.send("two!");
+///     tx.send("three!");
 ///
 ///     rx
 /// };
 ///
-/// let mut output: Vec&lt;&amp;&#39;static str&gt; = rx.into_iter().par_bridge().collect();
+/// let mut output: Vec&lt;&amp;'static str&gt; = rx.into_iter().par_bridge().collect();
 /// output.sort_unstable();
 ///
-/// assert_eq!(&amp;*output, &amp;[&quot;one!&quot;, &quot;three!&quot;, &quot;two!&quot;]);
+/// assert_eq!(&amp;*output, &amp;["one!", "three!", "two!"]);
 /// ```
 </span><span class="kw">pub trait </span>ParallelBridge: Sized {
     <span class="doccomment">/// Creates a bridge from this type to a `ParallelIterator`.
@@ -258,13 +260,13 @@
     }
 }
 
-<span class="kw">struct </span>IterParallelProducer&lt;<span class="lifetime">&#39;a</span>, Iter&gt; {
+<span class="kw">struct </span>IterParallelProducer&lt;<span class="lifetime">'a</span>, Iter&gt; {
     split_count: AtomicUsize,
     iter: Mutex&lt;std::iter::Fuse&lt;Iter&gt;&gt;,
-    threads_started: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[AtomicBool],
+    threads_started: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[AtomicBool],
 }
 
-<span class="kw">impl</span>&lt;Iter: Iterator + Send&gt; UnindexedProducer <span class="kw">for </span><span class="kw-2">&amp;</span>IterParallelProducer&lt;<span class="lifetime">&#39;_</span>, Iter&gt; {
+<span class="kw">impl</span>&lt;Iter: Iterator + Send&gt; UnindexedProducer <span class="kw">for </span><span class="kw-2">&amp;</span>IterParallelProducer&lt;<span class="lifetime">'_</span>, Iter&gt; {
     <span class="kw">type </span>Item = Iter::Item;
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
@@ -280,18 +282,18 @@
         </span>F: Folder&lt;<span class="self">Self</span>::Item&gt;,
     {
         <span class="comment">// Guard against work-stealing-induced recursion, in case `Iter::next()`
-        // calls rayon internally, so we don&#39;t deadlock our mutex. We might also
-        // be recursing via `folder` methods, which doesn&#39;t present a mutex hazard,
-        // but it&#39;s lower overhead for us to just check this once, rather than
+        // calls rayon internally, so we don't deadlock our mutex. We might also
+        // be recursing via `folder` methods, which doesn't present a mutex hazard,
+        // but it's lower overhead for us to just check this once, rather than
         // updating additional shared state on every mutex lock/unlock.
-        // (If this isn&#39;t a rayon thread, then there&#39;s no work-stealing anyway...)
+        // (If this isn't a rayon thread, then there's no work-stealing anyway...)
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(i) = current_thread_index() {
             <span class="comment">// Note: If the number of threads in the pool ever grows dynamically, then
-            // we&#39;ll end up sharing flags and may falsely detect recursion -- that&#39;s
+            // we'll end up sharing flags and may falsely detect recursion -- that's
             // still fine for overall correctness, just not optimal for parallelism.
             </span><span class="kw">let </span>thread_started = <span class="kw-2">&amp;</span><span class="self">self</span>.threads_started[i % <span class="self">self</span>.threads_started.len()];
             <span class="kw">if </span>thread_started.swap(<span class="bool-val">true</span>, Ordering::Relaxed) {
-                <span class="comment">// We can&#39;t make progress with a nested mutex, so just return and let
+                <span class="comment">// We can't make progress with a nested mutex, so just return and let
                 // the outermost loop continue with the rest of the iterator items.
                 </span><span class="kw">return </span>folder;
             }

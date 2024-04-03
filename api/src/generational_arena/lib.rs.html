@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/generational-arena-0.2.9/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="generational_arena" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/generational-arena-0.2.9/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="generational_arena" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../generational_arena/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1375,7 +1377,7 @@ A safe arena allocator that allows deletion without suffering from [the ABA
 problem](https://en.wikipedia.org/wiki/ABA_problem) by using generational
 indices.
 
-Inspired by [Catherine West&#39;s closing keynote at RustConf
+Inspired by [Catherine West's closing keynote at RustConf
 2018](https://www.youtube.com/watch?v=aKLntZcp27M), where these ideas (and many
 more!) were presented in the context of an Entity-Component-System for games
 programming.
@@ -1385,20 +1387,20 @@ programming.
 Imagine you are working with a graph and you want to add and delete individual
 nodes at a time, or you are writing a game and its world consists of many
 inter-referencing objects with dynamic lifetimes that depend on user
-input. These are situations where matching Rust&#39;s ownership and lifetime rules
+input. These are situations where matching Rust's ownership and lifetime rules
 can get tricky.
 
-It doesn&#39;t make sense to use shared ownership with interior mutability (i.e.
-`Rc&lt;RefCell&lt;T&gt;&gt;` or `Arc&lt;Mutex&lt;T&gt;&gt;`) nor borrowed references (ie `&amp;&#39;a T` or `&amp;&#39;a
+It doesn't make sense to use shared ownership with interior mutability (i.e.
+`Rc&lt;RefCell&lt;T&gt;&gt;` or `Arc&lt;Mutex&lt;T&gt;&gt;`) nor borrowed references (ie `&amp;'a T` or `&amp;'a
 mut T`) for structures. The cycles rule out reference counted types, and the
 required shared mutability rules out borrows. Furthermore, lifetimes are dynamic
-and don&#39;t follow the borrowed-data-outlives-the-borrower discipline.
+and don't follow the borrowed-data-outlives-the-borrower discipline.
 
 In these situations, it is tempting to store objects in a `Vec&lt;T&gt;` and have them
 reference each other via their indices. No more borrow checker or ownership
 problems! Often, this solution is good enough.
 
-However, now we can&#39;t delete individual items from that `Vec&lt;T&gt;` when we no
+However, now we can't delete individual items from that `Vec&lt;T&gt;` when we no
 longer need them, because we end up either
 
 * messing up the indices of every element that follows the deleted one, or
@@ -1424,7 +1426,7 @@ associating each element in the collection with the generation when it was
 inserted, and getting elements from the collection with the *pair* of index and
 the generation at the time when the element was inserted, then we can solve the
 aforementioned ABA problem. When indexing into the collection, if the index
-pair&#39;s generation does not match the generation of the element at that index,
+pair's generation does not match the generation of the element at that index,
 then the operation fails.
 
 ## Features
@@ -1441,7 +1443,7 @@ First, add `generational-arena` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-generational-arena = &quot;0.2&quot;
+generational-arena = "0.2"
 ```
 
 Then, import the crate and use the
@@ -1454,27 +1456,27 @@ use generational_arena::Arena;
 let mut arena = Arena::new();
 
 // Insert some elements into the arena.
-let rza = arena.insert(&quot;Robert Fitzgerald Diggs&quot;);
-let gza = arena.insert(&quot;Gary Grice&quot;);
-let bill = arena.insert(&quot;Bill Gates&quot;);
+let rza = arena.insert("Robert Fitzgerald Diggs");
+let gza = arena.insert("Gary Grice");
+let bill = arena.insert("Bill Gates");
 
 // Inserted elements can be accessed infallibly via indexing (and missing
 // entries will panic).
-assert_eq!(arena[rza], &quot;Robert Fitzgerald Diggs&quot;);
+assert_eq!(arena[rza], "Robert Fitzgerald Diggs");
 
 // Alternatively, the `get` and `get_mut` methods provide fallible lookup.
 if let Some(genius) = arena.get(gza) {
-    println!(&quot;The gza gza genius: {}&quot;, genius);
+    println!("The gza gza genius: {}", genius);
 }
 if let Some(val) = arena.get_mut(bill) {
-    *val = &quot;Bill Gates doesn&#39;t belong in this set...&quot;;
+    *val = "Bill Gates doesn't belong in this set...";
 }
 
 // We can remove elements.
 arena.remove(bill);
 
 // Insert a new one.
-let murray = arena.insert(&quot;Bill Murray&quot;);
+let murray = arena.insert("Bill Murray");
 
 // The arena does not contain `bill` anymore, but it does contain `murray`, even
 // though they are almost certainly at the same index within the arena in
@@ -1484,26 +1486,26 @@ assert!(arena.contains(murray));
 
 // Iterate over everything inside the arena.
 for (idx, value) in &amp;arena {
-    println!(&quot;{:?} is at {:?}&quot;, value, idx);
+    println!("{:?} is at {:?}", value, idx);
 }
 ```
 
 ## `no_std`
 
-To enable `no_std` compatibility, disable the on-by-default &quot;std&quot; feature.
+To enable `no_std` compatibility, disable the on-by-default "std" feature.
 
 ```toml
 [dependencies]
-generational-arena = { version = &quot;0.2&quot;, default-features = false }
+generational-arena = { version = "0.2", default-features = false }
 ```
 
 ### Serialization and Deserialization with [`serde`](https://crates.io/crates/serde)
 
-To enable serialization/deserialization support, enable the &quot;serde&quot; feature.
+To enable serialization/deserialization support, enable the "serde" feature.
 
 ```toml
 [dependencies]
-generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;] }
+generational-arena = { version = "0.2", features = ["serde"] }
 ```
  */
 
@@ -1511,7 +1513,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 #![no_std]
 
 </span><span class="macro">cfg_if::cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)] </span>{
         <span class="kw">extern crate </span>std;
         <span class="kw">use </span>std::vec::{<span class="self">self</span>, Vec};
     } <span class="kw">else </span>{
@@ -1526,7 +1528,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 <span class="kw">use </span>core::ops;
 <span class="kw">use </span>core::slice;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serde_impl;
 
 <span class="doccomment">/// The `Arena` allows inserting and removing elements that are referred to by
@@ -1587,7 +1589,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// This niche method is useful for converting an `Index` into another
     /// identifier type. Usually, you should prefer a newtype wrapper around
     /// `Index` like `pub struct MyIdentifier(Index);`.  However, for external
-    /// types whose definition you can&#39;t customize, but which you can construct
+    /// types whose definition you can't customize, but which you can construct
     /// instances of, this method can be useful.
     </span><span class="kw">pub fn </span>into_raw_parts(<span class="self">self</span>) -&gt; (usize, u64) {
         (<span class="self">self</span>.index, <span class="self">self</span>.generation)
@@ -1689,7 +1691,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     ///
     /// This method will never allocate new capacity in the arena.
     ///
-    /// If insertion succeeds, then the `value`&#39;s index is returned. If
+    /// If insertion succeeds, then the `value`'s index is returned. If
     /// insertion fails, then `Err(value)` is returned to give ownership of
     /// `value` back to the caller.
     ///
@@ -1726,7 +1728,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 
     <span class="doccomment">/// Attempts to insert the value returned by `create` into the arena using existing capacity.
-    /// `create` is called with the new value&#39;s associated index, allowing values that know their own index.
+    /// `create` is called with the new value's associated index, allowing values that know their own index.
     ///
     /// This method will never allocate new capacity in the arena.
     ///
@@ -1771,7 +1773,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
         <span class="kw">match </span><span class="self">self</span>.free_list_head {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(i) =&gt; <span class="kw">match </span><span class="self">self</span>.items[i] {
-                Entry::Occupied { .. } =&gt; <span class="macro">panic!</span>(<span class="string">&quot;corrupt free list&quot;</span>),
+                Entry::Occupied { .. } =&gt; <span class="macro">panic!</span>(<span class="string">"corrupt free list"</span>),
                 Entry::Free { next_free } =&gt; {
                     <span class="self">self</span>.free_list_head = next_free;
                     <span class="self">self</span>.len += <span class="number">1</span>;
@@ -1786,7 +1788,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 
     <span class="doccomment">/// Insert `value` into the arena, allocating more capacity if necessary.
     ///
-    /// The `value`&#39;s associated index in the arena is returned.
+    /// The `value`'s associated index in the arena is returned.
     ///
     /// # Examples
     ///
@@ -1807,9 +1809,9 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 
     <span class="doccomment">/// Insert the value returned by `create` into the arena, allocating more capacity if necessary.
-    /// `create` is called with the new value&#39;s associated index, allowing values that know their own index.
+    /// `create` is called with the new value's associated index, allowing values that know their own index.
     ///
-    /// The new value&#39;s associated index in the arena is returned.
+    /// The new value's associated index in the arena is returned.
     ///
     /// # Examples
     ///
@@ -1848,7 +1850,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
         <span class="self">self</span>.reserve(len);
         <span class="self">self</span>.try_insert(value)
             .map_err(|<span class="kw">_</span>| ())
-            .expect(<span class="string">&quot;inserting will always succeed after reserving additional space&quot;</span>)
+            .expect(<span class="string">"inserting will always succeed after reserving additional space"</span>)
     }
 
     <span class="attr">#[inline(never)]
@@ -1857,7 +1859,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
         <span class="self">self</span>.reserve(len);
         <span class="self">self</span>.try_insert_with(create)
             .map_err(|<span class="kw">_</span>| ())
-            .expect(<span class="string">&quot;inserting will always succeed after reserving additional space&quot;</span>)
+            .expect(<span class="string">"inserting will always succeed after reserving additional space"</span>)
     }
 
     <span class="doccomment">/// Remove the element at index `i` from the arena.
@@ -1910,12 +1912,12 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// use generational_arena::Arena;
     ///
     /// let mut crew = Arena::new();
-    /// crew.extend(&amp;[&quot;Jim Hawkins&quot;, &quot;John Silver&quot;, &quot;Alexander Smollett&quot;, &quot;Israel Hands&quot;]);
-    /// let pirates = [&quot;John Silver&quot;, &quot;Israel Hands&quot;]; // too dangerous to keep them around
+    /// crew.extend(&amp;["Jim Hawkins", "John Silver", "Alexander Smollett", "Israel Hands"]);
+    /// let pirates = ["John Silver", "Israel Hands"]; // too dangerous to keep them around
     /// crew.retain(|_index, member| !pirates.contains(member));
     /// let mut crew_members = crew.iter().map(|(_, member)| **member);
-    /// assert_eq!(crew_members.next(), Some(&quot;Jim Hawkins&quot;));
-    /// assert_eq!(crew_members.next(), Some(&quot;Alexander Smollett&quot;));
+    /// assert_eq!(crew_members.next(), Some("Jim Hawkins"));
+    /// assert_eq!(crew_members.next(), Some("Alexander Smollett"));
     /// assert!(crew_members.next().is_none());
     /// ```
     </span><span class="kw">pub fn </span>retain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>predicate: <span class="kw">impl </span>FnMut(Index, <span class="kw-2">&amp;mut </span>T) -&gt; bool) {
@@ -2215,7 +2217,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// }
     ///
     /// for (idx, value) in arena.iter() {
-    ///     println!(&quot;{} is at index {:?}&quot;, value, idx);
+    ///     println!("{} is at index {:?}", value, idx);
     /// }
     /// ```
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;T&gt; {
@@ -2266,13 +2268,13 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// use generational_arena::Arena;
     ///
     /// let mut arena = Arena::new();
-    /// let idx_1 = arena.insert(&quot;hello&quot;);
-    /// let idx_2 = arena.insert(&quot;world&quot;);
+    /// let idx_1 = arena.insert("hello");
+    /// let idx_2 = arena.insert("world");
     ///
     /// assert!(arena.get(idx_1).is_some());
     /// assert!(arena.get(idx_2).is_some());
     /// for (idx, value) in arena.drain() {
-    ///     assert!((idx == idx_1 &amp;&amp; value == &quot;hello&quot;) || (idx == idx_2 &amp;&amp; value == &quot;world&quot;));
+    ///     assert!((idx == idx_1 &amp;&amp; value == "hello") || (idx == idx_2 &amp;&amp; value == "world"));
     /// }
     /// assert!(arena.get(idx_1).is_none());
     /// assert!(arena.get(idx_2).is_none());
@@ -2296,7 +2298,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// to the element and the matching `Index` of the entry behind `i`.
     ///
     /// This method is useful when you know there might be an element at the
-    /// position i, but don&#39;t know its generation or precise Index.
+    /// position i, but don't know its generation or precise Index.
     ///
     /// Use cases include using indexing such as Hierarchical BitMap Indexing or
     /// other kinds of bit-efficient indexing.
@@ -2316,7 +2318,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     /// to the element and the matching `Index` of the entry behind `i`.
     ///
     /// This method is useful when you know there might be an element at the
-    /// position i, but don&#39;t know its generation or precise Index.
+    /// position i, but don't know its generation or precise Index.
     ///
     /// Use cases include using indexing such as Hierarchical BitMap Indexing or
     /// other kinds of bit-efficient indexing.
@@ -2420,9 +2422,9 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 
 <span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>IntoIter&lt;T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arena&lt;T&gt; {
-    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Arena&lt;T&gt; {
+    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>, T&gt;;
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.iter()
     }
@@ -2445,17 +2447,17 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 /// }
 ///
 /// for (idx, value) in &amp;arena {
-///     println!(&quot;{} is at index {:?}&quot;, value, idx);
+///     println!("{} is at index {:?}", value, idx);
 /// }
 /// ```
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; {
     len: usize,
-    inner: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;&gt;,
+    inner: iter::Enumerate&lt;slice::Iter&lt;<span class="lifetime">'a</span>, Entry&lt;T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T);
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">loop </span>{
@@ -2485,7 +2487,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.inner.next_back() {
@@ -2510,17 +2512,17 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; FusedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; FusedIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Arena&lt;T&gt; {
-    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
-    <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Arena&lt;T&gt; {
+    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T);
+    <span class="kw">type </span>IntoIter = IterMut&lt;<span class="lifetime">'a</span>, T&gt;;
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.iter_mut()
     }
@@ -2547,13 +2549,13 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 /// }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; {
     len: usize,
-    inner: iter::Enumerate&lt;slice::IterMut&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;&gt;,
+    inner: iter::Enumerate&lt;slice::IterMut&lt;<span class="lifetime">'a</span>, Entry&lt;T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Item = (Index, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">loop </span>{
@@ -2583,7 +2585,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.inner.next_back() {
@@ -2608,13 +2610,13 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; FusedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; FusedIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'a</span>, T&gt; {}
 
 <span class="doccomment">/// An iterator that removes elements from the arena.
 ///
@@ -2630,24 +2632,24 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
 /// use generational_arena::Arena;
 ///
 /// let mut arena = Arena::new();
-/// let idx_1 = arena.insert(&quot;hello&quot;);
-/// let idx_2 = arena.insert(&quot;world&quot;);
+/// let idx_1 = arena.insert("hello");
+/// let idx_2 = arena.insert("world");
 ///
 /// assert!(arena.get(idx_1).is_some());
 /// assert!(arena.get(idx_2).is_some());
 /// for (idx, value) in arena.drain() {
-///     assert!((idx == idx_1 &amp;&amp; value == &quot;hello&quot;) || (idx == idx_2 &amp;&amp; value == &quot;world&quot;));
+///     assert!((idx == idx_1 &amp;&amp; value == "hello") || (idx == idx_2 &amp;&amp; value == "world"));
 /// }
 /// assert!(arena.get(idx_1).is_none());
 /// assert!(arena.get(idx_2).is_none());
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Drain&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>&gt; {
     len: usize,
-    inner: iter::Enumerate&lt;vec::Drain&lt;<span class="lifetime">&#39;a</span>, Entry&lt;T&gt;&gt;&gt;,
+    inner: iter::Enumerate&lt;vec::Drain&lt;<span class="lifetime">'a</span>, Entry&lt;T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>Drain&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Item = (Index, T);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -2672,7 +2674,7 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; DoubleEndedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.inner.next_back() {
@@ -2691,13 +2693,13 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.len
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">&#39;a</span>, T&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; FusedIterator <span class="kw">for </span>Drain&lt;<span class="lifetime">'a</span>, T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; Extend&lt;T&gt; <span class="kw">for </span>Arena&lt;T&gt; {
     <span class="kw">fn </span>extend&lt;I: IntoIterator&lt;Item = T&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: I) {
@@ -2723,13 +2725,13 @@ generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;]
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: Index) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="self">self</span>.get(index).expect(<span class="string">&quot;No element at index&quot;</span>)
+        <span class="self">self</span>.get(index).expect(<span class="string">"No element at index"</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; ops::IndexMut&lt;Index&gt; <span class="kw">for </span>Arena&lt;T&gt; {
     <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: Index) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <span class="self">self</span>.get_mut(index).expect(<span class="string">&quot;No element at index&quot;</span>)
+        <span class="self">self</span>.get_mut(index).expect(<span class="string">"No element at index"</span>)
     }
 }
 </code></pre></div></section></main></body></html>

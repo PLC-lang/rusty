@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_diagnostics/src/diagnostics/diagnostics_registry.rs`."><title>diagnostics_registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_diagnostics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_diagnostics/src/diagnostics/diagnostics_registry.rs`."><title>diagnostics_registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_diagnostics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../plc_diagnostics/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -473,13 +475,13 @@
         }}
 }
 
-<span class="kw">pub struct </span>DiagnosticsRegistry(HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DiagnosticEntry&gt;);
+<span class="kw">pub struct </span>DiagnosticsRegistry(HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DiagnosticEntry&gt;);
 
 <span class="attr">#[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>DiagnosticEntry {
-    code: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    code: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     severity: Severity,
-    description: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    description: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>DiagnosticsRegistry {
@@ -490,7 +492,7 @@
 
 <span class="kw">impl </span>DiagnosticsRegistry {
     <span class="doccomment">/// Creates an empty registry.
-    </span><span class="kw">fn </span>new(map: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DiagnosticEntry&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>new(map: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DiagnosticEntry&gt;) -&gt; <span class="self">Self </span>{
         DiagnosticsRegistry(map)
     }
 
@@ -511,26 +513,26 @@
     /// default diagnostic is returned
     </span><span class="kw">fn </span>assess(<span class="kw-2">&amp;</span><span class="self">self</span>, d: <span class="kw-2">&amp;</span>Diagnostic) -&gt; Severity {
         <span class="self">self</span>.<span class="number">0</span>.get(d.get_error_code()).map(|it| it.severity).unwrap_or_else(|| {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unrecognized error code {}. Using default severity&quot;</span>, d.get_error_code());
+            <span class="macro">log::warn!</span>(<span class="string">"Unrecognized error code {}. Using default severity"</span>, d.get_error_code());
             Severity::default()
         })
     }
 
     <span class="kw">fn </span>explain(<span class="kw-2">&amp;</span><span class="self">self</span>, error: <span class="kw-2">&amp;</span>str) -&gt; String {
         <span class="kw">let </span><span class="prelude-val">Some</span>(info) = <span class="self">self</span>.<span class="number">0</span>.get(error) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;Unknown error {error}&quot;</span>);
+            <span class="kw">return </span><span class="macro">format!</span>(<span class="string">"Unknown error {error}"</span>);
         };
         <span class="macro">format!</span>(
-            <span class="string">r&quot;Explanation for error {error}:
+            <span class="string">r"Explanation for error {error}:
 {}
-&quot;</span>,
+"</span>,
             info.description
         )
     }
 
     <span class="kw">fn </span>get_diagnostic_configuration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span>config: DiagnosticsConfiguration = <span class="self">self</span>.into();
-        serde_json::ser::to_string(<span class="kw-2">&amp;</span>config).expect(<span class="string">&quot;Cannot fail&quot;</span>)
+        serde_json::ser::to_string(<span class="kw-2">&amp;</span>config).expect(<span class="string">"Cannot fail"</span>)
     }
 }
 
@@ -550,292 +552,292 @@
 }
 
 <span class="macro">lazy_static! </span>{
-    <span class="kw">static </span><span class="kw-2">ref </span>DIAGNOSTICS: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, DiagnosticEntry&gt; = <span class="macro">add_diagnostic!</span>(
+    <span class="kw">static </span><span class="kw-2">ref </span>DIAGNOSTICS: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DiagnosticEntry&gt; = <span class="macro">add_diagnostic!</span>(
     E001,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E001.md&quot;</span>), <span class="comment">//General Error
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E001.md"</span>), <span class="comment">//General Error
     </span>E002,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E002.md&quot;</span>), <span class="comment">//General IO Error
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E002.md"</span>), <span class="comment">//General IO Error
     </span>E003,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E003.md&quot;</span>), <span class="comment">//Parameter Error
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E003.md"</span>), <span class="comment">//Parameter Error
     </span>E004,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E004.md&quot;</span>), <span class="comment">//Duplicate Symbol
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E004.md"</span>), <span class="comment">//Duplicate Symbol
     </span>E005,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E005.md&quot;</span>), <span class="comment">//Generic LLVM Error
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E005.md"</span>), <span class="comment">//Generic LLVM Error
     </span>E006,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E006.md&quot;</span>), <span class="comment">//Missing Token
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E006.md"</span>), <span class="comment">//Missing Token
     </span>E007,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E007.md&quot;</span>), <span class="comment">//Unexpected Token
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E007.md"</span>), <span class="comment">//Unexpected Token
     </span>E008,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E008.md&quot;</span>), <span class="comment">//Invalid Range
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E008.md"</span>), <span class="comment">//Invalid Range
     </span>E009,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E009.md&quot;</span>), <span class="comment">//Mismatched Parantheses
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E009.md"</span>), <span class="comment">//Mismatched Parantheses
     </span>E010,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E010.md&quot;</span>), <span class="comment">//Invalid Time Literal
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E010.md"</span>), <span class="comment">//Invalid Time Literal
     </span>E011,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E011.md&quot;</span>), <span class="comment">//Invalid Number
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E011.md"</span>), <span class="comment">//Invalid Number
     </span>E012,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E012.md&quot;</span>), <span class="comment">//Missing Case Condition
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E012.md"</span>), <span class="comment">//Missing Case Condition
     </span>E013,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E013.md&quot;</span>), <span class="comment">//Keywords shoud contain underscores
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E013.md"</span>), <span class="comment">//Keywords shoud contain underscores
     </span>E014,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E014.md&quot;</span>), <span class="comment">//Wrong parantheses type
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E014.md"</span>), <span class="comment">//Wrong parantheses type
     </span>E015,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E015.md&quot;</span>), <span class="comment">//Pointer is not standard
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E015.md"</span>), <span class="comment">//Pointer is not standard
     </span>E016,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E016.md&quot;</span>), <span class="comment">//Return types cannot have a default value
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E016.md"</span>), <span class="comment">//Return types cannot have a default value
     </span>E017,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E017.md&quot;</span>), <span class="comment">//Classes cannot contain implementations
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E017.md"</span>), <span class="comment">//Classes cannot contain implementations
     </span>E018,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E018.md&quot;</span>), <span class="comment">//Duplicate Label
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E018.md"</span>), <span class="comment">//Duplicate Label
     </span>E019,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E019.md&quot;</span>), <span class="comment">//Classes cannot contain IN_OUT variables
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E019.md"</span>), <span class="comment">//Classes cannot contain IN_OUT variables
     </span>E020,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E020.md&quot;</span>), <span class="comment">//Classes cannot contain a return type
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E020.md"</span>), <span class="comment">//Classes cannot contain a return type
     </span>E021,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E021.md&quot;</span>), <span class="comment">//POUs cannot be extended
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E021.md"</span>), <span class="comment">//POUs cannot be extended
     </span>E022,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E022.md&quot;</span>), <span class="comment">//Missing action container
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E022.md"</span>), <span class="comment">//Missing action container
     </span>E023,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E023.md&quot;</span>), <span class="comment">//Statement with no effect
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E023.md"</span>), <span class="comment">//Statement with no effect
     </span>E024,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E024.md&quot;</span>), <span class="comment">//Invalid pragma location
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E024.md"</span>), <span class="comment">//Invalid pragma location
     </span>E025,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E025.md&quot;</span>), <span class="comment">// Missing return type
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E025.md"</span>), <span class="comment">// Missing return type
     </span>E026,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E026.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E026.md"</span>),
     E027,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E027.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E027.md"</span>),
     E028,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E028.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E028.md"</span>),
     E029,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E029.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E029.md"</span>),
     E030,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E030.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E030.md"</span>),
     E031,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E031.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E031.md"</span>),
     E032,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E032.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E032.md"</span>),
     E033,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E033.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E033.md"</span>),
     E034,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E034.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E034.md"</span>),
     E035,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E035.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E035.md"</span>),
     E036,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E036.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E036.md"</span>),
     E037,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E037.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E037.md"</span>),
     E038,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E038.md&quot;</span>), <span class="comment">//Missing type
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E038.md"</span>), <span class="comment">//Missing type
     </span>E039,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E039.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E039.md"</span>),
     E040,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E040.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E040.md"</span>),
     E041,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E041.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E041.md"</span>),
     E042,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E042.md&quot;</span>), <span class="comment">//Assignment to reference
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E042.md"</span>), <span class="comment">//Assignment to reference
     </span>E043,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E043.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E043.md"</span>),
     E044,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E044.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E044.md"</span>),
     E045,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E045.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E045.md"</span>),
     E046,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E046.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E046.md"</span>),
     E047,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E047.md&quot;</span>), <span class="comment">//VLAs are always by reference
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E047.md"</span>), <span class="comment">//VLAs are always by reference
     </span>E048,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E048.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E048.md"</span>),
     E049,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E049.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E049.md"</span>),
     E050,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E050.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E050.md"</span>),
     E051,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E051.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E051.md"</span>),
     E052,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E052.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E052.md"</span>),
     E053,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E053.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E053.md"</span>),
     E054,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E054.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E054.md"</span>),
     E055,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E055.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E055.md"</span>),
     E056,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E056.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E056.md"</span>),
     E057,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E057.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E057.md"</span>),
     E058,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E058.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E058.md"</span>),
     E059,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E059.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E059.md"</span>),
     E060,
     Info,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E060.md&quot;</span>), <span class="comment">//Variable direct access with %
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E060.md"</span>), <span class="comment">//Variable direct access with %
     </span>E061,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E061.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E061.md"</span>),
     E062,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E062.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E062.md"</span>),
     E063,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E063.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E063.md"</span>),
     E064,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E064.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E064.md"</span>),
     E065,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E065.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E065.md"</span>),
     E066,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E066.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E066.md"</span>),
     E067,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E067.md&quot;</span>), <span class="comment">//Implicit typecast
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E067.md"</span>), <span class="comment">//Implicit typecast
     </span>E068,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E068.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E068.md"</span>),
     E069,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E069.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E069.md"</span>),
     E070,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E070.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E070.md"</span>),
     E071,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E071.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E071.md"</span>),
     E072,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E072.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E072.md"</span>),
     E073,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E073.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E073.md"</span>),
     E074,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E074.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E074.md"</span>),
     E075,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E075.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E075.md"</span>),
     E076,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E076.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E076.md"</span>),
     E077,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E077.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E077.md"</span>),
     E078,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E078.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E078.md"</span>),
     E079,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E079.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E079.md"</span>),
     E080,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E080.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E080.md"</span>),
     E081,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E081.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E081.md"</span>),
     E082,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E082.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E082.md"</span>),
     E083,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E083.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E083.md"</span>),
     E084,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E084.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E084.md"</span>),
     E085,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E085.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E085.md"</span>),
     E086,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E086.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E086.md"</span>),
     E087,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E087.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E087.md"</span>),
     E088,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E088.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E088.md"</span>),
     E089,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E089.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E089.md"</span>),
     E090,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E090.md&quot;</span>), <span class="comment">//Incompatible reference Assignment
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E090.md"</span>), <span class="comment">//Incompatible reference Assignment
     </span>E091,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E091.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E091.md"</span>),
     E092,
     Info,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E092.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E092.md"</span>),
     E093,
     Warning,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E093.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E093.md"</span>),
     E094,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E094.md&quot;</span>),
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E094.md"</span>),
     E095,
     Error,
-    <span class="macro">include_str!</span>(<span class="string">&quot;./error_codes/E095.md&quot;</span>), <span class="comment">// Action call without `()`
+    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E095.md"</span>), <span class="comment">// Action call without `()`
 </span>);
 }
 
@@ -850,7 +852,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>deserialize_empty_json() {
-        <span class="kw">let </span>error_config = <span class="string">&quot;{}&quot;</span>;
+        <span class="kw">let </span>error_config = <span class="string">"{}"</span>;
 
         <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
         <span class="macro">assert!</span>(configuration.is_empty());
@@ -858,37 +860,37 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>deserialize_json() {
-        <span class="kw">let </span>error_config = <span class="string">r#&quot;{
-            &quot;error&quot;: [&quot;E001&quot;, &quot;E002&quot;],
-            &quot;warning&quot;: [&quot;E003&quot;, &quot;E004&quot;],
-            &quot;info&quot;: [&quot;E005&quot;],
-            &quot;ignore&quot;: [&quot;E010&quot;]
-        }&quot;#</span>;
+        <span class="kw">let </span>error_config = <span class="string">r#"{
+            "error": ["E001", "E002"],
+            "warning": ["E003", "E004"],
+            "info": ["E005"],
+            "ignore": ["E010"]
+        }"#</span>;
 
         <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
         <span class="macro">assert_eq!</span>(configuration.len(), <span class="number">4</span>);
-        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Error).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">&quot;E001&quot;</span>, <span class="string">&quot;E002&quot;</span>]);
-        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Warning).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">&quot;E003&quot;</span>, <span class="string">&quot;E004&quot;</span>]);
-        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Info).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">&quot;E005&quot;</span>]);
-        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Ignore).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">&quot;E010&quot;</span>]);
+        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Error).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E001"</span>, <span class="string">"E002"</span>]);
+        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Warning).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E003"</span>, <span class="string">"E004"</span>]);
+        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Info).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E005"</span>]);
+        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Ignore).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E010"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>overridden_errors_are_assessed_correctly() {
-        <span class="kw">let </span>error_config = <span class="string">r#&quot;{
-            &quot;error&quot;: [&quot;E090&quot;],
-            &quot;warning&quot;: [&quot;E001&quot;],
-            &quot;info&quot;: [&quot;E002&quot;],
-            &quot;ignore&quot;: [&quot;E003&quot;]
-        }&quot;#</span>;
+        <span class="kw">let </span>error_config = <span class="string">r#"{
+            "error": ["E090"],
+            "warning": ["E001"],
+            "info": ["E002"],
+            "ignore": ["E003"]
+        }"#</span>;
 
         <span class="kw">let </span>configuration = serde_json::de::from_str(error_config).unwrap();
         <span class="kw">let </span>diagnostics_registry = DiagnosticsRegistry::default().with_configuration(configuration);
 
-        <span class="kw">let </span>e090 = Diagnostic::new(<span class="string">&quot;Warning-&gt;Error&quot;</span>).with_error_code(<span class="string">&quot;E090&quot;</span>);
-        <span class="kw">let </span>e001 = Diagnostic::new(<span class="string">&quot;Error-&gt;Warning&quot;</span>).with_error_code(<span class="string">&quot;E001&quot;</span>);
-        <span class="kw">let </span>e002 = Diagnostic::new(<span class="string">&quot;Error-&gt;Info&quot;</span>).with_error_code(<span class="string">&quot;E002&quot;</span>);
-        <span class="kw">let </span>e003 = Diagnostic::new(<span class="string">&quot;Error-&gt;Ignore&quot;</span>).with_error_code(<span class="string">&quot;E003&quot;</span>);
+        <span class="kw">let </span>e090 = Diagnostic::new(<span class="string">"Warning-&gt;Error"</span>).with_error_code(<span class="string">"E090"</span>);
+        <span class="kw">let </span>e001 = Diagnostic::new(<span class="string">"Error-&gt;Warning"</span>).with_error_code(<span class="string">"E001"</span>);
+        <span class="kw">let </span>e002 = Diagnostic::new(<span class="string">"Error-&gt;Info"</span>).with_error_code(<span class="string">"E002"</span>);
+        <span class="kw">let </span>e003 = Diagnostic::new(<span class="string">"Error-&gt;Ignore"</span>).with_error_code(<span class="string">"E003"</span>);
 
         <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e090), Severity::Error);
         <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e001), Severity::Warning);

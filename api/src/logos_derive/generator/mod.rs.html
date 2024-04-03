@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/generator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../logos_derive/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos_derive"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/generator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../logos_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -281,15 +283,15 @@
 <span class="kw">use </span><span class="self">self</span>::context::Context;
 <span class="kw">use </span><span class="self">self</span>::tables::TableStack;
 
-<span class="kw">pub struct </span>Generator&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">pub struct </span>Generator&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Name of the type we are implementing the `Logos` trait for
-    </span>name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ident,
+    </span>name: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ident,
     <span class="doccomment">/// Name of the type with any generics it might need
-    </span>this: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TokenStream,
+    </span>this: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TokenStream,
     <span class="doccomment">/// Id to the root node
     </span>root: NodeId,
     <span class="doccomment">/// Reference to the graph with all of the nodes
-    </span>graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Graph&lt;Leaf&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span>graph: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Graph&lt;Leaf&lt;<span class="lifetime">'a</span>&gt;&gt;,
     <span class="doccomment">/// Meta data collected for the nodes
     </span>meta: Meta,
     <span class="doccomment">/// Buffer with functions growing during generation
@@ -299,7 +301,7 @@
     <span class="doccomment">/// Function name identifiers
     </span>idents: Map&lt;(NodeId, Context), Ident&gt;,
     <span class="doccomment">/// Local function calls. Note: a call might change its context,
-    /// so we can&#39;t use `idents` for this purpose.
+    /// so we can't use `idents` for this purpose.
     </span>gotos: Map&lt;(NodeId, Context), TokenStream&gt;,
     <span class="doccomment">/// Identifiers for helper functions matching a byte to a given
     /// set of ranges
@@ -308,12 +310,12 @@
     </span>tables: TableStack,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Generator&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Generator&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub fn </span>new(
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ident,
-        this: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TokenStream,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ident,
+        this: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TokenStream,
         root: NodeId,
-        graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Graph&lt;Leaf&gt;,
+        graph: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Graph&lt;Leaf&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>rendered = <span class="self">Self</span>::fast_loop_macro();
         <span class="kw">let </span>meta = Meta::analyze(root, graph);
@@ -359,7 +361,7 @@
         <span class="kw">let </span>ident = <span class="self">self</span>.generate_ident(id, ctx);
         <span class="kw">let </span>out = <span class="macro">quote! </span>{
             <span class="attr">#[inline]
-            </span><span class="kw">fn </span>#ident&lt;<span class="lifetime">&#39;s</span>&gt;(lex: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">&#39;s</span>&gt;) {
+            </span><span class="kw">fn </span>#ident&lt;<span class="lifetime">'s</span>&gt;(lex: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">'s</span>&gt;) {
                 #body
             }
         };
@@ -408,7 +410,7 @@
 
     <span class="kw">fn </span>generate_ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: NodeId, ctx: Context) -&gt; <span class="kw-2">&amp;</span>Ident {
         <span class="self">self</span>.idents.entry((id, ctx)).or_insert_with(|| {
-            <span class="kw">let </span><span class="kw-2">mut </span>ident = <span class="macro">format!</span>(<span class="string">&quot;goto{}&quot;</span>, id);
+            <span class="kw">let </span><span class="kw-2">mut </span>ident = <span class="macro">format!</span>(<span class="string">"goto{}"</span>, id);
 
             ctx.write_suffix(<span class="kw-2">&amp;mut </span>ident);
 
@@ -422,7 +424,7 @@
     </span><span class="kw">fn </span>generate_test(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ranges: Vec&lt;Range&gt;) -&gt; <span class="kw-2">&amp;</span>Ident {
         <span class="kw">if </span>!<span class="self">self</span>.tests.contains_key(<span class="kw-2">&amp;</span>ranges) {
             <span class="kw">let </span>idx = <span class="self">self</span>.tests.len();
-            <span class="kw">let </span>ident = <span class="macro">format!</span>(<span class="string">&quot;pattern{}&quot;</span>, idx).to_ident();
+            <span class="kw">let </span>ident = <span class="macro">format!</span>(<span class="string">"pattern{}"</span>, idx).to_ident();
 
             <span class="kw">let </span>lo = ranges.first().unwrap().start;
             <span class="kw">let </span>hi = ranges.last().unwrap().end;
@@ -447,7 +449,7 @@
 
                     <span class="kw">for </span>byte <span class="kw">in </span>ranges.iter().flat_map(|range| <span class="kw-2">*</span>range) {
                         <span class="kw">if </span>byte - offset &gt;= <span class="number">64 </span>{
-                            <span class="macro">panic!</span>(<span class="string">&quot;{:#?} {} {} {}&quot;</span>, ranges, hi, lo, offset);
+                            <span class="macro">panic!</span>(<span class="string">"{:#?} {} {} {}"</span>, ranges, hi, lo, offset);
                         }
                         table |= <span class="number">1 </span>&lt;&lt; (byte - offset);
                     }
@@ -503,16 +505,16 @@
 <span class="kw">fn </span>byte_to_tokens(byte: u8) -&gt; TokenStream {
     <span class="macro">match_quote! </span>{
         byte;
-        <span class="string">b&#39;0&#39;</span>, <span class="string">b&#39;1&#39;</span>, <span class="string">b&#39;2&#39;</span>, <span class="string">b&#39;3&#39;</span>, <span class="string">b&#39;4&#39;</span>, <span class="string">b&#39;5&#39;</span>, <span class="string">b&#39;6&#39;</span>, <span class="string">b&#39;7&#39;</span>, <span class="string">b&#39;8&#39;</span>, <span class="string">b&#39;9&#39;</span>,
-        <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;d&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;f&#39;</span>, <span class="string">b&#39;g&#39;</span>, <span class="string">b&#39;h&#39;</span>, <span class="string">b&#39;i&#39;</span>, <span class="string">b&#39;j&#39;</span>,
-        <span class="string">b&#39;k&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;n&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;q&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="string">b&#39;s&#39;</span>, <span class="string">b&#39;t&#39;</span>,
-        <span class="string">b&#39;u&#39;</span>, <span class="string">b&#39;v&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;y&#39;</span>, <span class="string">b&#39;z&#39;</span>,
-        <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;F&#39;</span>, <span class="string">b&#39;G&#39;</span>, <span class="string">b&#39;H&#39;</span>, <span class="string">b&#39;I&#39;</span>, <span class="string">b&#39;J&#39;</span>,
-        <span class="string">b&#39;K&#39;</span>, <span class="string">b&#39;L&#39;</span>, <span class="string">b&#39;M&#39;</span>, <span class="string">b&#39;N&#39;</span>, <span class="string">b&#39;O&#39;</span>, <span class="string">b&#39;P&#39;</span>, <span class="string">b&#39;Q&#39;</span>, <span class="string">b&#39;R&#39;</span>, <span class="string">b&#39;S&#39;</span>, <span class="string">b&#39;T&#39;</span>,
-        <span class="string">b&#39;U&#39;</span>, <span class="string">b&#39;V&#39;</span>, <span class="string">b&#39;W&#39;</span>, <span class="string">b&#39;X&#39;</span>, <span class="string">b&#39;Y&#39;</span>, <span class="string">b&#39;Z&#39;</span>,
-        <span class="string">b&#39;!&#39;</span>, <span class="string">b&#39;@&#39;</span>, <span class="string">b&#39;#&#39;</span>, <span class="string">b&#39;$&#39;</span>, <span class="string">b&#39;%&#39;</span>, <span class="string">b&#39;^&#39;</span>, <span class="string">b&#39;&amp;&#39;</span>, <span class="string">b&#39;*&#39;</span>, <span class="string">b&#39;(&#39;</span>, <span class="string">b&#39;)&#39;</span>,
-        <span class="string">b&#39;{&#39;</span>, <span class="string">b&#39;}&#39;</span>, <span class="string">b&#39;[&#39;</span>, <span class="string">b&#39;]&#39;</span>, <span class="string">b&#39;&lt;&#39;</span>, <span class="string">b&#39;&gt;&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;=&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;+&#39;</span>,
-        <span class="string">b&#39;:&#39;</span>, <span class="string">b&#39;;&#39;</span>, <span class="string">b&#39;,&#39;</span>, <span class="string">b&#39;.&#39;</span>, <span class="string">b&#39;/&#39;</span>, <span class="string">b&#39;?&#39;</span>, <span class="string">b&#39;|&#39;</span>, <span class="string">b&#39;&quot;&#39;</span>, <span class="string">b&#39;\&#39;&#39;</span>, <span class="string">b&#39;\\&#39;</span>,
+        <span class="string">b'0'</span>, <span class="string">b'1'</span>, <span class="string">b'2'</span>, <span class="string">b'3'</span>, <span class="string">b'4'</span>, <span class="string">b'5'</span>, <span class="string">b'6'</span>, <span class="string">b'7'</span>, <span class="string">b'8'</span>, <span class="string">b'9'</span>,
+        <span class="string">b'a'</span>, <span class="string">b'b'</span>, <span class="string">b'c'</span>, <span class="string">b'd'</span>, <span class="string">b'e'</span>, <span class="string">b'f'</span>, <span class="string">b'g'</span>, <span class="string">b'h'</span>, <span class="string">b'i'</span>, <span class="string">b'j'</span>,
+        <span class="string">b'k'</span>, <span class="string">b'l'</span>, <span class="string">b'm'</span>, <span class="string">b'n'</span>, <span class="string">b'o'</span>, <span class="string">b'p'</span>, <span class="string">b'q'</span>, <span class="string">b'r'</span>, <span class="string">b's'</span>, <span class="string">b't'</span>,
+        <span class="string">b'u'</span>, <span class="string">b'v'</span>, <span class="string">b'w'</span>, <span class="string">b'x'</span>, <span class="string">b'y'</span>, <span class="string">b'z'</span>,
+        <span class="string">b'A'</span>, <span class="string">b'B'</span>, <span class="string">b'C'</span>, <span class="string">b'D'</span>, <span class="string">b'E'</span>, <span class="string">b'F'</span>, <span class="string">b'G'</span>, <span class="string">b'H'</span>, <span class="string">b'I'</span>, <span class="string">b'J'</span>,
+        <span class="string">b'K'</span>, <span class="string">b'L'</span>, <span class="string">b'M'</span>, <span class="string">b'N'</span>, <span class="string">b'O'</span>, <span class="string">b'P'</span>, <span class="string">b'Q'</span>, <span class="string">b'R'</span>, <span class="string">b'S'</span>, <span class="string">b'T'</span>,
+        <span class="string">b'U'</span>, <span class="string">b'V'</span>, <span class="string">b'W'</span>, <span class="string">b'X'</span>, <span class="string">b'Y'</span>, <span class="string">b'Z'</span>,
+        <span class="string">b'!'</span>, <span class="string">b'@'</span>, <span class="string">b'#'</span>, <span class="string">b'$'</span>, <span class="string">b'%'</span>, <span class="string">b'^'</span>, <span class="string">b'&amp;'</span>, <span class="string">b'*'</span>, <span class="string">b'('</span>, <span class="string">b')'</span>,
+        <span class="string">b'{'</span>, <span class="string">b'}'</span>, <span class="string">b'['</span>, <span class="string">b']'</span>, <span class="string">b'&lt;'</span>, <span class="string">b'&gt;'</span>, <span class="string">b'-'</span>, <span class="string">b'='</span>, <span class="string">b'_'</span>, <span class="string">b'+'</span>,
+        <span class="string">b':'</span>, <span class="string">b';'</span>, <span class="string">b','</span>, <span class="string">b'.'</span>, <span class="string">b'/'</span>, <span class="string">b'?'</span>, <span class="string">b'|'</span>, <span class="string">b'"'</span>, <span class="string">b'\''</span>, <span class="string">b'\\'</span>,
     }
 }
 

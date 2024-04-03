@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/bigint.rs`."><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/bigint.rs`."><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../num_bigint/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1201,13 +1203,13 @@
 <span class="kw">mod </span>power;
 <span class="kw">mod </span>shift;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;quickcheck&quot;</span>, feature = <span class="string">&quot;arbitrary&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"quickcheck"</span>, feature = <span class="string">"arbitrary"</span>))]
 </span><span class="kw">mod </span>arbitrary;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serde;
 
-<span class="doccomment">/// A `Sign` is a [`BigInt`]&#39;s composing element.
+<span class="doccomment">/// A `Sign` is a [`BigInt`]'s composing element.
 </span><span class="attr">#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Debug, Hash)]
 </span><span class="kw">pub enum </span>Sign {
     Minus,
@@ -1235,7 +1237,7 @@
     data: BigUint,
 }
 
-<span class="comment">// Note: derived `Clone` doesn&#39;t specialize `clone_from`,
+<span class="comment">// Note: derived `Clone` doesn't specialize `clone_from`,
 // but we want to keep the allocation in `data`.
 </span><span class="kw">impl </span>Clone <span class="kw">for </span>BigInt {
     <span class="attr">#[inline]
@@ -1308,40 +1310,40 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         fmt::Display::fmt(<span class="self">self</span>, f)
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">10</span>))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">""</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">10</span>))
     }
 }
 
 <span class="kw">impl </span>fmt::Binary <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">&quot;0b&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">2</span>))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">"0b"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">2</span>))
     }
 }
 
 <span class="kw">impl </span>fmt::Octal <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">&quot;0o&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">8</span>))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">"0o"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">8</span>))
     }
 }
 
 <span class="kw">impl </span>fmt::LowerHex <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">&quot;0x&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">16</span>))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">"0x"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data.to_str_radix(<span class="number">16</span>))
     }
 }
 
 <span class="kw">impl </span>fmt::UpperHex <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="self">self</span>.data.to_str_radix(<span class="number">16</span>);
         s.make_ascii_uppercase();
-        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">&quot;0x&quot;</span>, <span class="kw-2">&amp;</span>s)
+        f.pad_integral(!<span class="self">self</span>.is_negative(), <span class="string">"0x"</span>, <span class="kw-2">&amp;</span>s)
     }
 }
 
@@ -1685,7 +1687,7 @@
     <span class="kw">fn </span>nth_root(<span class="kw-2">&amp;</span><span class="self">self</span>, n: u32) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(
             !(<span class="self">self</span>.is_negative() &amp;&amp; n.is_even()),
-            <span class="string">&quot;root of degree {} is imaginary&quot;</span>,
+            <span class="string">"root of degree {} is imaginary"</span>,
             n
         );
 
@@ -1693,7 +1695,7 @@
     }
 
     <span class="kw">fn </span>sqrt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">assert!</span>(!<span class="self">self</span>.is_negative(), <span class="string">&quot;square root is imaginary&quot;</span>);
+        <span class="macro">assert!</span>(!<span class="self">self</span>.is_negative(), <span class="string">"square root is imaginary"</span>);
 
         BigInt::from_biguint(<span class="self">self</span>.sign, <span class="self">self</span>.data.sqrt())
     }
@@ -1790,14 +1792,14 @@
     /// ```
     /// use num_bigint::{BigInt, Sign};
     ///
-    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b&quot;A&quot;),
-    ///            BigInt::parse_bytes(b&quot;65&quot;, 10).unwrap());
-    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b&quot;AA&quot;),
-    ///            BigInt::parse_bytes(b&quot;16705&quot;, 10).unwrap());
-    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b&quot;AB&quot;),
-    ///            BigInt::parse_bytes(b&quot;16706&quot;, 10).unwrap());
-    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b&quot;Hello world!&quot;),
-    ///            BigInt::parse_bytes(b&quot;22405534230753963835153736737&quot;, 10).unwrap());
+    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b"A"),
+    ///            BigInt::parse_bytes(b"65", 10).unwrap());
+    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b"AA"),
+    ///            BigInt::parse_bytes(b"16705", 10).unwrap());
+    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b"AB"),
+    ///            BigInt::parse_bytes(b"16706", 10).unwrap());
+    /// assert_eq!(BigInt::from_bytes_be(Sign::Plus, b"Hello world!"),
+    ///            BigInt::parse_bytes(b"22405534230753963835153736737", 10).unwrap());
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_bytes_be(sign: Sign, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; BigInt {
@@ -1813,7 +1815,7 @@
     }
 
     <span class="doccomment">/// Creates and initializes a [`BigInt`] from an array of bytes in
-    /// two&#39;s complement binary representation.
+    /// two's complement binary representation.
     ///
     /// The digits are in big-endian base 2&lt;sup&gt;8&lt;/sup&gt;.
     </span><span class="attr">#[inline]
@@ -1821,7 +1823,7 @@
         convert::from_signed_bytes_be(digits)
     }
 
-    <span class="doccomment">/// Creates and initializes a [`BigInt`] from an array of bytes in two&#39;s complement.
+    <span class="doccomment">/// Creates and initializes a [`BigInt`] from an array of bytes in two's complement.
     ///
     /// The digits are in little-endian base 2&lt;sup&gt;8&lt;/sup&gt;.
     </span><span class="attr">#[inline]
@@ -1836,9 +1838,9 @@
     /// ```
     /// use num_bigint::{BigInt, ToBigInt};
     ///
-    /// assert_eq!(BigInt::parse_bytes(b&quot;1234&quot;, 10), ToBigInt::to_bigint(&amp;1234));
-    /// assert_eq!(BigInt::parse_bytes(b&quot;ABCD&quot;, 16), ToBigInt::to_bigint(&amp;0xABCD));
-    /// assert_eq!(BigInt::parse_bytes(b&quot;G&quot;, 16), None);
+    /// assert_eq!(BigInt::parse_bytes(b"1234", 10), ToBigInt::to_bigint(&amp;1234));
+    /// assert_eq!(BigInt::parse_bytes(b"ABCD", 16), ToBigInt::to_bigint(&amp;0xABCD));
+    /// assert_eq!(BigInt::parse_bytes(b"G", 16), None);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>parse_bytes(buf: <span class="kw-2">&amp;</span>[u8], radix: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BigInt&gt; {
@@ -1972,7 +1974,7 @@
     /// assert_eq!(BigInt::from(112500000000i64).iter_u32_digits().collect::&lt;Vec&lt;u32&gt;&gt;(), vec![830850304, 26]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter_u32_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; U32Digits&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter_u32_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; U32Digits&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.data.iter_u32_digits()
     }
 
@@ -1992,11 +1994,11 @@
     /// assert_eq!(BigInt::from(1u128 &lt;&lt; 64).iter_u64_digits().collect::&lt;Vec&lt;u64&gt;&gt;(), vec![0, 1]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter_u64_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; U64Digits&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter_u64_digits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; U64Digits&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.data.iter_u64_digits()
     }
 
-    <span class="doccomment">/// Returns the two&#39;s-complement byte representation of the [`BigInt`] in big-endian byte order.
+    <span class="doccomment">/// Returns the two's-complement byte representation of the [`BigInt`] in big-endian byte order.
     ///
     /// # Examples
     ///
@@ -2011,7 +2013,7 @@
         convert::to_signed_bytes_be(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Returns the two&#39;s-complement byte representation of the [`BigInt`] in little-endian byte order.
+    <span class="doccomment">/// Returns the two's-complement byte representation of the [`BigInt`] in little-endian byte order.
     ///
     /// # Examples
     ///
@@ -2034,15 +2036,15 @@
     /// ```
     /// use num_bigint::BigInt;
     ///
-    /// let i = BigInt::parse_bytes(b&quot;ff&quot;, 16).unwrap();
-    /// assert_eq!(i.to_str_radix(16), &quot;ff&quot;);
+    /// let i = BigInt::parse_bytes(b"ff", 16).unwrap();
+    /// assert_eq!(i.to_str_radix(16), "ff");
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>to_str_radix(<span class="kw-2">&amp;</span><span class="self">self</span>, radix: u32) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>v = to_str_radix_reversed(<span class="kw-2">&amp;</span><span class="self">self</span>.data, radix);
 
         <span class="kw">if </span><span class="self">self</span>.is_negative() {
-            v.push(<span class="string">b&#39;-&#39;</span>);
+            v.push(<span class="string">b'-'</span>);
         }
 
         v.reverse();
@@ -2146,7 +2148,7 @@
         <span class="self">self</span>.data.bits()
     }
 
-    <span class="doccomment">/// Converts this [`BigInt`] into a [`BigUint`], if it&#39;s not negative.
+    <span class="doccomment">/// Converts this [`BigInt`] into a [`BigUint`], if it's not negative.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>to_biguint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BigUint&gt; {
         <span class="kw">match </span><span class="self">self</span>.sign {
@@ -2221,12 +2223,12 @@
     }
 
     <span class="doccomment">/// Returns whether the bit in position `bit` is set,
-    /// using the two&#39;s complement for negative numbers
+    /// using the two's complement for negative numbers
     </span><span class="kw">pub fn </span>bit(<span class="kw-2">&amp;</span><span class="self">self</span>, bit: u64) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.is_negative() {
             <span class="comment">// Let the binary representation of a number be
             //   ... 0  x 1 0 ... 0
-            // Then the two&#39;s complement is
+            // Then the two's complement is
             //   ... 1 !x 1 0 ... 0
             // where !x is obtained from x by flipping each bit
             </span><span class="kw">if </span>bit &gt;= u64::from(<span class="kw">crate</span>::big_digit::BITS) * <span class="self">self</span>.len() <span class="kw">as </span>u64 {
@@ -2245,7 +2247,7 @@
     }
 
     <span class="doccomment">/// Sets or clears the bit in the given position,
-    /// using the two&#39;s complement for negative numbers
+    /// using the two's complement for negative numbers
     ///
     /// Note that setting/clearing a bit (for positive/negative numbers,
     /// respectively) greater than the current bit length, a reallocation

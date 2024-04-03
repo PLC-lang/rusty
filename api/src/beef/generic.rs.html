@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/beef-0.5.2/src/generic.rs`."><title>generic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="beef" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/beef-0.5.2/src/generic.rs`."><title>generic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="beef" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../beef/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -564,7 +566,7 @@
 <span class="kw">use </span>core::mem::ManuallyDrop;
 <span class="kw">use </span>core::ptr::NonNull;
 
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lean::internal::Lean;
 <span class="kw">use </span><span class="kw">crate</span>::traits::{Beef, Capacity};
 <span class="kw">use </span><span class="kw">crate</span>::wide::internal::Wide;
@@ -572,7 +574,7 @@
 <span class="doccomment">/// A clone-on-write smart pointer, mostly compatible with [`std::borrow::Cow`](https://doc.rust-lang.org/std/borrow/enum.Cow.html).
 ///
 /// This type is using a generic `U: Capacity`. Use either [`beef::Cow`](../type.Cow.html) or [`beef::lean::Cow`](../lean/type.Cow.html) in your code.
-</span><span class="kw">pub struct </span>Cow&lt;<span class="lifetime">&#39;a</span>, T: Beef + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;a</span>, U: Capacity&gt; {
+</span><span class="kw">pub struct </span>Cow&lt;<span class="lifetime">'a</span>, T: Beef + <span class="question-mark">?</span>Sized + <span class="lifetime">'a</span>, U: Capacity&gt; {
     <span class="doccomment">/// Pointer to data
     </span>ptr: NonNull&lt;T::PointerT&gt;,
 
@@ -585,10 +587,10 @@
     </span>cap: U::Field,
 
     <span class="doccomment">/// Lifetime marker
-    </span>marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
+    </span>marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -600,7 +602,7 @@
     /// ```rust
     /// use beef::Cow;
     ///
-    /// let owned: Cow&lt;str&gt; = Cow::owned(&quot;I own my content&quot;.to_string());
+    /// let owned: Cow&lt;str&gt; = Cow::owned("I own my content".to_string());
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>owned(val: T::Owned) -&gt; <span class="self">Self </span>{
@@ -615,7 +617,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; Cow&lt;<span class="lifetime">'a</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -627,10 +629,10 @@
     /// ```rust
     /// use beef::Cow;
     ///
-    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed(&quot;I&#39;m just a borrow&quot;);
+    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed("I'm just a borrow");
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>borrowed(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>borrowed(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(ptr, fat, cap) = T::ref_into_parts::&lt;U&gt;(val);
 
         Cow {
@@ -658,9 +660,9 @@
     ///
     /// Panics: If the data is owned.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>unwrap_borrowed(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T {
+    </span><span class="kw">pub fn </span>unwrap_borrowed(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T {
         <span class="kw">if </span><span class="self">self</span>.capacity().is_some() {
-            <span class="macro">panic!</span>(<span class="string">&quot;Can not turn owned beef::Cow into a borrowed value&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"Can not turn owned beef::Cow into a borrowed value"</span>)
         }
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>T::ref_from_parts::&lt;U&gt;(<span class="self">self</span>.ptr, <span class="self">self</span>.fat) }
     }
@@ -672,9 +674,9 @@
     /// ```rust
     /// use beef::Cow;
     ///
-    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed(&quot;Borrowed&quot;);
+    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed("Borrowed");
     /// let no_capacity: Cow&lt;str&gt; = Cow::owned(String::new());
-    /// let owned: Cow&lt;str&gt; = Cow::owned(String::from(&quot;Owned&quot;));
+    /// let owned: Cow&lt;str&gt; = Cow::owned(String::from("Owned"));
     ///
     /// assert_eq!(borrowed.is_borrowed(), true);
     /// assert_eq!(no_capacity.is_borrowed(), true);
@@ -692,9 +694,9 @@
     /// ```rust
     /// use beef::Cow;
     ///
-    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed(&quot;Borrowed&quot;);
+    /// let borrowed: Cow&lt;str&gt; = Cow::borrowed("Borrowed");
     /// let no_capacity: Cow&lt;str&gt; = Cow::owned(String::new());
-    /// let owned: Cow&lt;str&gt; = Cow::owned(String::from(&quot;Owned&quot;));
+    /// let owned: Cow&lt;str&gt; = Cow::owned(String::from("Owned"));
     ///
     /// assert_eq!(borrowed.is_owned(), false);
     /// assert_eq!(no_capacity.is_owned(), false);
@@ -717,7 +719,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str, Wide&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Cow&lt;<span class="lifetime">'a</span>, str, Wide&gt; {
     <span class="doccomment">/// Borrowed data.
     ///
     /// This is functionally identical to [`borrow`](./generic/struct.Cow.html#method.borrow).
@@ -728,9 +730,9 @@
     /// ```rust
     /// use beef::Cow;
     ///
-    /// const HELLO: Cow&lt;str&gt; = Cow::const_str(&quot;Hello&quot;);
+    /// const HELLO: Cow&lt;str&gt; = Cow::const_str("Hello");
     /// ```
-    </span><span class="kw">pub const fn </span>const_str(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>const_str(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         Cow {
             <span class="comment">// We are casting *const T to *mut T, however for all borrowed values
             // this raw pointer is only ever dereferenced back to &amp;T.
@@ -742,8 +744,8 @@
     }
 }
 
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str, Lean&gt; {
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Cow&lt;<span class="lifetime">'a</span>, str, Lean&gt; {
     <span class="doccomment">/// Borrowed data.
     ///
     /// This is functionally identical to [`borrow`](./generic/struct.Cow.html#method.borrow).
@@ -754,9 +756,9 @@
     /// ```rust
     /// use beef::lean::Cow;
     ///
-    /// const HELLO: Cow&lt;str&gt; = Cow::const_str(&quot;Hello&quot;);
+    /// const HELLO: Cow&lt;str&gt; = Cow::const_str("Hello");
     /// ```
-    </span><span class="kw">pub const fn </span>const_str(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>const_str(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         Cow {
             <span class="comment">// We are casting *const T to *mut T, however for all borrowed values
             // this raw pointer is only ever dereferenced back to &amp;T.
@@ -770,8 +772,8 @@
 
 <span class="comment">// This requires nightly:
 // https://github.com/rust-lang/rust/issues/57563
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;const_fn&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [T], Wide&gt;
+</span><span class="attr">#[cfg(feature = <span class="string">"const_fn"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Cow&lt;<span class="lifetime">'a</span>, [T], Wide&gt;
 <span class="kw">where
     </span>T: Clone,
 {
@@ -787,7 +789,7 @@
     ///
     /// const HELLO: Cow&lt;[u8]&gt; = Cow::const_slice(&amp;[1, 2, 3]);
     /// ```
-    </span><span class="kw">pub const fn </span>const_slice(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>const_slice(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]) -&gt; <span class="self">Self </span>{
         Cow {
             <span class="comment">// We are casting *const T to *mut T, however for all borrowed values
             // this raw pointer is only ever dereferenced back to &amp;T.
@@ -801,8 +803,8 @@
 
 <span class="comment">// This requires nightly:
 // https://github.com/rust-lang/rust/issues/57563
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;const_fn&quot;</span>, target_pointer_width = <span class="string">&quot;64&quot;</span>))]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Cow&lt;<span class="lifetime">&#39;a</span>, [T], Lean&gt;
+</span><span class="attr">#[cfg(all(feature = <span class="string">"const_fn"</span>, target_pointer_width = <span class="string">"64"</span>))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Cow&lt;<span class="lifetime">'a</span>, [T], Lean&gt;
 <span class="kw">where
     </span>T: Clone,
 {
@@ -818,7 +820,7 @@
     ///
     /// const HELLO: Cow&lt;[u8]&gt; = Cow::const_slice(&amp;[1, 2, 3]);
     /// ```
-    </span><span class="kw">pub const fn </span>const_slice(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>const_slice(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]) -&gt; <span class="self">Self </span>{
         Cow {
             <span class="comment">// We are casting *const T to *mut T, however for all borrowed values
             // this raw pointer is only ever dereferenced back to &amp;T.
@@ -830,7 +832,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Hash <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Hash <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Hash + Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -841,11 +843,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; Default <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; Default <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T: Default,
+    <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T: Default,
 {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -853,14 +855,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Eq <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Eq <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Eq + Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
 {
 }
 
-<span class="kw">impl</span>&lt;A, B, U, V&gt; PartialOrd&lt;Cow&lt;<span class="lifetime">&#39;_</span>, B, V&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, A, U&gt;
+<span class="kw">impl</span>&lt;A, B, U, V&gt; PartialOrd&lt;Cow&lt;<span class="lifetime">'_</span>, B, V&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, A, U&gt;
 <span class="kw">where
     </span>A: Beef + <span class="question-mark">?</span>Sized + PartialOrd&lt;B&gt;,
     B: Beef + <span class="question-mark">?</span>Sized,
@@ -868,12 +870,12 @@
     V: Capacity,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Cow&lt;<span class="lifetime">&#39;_</span>, B, V&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Cow&lt;<span class="lifetime">'_</span>, B, V&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
         PartialOrd::partial_cmp(<span class="self">self</span>.borrow(), other.borrow())
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Ord <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Ord <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Ord + Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -884,18 +886,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T) -&gt; <span class="self">Self </span>{
         Cow::borrowed(val)
     }
 }
 
-<span class="kw">impl</span>&lt;U&gt; From&lt;String&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, str, U&gt;
+<span class="kw">impl</span>&lt;U&gt; From&lt;String&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, str, U&gt;
 <span class="kw">where
     </span>U: Capacity,
 {
@@ -905,7 +907,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; From&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, [T], U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; From&lt;Vec&lt;T&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, [T], U&gt;
 <span class="kw">where
     </span>T: Clone,
     U: Capacity,
@@ -916,7 +918,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Drop <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Drop <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -929,7 +931,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; Clone <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; Clone <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -943,7 +945,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; core::ops::Deref <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; core::ops::Deref <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -956,7 +958,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; AsRef&lt;T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; AsRef&lt;T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -967,7 +969,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Borrow&lt;T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Borrow&lt;T&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -978,13 +980,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; From&lt;StdCow&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; From&lt;StdCow&lt;<span class="lifetime">'a</span>, T&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(stdcow: StdCow&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(stdcow: StdCow&lt;<span class="lifetime">'a</span>, T&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>stdcow {
             StdCow::Borrowed(v) =&gt; <span class="self">Self</span>::borrowed(v),
             StdCow::Owned(v) =&gt; <span class="self">Self</span>::owned(v),
@@ -992,13 +994,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, U&gt; From&lt;Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;&gt; <span class="kw">for </span>StdCow&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, U&gt; From&lt;Cow&lt;<span class="lifetime">'a</span>, T, U&gt;&gt; <span class="kw">for </span>StdCow&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
     </span>T: Beef + <span class="question-mark">?</span>Sized,
     U: Capacity,
 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">&#39;a</span>, T, U&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(cow: Cow&lt;<span class="lifetime">'a</span>, T, U&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>cow = ManuallyDrop::new(cow);
 
         <span class="kw">match </span>cow.capacity() {
@@ -1010,7 +1012,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;A, B, U, V&gt; PartialEq&lt;Cow&lt;<span class="lifetime">&#39;_</span>, B, V&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, A, U&gt;
+<span class="kw">impl</span>&lt;A, B, U, V&gt; PartialEq&lt;Cow&lt;<span class="lifetime">'_</span>, B, V&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, A, U&gt;
 <span class="kw">where
     </span>A: Beef + <span class="question-mark">?</span>Sized,
     B: Beef + <span class="question-mark">?</span>Sized,
@@ -1025,7 +1027,7 @@
 
 <span class="macro">macro_rules! </span>impl_eq {
     ($($(@<span class="kw">for</span>&lt; <span class="macro-nonterminal">$bounds</span>:tt &gt;)<span class="question-mark">? </span><span class="macro-nonterminal">$ptr</span>:ty =&gt; $([$(<span class="macro-nonterminal">$deref</span>:tt)+])<span class="question-mark">? </span>&lt;<span class="macro-nonterminal">$with</span>:ty&gt;,)<span class="kw-2">*</span>) =&gt; {$(
-        <span class="kw">impl</span>&lt;U $(, <span class="macro-nonterminal">$bounds</span>)<span class="kw-2">*</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$with</span>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, <span class="macro-nonterminal">$ptr</span>, U&gt;
+        <span class="kw">impl</span>&lt;U $(, <span class="macro-nonterminal">$bounds</span>)<span class="kw-2">*</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$with</span>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, <span class="macro-nonterminal">$ptr</span>, U&gt;
         <span class="kw">where
             </span>U: Capacity,
             $( <span class="macro-nonterminal">$bounds</span>: Clone + PartialEq, )*
@@ -1036,7 +1038,7 @@
             }
         }
 
-        <span class="kw">impl</span>&lt;U $(, <span class="macro-nonterminal">$bounds</span>)<span class="kw-2">*</span>&gt; PartialEq&lt;Cow&lt;<span class="lifetime">&#39;_</span>, <span class="macro-nonterminal">$ptr</span>, U&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$with
+        <span class="kw">impl</span>&lt;U $(, <span class="macro-nonterminal">$bounds</span>)<span class="kw-2">*</span>&gt; PartialEq&lt;Cow&lt;<span class="lifetime">'_</span>, <span class="macro-nonterminal">$ptr</span>, U&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$with
         </span><span class="kw">where
             </span>U: Capacity,
             $( <span class="macro-nonterminal">$bounds</span>: Clone + PartialEq, )*
@@ -1058,7 +1060,7 @@
     @<span class="kw">for</span>&lt;T&gt; [T] =&gt; [<span class="kw-2">&amp;**</span>]&lt;Vec&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; fmt::Debug <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; fmt::Debug <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + fmt::Debug + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -1069,7 +1071,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; fmt::Display <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; fmt::Display <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>T: Beef + fmt::Display + <span class="question-mark">?</span>Sized,
     U: Capacity,
@@ -1081,7 +1083,7 @@
 }
 
 <span class="comment">// Safety: Same bounds as `std::borrow::Cow`.
-</span><span class="kw">unsafe impl</span>&lt;T, U&gt; Sync <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+</span><span class="kw">unsafe impl</span>&lt;T, U&gt; Sync <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>U: Capacity,
     T: Beef + Sync + <span class="question-mark">?</span>Sized,
@@ -1089,7 +1091,7 @@
 {
 }
 
-<span class="kw">unsafe impl</span>&lt;T, U&gt; Send <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">unsafe impl</span>&lt;T, U&gt; Send <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>U: Capacity,
     T: Beef + Sync + <span class="question-mark">?</span>Sized,
@@ -1097,7 +1099,7 @@
 {
 }
 
-<span class="kw">impl</span>&lt;T, U&gt; Unpin <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, T, U&gt;
+<span class="kw">impl</span>&lt;T, U&gt; Unpin <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, T, U&gt;
 <span class="kw">where
     </span>U: Capacity,
     T: Beef + <span class="question-mark">?</span>Sized,

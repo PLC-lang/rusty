@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../event_listener/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1541,31 +1543,31 @@
 //! # Features
 //!
 //! - The `portable-atomic` feature enables the use of the [`portable-atomic`] crate to provide
-//!   atomic operations on platforms that don&#39;t support them.
+//!   atomic operations on platforms that don't support them.
 //!
 //! [`portable-atomic`]: https://crates.io/crates/portable-atomic
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
-#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">extern crate </span>alloc;
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">extern crate </span>std <span class="kw">as </span>alloc;
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, path = <span class="string">&quot;std.rs&quot;</span>)]
-#[cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), path = <span class="string">&quot;no_std.rs&quot;</span>)]
+<span class="attr">#[cfg_attr(feature = <span class="string">"std"</span>, path = <span class="string">"std.rs"</span>)]
+#[cfg_attr(not(feature = <span class="string">"std"</span>), path = <span class="string">"no_std.rs"</span>)]
 </span><span class="kw">mod </span>sys;
 
 <span class="kw">mod </span>notify;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">use </span>alloc::boxed::Box;
 
 <span class="kw">use </span>core::borrow::Borrow;
@@ -1576,7 +1578,7 @@
 <span class="kw">use </span>core::ptr;
 <span class="kw">use </span>core::task::{Context, Poll, Waker};
 
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">use </span>{
     parking::{Parker, Unparker},
     std::time::{Duration, Instant},
@@ -1635,7 +1637,7 @@
     <span class="doccomment">/// A pointer to heap-allocated inner state.
     ///
     /// This pointer is initially null and gets lazily initialized on first use. Semantically, it
-    /// is an `Arc&lt;Inner&gt;` so it&#39;s important to keep in mind that it contributes to the [`Arc`]&#39;s
+    /// is an `Arc&lt;Inner&gt;` so it's important to keep in mind that it contributes to the [`Arc`]'s
     /// reference count.
     </span>inner: AtomicPtr&lt;Inner&lt;T&gt;&gt;,
 }
@@ -1647,7 +1649,7 @@
 <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>Event&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Event&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.try_inner() {
             <span class="prelude-val">Some</span>(inner) =&gt; {
                 <span class="kw">let </span>notified_count = inner.notified.load(Ordering::Relaxed);
@@ -1655,20 +1657,20 @@
                     <span class="prelude-val">Some</span>(total_count) =&gt; total_count,
                     <span class="prelude-val">None </span>=&gt; {
                         <span class="kw">return </span>f
-                            .debug_tuple(<span class="string">&quot;Event&quot;</span>)
-                            .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;&lt;locked&gt;&quot;</span>))
+                            .debug_tuple(<span class="string">"Event"</span>)
+                            .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"&lt;locked&gt;"</span>))
                             .finish()
                     }
                 };
 
-                f.debug_struct(<span class="string">&quot;Event&quot;</span>)
-                    .field(<span class="string">&quot;listeners_notified&quot;</span>, <span class="kw-2">&amp;</span>notified_count)
-                    .field(<span class="string">&quot;listeners_total&quot;</span>, <span class="kw-2">&amp;</span>total_count)
+                f.debug_struct(<span class="string">"Event"</span>)
+                    .field(<span class="string">"listeners_notified"</span>, <span class="kw-2">&amp;</span>notified_count)
+                    .field(<span class="string">"listeners_total"</span>, <span class="kw-2">&amp;</span>total_count)
                     .finish()
             }
             <span class="prelude-val">None </span>=&gt; f
-                .debug_tuple(<span class="string">&quot;Event&quot;</span>)
-                .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;&lt;uninitialized&gt;&quot;</span>))
+                .debug_tuple(<span class="string">"Event"</span>)
+                .field(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"&lt;uninitialized&gt;"</span>))
                 .finish(),
         }
     }
@@ -1694,7 +1696,7 @@
     ///
     /// let event = Event::&lt;usize&gt;::with_tag();
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     #[inline]
     </span><span class="kw">pub const fn </span>with_tag() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -1999,7 +2001,7 @@
     /// drop(listener2);
     /// assert_eq!(event.total_listeners(), 0);
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>total_listeners(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = <span class="self">self</span>.try_inner() {
@@ -2200,7 +2202,7 @@
 <span class="doccomment">/// A handle that is listening to an [`Event`].
 ///
 /// This trait represents a type waiting for a notification from an [`Event`]. See the
-/// [`EventListener`] type for more documentation on this trait&#39;s usage.
+/// [`EventListener`] type for more documentation on this trait's usage.
 </span><span class="kw">pub trait </span>Listener&lt;T = ()&gt;: Future&lt;Output = T&gt; + __sealed::Sealed {
     <span class="doccomment">/// Blocks until a notification is received.
     ///
@@ -2218,7 +2220,7 @@
     /// // Receive the notification.
     /// listener.wait();
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">fn </span>wait(<span class="self">self</span>) -&gt; T;
 
     <span class="doccomment">/// Blocks until a notification is received or a timeout is reached.
@@ -2237,7 +2239,7 @@
     /// // There are no notification so this times out.
     /// assert!(listener.wait_timeout(Duration::from_secs(1)).is_none());
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">fn </span>wait_timeout(<span class="self">self</span>, timeout: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="doccomment">/// Blocks until a notification is received or a deadline is reached.
@@ -2256,7 +2258,7 @@
     /// // There are no notification so this times out.
     /// assert!(listener.wait_deadline(Instant::now() + Duration::from_secs(1)).is_none());
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">fn </span>wait_deadline(<span class="self">self</span>, deadline: Instant) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;;
 
     <span class="doccomment">/// Drops this listener and discards its notification (if any) without notifying another
@@ -2314,18 +2316,18 @@
 </span><span class="macro">macro_rules! </span>forward_impl_to_listener {
     (<span class="macro-nonterminal">$gen</span>:ident =&gt; <span class="macro-nonterminal">$ty</span>:ty) =&gt; {
         <span class="kw">impl</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; <span class="kw">crate</span>::Listener&lt;<span class="macro-nonterminal">$gen</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="kw">fn </span>wait(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="macro-nonterminal">$gen </span>{
                 <span class="self">self</span>.listener_mut().wait_internal(<span class="prelude-val">None</span>).unwrap()
             }
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="kw">fn </span>wait_timeout(<span class="kw-2">mut </span><span class="self">self</span>, timeout: std::time::Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; {
                 <span class="self">self</span>.listener_mut()
                     .wait_internal(std::time::Instant::now().checked_add(timeout))
             }
 
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="kw">fn </span>wait_deadline(<span class="kw-2">mut </span><span class="self">self</span>, deadline: std::time::Instant) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$gen</span>&gt; {
                 <span class="self">self</span>.listener_mut().wait_internal(<span class="prelude-val">Some</span>(deadline))
             }
@@ -2352,7 +2354,7 @@
             <span class="kw">type </span>Output = <span class="macro-nonterminal">$gen</span>;
 
             <span class="attr">#[inline]
-            </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="macro-nonterminal">$gen</span>&gt; {
+            </span><span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="macro-nonterminal">$gen</span>&gt; {
                 <span class="self">self</span>.listener_mut().poll_internal(cx)
             }
         }
@@ -2385,8 +2387,8 @@
 <span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>EventListener&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>EventListener&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;EventListener&quot;</span>).finish_non_exhaustive()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"EventListener"</span>).finish_non_exhaustive()
     }
 }
 
@@ -2412,7 +2414,7 @@
 ///
 /// There are limitations to using this macro instead of the [`EventListener`] type, however.
 /// Firstly, it is significantly less flexible. The listener is locked to the current stack
-/// frame, meaning that it can&#39;t be returned or put into a place where it would go out of
+/// frame, meaning that it can't be returned or put into a place where it would go out of
 /// scope. For instance, this will not work:
 ///
 /// ```compile_fail
@@ -2444,7 +2446,7 @@
 /// listener!(event =&gt; listener);
 /// ```
 ///
-/// Here is the top level example from this crate&#39;s documentation, but using [`listener`] instead
+/// Here is the top level example from this crate's documentation, but using [`listener`] instead
 /// of [`EventListener`].
 ///
 /// ```
@@ -2498,7 +2500,7 @@
 </span><span class="macro">macro_rules! </span>listener {
     (<span class="macro-nonterminal">$event</span>:expr =&gt; <span class="macro-nonterminal">$listener</span>:ident) =&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="macro-nonterminal">$crate::__private::StackSlot::new</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$event</span>);
-        <span class="comment">// SAFETY: We shadow $listener so it can&#39;t be moved after.
+        <span class="comment">// SAFETY: We shadow $listener so it can't be moved after.
         </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="kw">unsafe </span>{ <span class="macro-nonterminal">$crate::__private::Pin::new_unchecked</span>(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$listener</span>) };
         <span class="attr">#[allow(unused_mut)]
         </span><span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">$listener </span>= <span class="macro-nonterminal">$listener</span>.listen();
@@ -2528,7 +2530,7 @@
         </span>B: Unpin,
     {
         <span class="kw">fn </span>drop(<span class="kw-2">mut </span>this: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) {
-            <span class="comment">// If we&#39;re being dropped, we need to remove ourself from the list.
+            <span class="comment">// If we're being dropped, we need to remove ourself from the list.
             </span><span class="kw">let </span>this = this.project();
             (<span class="kw-2">*</span>this.event).borrow().remove(this.listener, <span class="bool-val">true</span>);
         }
@@ -2547,7 +2549,7 @@
     }
 
     <span class="doccomment">/// Wait until the provided deadline.
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">fn </span>wait_internal(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">fn </span>parker_and_task() -&gt; (Parker, Task) {
             <span class="kw">let </span>parker = Parker::new();
@@ -2567,7 +2569,7 @@
                 |(parker, unparker)| this.wait_with_parker(deadline, parker, unparker.as_task_ref())
             })
             .unwrap_or_else(|<span class="kw">_</span>| {
-                <span class="comment">// If the pair isn&#39;t accessible, we may be being called in a destructor.
+                <span class="comment">// If the pair isn't accessible, we may be being called in a destructor.
                 // Just create a new pair.
                 </span><span class="kw">let </span>(parker, unparker) = parking::pair();
                 <span class="self">self</span>.as_mut()
@@ -2576,19 +2578,19 @@
     }
 
     <span class="doccomment">/// Wait until the provided deadline using the specified parker/unparker pair.
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">fn </span>wait_with_parker(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
         parker: <span class="kw-2">&amp;</span>Parker,
-        unparker: TaskRef&lt;<span class="lifetime">&#39;_</span>&gt;,
+        unparker: TaskRef&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>inner = (<span class="kw-2">*</span>this.event).borrow();
 
-        <span class="comment">// Set the listener&#39;s state to `Task`.
+        <span class="comment">// Set the listener's state to `Task`.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = inner.register(this.listener.as_mut(), unparker).notified() {
-            <span class="comment">// We were already notified, so we don&#39;t need to park.
+            <span class="comment">// We were already notified, so we don't need to park.
             </span><span class="kw">return </span><span class="prelude-val">Some</span>(tag);
         }
 
@@ -2598,13 +2600,13 @@
                 <span class="prelude-val">None </span>=&gt; parker.park(),
 
                 <span class="prelude-val">Some</span>(deadline) =&gt; {
-                    <span class="comment">// Make sure we&#39;re not timed out already.
+                    <span class="comment">// Make sure we're not timed out already.
                     </span><span class="kw">let </span>now = Instant::now();
                     <span class="kw">if </span>now &gt;= deadline {
                         <span class="comment">// Remove our entry and check if we were notified.
                         </span><span class="kw">return </span>inner
                             .remove(this.listener.as_mut(), <span class="bool-val">false</span>)
-                            .expect(<span class="string">&quot;We never removed ourself from the list&quot;</span>)
+                            .expect(<span class="string">"We never removed ourself from the list"</span>)
                             .notified();
                     }
                     parker.park_deadline(deadline);
@@ -2629,7 +2631,7 @@
     }
 
     <span class="doccomment">/// Poll this listener for a notification.
-    </span><span class="kw">fn </span>poll_internal(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+    </span><span class="kw">fn </span>poll_internal(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;T&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>inner = (<span class="kw-2">*</span>this.event).borrow();
 
@@ -2639,12 +2641,12 @@
             .notified()
         {
             <span class="prelude-val">Some</span>(tag) =&gt; {
-                <span class="comment">// We were already notified, so we don&#39;t need to park.
+                <span class="comment">// We were already notified, so we don't need to park.
                 </span>Poll::Ready(tag)
             }
 
             <span class="prelude-val">None </span>=&gt; {
-                <span class="comment">// We&#39;re now waiting for a notification.
+                <span class="comment">// We're now waiting for a notification.
                 </span>Poll::Pending
             }
         }
@@ -2659,9 +2661,9 @@
 
     <span class="doccomment">/// The listener has received a notification.
     ///
-    /// The `bool` is `true` if this was an &quot;additional&quot; notification.
+    /// The `bool` is `true` if this was an "additional" notification.
     </span>Notified {
-        <span class="doccomment">/// Whether or not this is an &quot;additional&quot; notification.
+        <span class="doccomment">/// Whether or not this is an "additional" notification.
         </span>additional: bool,
 
         <span class="doccomment">/// The tag associated with the notification.
@@ -2676,15 +2678,15 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>State&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Created =&gt; f.write_str(<span class="string">&quot;Created&quot;</span>),
+            <span class="self">Self</span>::Created =&gt; f.write_str(<span class="string">"Created"</span>),
             <span class="self">Self</span>::Notified { additional, .. } =&gt; f
-                .debug_struct(<span class="string">&quot;Notified&quot;</span>)
-                .field(<span class="string">&quot;additional&quot;</span>, additional)
+                .debug_struct(<span class="string">"Notified"</span>)
+                .field(<span class="string">"additional"</span>, additional)
                 .finish(),
-            <span class="self">Self</span>::Task(<span class="kw">_</span>) =&gt; f.write_str(<span class="string">&quot;Task(_)&quot;</span>),
-            <span class="self">Self</span>::NotifiedTaken =&gt; f.write_str(<span class="string">&quot;NotifiedTaken&quot;</span>),
+            <span class="self">Self</span>::Task(<span class="kw">_</span>) =&gt; f.write_str(<span class="string">"Task(_)"</span>),
+            <span class="self">Self</span>::NotifiedTaken =&gt; f.write_str(<span class="string">"NotifiedTaken"</span>),
         }
     }
 }
@@ -2699,7 +2701,7 @@
     </span><span class="kw">fn </span>notified(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Notified { tag, .. } =&gt; <span class="prelude-val">Some</span>(tag),
-            <span class="self">Self</span>::NotifiedTaken =&gt; <span class="macro">panic!</span>(<span class="string">&quot;listener was already notified but taken&quot;</span>),
+            <span class="self">Self</span>::NotifiedTaken =&gt; <span class="macro">panic!</span>(<span class="string">"listener was already notified but taken"</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2726,7 +2728,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Notified(tag) =&gt; <span class="prelude-val">Some</span>(tag),
             <span class="self">Self</span>::Registered =&gt; <span class="prelude-val">None</span>,
-            <span class="self">Self</span>::NeverInserted =&gt; <span class="macro">panic!</span>(<span class="string">&quot;listener was never inserted into the list&quot;</span>),
+            <span class="self">Self</span>::NeverInserted =&gt; <span class="macro">panic!</span>(<span class="string">"listener was never inserted into the list"</span>),
         }
     }
 }
@@ -2738,15 +2740,15 @@
     </span>Waker(Waker),
 
     <span class="doccomment">/// An unparker that wakes up a thread.
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span>Unparker(Unparker),
 }
 
 <span class="kw">impl </span>Task {
-    <span class="kw">fn </span>as_task_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TaskRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_task_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TaskRef&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Waker(waker) =&gt; TaskRef::Waker(waker),
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="self">Self</span>::Unparker(unparker) =&gt; TaskRef::Unparker(unparker),
         }
     }
@@ -2754,7 +2756,7 @@
     <span class="kw">fn </span>wake(<span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Waker(waker) =&gt; waker.wake(),
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="self">Self</span>::Unparker(unparker) =&gt; {
                 unparker.unpark();
             }
@@ -2770,22 +2772,22 @@
 
 <span class="doccomment">/// A reference to a task.
 </span><span class="attr">#[derive(Clone, Copy)]
-</span><span class="kw">enum </span>TaskRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">enum </span>TaskRef&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// A waker that wakes up a future.
-    </span>Waker(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Waker),
+    </span>Waker(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Waker),
 
     <span class="doccomment">/// An unparker that wakes up a thread.
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
-    </span>Unparker(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Unparker),
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
+    </span>Unparker(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Unparker),
 }
 
-<span class="kw">impl </span>TaskRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>TaskRef&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Tells if this task will wake up the other task.
     </span><span class="attr">#[allow(unreachable_patterns)]
     </span><span class="kw">fn </span>will_wake(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool {
         <span class="kw">match </span>(<span class="self">self</span>, other) {
             (<span class="self">Self</span>::Waker(a), <span class="self">Self</span>::Waker(b)) =&gt; a.will_wake(b),
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span>(<span class="self">Self</span>::Unparker(<span class="kw">_</span>), <span class="self">Self</span>::Unparker(<span class="kw">_</span>)) =&gt; {
                 <span class="comment">// TODO: Use unreleased will_unpark API.
                 </span><span class="bool-val">false
@@ -2798,7 +2800,7 @@
     </span><span class="kw">fn </span>into_task(<span class="self">self</span>) -&gt; Task {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Waker(waker) =&gt; Task::Waker(waker.clone()),
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
             </span><span class="self">Self</span>::Unparker(unparker) =&gt; Task::Unparker(unparker.clone()),
         }
     }
@@ -2808,17 +2810,17 @@
 </span><span class="kw">mod </span>sync {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>core::cell;
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;portable-atomic&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"portable-atomic"</span>))]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>alloc::sync::Arc;
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;portable-atomic&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"portable-atomic"</span>))]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>core::sync::atomic;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;portable-atomic&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"portable-atomic"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>portable_atomic_crate <span class="kw">as </span>atomic;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;portable-atomic&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"portable-atomic"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>portable_atomic_util::Arc;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>std::sync::{Mutex, MutexGuard};
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>WithMut {
@@ -2846,10 +2848,10 @@
     <span class="kw">fn </span>_assert_send&lt;T: Send&gt;() {}
     <span class="kw">fn </span>_assert_sync&lt;T: Sync&gt;() {}
 
-    _assert_send::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt;();
-    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">&#39;_</span>, ()&gt;&gt;();
-    _assert_send::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, ()&gt;&gt;();
-    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, ()&gt;&gt;();
+    _assert_send::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">'_</span>, ()&gt;&gt;();
+    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackSlot&lt;<span class="lifetime">'_</span>, ()&gt;&gt;();
+    _assert_send::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, ()&gt;&gt;();
+    _assert_sync::&lt;<span class="kw">crate</span>::__private::StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, ()&gt;&gt;();
     _assert_send::&lt;Event&lt;()&gt;&gt;();
     _assert_sync::&lt;Event&lt;()&gt;&gt;();
     _assert_send::&lt;EventListener&lt;()&gt;&gt;();
@@ -2862,7 +2864,7 @@
 
     <span class="kw">pub trait </span>Sealed {}
     <span class="kw">impl</span>&lt;T&gt; Sealed <span class="kw">for </span>EventListener&lt;T&gt; {}
-    <span class="kw">impl</span>&lt;T&gt; Sealed <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; Sealed <span class="kw">for </span>StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {}
 }
 
 <span class="doccomment">/// Semver exempt module.
@@ -2879,29 +2881,29 @@
         <span class="doccomment">/// Space on the stack where a stack-based listener can be allocated.
         </span><span class="attr">#[doc(hidden)]
         #[project(!Unpin)]
-        </span><span class="kw">pub struct </span>StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt; {
+        </span><span class="kw">pub struct </span>StackSlot&lt;<span class="lifetime">'ev</span>, T&gt; {
             <span class="attr">#[pin]
-            </span>listener: InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt;
+            </span>listener: InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">'ev </span>Inner&lt;T&gt;&gt;
         }
     }
 
-    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackSlot&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-            f.debug_struct(<span class="string">&quot;StackSlot&quot;</span>).finish_non_exhaustive()
+        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+            f.debug_struct(<span class="string">"StackSlot"</span>).finish_non_exhaustive()
         }
     }
 
-    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-    <span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-    <span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>StackSlot&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">'_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackSlot&lt;<span class="lifetime">'_</span>, T&gt; {}
+    <span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>StackSlot&lt;<span class="lifetime">'_</span>, T&gt; {}
+    <span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>StackSlot&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ev</span>, T&gt; StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ev</span>, T&gt; StackSlot&lt;<span class="lifetime">'ev</span>, T&gt; {
         <span class="doccomment">/// Create a new `StackSlot` on the stack.
         </span><span class="attr">#[inline]
         #[doc(hidden)]
-        </span><span class="kw">pub fn </span>new(event: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Event&lt;T&gt;) -&gt; <span class="self">Self </span>{
+        </span><span class="kw">pub fn </span>new(event: <span class="kw-2">&amp;</span><span class="lifetime">'ev </span>Event&lt;T&gt;) -&gt; <span class="self">Self </span>{
             <span class="kw">let </span>inner = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>event.inner() };
             <span class="self">Self </span>{
                 listener: InnerListener {
@@ -2914,7 +2916,7 @@
         <span class="doccomment">/// Start listening on this `StackSlot`.
         </span><span class="attr">#[inline]
         #[doc(hidden)]
-        </span><span class="kw">pub fn </span>listen(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+        </span><span class="kw">pub fn </span>listen(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; StackListener&lt;<span class="lifetime">'ev</span>, <span class="lifetime">'_</span>, T&gt; {
             <span class="comment">// Insert ourselves into the list.
             </span><span class="self">self</span>.as_mut().project().listener.listen();
 
@@ -2925,33 +2927,33 @@
 
     <span class="doccomment">/// A stack-based `EventListener`.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub struct </span>StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;stack</span>, T&gt; {
-        slot: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;stack </span><span class="kw-2">mut </span>StackSlot&lt;<span class="lifetime">&#39;ev</span>, T&gt;&gt;,
+    </span><span class="kw">pub struct </span>StackListener&lt;<span class="lifetime">'ev</span>, <span class="lifetime">'stack</span>, T&gt; {
+        slot: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">'stack </span><span class="kw-2">mut </span>StackSlot&lt;<span class="lifetime">'ev</span>, T&gt;&gt;,
     }
 
-    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
-    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
-    <span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::UnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; core::panic::RefUnwindSafe <span class="kw">for </span>StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; Unpin <span class="kw">for </span>StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {}
 
-    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-            f.debug_struct(<span class="string">&quot;StackListener&quot;</span>).finish_non_exhaustive()
+        </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+            f.debug_struct(<span class="string">"StackListener"</span>).finish_non_exhaustive()
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ev</span>, T&gt; StackListener&lt;<span class="lifetime">&#39;ev</span>, <span class="lifetime">&#39;_</span>, T&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ev</span>, T&gt; StackListener&lt;<span class="lifetime">'ev</span>, <span class="lifetime">'_</span>, T&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>listener(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt; {
+        </span><span class="kw">fn </span>listener(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">'ev </span>Inner&lt;T&gt;&gt; {
             <span class="kw-2">&amp;</span><span class="self">self</span>.slot.listener
         }
 
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span>listener_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ev </span>Inner&lt;T&gt;&gt;&gt; {
+        </span><span class="kw">fn </span>listener_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span>InnerListener&lt;T, <span class="kw-2">&amp;</span><span class="lifetime">'ev </span>Inner&lt;T&gt;&gt;&gt; {
             <span class="self">self</span>.slot.as_mut().project().listener
         }
     }
 
-    <span class="macro">forward_impl_to_listener! </span>{ T =&gt; StackListener&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, T&gt; }
+    <span class="macro">forward_impl_to_listener! </span>{ T =&gt; StackListener&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, T&gt; }
 }
 </code></pre></div></section></main></body></html>

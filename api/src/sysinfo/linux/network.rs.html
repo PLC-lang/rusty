@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/network.rs`."><title>network.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/network.rs`."><title>network.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -333,7 +335,7 @@
 <span class="kw">use crate</span>::{NetworkExt, NetworksExt, NetworksIter};
 <span class="kw">use </span>std::collections::{hash_map, HashMap};
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/networks.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/networks.md"</span>)]
 </span><span class="kw">pub struct </span>Networks {
     interfaces: HashMap&lt;String, NetworkData&gt;,
 }
@@ -357,9 +359,9 @@
             <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="number">0</span>;
 
-            <span class="kw">while </span>i &lt; size &amp;&amp; i &lt; data.len() &amp;&amp; data[i] &gt;= <span class="string">b&#39;0&#39; </span>&amp;&amp; data[i] &lt;= <span class="string">b&#39;9&#39; </span>{
+            <span class="kw">while </span>i &lt; size &amp;&amp; i &lt; data.len() &amp;&amp; data[i] &gt;= <span class="string">b'0' </span>&amp;&amp; data[i] &lt;= <span class="string">b'9' </span>{
                 ret <span class="kw-2">*</span>= <span class="number">10</span>;
-                ret += (data[i] - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span>u64;
+                ret += (data[i] - <span class="string">b'0'</span>) <span class="kw">as </span>u64;
                 i += <span class="number">1</span>;
             }
             <span class="kw">return </span>ret;
@@ -388,19 +390,19 @@
         }
 
         <span class="kw">for </span>entry <span class="kw">in </span>dir.flatten() {
-            <span class="kw">let </span>parent = <span class="kw-2">&amp;</span>entry.path().join(<span class="string">&quot;statistics&quot;</span>);
+            <span class="kw">let </span>parent = <span class="kw-2">&amp;</span>entry.path().join(<span class="string">"statistics"</span>);
             <span class="kw">let </span>entry = <span class="kw">match </span>entry.file_name().into_string() {
                 <span class="prelude-val">Ok</span>(entry) =&gt; entry,
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
             };
-            <span class="kw">let </span>rx_bytes = read(parent, <span class="string">&quot;rx_bytes&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="kw">let </span>tx_bytes = read(parent, <span class="string">&quot;tx_bytes&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="kw">let </span>rx_packets = read(parent, <span class="string">&quot;rx_packets&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="kw">let </span>tx_packets = read(parent, <span class="string">&quot;tx_packets&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="kw">let </span>rx_errors = read(parent, <span class="string">&quot;rx_errors&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="kw">let </span>tx_errors = read(parent, <span class="string">&quot;tx_errors&quot;</span>, <span class="kw-2">&amp;mut </span>data);
-            <span class="comment">// let rx_compressed = read(parent, &quot;rx_compressed&quot;, &amp;mut data);
-            // let tx_compressed = read(parent, &quot;tx_compressed&quot;, &amp;mut data);
+            <span class="kw">let </span>rx_bytes = read(parent, <span class="string">"rx_bytes"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="kw">let </span>tx_bytes = read(parent, <span class="string">"tx_bytes"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="kw">let </span>rx_packets = read(parent, <span class="string">"rx_packets"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="kw">let </span>tx_packets = read(parent, <span class="string">"tx_packets"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="kw">let </span>rx_errors = read(parent, <span class="string">"rx_errors"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="kw">let </span>tx_errors = read(parent, <span class="string">"tx_errors"</span>, <span class="kw-2">&amp;mut </span>data);
+            <span class="comment">// let rx_compressed = read(parent, "rx_compressed", &amp;mut data);
+            // let tx_compressed = read(parent, "tx_compressed", &amp;mut data);
             </span><span class="kw">match </span>interfaces.entry(entry) {
                 hash_map::Entry::Occupied(<span class="kw-2">mut </span>e) =&gt; {
                     <span class="kw">let </span>interface = e.get_mut();
@@ -458,12 +460,12 @@
     }
 
     <span class="kw">fn </span>refresh_networks_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interfaces, Path::new(<span class="string">&quot;/sys/class/net/&quot;</span>));
+        refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interfaces, Path::new(<span class="string">"/sys/class/net/"</span>));
         refresh_networks_addresses(<span class="kw-2">&amp;mut </span><span class="self">self</span>.interfaces);
     }
 }
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/network_data.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/network_data.md"</span>)]
 </span><span class="kw">pub struct </span>NetworkData {
     <span class="doccomment">/// Total number of bytes received over interface.
     </span>rx_bytes: u64,
@@ -503,44 +505,44 @@
 
 <span class="kw">impl </span>NetworkData {
     <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str, data: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
-        <span class="kw">let </span>path = <span class="kw-2">&amp;</span>Path::new(<span class="string">&quot;/sys/class/net/&quot;</span>).join(path).join(<span class="string">&quot;statistics&quot;</span>);
-        <span class="macro">old_and_new!</span>(<span class="self">self</span>, rx_bytes, old_rx_bytes, read(path, <span class="string">&quot;rx_bytes&quot;</span>, data));
-        <span class="macro">old_and_new!</span>(<span class="self">self</span>, tx_bytes, old_tx_bytes, read(path, <span class="string">&quot;tx_bytes&quot;</span>, data));
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span>Path::new(<span class="string">"/sys/class/net/"</span>).join(path).join(<span class="string">"statistics"</span>);
+        <span class="macro">old_and_new!</span>(<span class="self">self</span>, rx_bytes, old_rx_bytes, read(path, <span class="string">"rx_bytes"</span>, data));
+        <span class="macro">old_and_new!</span>(<span class="self">self</span>, tx_bytes, old_tx_bytes, read(path, <span class="string">"tx_bytes"</span>, data));
         <span class="macro">old_and_new!</span>(
             <span class="self">self</span>,
             rx_packets,
             old_rx_packets,
-            read(path, <span class="string">&quot;rx_packets&quot;</span>, data)
+            read(path, <span class="string">"rx_packets"</span>, data)
         );
         <span class="macro">old_and_new!</span>(
             <span class="self">self</span>,
             tx_packets,
             old_tx_packets,
-            read(path, <span class="string">&quot;tx_packets&quot;</span>, data)
+            read(path, <span class="string">"tx_packets"</span>, data)
         );
         <span class="macro">old_and_new!</span>(
             <span class="self">self</span>,
             rx_errors,
             old_rx_errors,
-            read(path, <span class="string">&quot;rx_errors&quot;</span>, data)
+            read(path, <span class="string">"rx_errors"</span>, data)
         );
         <span class="macro">old_and_new!</span>(
             <span class="self">self</span>,
             tx_errors,
             old_tx_errors,
-            read(path, <span class="string">&quot;tx_errors&quot;</span>, data)
+            read(path, <span class="string">"tx_errors"</span>, data)
         );
         <span class="comment">// old_and_new!(
         //     self,
         //     rx_compressed,
         //     old_rx_compressed,
-        //     read(path, &quot;rx_compressed&quot;, data)
+        //     read(path, "rx_compressed", data)
         // );
         // old_and_new!(
         //     self,
         //     tx_compressed,
         //     old_tx_compressed,
-        //     read(path, &quot;tx_compressed&quot;, data)
+        //     read(path, "tx_compressed", data)
         // );
     </span>}
 }
@@ -607,43 +609,43 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>refresh_networks_list_add_interface() {
-        <span class="kw">let </span>sys_net_dir = tempfile::tempdir().expect(<span class="string">&quot;failed to create temporary directory&quot;</span>);
+        <span class="kw">let </span>sys_net_dir = tempfile::tempdir().expect(<span class="string">"failed to create temporary directory"</span>);
 
-        fs::create_dir(sys_net_dir.path().join(<span class="string">&quot;itf1&quot;</span>)).expect(<span class="string">&quot;failed to create subdirectory&quot;</span>);
+        fs::create_dir(sys_net_dir.path().join(<span class="string">"itf1"</span>)).expect(<span class="string">"failed to create subdirectory"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>interfaces = HashMap::new();
 
         refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span>interfaces, sys_net_dir.path());
-        <span class="macro">assert_eq!</span>(interfaces.keys().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), [<span class="string">&quot;itf1&quot;</span>]);
+        <span class="macro">assert_eq!</span>(interfaces.keys().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), [<span class="string">"itf1"</span>]);
 
-        fs::create_dir(sys_net_dir.path().join(<span class="string">&quot;itf2&quot;</span>)).expect(<span class="string">&quot;failed to create subdirectory&quot;</span>);
+        fs::create_dir(sys_net_dir.path().join(<span class="string">"itf2"</span>)).expect(<span class="string">"failed to create subdirectory"</span>);
 
         refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span>interfaces, sys_net_dir.path());
         <span class="kw">let </span><span class="kw-2">mut </span>itf_names: Vec&lt;String&gt; = interfaces.keys().map(|n| n.to_owned()).collect();
         itf_names.sort();
-        <span class="macro">assert_eq!</span>(itf_names, [<span class="string">&quot;itf1&quot;</span>, <span class="string">&quot;itf2&quot;</span>]);
+        <span class="macro">assert_eq!</span>(itf_names, [<span class="string">"itf1"</span>, <span class="string">"itf2"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>refresh_networks_list_remove_interface() {
-        <span class="kw">let </span>sys_net_dir = tempfile::tempdir().expect(<span class="string">&quot;failed to create temporary directory&quot;</span>);
+        <span class="kw">let </span>sys_net_dir = tempfile::tempdir().expect(<span class="string">"failed to create temporary directory"</span>);
 
-        <span class="kw">let </span>itf1_dir = sys_net_dir.path().join(<span class="string">&quot;itf1&quot;</span>);
-        <span class="kw">let </span>itf2_dir = sys_net_dir.path().join(<span class="string">&quot;itf2&quot;</span>);
-        fs::create_dir(<span class="kw-2">&amp;</span>itf1_dir).expect(<span class="string">&quot;failed to create subdirectory&quot;</span>);
-        fs::create_dir(itf2_dir).expect(<span class="string">&quot;failed to create subdirectory&quot;</span>);
+        <span class="kw">let </span>itf1_dir = sys_net_dir.path().join(<span class="string">"itf1"</span>);
+        <span class="kw">let </span>itf2_dir = sys_net_dir.path().join(<span class="string">"itf2"</span>);
+        fs::create_dir(<span class="kw-2">&amp;</span>itf1_dir).expect(<span class="string">"failed to create subdirectory"</span>);
+        fs::create_dir(itf2_dir).expect(<span class="string">"failed to create subdirectory"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>interfaces = HashMap::new();
 
         refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span>interfaces, sys_net_dir.path());
         <span class="kw">let </span><span class="kw-2">mut </span>itf_names: Vec&lt;String&gt; = interfaces.keys().map(|n| n.to_owned()).collect();
         itf_names.sort();
-        <span class="macro">assert_eq!</span>(itf_names, [<span class="string">&quot;itf1&quot;</span>, <span class="string">&quot;itf2&quot;</span>]);
+        <span class="macro">assert_eq!</span>(itf_names, [<span class="string">"itf1"</span>, <span class="string">"itf2"</span>]);
 
-        fs::remove_dir(<span class="kw-2">&amp;</span>itf1_dir).expect(<span class="string">&quot;failed to remove subdirectory&quot;</span>);
+        fs::remove_dir(<span class="kw-2">&amp;</span>itf1_dir).expect(<span class="string">"failed to remove subdirectory"</span>);
 
         refresh_networks_list_from_sysfs(<span class="kw-2">&amp;mut </span>interfaces, sys_net_dir.path());
-        <span class="macro">assert_eq!</span>(interfaces.keys().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), [<span class="string">&quot;itf2&quot;</span>]);
+        <span class="macro">assert_eq!</span>(interfaces.keys().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), [<span class="string">"itf2"</span>]);
     }
 }
 </code></pre></div></section></main></body></html>

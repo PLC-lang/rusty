@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/index.rs`."><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/index.rs`."><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1694,7 +1696,7 @@
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub struct </span>VariableIndexEntry {
-    <span class="doccomment">/// the name of this variable (e.g. &#39;x&#39; for &#39;PLC_PRG.x&#39;)
+    <span class="doccomment">/// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     </span>name: String,
     <span class="doccomment">/// the fully qualified name of this variable (e.g. PLC_PRG.x)
     </span>qualified_name: String,
@@ -1704,9 +1706,9 @@
     </span><span class="kw">pub </span>argument_type: ArgumentType,
     <span class="doccomment">/// true if this variable is a compile-time-constant
     </span>is_constant: bool,
-    <span class="doccomment">/// the variable&#39;s datatype
+    <span class="doccomment">/// the variable's datatype
     </span><span class="kw">pub </span>data_type_name: String,
-    <span class="doccomment">/// the index of the member-variable in it&#39;s container (e.g. struct). defautls to 0 (Single variables)
+    <span class="doccomment">/// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     </span>location_in_parent: u32,
     <span class="doccomment">/// Wether the variable is externally or internally available
     </span>linkage: LinkageType,
@@ -1756,11 +1758,11 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>MemberInfo&lt;<span class="lifetime">&#39;b</span>&gt; {
-    container_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
-    variable_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
+</span><span class="kw">pub struct </span>MemberInfo&lt;<span class="lifetime">'b</span>&gt; {
+    container_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    variable_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
     variable_linkage: ArgumentType,
-    variable_type_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
+    variable_type_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
     binding: <span class="prelude-ty">Option</span>&lt;HardwareBinding&gt;,
     is_constant: bool,
     varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
@@ -1978,15 +1980,15 @@
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>VariableType {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            VariableType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Local&quot;</span>),
-            VariableType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Temp&quot;</span>),
-            VariableType::Input =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Input&quot;</span>),
-            VariableType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Output&quot;</span>),
-            VariableType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;InOut&quot;</span>),
-            VariableType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Global&quot;</span>),
-            VariableType::Return =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Return&quot;</span>),
+            VariableType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">"Local"</span>),
+            VariableType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">"Temp"</span>),
+            VariableType::Input =&gt; <span class="macro">write!</span>(f, <span class="string">"Input"</span>),
+            VariableType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">"Output"</span>),
+            VariableType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">"InOut"</span>),
+            VariableType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">"Global"</span>),
+            VariableType::Return =&gt; <span class="macro">write!</span>(f, <span class="string">"Return"</span>),
         }
     }
 }
@@ -2220,7 +2222,7 @@
     <span class="doccomment">/// creates a new Method-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the method (without the pou-qualifier)
-    /// - `return_type` the name of the method&#39;s return type
+    /// - `return_type` the name of the method's return type
     /// - `owner_class` the name of the parent pou
     </span><span class="kw">pub fn </span>create_method_entry(
         name: <span class="kw-2">&amp;</span>str,
@@ -2277,14 +2279,14 @@
     <span class="doccomment">/// returns `Some(DataType)` associated with this pou or `None` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
-    </span><span class="kw">pub fn </span>find_instance_struct_type&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt; {
+    </span><span class="kw">pub fn </span>find_instance_struct_type&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt; {
         <span class="self">self</span>.get_instance_struct_type_name().and_then(|it| index.type_index.find_pou_type(it))
     }
 
     <span class="doccomment">/// returns the struct-datatype associated with this pou or `void` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
-    </span><span class="kw">pub fn </span>get_instance_struct_type_or_void&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType {
+    </span><span class="kw">pub fn </span>get_instance_struct_type_or_void&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType {
         <span class="self">self</span>.find_instance_struct_type(index).unwrap_or_else(|| index.get_void_type())
     }
 
@@ -2305,7 +2307,7 @@
     }
 
     <span class="doccomment">/// returns the ImplementationIndexEntry associated with this POU
-    </span><span class="kw">pub fn </span>find_implementation&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>ImplementationIndexEntry&gt; {
+    </span><span class="kw">pub fn </span>find_implementation&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>ImplementationIndexEntry&gt; {
         index.find_implementation_by_name(<span class="self">self</span>.get_name())
     }
 
@@ -2434,9 +2436,9 @@
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
-    <span class="doccomment">/// Retrieves the &quot;Effective&quot; type behind this datatype
+    <span class="doccomment">/// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    </span><span class="kw">pub fn </span>find_effective_type&lt;<span class="lifetime">&#39;ret</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span>DataType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span>DataType&gt; {
+    </span><span class="kw">pub fn </span>find_effective_type&lt;<span class="lifetime">'ret</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ret </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType&gt; {
         <span class="kw">match </span>data_type.get_type_information() {
             DataTypeInformation::Alias { referenced_type, .. } =&gt; {
                 <span class="self">self</span>.find_type(referenced_type).and_then(|it| <span class="self">self</span>.find_effective_type(it))
@@ -2584,7 +2586,7 @@
         <span class="comment">//pous
         </span><span class="kw">for </span>(name, elements) <span class="kw">in </span>other.pous.drain(..) {
             <span class="kw">for </span>ele <span class="kw">in </span>elements {
-                <span class="comment">// skip automatically generated pou&#39;s if they are already in the target index
+                <span class="comment">// skip automatically generated pou's if they are already in the target index
                 </span><span class="kw">if </span>!ele.is_auto_generated_function() || !<span class="self">self</span>.pous.contains_key(<span class="kw-2">&amp;</span>name) {
                     <span class="self">self</span>.pous.insert(name.clone(), ele);
                 }
@@ -2627,7 +2629,7 @@
     }
 
     <span class="doccomment">/// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
-    /// into self&#39;s const-expressions and returns the new Id
+    /// into self's const-expressions and returns the new Id
     </span><span class="kw">fn </span>maybe_import_const_expr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         import_from: <span class="kw-2">&amp;mut </span>ConstExpressions,
@@ -2639,7 +2641,7 @@
     }
 
     <span class="doccomment">/// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
-    /// into self&#39;s const-expressions and returns the new Id
+    /// into self's const-expressions and returns the new Id
     ///
     /// panics if the import fails (e.g. the given TypeSize::ConstExpression(id) does not exist in this Index)
     /// this problem would indicate a programming mistake
@@ -2659,7 +2661,7 @@
             <span class="prelude-val">Some</span>(it) =&gt; it,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="macro">unreachable!</span>(
-                    <span class="string">&quot;requested type-size is not part of the given ConstExpressions. Cannot import &#39;{:?}&#39;, from {:?}&quot;</span>,
+                    <span class="string">"requested type-size is not part of the given ConstExpressions. Cannot import '{:?}', from {:?}"</span>,
                     type_size, import_from
                 );
             }
@@ -2712,7 +2714,7 @@
             .and_then(|it| it.find_member(variable_name))
             .or(<span class="self">self</span>.find_enum_variant_in_pou(container_name, variable_name))
             .or(container_name
-                .rfind(<span class="string">&#39;.&#39;</span>)
+                .rfind(<span class="string">'.'</span>)
                 .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
                 .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
     }
@@ -2741,13 +2743,13 @@
     }
 
     <span class="doccomment">/// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
-    /// a delimiter. (e.g. &quot;PLC_PRG.x&quot;, or &quot;MyClass.MyMethod.x&quot;)
+    /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     </span><span class="kw">pub fn </span>find_fully_qualified_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, fully_qualified_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="kw">let </span>segments: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = fully_qualified_name.split(<span class="string">&#39;.&#39;</span>).collect();
+        <span class="kw">let </span>segments: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = fully_qualified_name.split(<span class="string">'.'</span>).collect();
         <span class="kw">let </span>(q, segments) = <span class="kw">if </span>segments.len() &gt; <span class="number">1 </span>{
             <span class="comment">// the last segment is th ename, everything before ist qualifier
-            // e.g. MyClass.MyMethod.x --&gt; qualifier: &quot;MyClass.MyMethod&quot;, name: &quot;x&quot;
-            </span>(<span class="prelude-val">Some</span>(segments.iter().take(segments.len() - <span class="number">1</span>).join(<span class="string">&quot;.&quot;</span>)), <span class="macro">vec!</span>[<span class="kw-2">*</span>segments.last().unwrap()])
+            // e.g. MyClass.MyMethod.x --&gt; qualifier: "MyClass.MyMethod", name: "x"
+            </span>(<span class="prelude-val">Some</span>(segments.iter().take(segments.len() - <span class="number">1</span>).join(<span class="string">"."</span>)), <span class="macro">vec!</span>[<span class="kw-2">*</span>segments.last().unwrap()])
         } <span class="kw">else </span>{
             (<span class="prelude-val">None</span>, segments)
         };
@@ -2783,7 +2785,7 @@
         <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name(enum_name, element_name).to_lowercase())
     }
 
-    <span class="doccomment">/// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. &quot;Color.RED&quot;)
+    <span class="doccomment">/// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
     /// or None if the requested Enum-Type or -Element does not exist
     </span><span class="kw">pub fn </span>find_qualified_enum_element(<span class="kw-2">&amp;</span><span class="self">self</span>, qualified_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name.to_lowercase())
@@ -2796,7 +2798,7 @@
         <span class="comment">// Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
         </span><span class="self">self</span>.enum_qualified_variables
             .keys()
-            .filter(|key| key.split(<span class="string">&#39;.&#39;</span>).next().is_some_and(|prefix| prefix == qualified_name))
+            .filter(|key| key.split(<span class="string">'.'</span>).next().is_some_and(|prefix| prefix == qualified_name))
             .filter_map(|key| <span class="self">self</span>.enum_qualified_variables.get(key))
             .collect()
     }
@@ -2831,7 +2833,7 @@
         <span class="self">self</span>.get_enum_variants_in_pou(pou)
             .into_iter()
             .find(|it| it.name == variant)
-            .or(<span class="self">self</span>.find_qualified_enum_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{pou}.{variant}&quot;</span>)))
+            .or(<span class="self">self</span>.find_qualified_enum_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{pou}.{variant}"</span>)))
     }
 
     <span class="doccomment">/// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
@@ -2886,7 +2888,7 @@
     }
 
     <span class="doccomment">/// returns the effective DataType of the given type if it exists
-    </span><span class="kw">pub fn </span>find_effective_type&lt;<span class="lifetime">&#39;ret</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span>DataType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ret </span>DataType&gt; {
+    </span><span class="kw">pub fn </span>find_effective_type&lt;<span class="lifetime">'ret</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ret </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType&gt; {
         <span class="self">self</span>.type_index.find_effective_type(data_type)
     }
 
@@ -2937,7 +2939,7 @@
     <span class="doccomment">/// expect a built-in type
     /// This only returns types, not POUs as it is meant for builtins only
     </span><span class="kw">pub fn </span>get_type_or_panic(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>DataType {
-        <span class="self">self</span>.get_types().get(<span class="kw-2">&amp;</span>type_name.to_lowercase()).unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;{type_name} not found&quot;</span>))
+        <span class="self">self</span>.get_types().get(<span class="kw-2">&amp;</span>type_name.to_lowercase()).unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"{type_name} not found"</span>))
     }
 
     <span class="kw">pub fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
@@ -3061,7 +3063,7 @@
 
     <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SourceLocation, linkage: LinkageType) {
         <span class="kw">let </span>instance_variable =
-            VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+            VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}_instance"</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span>.set_linkage(linkage);
         <span class="comment">// self.register_global_variable(name, instance_variable.clone());
         </span><span class="kw">let </span>entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
@@ -3081,13 +3083,13 @@
     }
 
     <span class="doccomment">/// creates a member-variable of a container to be accessed in a qualified name.
-    /// e.g. &quot;POU.member&quot;, &quot;StructName.member&quot;, etc.
+    /// e.g. "POU.member", "StructName.member", etc.
     ///
     /// #Arguments
     /// * `container_name`- the name of hosting container (pou or struct)
     /// * `variable_name` - the name of the member variable
     /// * `variable_linkage` - the linkage-type of that variable (one of local, global, etc. )
-    /// * `variable_type_name` - the variable&#39;s data type as a string
+    /// * `variable_type_name` - the variable's data type as a string
     /// * `initial_value` - the initial value as defined in the AST
     /// * `location` - the location (index) inside the container
     </span><span class="kw">pub fn </span>register_member_variable(
@@ -3158,7 +3160,7 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="comment">//look for a *callable* variable with that name
         </span><span class="self">self</span>.find_variable(context, reference).filter(|v| {
-            <span class="comment">//callable means, there is an implementation associated with the variable&#39;s datatype
+            <span class="comment">//callable means, there is an implementation associated with the variable's datatype
             </span><span class="self">self</span>.find_implementation_by_name(<span class="kw-2">&amp;</span>v.data_type_name).is_some()
         })
     }
@@ -3175,10 +3177,10 @@
 
     <span class="doccomment">/// returns the intrinsic (built-in) type represented by the given type-information
     /// this will return the built-in type behind alias / range-types
-    </span><span class="kw">pub fn </span>find_intrinsic_type&lt;<span class="lifetime">&#39;idx</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span><span class="self">self</span>,
-        initial_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataTypeInformation,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataTypeInformation {
+    </span><span class="kw">pub fn </span>find_intrinsic_type&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        initial_type: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation,
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation {
         <span class="kw">match </span>initial_type {
             DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } =&gt; {
                 <span class="kw">let </span>inner_type_name = <span class="kw">match </span>initial_type {
@@ -3198,10 +3200,10 @@
         }
     }
 
-    <span class="kw">pub fn </span>find_elementary_pointer_type&lt;<span class="lifetime">&#39;idx</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span><span class="self">self</span>,
-        initial_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataTypeInformation,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataTypeInformation {
+    <span class="kw">pub fn </span>find_elementary_pointer_type&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        initial_type: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation,
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation {
         <span class="kw">match </span>initial_type {
             DataTypeInformation::Pointer { inner_type_name, .. } =&gt; {
                 <span class="kw">let </span>inner_type = <span class="self">self
@@ -3230,7 +3232,7 @@
     }
 
     <span class="doccomment">/// If the provided name is a builtin function, returns it from the builtin index
-    </span><span class="kw">pub fn </span>get_builtin_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>BuiltIn&gt; {
+    </span><span class="kw">pub fn </span>get_builtin_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>BuiltIn&gt; {
         <span class="comment">//Find a type for that function, see if that type is builtin
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(PouIndexEntry::Function { linkage: LinkageType::BuiltIn, .. }) = <span class="self">self</span>.find_pou(name) {
             builtins::get_builtin(name)
@@ -3288,6 +3290,6 @@
 
 <span class="doccomment">/// Returns a default initialization name for a variable or type
 </span><span class="kw">pub fn </span>get_initializer_name(name: <span class="kw-2">&amp;</span>str) -&gt; String {
-    <span class="macro">format!</span>(<span class="string">&quot;__{name}__init&quot;</span>)
+    <span class="macro">format!</span>(<span class="string">"__{name}__init"</span>)
 }
 </code></pre></div></section></main></body></html>

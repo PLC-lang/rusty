@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/parser/validator.rs`."><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/parser/validator.rs`."><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -573,13 +575,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::util::Id;
 <span class="kw">use </span><span class="kw">crate</span>::INTERNAL_ERROR_MSG;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Validator&lt;<span class="lifetime">&#39;cmd</span>&gt; {
-    cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Validator&lt;<span class="lifetime">'cmd</span>&gt; {
+    cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command,
     required: ChildGraph&lt;Id&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>&gt; Validator&lt;<span class="lifetime">&#39;cmd</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>&gt; Validator&lt;<span class="lifetime">'cmd</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>required = cmd.required_graph();
         Validator { cmd, required }
     }
@@ -589,12 +591,12 @@
         parse_state: ParseState,
         matcher: <span class="kw-2">&amp;mut </span>ArgMatcher,
     ) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::validate"</span>);
         <span class="kw">let </span>conflicts = Conflicts::with_args(<span class="self">self</span>.cmd, matcher);
         <span class="kw">let </span>has_subcmd = matcher.subcommand_name().is_some();
 
         <span class="kw">if let </span>ParseState::Opt(a) = parse_state {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate: needs_val_of={a:?}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Validator::validate: needs_val_of={a:?}"</span>);
 
             <span class="kw">let </span>o = <span class="kw-2">&amp;</span><span class="self">self</span>.cmd[<span class="kw-2">&amp;</span>a];
             <span class="kw">let </span>should_err = <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = matcher.args.get(o.get_id()) {
@@ -653,7 +655,7 @@
         matcher: <span class="kw-2">&amp;</span>ArgMatcher,
         conflicts: <span class="kw-2">&amp;</span>Conflicts,
     ) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_conflicts&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::validate_conflicts"</span>);
 
         <span class="macro">ok!</span>(<span class="self">self</span>.validate_exclusive(matcher));
 
@@ -662,7 +664,7 @@
             .filter(|(<span class="kw">_</span>, matched)| matched.check_explicit(<span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
             .filter(|(arg_id, <span class="kw">_</span>)| <span class="self">self</span>.cmd.find(arg_id).is_some())
         {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_conflicts::iter: id={arg_id:?}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Validator::validate_conflicts::iter: id={arg_id:?}"</span>);
             <span class="kw">let </span>conflicts = conflicts.gather_conflicts(<span class="self">self</span>.cmd, arg_id);
             <span class="macro">ok!</span>(<span class="self">self</span>.build_conflict_err(arg_id, <span class="kw-2">&amp;</span>conflicts, matcher));
         }
@@ -671,7 +673,7 @@
     }
 
     <span class="kw">fn </span>validate_exclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span>ArgMatcher) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::validate_exclusive"</span>);
         <span class="kw">let </span>args_count = matcher
             .args()
             .filter(|(arg_id, matched)| {
@@ -690,7 +692,7 @@
             .args()
             .filter(|(<span class="kw">_</span>, matched)| matched.check_explicit(<span class="kw-2">&amp;</span><span class="kw">crate</span>::builder::ArgPredicate::IsPresent))
             .filter_map(|(id, <span class="kw">_</span>)| {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive:iter:{id:?}&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Validator::validate_exclusive:iter:{id:?}"</span>);
                 <span class="self">self</span>.cmd
                     .find(id)
                     <span class="comment">// Find `arg`s which are exclusive but also appear with other args.
@@ -721,7 +723,7 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::build_conflict_err: name={name:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::build_conflict_err: name={name:?}"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>seen = FlatSet::new();
         <span class="kw">let </span>conflicts = conflict_ids
             .iter()
@@ -760,7 +762,7 @@
             .filter(|(<span class="kw">_</span>, matched)| matched.check_explicit(<span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
             .map(|(n, <span class="kw">_</span>)| n)
             .filter(|n| {
-                <span class="comment">// Filter out the args we don&#39;t want to specify.
+                <span class="comment">// Filter out the args we don't want to specify.
                 </span><span class="self">self</span>.cmd
                     .find(n)
                     .map(|a| !a.is_hide_set())
@@ -783,12 +785,12 @@
     }
 
     <span class="kw">fn </span>gather_requires(<span class="kw-2">&amp;mut </span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span>ArgMatcher) {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::gather_requires"</span>);
         <span class="kw">for </span>(name, matched) <span class="kw">in </span>matcher
             .args()
             .filter(|(<span class="kw">_</span>, matched)| matched.check_explicit(<span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
         {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires:iter:{name:?}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Validator::gather_requires:iter:{name:?}"</span>);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <span class="self">self</span>.cmd.find(name) {
                 <span class="kw">let </span>is_relevant = |(val, req_arg): <span class="kw-2">&amp;</span>(ArgPredicate, Id)| -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
                     <span class="kw">let </span>required = matched.check_explicit(val);
@@ -799,7 +801,7 @@
                     <span class="self">self</span>.required.insert(req);
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(g) = <span class="self">self</span>.cmd.find_group(name) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires:iter:{name:?}:group&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Validator::gather_requires:iter:{name:?}:group"</span>);
                 <span class="kw">for </span>r <span class="kw">in </span><span class="kw-2">&amp;</span>g.requires {
                     <span class="self">self</span>.required.insert(r.clone());
                 }
@@ -808,7 +810,7 @@
     }
 
     <span class="kw">fn </span>validate_required(<span class="kw-2">&amp;mut </span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span>ArgMatcher, conflicts: <span class="kw-2">&amp;</span>Conflicts) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required: required={:?}&quot;</span>, <span class="self">self</span>.required);
+        <span class="macro">debug!</span>(<span class="string">"Validator::validate_required: required={:?}"</span>, <span class="self">self</span>.required);
         <span class="self">self</span>.gather_requires(matcher);
 
         <span class="kw">let </span><span class="kw-2">mut </span>missing_required = Vec::new();
@@ -823,19 +825,19 @@
                     .map(|arg| arg.is_exclusive_set())
                     .unwrap_or_default()
             });
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required: is_exclusive_present={is_exclusive_present}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::validate_required: is_exclusive_present={is_exclusive_present}"</span>);
 
         <span class="kw">for </span>arg_or_group <span class="kw">in </span><span class="self">self
             </span>.required
             .iter()
             .filter(|r| !matcher.check_explicit(r, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
         {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter:aog={arg_or_group:?}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Validator::validate_required:iter:aog={arg_or_group:?}"</span>);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <span class="self">self</span>.cmd.find(arg_or_group) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter: This is an arg&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Validator::validate_required:iter: This is an arg"</span>);
                 <span class="kw">if </span>!is_exclusive_present &amp;&amp; !<span class="self">self</span>.is_missing_required_ok(arg, conflicts) {
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                         arg.get_id()
                     );
                     missing_required.push(arg.get_id().clone());
@@ -844,7 +846,7 @@
                     }
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(group) = <span class="self">self</span>.cmd.find_group(arg_or_group) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter: This is a group&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Validator::validate_required:iter: This is a group"</span>);
                 <span class="kw">if </span>!<span class="self">self
                     </span>.cmd
                     .unroll_args_in_group(<span class="kw-2">&amp;</span>group.id)
@@ -852,7 +854,7 @@
                     .any(|a| matcher.check_explicit(a, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
                 {
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                         group.get_id()
                     );
                     missing_required.push(group.get_id().clone());
@@ -871,7 +873,7 @@
             <span class="kw">for </span>(other, val) <span class="kw">in </span><span class="kw-2">&amp;</span>a.r_ifs {
                 <span class="kw">if </span>matcher.check_explicit(other, <span class="kw-2">&amp;</span>ArgPredicate::Equals(val.into())) {
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                         a.get_id()
                     );
                     required = <span class="bool-val">true</span>;
@@ -883,7 +885,7 @@
             });
             <span class="kw">if </span>match_all &amp;&amp; !a.r_ifs_all.is_empty() {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                    <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                     a.get_id()
                 );
                 required = <span class="bool-val">true</span>;
@@ -893,7 +895,7 @@
                 &amp;&amp; <span class="self">self</span>.fails_arg_required_unless(a, matcher)
             {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                    <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                     a.get_id()
                 );
                 required = <span class="bool-val">true</span>;
@@ -916,7 +918,7 @@
             {
                 <span class="kw">if </span>pos.get_index() &lt; <span class="prelude-val">Some</span>(highest_index) {
                     <span class="macro">debug!</span>(
-                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        <span class="string">"Validator::validate_required:iter: Missing {:?}"</span>,
                         pos.get_id()
                     );
                     missing_required.push(pos.get_id().clone());
@@ -932,23 +934,23 @@
     }
 
     <span class="kw">fn </span>is_missing_required_ok(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Arg, conflicts: <span class="kw-2">&amp;</span>Conflicts) -&gt; bool {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: {}&quot;</span>, a.get_id());
+        <span class="macro">debug!</span>(<span class="string">"Validator::is_missing_required_ok: {}"</span>, a.get_id());
         <span class="kw">if </span>!conflicts.gather_conflicts(<span class="self">self</span>.cmd, a.get_id()).is_empty() {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: true (self)&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Validator::is_missing_required_ok: true (self)"</span>);
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
         <span class="kw">for </span>group_id <span class="kw">in </span><span class="self">self</span>.cmd.groups_for_arg(a.get_id()) {
             <span class="kw">if </span>!conflicts.gather_conflicts(<span class="self">self</span>.cmd, <span class="kw-2">&amp;</span>group_id).is_empty() {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: true ({group_id})&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Validator::is_missing_required_ok: true ({group_id})"</span>);
                 <span class="kw">return </span><span class="bool-val">true</span>;
             }
         }
         <span class="bool-val">false
     </span>}
 
-    <span class="comment">// Failing a required unless means, the arg&#39;s &quot;unless&quot; wasn&#39;t present, and neither were they
+    <span class="comment">// Failing a required unless means, the arg's "unless" wasn't present, and neither were they
     </span><span class="kw">fn </span>fails_arg_required_unless(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Arg, matcher: <span class="kw-2">&amp;</span>ArgMatcher) -&gt; bool {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::fails_arg_required_unless: a={:?}&quot;</span>, a.get_id());
+        <span class="macro">debug!</span>(<span class="string">"Validator::fails_arg_required_unless: a={:?}"</span>, a.get_id());
         <span class="kw">let </span>exists = |id| matcher.check_explicit(id, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent);
 
         (a.r_unless_all.is_empty() || !a.r_unless_all.iter().all(exists))
@@ -961,16 +963,16 @@
         matcher: <span class="kw-2">&amp;</span>ArgMatcher,
         raw_req_args: Vec&lt;Id&gt;,
     ) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::missing_required_error; incl={raw_req_args:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::missing_required_error; incl={raw_req_args:?}"</span>);
         <span class="macro">debug!</span>(
-            <span class="string">&quot;Validator::missing_required_error: reqs={:?}&quot;</span>,
+            <span class="string">"Validator::missing_required_error: reqs={:?}"</span>,
             <span class="self">self</span>.required
         );
 
         <span class="kw">let </span>usg = Usage::new(<span class="self">self</span>.cmd).required(<span class="kw-2">&amp;</span><span class="self">self</span>.required);
 
         <span class="kw">let </span>req_args = {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"usage"</span>)]
             </span>{
                 usg.get_required_usage_from(<span class="kw-2">&amp;</span>raw_req_args, <span class="prelude-val">Some</span>(matcher), <span class="bool-val">true</span>)
                     .into_iter()
@@ -978,7 +980,7 @@
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
             }
 
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;usage&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"usage"</span>))]
             </span>{
                 raw_req_args
                     .iter()
@@ -988,8 +990,8 @@
                         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(_group) = <span class="self">self</span>.cmd.find_group(id) {
                             <span class="self">self</span>.cmd.format_group(id).to_string()
                         } <span class="kw">else </span>{
-                            <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;id={id:?} is unknown&quot;</span>);
-                            <span class="string">&quot;&quot;</span>.to_owned()
+                            <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">"id={id:?} is unknown"</span>);
+                            <span class="string">""</span>.to_owned()
                         }
                     })
                     .collect::&lt;FlatSet&lt;<span class="kw">_</span>&gt;&gt;()
@@ -998,14 +1000,14 @@
             }
         };
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::missing_required_error: req_args={req_args:#?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Validator::missing_required_error: req_args={req_args:#?}"</span>);
 
         <span class="kw">let </span>used: Vec&lt;Id&gt; = matcher
             .args()
             .filter(|(<span class="kw">_</span>, matched)| matched.check_explicit(<span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
             .map(|(n, <span class="kw">_</span>)| n)
             .filter(|n| {
-                <span class="comment">// Filter out the args we don&#39;t want to specify.
+                <span class="comment">// Filter out the args we don't want to specify.
                 </span><span class="self">self</span>.cmd
                     .find(n)
                     .map(|a| !a.is_hide_set())
@@ -1044,7 +1046,7 @@
     }
 
     <span class="kw">fn </span>gather_conflicts(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command, arg_id: <span class="kw-2">&amp;</span>Id) -&gt; Vec&lt;Id&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_conflicts: arg={arg_id:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Conflicts::gather_conflicts: arg={arg_id:?}"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>conflicts = Vec::new();
 
         <span class="kw">let </span>arg_id_conflicts_storage;
@@ -1068,7 +1070,7 @@
             }
         }
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_conflicts: conflicts={conflicts:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Conflicts::gather_conflicts: conflicts={conflicts:?}"</span>);
         conflicts
     }
 
@@ -1083,10 +1085,10 @@
     } <span class="kw">else if let </span><span class="prelude-val">Some</span>(group) = cmd.find_group(id) {
         gather_group_direct_conflicts(group)
     } <span class="kw">else </span>{
-        <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;id={id:?} is unknown&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">"id={id:?} is unknown"</span>);
         Vec::new()
     };
-    <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_direct_conflicts id={id:?}, conflicts={conf:?}&quot;</span>,);
+    <span class="macro">debug!</span>(<span class="string">"Conflicts::gather_direct_conflicts id={id:?}, conflicts={conf:?}"</span>,);
     conf
 }
 

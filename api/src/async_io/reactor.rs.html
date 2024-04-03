@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/reactor.rs`."><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_io"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/reactor.rs`."><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_io/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -699,14 +701,14 @@
         <span class="kw">mod </span>windows;
         <span class="kw">pub use </span>windows::Registration;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;ios&quot;</span>,
-        target_os = <span class="string">&quot;tvos&quot;</span>,
-        target_os = <span class="string">&quot;watchos&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
     ))] </span>{
         <span class="kw">mod </span>kqueue;
         <span class="kw">pub use </span>kqueue::Registration;
@@ -714,16 +716,16 @@
         <span class="kw">mod </span>unix;
         <span class="kw">pub use </span>unix::Registration;
     } <span class="kw">else </span>{
-        <span class="macro">compile_error!</span>(<span class="string">&quot;unsupported platform&quot;</span>);
+        <span class="macro">compile_error!</span>(<span class="string">"unsupported platform"</span>);
     }
 }
 
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;espidf&quot;</span>))]
+<span class="attr">#[cfg(not(target_os = <span class="string">"espidf"</span>))]
 </span><span class="kw">const </span>TIMER_QUEUE_SIZE: usize = <span class="number">1000</span>;
 
 <span class="doccomment">/// ESP-IDF - being an embedded OS - does not need so many timers
 /// and this saves ~ 20K RAM which is a lot for an MCU with RAM &lt; 400K
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;espidf&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"espidf"</span>)]
 </span><span class="kw">const </span>TIMER_QUEUE_SIZE: usize = <span class="number">100</span>;
 
 <span class="kw">const </span>READ: usize = <span class="number">0</span>;
@@ -740,10 +742,10 @@
 
     <span class="doccomment">/// Ticker bumped before polling.
     ///
-    /// This is useful for checking what is the current &quot;round&quot; of `ReactorLock::react()` when
+    /// This is useful for checking what is the current "round" of `ReactorLock::react()` when
     /// synchronizing things in `Source::readable()` and `Source::writable()`. Both of those
-    /// methods must make sure they don&#39;t receive stale I/O events - they only accept events from a
-    /// fresh &quot;round&quot; of `ReactorLock::react()`.
+    /// methods must make sure they don't receive stale I/O events - they only accept events from a
+    /// fresh "round" of `ReactorLock::react()`.
     </span>ticker: AtomicUsize,
 
     <span class="doccomment">/// Registered sources.
@@ -763,20 +765,20 @@
 
     <span class="doccomment">/// A queue of timer operations (insert and remove).
     ///
-    /// When inserting or removing a timer, we don&#39;t process it immediately - we just push it into
+    /// When inserting or removing a timer, we don't process it immediately - we just push it into
     /// this queue. Timers actually get processed when the queue fills up or the reactor is polled.
     </span>timer_ops: ConcurrentQueue&lt;TimerOp&gt;,
 }
 
 <span class="kw">impl </span>Reactor {
     <span class="doccomment">/// Returns a reference to the reactor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Reactor {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Reactor {
         <span class="kw">static </span>REACTOR: OnceCell&lt;Reactor&gt; = OnceCell::new();
 
         REACTOR.get_or_init_blocking(|| {
             <span class="kw">crate</span>::driver::init();
             Reactor {
-                poller: Poller::new().expect(<span class="string">&quot;cannot initialize I/O event notification&quot;</span>),
+                poller: Poller::new().expect(<span class="string">"cannot initialize I/O event notification"</span>),
                 ticker: AtomicUsize::new(<span class="number">0</span>),
                 sources: Mutex::new(Slab::new()),
                 events: Mutex::new(Events::new()),
@@ -825,7 +827,7 @@
 
     <span class="doccomment">/// Registers a timer in the reactor.
     ///
-    /// Returns the inserted timer&#39;s ID.
+    /// Returns the inserted timer's ID.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_timer(<span class="kw-2">&amp;</span><span class="self">self</span>, when: Instant, waker: <span class="kw-2">&amp;</span>Waker) -&gt; usize {
         <span class="comment">// Generate a new timer ID.
         </span><span class="kw">static </span>ID_GENERATOR: AtomicUsize = AtomicUsize::new(<span class="number">1</span>);
@@ -860,18 +862,18 @@
 
     <span class="doccomment">/// Notifies the thread blocked on the reactor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.poller.notify().expect(<span class="string">&quot;failed to notify reactor&quot;</span>);
+        <span class="self">self</span>.poller.notify().expect(<span class="string">"failed to notify reactor"</span>);
     }
 
     <span class="doccomment">/// Locks the reactor, potentially blocking if the lock is held by another thread.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReactorLock&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">let </span>reactor = <span class="self">self</span>;
         <span class="kw">let </span>events = <span class="self">self</span>.events.lock().unwrap();
         ReactorLock { reactor, events }
     }
 
     <span class="doccomment">/// Attempts to lock the reactor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ReactorLock&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.events.try_lock().ok().map(|events| {
             <span class="kw">let </span>reactor = <span class="self">self</span>;
             ReactorLock { reactor, events }
@@ -882,7 +884,7 @@
     ///
     /// Returns the duration until the next timer before this method was called.
     </span><span class="kw">fn </span>process_timers(<span class="kw-2">&amp;</span><span class="self">self</span>, wakers: <span class="kw-2">&amp;mut </span>Vec&lt;Waker&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
-        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;process_timers&quot;</span>);
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"process_timers"</span>);
         <span class="kw">let </span>_enter = span.enter();
 
         <span class="kw">let </span><span class="kw-2">mut </span>timers = <span class="self">self</span>.timers.lock().unwrap();
@@ -913,7 +915,7 @@
         </span>drop(timers);
 
         <span class="comment">// Add wakers to the list.
-        </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;{} ready wakers&quot;</span>, ready.len());
+        </span><span class="macro">tracing::trace!</span>(<span class="string">"{} ready wakers"</span>, ready.len());
 
         <span class="kw">for </span>(<span class="kw">_</span>, waker) <span class="kw">in </span>ready {
             wakers.push(waker);
@@ -923,7 +925,7 @@
     }
 
     <span class="doccomment">/// Processes queued timer operations.
-    </span><span class="kw">fn </span>process_timer_ops(<span class="kw-2">&amp;</span><span class="self">self</span>, timers: <span class="kw-2">&amp;mut </span>MutexGuard&lt;<span class="lifetime">&#39;_</span>, BTreeMap&lt;(Instant, usize), Waker&gt;&gt;) {
+    </span><span class="kw">fn </span>process_timer_ops(<span class="kw-2">&amp;</span><span class="self">self</span>, timers: <span class="kw-2">&amp;mut </span>MutexGuard&lt;<span class="lifetime">'_</span>, BTreeMap&lt;(Instant, usize), Waker&gt;&gt;) {
         <span class="comment">// Process only as much as fits into the queue, or else this loop could in theory run
         // forever.
         </span><span class="self">self</span>.timer_ops
@@ -941,15 +943,15 @@
 }
 
 <span class="doccomment">/// A lock on the reactor.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReactorLock&lt;<span class="lifetime">&#39;a</span>&gt; {
-    reactor: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Reactor,
-    events: MutexGuard&lt;<span class="lifetime">&#39;a</span>, Events&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ReactorLock&lt;<span class="lifetime">'a</span>&gt; {
+    reactor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Reactor,
+    events: MutexGuard&lt;<span class="lifetime">'a</span>, Events&gt;,
 }
 
-<span class="kw">impl </span>ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ReactorLock&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Processes new events, blocking until the first event or the timeout.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>react(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;react&quot;</span>);
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"react"</span>);
         <span class="kw">let </span>_enter = span.enter();
 
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = Vec::new();
@@ -1031,9 +1033,9 @@
         };
 
         <span class="comment">// Wake up ready tasks.
-        </span><span class="macro">tracing::trace!</span>(<span class="string">&quot;{} ready wakers&quot;</span>, wakers.len());
+        </span><span class="macro">tracing::trace!</span>(<span class="string">"{} ready wakers"</span>, wakers.len());
         <span class="kw">for </span>waker <span class="kw">in </span>wakers {
-            <span class="comment">// Don&#39;t let a panicking waker blow everything up.
+            <span class="comment">// Don't let a panicking waker blow everything up.
             </span>panic::catch_unwind(|| waker.wake()).ok();
         }
 
@@ -1050,7 +1052,7 @@
 <span class="doccomment">/// A registered source of I/O events.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Source {
-    <span class="doccomment">/// This source&#39;s registration into the reactor.
+    <span class="doccomment">/// This source's registration into the reactor.
     </span>registration: Registration,
 
     <span class="doccomment">/// The key of this source obtained during registration.
@@ -1099,19 +1101,19 @@
 
 <span class="kw">impl </span>Source {
     <span class="doccomment">/// Polls the I/O source for readability.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_readable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_readable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_ready(READ, cx)
     }
 
     <span class="doccomment">/// Polls the I/O source for writability.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_writable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_writable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_ready(WRITE, cx)
     }
 
     <span class="doccomment">/// Registers a waker from `poll_readable()` or `poll_writable()`.
     ///
     /// If a different waker is already registered, it gets replaced and woken.
-    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, dir: usize, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, dir: usize, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>state = <span class="self">self</span>.state.lock().unwrap();
 
         <span class="comment">// Check if the reactor has delivered an event.
@@ -1126,13 +1128,13 @@
 
         <span class="kw">let </span>was_empty = state[dir].is_empty();
 
-        <span class="comment">// Register the current task&#39;s waker.
+        <span class="comment">// Register the current task's waker.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = state[dir].waker.take() {
             <span class="kw">if </span>w.will_wake(cx.waker()) {
                 state[dir].waker = <span class="prelude-val">Some</span>(w);
                 <span class="kw">return </span>Poll::Pending;
             }
-            <span class="comment">// Wake the previous waker because it&#39;s going to get replaced.
+            <span class="comment">// Wake the previous waker because it's going to get replaced.
             </span>panic::catch_unwind(|| w.wake()).ok();
         }
         state[dir].waker = <span class="prelude-val">Some</span>(cx.waker().clone());
@@ -1156,7 +1158,7 @@
     }
 
     <span class="doccomment">/// Waits until the I/O source is readable.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Readable&lt;<span class="lifetime">'_</span>, T&gt; {
         Readable(<span class="self">Self</span>::ready(handle, READ))
     }
 
@@ -1166,7 +1168,7 @@
     }
 
     <span class="doccomment">/// Waits until the I/O source is writable.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>writable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>writable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Writable&lt;<span class="lifetime">'_</span>, T&gt; {
         Writable(<span class="self">Self</span>::ready(handle, WRITE))
     }
 
@@ -1188,82 +1190,82 @@
 }
 
 <span class="doccomment">/// Future for [`Async::readable`](crate::Async::readable).
-</span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>Readable&lt;<span class="lifetime">&#39;a</span>, T&gt;(Ready&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">crate</span>::Async&lt;T&gt;, T&gt;);
+</span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>Readable&lt;<span class="lifetime">'a</span>, T&gt;(Ready&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">crate</span>::Async&lt;T&gt;, T&gt;);
 
-<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Readable&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;readable&quot;</span>);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">"readable"</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Readable&quot;</span>).finish()
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Readable&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Readable"</span>).finish()
     }
 }
 
 <span class="doccomment">/// Future for [`Async::readable_owned`](crate::Async::readable_owned).
-</span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
 </span><span class="kw">pub struct </span>ReadableOwned&lt;T&gt;(Ready&lt;Arc&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt;, T&gt;);
 
 <span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>ReadableOwned&lt;T&gt; {
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;readable_owned&quot;</span>);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">"readable_owned"</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>ReadableOwned&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;ReadableOwned&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"ReadableOwned"</span>).finish()
     }
 }
 
 <span class="doccomment">/// Future for [`Async::writable`](crate::Async::writable).
-</span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>Writable&lt;<span class="lifetime">&#39;a</span>, T&gt;(Ready&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">crate</span>::Async&lt;T&gt;, T&gt;);
+</span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>Writable&lt;<span class="lifetime">'a</span>, T&gt;(Ready&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">crate</span>::Async&lt;T&gt;, T&gt;);
 
-<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Writable&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;writable&quot;</span>);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">"writable"</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Writable&quot;</span>).finish()
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Writable&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Writable"</span>).finish()
     }
 }
 
 <span class="doccomment">/// Future for [`Async::writable_owned`](crate::Async::writable_owned).
-</span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
 </span><span class="kw">pub struct </span>WritableOwned&lt;T&gt;(Ready&lt;Arc&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt;, T&gt;);
 
 <span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>WritableOwned&lt;T&gt; {
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>).poll(cx))<span class="question-mark">?</span>;
-        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">&quot;writable_owned&quot;</span>);
+        <span class="macro">tracing::trace!</span>(fd = <span class="question-mark">?</span><span class="self">self</span>.<span class="number">0</span>.handle.source.registration, <span class="string">"writable_owned"</span>);
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WritableOwned&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;WritableOwned&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"WritableOwned"</span>).finish()
     }
 }
 
@@ -1280,7 +1282,7 @@
 <span class="kw">impl</span>&lt;H: Borrow&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt; + Clone, T&gt; Future <span class="kw">for </span>Ready&lt;H, T&gt; {
     <span class="kw">type </span>Output = io::Result&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="self">Self </span>{
             <span class="kw-2">ref </span>handle,
             dir,
@@ -1302,7 +1304,7 @@
 
         <span class="kw">let </span>was_empty = state[<span class="kw-2">*</span>dir].is_empty();
 
-        <span class="comment">// Register the current task&#39;s waker.
+        <span class="comment">// Register the current task's waker.
         </span><span class="kw">let </span>i = <span class="kw">match </span><span class="kw-2">*</span>index {
             <span class="prelude-val">Some</span>(i) =&gt; i,
             <span class="prelude-val">None </span>=&gt; {

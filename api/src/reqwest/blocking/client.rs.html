@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/client.rs`."><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/client.rs`."><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1190,7 +1192,7 @@
 <a href="#1190" id="1190">1190</a>
 <a href="#1191" id="1191">1191</a>
 <a href="#1192" id="1192">1192</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"__rustls"</span>,))]
 </span><span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::convert::TryInto;
 <span class="kw">use </span>std::fmt;
@@ -1208,11 +1210,11 @@
 <span class="kw">use </span><span class="kw">super</span>::request::{Request, RequestBuilder};
 <span class="kw">use </span><span class="kw">super</span>::response::Response;
 <span class="kw">use </span><span class="kw">super</span>::wait;
-<span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::tls;
-<span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::Certificate;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"__rustls"</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::Identity;
 <span class="kw">use crate</span>::{async_impl, header, redirect, IntoUrl, Method, Proxy};
 
@@ -1232,7 +1234,7 @@
 /// #
 /// # fn run() -&gt; Result&lt;(), reqwest::Error&gt; {
 /// let client = Client::new();
-/// let resp = client.get(&quot;http://httpbin.org/&quot;).send()?;
+/// let resp = client.get("http://httpbin.org/").send()?;
 /// #   drop(resp);
 /// #   Ok(())
 /// # }
@@ -1305,15 +1307,15 @@
     /// # fn doc() -&gt; Result&lt;(), reqwest::Error&gt; {
     /// // Name your user agent after your app?
     /// static APP_USER_AGENT: &amp;str = concat!(
-    ///     env!(&quot;CARGO_PKG_NAME&quot;),
-    ///     &quot;/&quot;,
-    ///     env!(&quot;CARGO_PKG_VERSION&quot;),
+    ///     env!("CARGO_PKG_NAME"),
+    ///     "/",
+    ///     env!("CARGO_PKG_VERSION"),
     /// );
     ///
     /// let client = reqwest::blocking::Client::builder()
     ///     .user_agent(APP_USER_AGENT)
     ///     .build()?;
-    /// let res = client.get(&quot;https://www.rust-lang.org&quot;).send()?;
+    /// let res = client.get("https://www.rust-lang.org").send()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -1333,11 +1335,11 @@
     /// use reqwest::header;
     /// # fn build_client() -&gt; Result&lt;(), reqwest::Error&gt; {
     /// let mut headers = header::HeaderMap::new();
-    /// headers.insert(&quot;X-MY-HEADER&quot;, header::HeaderValue::from_static(&quot;value&quot;));
-    /// headers.insert(header::AUTHORIZATION, header::HeaderValue::from_static(&quot;secret&quot;));
+    /// headers.insert("X-MY-HEADER", header::HeaderValue::from_static("value"));
+    /// headers.insert(header::AUTHORIZATION, header::HeaderValue::from_static("secret"));
     ///
     /// // Consider marking security-sensitive headers with `set_sensitive`.
-    /// let mut auth_value = header::HeaderValue::from_static(&quot;secret&quot;);
+    /// let mut auth_value = header::HeaderValue::from_static("secret");
     /// auth_value.set_sensitive(true);
     /// headers.insert(header::AUTHORIZATION, auth_value);
     ///
@@ -1345,7 +1347,7 @@
     /// let client = reqwest::blocking::Client::builder()
     ///     .default_headers(headers)
     ///     .build()?;
-    /// let res = client.get(&quot;https://www.rust-lang.org&quot;).send()?;
+    /// let res = client.get("https://www.rust-lang.org").send()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -1356,15 +1358,15 @@
     /// use reqwest::header;
     /// # fn build_client() -&gt; Result&lt;(), reqwest::Error&gt; {
     /// let mut headers = header::HeaderMap::new();
-    /// headers.insert(&quot;X-MY-HEADER&quot;, header::HeaderValue::from_static(&quot;value&quot;));
+    /// headers.insert("X-MY-HEADER", header::HeaderValue::from_static("value"));
     ///
     /// // get a client builder
     /// let client = reqwest::blocking::Client::builder()
     ///     .default_headers(headers)
     ///     .build()?;
     /// let res = client
-    ///     .get(&quot;https://www.rust-lang.org&quot;)
-    ///     .header(&quot;X-MY-HEADER&quot;, &quot;new_value&quot;)
+    ///     .get("https://www.rust-lang.org")
+    ///     .header("X-MY-HEADER", "new_value")
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1383,8 +1385,8 @@
     /// # Optional
     ///
     /// This requires the optional `cookies` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;cookies&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"cookies"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"cookies"</span>)))]
     </span><span class="kw">pub fn </span>cookie_store(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.cookie_store(enable))
     }
@@ -1399,9 +1401,9 @@
     /// # Optional
     ///
     /// This requires the optional `cookies` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;cookies&quot;</span>)))]
-    </span><span class="kw">pub fn </span>cookie_provider&lt;C: <span class="kw">crate</span>::cookie::CookieStore + <span class="lifetime">&#39;static</span>&gt;(
+    </span><span class="attr">#[cfg(feature = <span class="string">"cookies"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"cookies"</span>)))]
+    </span><span class="kw">pub fn </span>cookie_provider&lt;C: <span class="kw">crate</span>::cookie::CookieStore + <span class="lifetime">'static</span>&gt;(
         <span class="self">self</span>,
         cookie_store: Arc&lt;C&gt;,
     ) -&gt; ClientBuilder {
@@ -1412,20 +1414,20 @@
     ///
     /// If auto gzip decompresson is turned on:
     ///
-    /// - When sending a request and if the request&#39;s headers do not already contain
+    /// - When sending a request and if the request's headers do not already contain
     ///   an `Accept-Encoding` **and** `Range` values, the `Accept-Encoding` header is set to `gzip`.
     ///   The request body is **not** automatically compressed.
-    /// - When receiving a response, if it&#39;s headers contain a `Content-Encoding` value that
+    /// - When receiving a response, if it's headers contain a `Content-Encoding` value that
     ///   equals to `gzip`, both values `Content-Encoding` and `Content-Length` are removed from the
-    ///   headers&#39; set. The response body is automatically decompressed.
+    ///   headers' set. The response body is automatically decompressed.
     ///
     /// If the `gzip` feature is turned on, the default option is enabled.
     ///
     /// # Optional
     ///
     /// This requires the optional `gzip` feature to be enabled
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;gzip&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;gzip&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"gzip"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"gzip"</span>)))]
     </span><span class="kw">pub fn </span>gzip(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.gzip(enable))
     }
@@ -1434,20 +1436,20 @@
     ///
     /// If auto brotli decompression is turned on:
     ///
-    /// - When sending a request and if the request&#39;s headers do not already contain
+    /// - When sending a request and if the request's headers do not already contain
     ///   an `Accept-Encoding` **and** `Range` values, the `Accept-Encoding` header is set to `br`.
     ///   The request body is **not** automatically compressed.
-    /// - When receiving a response, if it&#39;s headers contain a `Content-Encoding` value that
+    /// - When receiving a response, if it's headers contain a `Content-Encoding` value that
     ///   equals to `br`, both values `Content-Encoding` and `Content-Length` are removed from the
-    ///   headers&#39; set. The response body is automatically decompressed.
+    ///   headers' set. The response body is automatically decompressed.
     ///
     /// If the `brotli` feature is turned on, the default option is enabled.
     ///
     /// # Optional
     ///
     /// This requires the optional `brotli` feature to be enabled
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;brotli&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;brotli&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"brotli"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"brotli"</span>)))]
     </span><span class="kw">pub fn </span>brotli(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.brotli(enable))
     }
@@ -1456,20 +1458,20 @@
     ///
     /// If auto deflate decompresson is turned on:
     ///
-    /// - When sending a request and if the request&#39;s headers do not already contain
+    /// - When sending a request and if the request's headers do not already contain
     ///   an `Accept-Encoding` **and** `Range` values, the `Accept-Encoding` header is set to `deflate`.
     ///   The request body is **not** automatically compressed.
-    /// - When receiving a response, if it&#39;s headers contain a `Content-Encoding` value that
+    /// - When receiving a response, if it's headers contain a `Content-Encoding` value that
     ///   equals to `deflate`, both values `Content-Encoding` and `Content-Length` are removed from the
-    ///   headers&#39; set. The response body is automatically decompressed.
+    ///   headers' set. The response body is automatically decompressed.
     ///
     /// If the `deflate` feature is turned on, the default option is enabled.
     ///
     /// # Optional
     ///
     /// This requires the optional `deflate` feature to be enabled
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;deflate&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;deflate&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"deflate"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"deflate"</span>)))]
     </span><span class="kw">pub fn </span>deflate(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.deflate(enable))
     }
@@ -1477,7 +1479,7 @@
     <span class="doccomment">/// Disable auto response body gzip decompression.
     ///
     /// This method exists even if the optional `gzip` feature is not enabled.
-    /// This can be used to ensure a `Client` doesn&#39;t use gzip decompression
+    /// This can be used to ensure a `Client` doesn't use gzip decompression
     /// even if another dependency were to enable the optional `gzip` feature.
     </span><span class="kw">pub fn </span>no_gzip(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.no_gzip())
@@ -1486,7 +1488,7 @@
     <span class="doccomment">/// Disable auto response body brotli decompression.
     ///
     /// This method exists even if the optional `brotli` feature is not enabled.
-    /// This can be used to ensure a `Client` doesn&#39;t use brotli decompression
+    /// This can be used to ensure a `Client` doesn't use brotli decompression
     /// even if another dependency were to enable the optional `brotli` feature.
     </span><span class="kw">pub fn </span>no_brotli(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.no_brotli())
@@ -1495,7 +1497,7 @@
     <span class="doccomment">/// Disable auto response body deflate decompression.
     ///
     /// This method exists even if the optional `deflate` feature is not enabled.
-    /// This can be used to ensure a `Client` doesn&#39;t use deflate decompression
+    /// This can be used to ensure a `Client` doesn't use deflate decompression
     /// even if another dependency were to enable the optional `deflate` feature.
     </span><span class="kw">pub fn </span>no_deflate(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.no_deflate())
@@ -1523,7 +1525,7 @@
     ///
     /// # Note
     ///
-    /// Adding a proxy will disable the automatic usage of the &quot;system&quot; proxy.
+    /// Adding a proxy will disable the automatic usage of the "system" proxy.
     </span><span class="kw">pub fn </span>proxy(<span class="self">self</span>, proxy: Proxy) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.proxy(proxy))
     }
@@ -1534,7 +1536,7 @@
     /// To add a proxy exclusion list, use [crate::proxy::Proxy::no_proxy()]
     /// on all desired proxies instead.
     ///
-    /// This also disables the automatic usage of the &quot;system&quot; proxy.
+    /// This also disables the automatic usage of the "system" proxy.
     </span><span class="kw">pub fn </span>no_proxy(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.no_proxy())
     }
@@ -1672,8 +1674,8 @@
 
     <span class="doccomment">/// This requires the optional `http3` feature to be
     /// enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;http3&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http3&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"http3"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"http3"</span>)))]
     </span><span class="kw">pub fn </span>http3_prior_knowledge(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.http3_prior_knowledge())
     }
@@ -1730,7 +1732,7 @@
     /// # use std::io::Read;
     /// # fn build_client() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// // read a local binary DER encoded certificate
-    /// let der = std::fs::read(&quot;my-cert.der&quot;)?;
+    /// let der = std::fs::read("my-cert.der")?;
     ///
     /// // create a certificate
     /// let cert = reqwest::Certificate::from_der(&amp;der)?;
@@ -1748,13 +1750,13 @@
     ///
     /// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`
     /// feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>add_root_certificate(<span class="self">self</span>, cert: Certificate) -&gt; ClientBuilder {
@@ -1769,13 +1771,13 @@
     ///
     /// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`
     /// feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>tls_built_in_root_certs(<span class="self">self</span>, tls_built_in_root_certs: bool) -&gt; ClientBuilder {
@@ -1788,8 +1790,8 @@
     ///
     /// This requires the optional `native-tls` or `rustls-tls(-...)` feature to be
     /// enabled.
-    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;rustls-tls&quot;</span>))))]
+    </span><span class="attr">#[cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"__rustls"</span>))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"rustls-tls"</span>))))]
     </span><span class="kw">pub fn </span>identity(<span class="self">self</span>, identity: Identity) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.identity(identity))
     }
@@ -1808,8 +1810,8 @@
     /// # Optional
     ///
     /// This requires the optional `native-tls` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;native-tls&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"native-tls"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"native-tls"</span>)))]
     </span><span class="kw">pub fn </span>danger_accept_invalid_hostnames(<span class="self">self</span>, accept_invalid_hostname: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.danger_accept_invalid_hostnames(accept_invalid_hostname))
     }
@@ -1825,13 +1827,13 @@
     /// will be trusted for use. This includes expired certificates. This
     /// introduces significant vulnerabilities, and should only be used
     /// as a last resort.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>danger_accept_invalid_certs(<span class="self">self</span>, accept_invalid_certs: bool) -&gt; ClientBuilder {
@@ -1841,13 +1843,13 @@
     <span class="doccomment">/// Controls the use of TLS server name indication.
     ///
     /// Defaults to `true`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>tls_sni(<span class="self">self</span>, tls_sni: bool) -&gt; ClientBuilder {
@@ -1856,26 +1858,26 @@
 
     <span class="doccomment">/// Set the minimum required TLS version for connections.
     ///
-    /// By default the TLS backend&#39;s own default is used.
+    /// By default the TLS backend's own default is used.
     ///
     /// # Errors
     ///
     /// A value of `tls::Version::TLS_1_3` will cause an error with the
     /// `native-tls`/`default-tls` backend. This does not mean the version
-    /// isn&#39;t supported, just that it can&#39;t be set as a minimum due to
+    /// isn't supported, just that it can't be set as a minimum due to
     /// technical limitations.
     ///
     /// # Optional
     ///
     /// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`
     /// feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>min_tls_version(<span class="self">self</span>, version: tls::Version) -&gt; ClientBuilder {
@@ -1884,26 +1886,26 @@
 
     <span class="doccomment">/// Set the maximum allowed TLS version for connections.
     ///
-    /// By default there&#39;s no maximum.
+    /// By default there's no maximum.
     ///
     /// # Errors
     ///
     /// A value of `tls::Version::TLS_1_3` will cause an error with the
     /// `native-tls`/`default-tls` backend. This does not mean the version
-    /// isn&#39;t supported, just that it can&#39;t be set as a maximum due to
+    /// isn't supported, just that it can't be set as a maximum due to
     /// technical limitations.
     ///
     /// # Optional
     ///
     /// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`
     /// feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>max_tls_version(<span class="self">self</span>, version: tls::Version) -&gt; ClientBuilder {
@@ -1918,8 +1920,8 @@
     /// # Optional
     ///
     /// This requires the optional `native-tls` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;native-tls&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"native-tls"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"native-tls"</span>)))]
     </span><span class="kw">pub fn </span>use_native_tls(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.use_native_tls())
     }
@@ -1932,8 +1934,8 @@
     /// # Optional
     ///
     /// This requires the optional `rustls-tls(-...)` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__rustls&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;rustls-tls&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__rustls"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"rustls-tls"</span>)))]
     </span><span class="kw">pub fn </span>use_rustls_tls(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.use_rustls_tls())
     }
@@ -1944,13 +1946,13 @@
     ///
     /// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`
     /// feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(
-            feature = <span class="string">&quot;default-tls&quot;</span>,
-            feature = <span class="string">&quot;native-tls&quot;</span>,
-            feature = <span class="string">&quot;rustls-tls&quot;
+            feature = <span class="string">"default-tls"</span>,
+            feature = <span class="string">"native-tls"</span>,
+            feature = <span class="string">"rustls-tls"
         </span>)))
     )]
     </span><span class="kw">pub fn </span>tls_info(<span class="self">self</span>, tls_info: bool) -&gt; ClientBuilder {
@@ -1966,17 +1968,17 @@
     ///
     /// This is an advanced option, and can be somewhat brittle. Usage requires
     /// keeping the preconfigured TLS argument version in sync with reqwest,
-    /// since version mismatches will result in an &quot;unknown&quot; TLS backend.
+    /// since version mismatches will result in an "unknown" TLS backend.
     ///
-    /// If possible, it&#39;s preferable to use the methods on `ClientBuilder`
-    /// to configure reqwest&#39;s TLS.
+    /// If possible, it's preferable to use the methods on `ClientBuilder`
+    /// to configure reqwest's TLS.
     ///
     /// # Optional
     ///
     /// This requires one of the optional features `native-tls` or
     /// `rustls-tls(-...)` to be enabled.
-    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;rustls-tls&quot;</span>))))]
+    </span><span class="attr">#[cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"__rustls"</span>,))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"rustls-tls"</span>))))]
     </span><span class="kw">pub fn </span>use_preconfigured_tls(<span class="self">self</span>, tls: <span class="kw">impl </span>Any) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.use_preconfigured_tls(tls))
     }
@@ -1988,8 +1990,8 @@
     /// # Optional
     ///
     /// This requires the optional `trust-dns` feature to be enabled
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;trust-dns&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;trust-dns&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"trust-dns"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"trust-dns"</span>)))]
     </span><span class="kw">pub fn </span>trust_dns(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.trust_dns(enable))
     }
@@ -1997,7 +1999,7 @@
     <span class="doccomment">/// Disables the trust-dns async resolver.
     ///
     /// This method exists even if the optional `trust-dns` feature is not enabled.
-    /// This can be used to ensure a `Client` doesn&#39;t use the trust-dns async resolver
+    /// This can be used to ensure a `Client` doesn't use the trust-dns async resolver
     /// even if another dependency were to enable the optional `trust-dns` feature.
     </span><span class="kw">pub fn </span>no_trust_dns(<span class="self">self</span>) -&gt; ClientBuilder {
         <span class="self">self</span>.with_inner(|inner| inner.no_trust_dns())
@@ -2074,7 +2076,7 @@
     /// This method also panics if called from within an async runtime. See docs
     /// on [`reqwest::blocking`][crate::blocking] for details.
     </span><span class="kw">pub fn </span>new() -&gt; Client {
-        ClientBuilder::new().build().expect(<span class="string">&quot;Client::new()&quot;</span>)
+        ClientBuilder::new().build().expect(<span class="string">"Client::new()"</span>)
     }
 
     <span class="doccomment">/// Creates a `ClientBuilder` to configure a `Client`.
@@ -2170,10 +2172,10 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Client {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Client&quot;</span>)
-            <span class="comment">//.field(&quot;gzip&quot;, &amp;self.inner.gzip)
-            //.field(&quot;redirect_policy&quot;, &amp;self.inner.redirect_policy)
-            //.field(&quot;referer&quot;, &amp;self.inner.referer)
+        f.debug_struct(<span class="string">"Client"</span>)
+            <span class="comment">//.field("gzip", &amp;self.inner.gzip)
+            //.field("redirect_policy", &amp;self.inner.redirect_policy)
+            //.field("referer", &amp;self.inner.referer)
             </span>.finish()
     }
 }
@@ -2204,13 +2206,13 @@
             </span>.thread
             .as_ref()
             .map(|h| h.thread().id())
-            .expect(<span class="string">&quot;thread not dropped yet&quot;</span>);
+            .expect(<span class="string">"thread not dropped yet"</span>);
 
-        <span class="macro">trace!</span>(<span class="string">&quot;closing runtime thread ({:?})&quot;</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"closing runtime thread ({:?})"</span>, id);
         <span class="self">self</span>.tx.take();
-        <span class="macro">trace!</span>(<span class="string">&quot;signaled close for runtime thread ({:?})&quot;</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"signaled close for runtime thread ({:?})"</span>, id);
         <span class="self">self</span>.thread.take().map(|h| h.join());
-        <span class="macro">trace!</span>(<span class="string">&quot;closed runtime thread ({:?})&quot;</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"closed runtime thread ({:?})"</span>, id);
     }
 }
 
@@ -2221,7 +2223,7 @@
         <span class="kw">let </span>(tx, rx) = mpsc::unbounded_channel::&lt;(async_impl::Request, OneshotResponse)&gt;();
         <span class="kw">let </span>(spawn_tx, spawn_rx) = oneshot::channel::&lt;<span class="kw">crate</span>::Result&lt;()&gt;&gt;();
         <span class="kw">let </span>handle = thread::Builder::new()
-            .name(<span class="string">&quot;reqwest-internal-sync-runtime&quot;</span>.into())
+            .name(<span class="string">"reqwest-internal-sync-runtime"</span>.into())
             .spawn(<span class="kw">move </span>|| {
                 <span class="kw">use </span>tokio::runtime;
                 <span class="kw">let </span>rt = <span class="kw">match </span>runtime::Builder::new_current_thread()
@@ -2231,7 +2233,7 @@
                 {
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Err</span>(e)) {
-                            <span class="macro">error!</span>(<span class="string">&quot;Failed to communicate runtime creation failure: {:?}&quot;</span>, e);
+                            <span class="macro">error!</span>(<span class="string">"Failed to communicate runtime creation failure: {:?}"</span>, e);
                         }
                         <span class="kw">return</span>;
                     }
@@ -2242,14 +2244,14 @@
                     <span class="kw">let </span>client = <span class="kw">match </span>builder.build() {
                         <span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Err</span>(e)) {
-                                <span class="macro">error!</span>(<span class="string">&quot;Failed to communicate client creation failure: {:?}&quot;</span>, e);
+                                <span class="macro">error!</span>(<span class="string">"Failed to communicate client creation failure: {:?}"</span>, e);
                             }
                             <span class="kw">return</span>;
                         }
                         <span class="prelude-val">Ok</span>(v) =&gt; v,
                     };
                     <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Ok</span>(())) {
-                        <span class="macro">error!</span>(<span class="string">&quot;Failed to communicate successful startup: {:?}&quot;</span>, e);
+                        <span class="macro">error!</span>(<span class="string">"Failed to communicate successful startup: {:?}"</span>, e);
                         <span class="kw">return</span>;
                     }
 
@@ -2260,14 +2262,14 @@
                         tokio::spawn(forward(req_fut, req_tx));
                     }
 
-                    <span class="macro">trace!</span>(<span class="string">&quot;({:?}) Receiver is shutdown&quot;</span>, thread::current().id());
+                    <span class="macro">trace!</span>(<span class="string">"({:?}) Receiver is shutdown"</span>, thread::current().id());
                 };
 
-                <span class="macro">trace!</span>(<span class="string">&quot;({:?}) start runtime::block_on&quot;</span>, thread::current().id());
+                <span class="macro">trace!</span>(<span class="string">"({:?}) start runtime::block_on"</span>, thread::current().id());
                 rt.block_on(f);
-                <span class="macro">trace!</span>(<span class="string">&quot;({:?}) end runtime::block_on&quot;</span>, thread::current().id());
+                <span class="macro">trace!</span>(<span class="string">"({:?}) end runtime::block_on"</span>, thread::current().id());
                 drop(rt);
-                <span class="macro">trace!</span>(<span class="string">&quot;({:?}) finished&quot;</span>, thread::current().id());
+                <span class="macro">trace!</span>(<span class="string">"({:?}) finished"</span>, thread::current().id());
             })
             .map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>;
 
@@ -2298,9 +2300,9 @@
         <span class="self">self</span>.inner
             .tx
             .as_ref()
-            .expect(<span class="string">&quot;core thread exited early&quot;</span>)
+            .expect(<span class="string">"core thread exited early"</span>)
             .send((req, tx))
-            .expect(<span class="string">&quot;core thread panicked&quot;</span>);
+            .expect(<span class="string">"core thread panicked"</span>);
 
         <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::Result&lt;async_impl::Response&gt;, wait::Waited&lt;<span class="kw">crate</span>::Error&gt;&gt; =
             <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = body {
@@ -2335,7 +2337,7 @@
 
     <span class="macro">futures_util::pin_mut!</span>(fut);
 
-    <span class="comment">// &quot;select&quot; on the sender being canceled, and the future completing
+    <span class="comment">// "select" on the sender being canceled, and the future completing
     </span><span class="kw">let </span>res = futures_util::future::poll_fn(|cx| {
         <span class="kw">match </span>fut.as_mut().poll(cx) {
             Poll::Ready(val) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(val)),
@@ -2380,6 +2382,6 @@
     // an Err here, like a BrokenPipe, but the Client is not
     // recoverable. Additionally, the panic in the other thread
     // is not normal, and should likely be propagated.
-    </span><span class="macro">panic!</span>(<span class="string">&quot;event loop thread panicked&quot;</span>);
+    </span><span class="macro">panic!</span>(<span class="string">"event loop thread panicked"</span>);
 }
 </code></pre></div></section></main></body></html>

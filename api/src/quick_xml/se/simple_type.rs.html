@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/simple_type.rs`."><title>simple_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/simple_type.rs`."><title>simple_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../quick_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1076,9 +1078,9 @@
 </span><span class="kw">pub enum </span>QuoteTarget {
     <span class="doccomment">/// Escape data for a text content. No additional escape symbols
     </span>Text,
-    <span class="doccomment">/// Escape data for a double-quoted attribute. `&quot;` always escaped
+    <span class="doccomment">/// Escape data for a double-quoted attribute. `"` always escaped
     </span>DoubleQAttr,
-    <span class="doccomment">/// Escape data for a single-quoted attribute. `&#39;` always escaped
+    <span class="doccomment">/// Escape data for a single-quoted attribute. `'` always escaped
     </span>SingleQAttr,
 }
 
@@ -1091,62 +1093,62 @@
     <span class="kw">match </span>(target, level) {
         (<span class="kw">_</span>, Full) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items, cannot be used in the item
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>| <span class="string">b&#39;\&#39;&#39; </span>| <span class="string">b&#39;\&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>| <span class="string">b'\'' </span>| <span class="string">b'\"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(Text, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items, cannot be used in the item
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (Text, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items, cannot be used in the item
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(DoubleQAttr, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items, cannot be used in the item
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Double quoted attribute should escape quote
-            </span><span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (DoubleQAttr, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items, cannot be used in the item
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Double quoted attribute should escape quote
-            </span><span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(SingleQAttr, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Single quoted attribute should escape quote
-            </span><span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'\'' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (SingleQAttr, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Spaces used as delimiters of list items
-            </span><span class="string">b&#39; &#39; </span>| <span class="string">b&#39;\r&#39; </span>| <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\t&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b' ' </span>| <span class="string">b'\r' </span>| <span class="string">b'\n' </span>| <span class="string">b'\t' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Single quoted attribute should escape quote
-            </span><span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'\'' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
     }
@@ -1160,48 +1162,48 @@
     <span class="kw">match </span>(target, level) {
         (<span class="kw">_</span>, Full) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>| <span class="string">b&#39;\&#39;&#39; </span>| <span class="string">b&#39;\&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>| <span class="string">b'\'' </span>| <span class="string">b'\"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(Text, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (Text, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(DoubleQAttr, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Double quoted attribute should escape quote
-            </span><span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (DoubleQAttr, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Double quoted attribute should escape quote
-            </span><span class="string">b&#39;&quot;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'"' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         <span class="comment">//----------------------------------------------------------------------
         </span>(SingleQAttr, Partial) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>| <span class="string">b&#39;&gt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>| <span class="string">b'&gt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Single quoted attribute should escape quote
-            </span><span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'\'' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
         (SingleQAttr, Minimal) =&gt; _escape(value, |ch| <span class="kw">match </span>ch {
             <span class="comment">// Required characters to escape
-            </span><span class="string">b&#39;&amp;&#39; </span>| <span class="string">b&#39;&lt;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'&amp;' </span>| <span class="string">b'&lt;' </span>=&gt; <span class="bool-val">true</span>,
             <span class="comment">// Single quoted attribute should escape quote
-            </span><span class="string">b&#39;\&#39;&#39; </span>=&gt; <span class="bool-val">true</span>,
+            </span><span class="string">b'\'' </span>=&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }),
     }
@@ -1265,16 +1267,16 @@
     /// does not differ, so serialization of unit returns `Err(Unsupported)`
     </span><span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;unit type `()` cannot be serialized as an `xs:list` item&quot;</span>.into(),
+            <span class="string">"unit type `()` cannot be serialized as an `xs:list` item"</span>.into(),
         ))
     }
 
     <span class="doccomment">/// We cannot store anything, so the absence of a unit and presence of it
     /// does not differ, so serialization of unit returns `Err(Unsupported)`
-    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;unit struct `{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"unit struct `{}` cannot be serialized as an `xs:list` item"</span>,
                 name
             )
             .into(),
@@ -1285,14 +1287,14 @@
     /// so serialization of enum newtype variant returns `Err(Unsupported)`
     </span><span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;enum newtype variant `{}::{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"enum newtype variant `{}::{}` cannot be serialized as an `xs:list` item"</span>,
                 name, variant
             )
             .into(),
@@ -1301,24 +1303,24 @@
 
     <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeSeq, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;sequence cannot be serialized as an `xs:list` item&quot;</span>.into(),
+            <span class="string">"sequence cannot be serialized as an `xs:list` item"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, _len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTuple, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;tuple cannot be serialized as an `xs:list` item&quot;</span>.into(),
+            <span class="string">"tuple cannot be serialized as an `xs:list` item"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;tuple struct `{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"tuple struct `{}` cannot be serialized as an `xs:list` item"</span>,
                 name
             )
             .into(),
@@ -1327,14 +1329,14 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;enum tuple variant `{}::{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"enum tuple variant `{}::{}` cannot be serialized as an `xs:list` item"</span>,
                 name, variant
             )
             .into(),
@@ -1343,18 +1345,18 @@
 
     <span class="kw">fn </span>serialize_map(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;map cannot be serialized as an `xs:list` item&quot;</span>.into(),
+            <span class="string">"map cannot be serialized as an `xs:list` item"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;struct `{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"struct `{}` cannot be serialized as an `xs:list` item"</span>,
                 name
             )
             .into(),
@@ -1363,14 +1365,14 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;enum struct variant `{}::{}` cannot be serialized as an `xs:list` item&quot;</span>,
+                <span class="string">"enum struct variant `{}::{}` cannot be serialized as an `xs:list` item"</span>,
                 name, variant
             )
             .into(),
@@ -1381,12 +1383,12 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A serializer for a values representing XSD [simple types], which used in:
-/// - attribute values (`&lt;... ...=&quot;value&quot; ...&gt;`)
+/// - attribute values (`&lt;... ...="value" ...&gt;`)
 /// - text content (`&lt;...&gt;text&lt;/...&gt;`)
 /// - CDATA content (`&lt;...&gt;&lt;![CDATA[cdata]]&gt;&lt;/...&gt;`)
 ///
 /// [simple types]: https://www.w3.org/TR/xmlschema11-1/#Simple_Type_Definition
-</span><span class="kw">pub struct </span>SimpleTypeSerializer&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; {
+</span><span class="kw">pub struct </span>SimpleTypeSerializer&lt;<span class="lifetime">'i</span>, W: Write&gt; {
     <span class="doccomment">/// Writer to which this serializer writes content
     </span><span class="kw">pub </span>writer: W,
     <span class="doccomment">/// Target for which element is serializing. Affects additional characters to escape.
@@ -1394,10 +1396,10 @@
     <span class="doccomment">/// Defines which XML characters need to be escaped
     </span><span class="kw">pub </span>level: QuoteLevel,
     <span class="doccomment">/// Indent that should be written before the content if content is not an empty string
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) indent: Indent&lt;<span class="lifetime">&#39;i</span>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) indent: Indent&lt;<span class="lifetime">'i</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; SimpleTypeSerializer&lt;<span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, W: Write&gt; SimpleTypeSerializer&lt;<span class="lifetime">'i</span>, W&gt; {
     <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), DeError&gt; {
         <span class="self">self</span>.indent.write_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>.writer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self
@@ -1406,13 +1408,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; Serializer <span class="kw">for </span>SimpleTypeSerializer&lt;<span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, W: Write&gt; Serializer <span class="kw">for </span>SimpleTypeSerializer&lt;<span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= W;
     <span class="kw">type </span>Error = DeError;
 
-    <span class="kw">type </span>SerializeSeq = SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt;;
-    <span class="kw">type </span>SerializeTuple = SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt;;
-    <span class="kw">type </span>SerializeTupleStruct = SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt;;
+    <span class="kw">type </span>SerializeSeq = SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt;;
+    <span class="kw">type </span>SerializeTuple = SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt;;
     <span class="kw">type </span>SerializeTupleVariant = Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
     <span class="kw">type </span>SerializeMap = Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
     <span class="kw">type </span>SerializeStruct = Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
@@ -1434,7 +1436,7 @@
     }
 
     <span class="doccomment">/// Does not write anything
-    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.writer)
     }
 
@@ -1442,13 +1444,13 @@
     /// so serialization of enum newtype variant returns `Err(Unsupported)`
     </span><span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="macro">format!</span>(<span class="string">&quot;enum newtype variant `{}::{}` cannot be serialized as an attribute or text content value&quot;</span>, name, variant).into(),
+            <span class="macro">format!</span>(<span class="string">"enum newtype variant `{}::{}` cannot be serialized as an attribute or text content value"</span>, name, variant).into(),
         ))
     }
 
@@ -1471,7 +1473,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_seq(<span class="prelude-val">None</span>)
@@ -1479,30 +1481,30 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="macro">format!</span>(<span class="string">&quot;enum tuple variant `{}::{}` cannot be serialized as an attribute or text content value&quot;</span>, name, variant).into(),
+            <span class="macro">format!</span>(<span class="string">"enum tuple variant `{}::{}` cannot be serialized as an attribute or text content value"</span>, name, variant).into(),
         ))
     }
 
     <span class="kw">fn </span>serialize_map(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;map cannot be serialized as an attribute or text content value&quot;</span>.into(),
+            <span class="string">"map cannot be serialized as an attribute or text content value"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
             <span class="macro">format!</span>(
-                <span class="string">&quot;struct `{}` cannot be serialized as an attribute or text content value&quot;</span>,
+                <span class="string">"struct `{}` cannot be serialized as an attribute or text content value"</span>,
                 name
             )
             .into(),
@@ -1511,29 +1513,29 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="macro">format!</span>(<span class="string">&quot;enum struct variant `{}::{}` cannot be serialized as an attribute or text content value&quot;</span>, name, variant).into(),
+            <span class="macro">format!</span>(<span class="string">"enum struct variant `{}::{}` cannot be serialized as an attribute or text content value"</span>, name, variant).into(),
         ))
     }
 }
 
 <span class="doccomment">/// Serializer for a sequence of atomic values delimited by space
-</span><span class="kw">pub struct </span>SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; {
+</span><span class="kw">pub struct </span>SimpleSeq&lt;<span class="lifetime">'i</span>, W: Write&gt; {
     writer: W,
     target: QuoteTarget,
     level: QuoteLevel,
     <span class="doccomment">/// If `true`, nothing was written yet
     </span>first: bool,
     <span class="doccomment">/// Indent that should be written before the content if content is not an empty string
-    </span>indent: Indent&lt;<span class="lifetime">&#39;i</span>&gt;,
+    </span>indent: Indent&lt;<span class="lifetime">'i</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; SerializeSeq <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, W: Write&gt; SerializeSeq <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= W;
     <span class="kw">type </span>Error = DeError;
 
@@ -1546,7 +1548,7 @@
         </span><span class="kw">if </span><span class="self">self</span>.first {
             <span class="self">self</span>.indent.write_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>.writer)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="self">self</span>.writer.write_char(<span class="string">&#39; &#39;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_char(<span class="string">' '</span>)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.first = <span class="bool-val">false</span>;
         value.serialize(AtomicSerializer {
@@ -1563,7 +1565,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; SerializeTuple <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, W: Write&gt; SerializeTuple <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= W;
     <span class="kw">type </span>Error = DeError;
 
@@ -1581,7 +1583,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, W: Write&gt; SerializeTupleStruct <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, W: Write&gt; SerializeTupleStruct <span class="kw">for </span>SimpleSeq&lt;<span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= W;
     <span class="kw">type </span>Error = DeError;
 
@@ -1615,23 +1617,23 @@
     </span><span class="kw">struct </span>Newtype(usize);
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
-    </span><span class="kw">struct </span>Tuple(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, usize);
+    </span><span class="kw">struct </span>Tuple(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, usize);
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">struct </span>Struct {
-        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         val: usize,
     }
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">enum </span>Enum {
         Unit,
-        <span class="attr">#[serde(rename = <span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">"&lt;\"&amp;'&gt;"</span>)]
         </span>UnitEscaped,
         Newtype(usize),
-        Tuple(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, usize),
+        Tuple(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, usize),
         Struct {
-            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             val: usize,
         },
     }
@@ -1646,8 +1648,8 @@
             <span class="attr">#[test]
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
-                    escape_item(<span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>, QuoteTarget::Text, QuoteLevel::Full),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    escape_item(<span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>, QuoteTarget::Text, QuoteLevel::Full),
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1655,11 +1657,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Full
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1667,11 +1669,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Full
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
         }
@@ -1684,11 +1686,11 @@
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::Text,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&#39;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;\"'&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1696,11 +1698,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&#39;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;'&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1708,11 +1710,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;\"&amp;apos;&amp;amp;&amp;gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
         }
@@ -1725,11 +1727,11 @@
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::Text,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&#39;&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;\"'&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1737,11 +1739,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&#39;&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;'&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
 
@@ -1749,11 +1751,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_item(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&amp;apos;&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text&quot;
+                    <span class="string">"text&amp;lt;\"&amp;apos;&amp;amp;&gt;&amp;#32;&amp;#9;&amp;#10;&amp;#13;text"
                 </span>);
             }
         }
@@ -1769,8 +1771,8 @@
             <span class="attr">#[test]
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
-                    escape_list(<span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>, QuoteTarget::Text, QuoteLevel::Full),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    escape_list(<span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>, QuoteTarget::Text, QuoteLevel::Full),
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1778,11 +1780,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Full
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1790,11 +1792,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Full
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
         }
@@ -1807,11 +1809,11 @@
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::Text,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&#39;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;\"'&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1819,11 +1821,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&#39;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;'&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1831,11 +1833,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Partial
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&amp;apos;&amp;amp;&amp;gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;\"&amp;apos;&amp;amp;&amp;gt; \t\n\rtext"
                 </span>);
             }
         }
@@ -1848,11 +1850,11 @@
             </span><span class="kw">fn </span>text() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::Text,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&#39;&amp;amp;&gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;\"'&amp;amp;&gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1860,11 +1862,11 @@
             </span><span class="kw">fn </span>double_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::DoubleQAttr,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;&amp;quot;&#39;&amp;amp;&gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;&amp;quot;'&amp;amp;&gt; \t\n\rtext"
                 </span>);
             }
 
@@ -1872,11 +1874,11 @@
             </span><span class="kw">fn </span>single_quote_attr() {
                 <span class="macro">assert_eq!</span>(
                     escape_list(
-                        <span class="string">&quot;text&lt;\&quot;&#39;&amp;&gt; \t\n\rtext&quot;</span>,
+                        <span class="string">"text&lt;\"'&amp;&gt; \t\n\rtext"</span>,
                         QuoteTarget::SingleQAttr,
                         QuoteLevel::Minimal
                     ),
-                    <span class="string">&quot;text&amp;lt;\&quot;&amp;apos;&amp;amp;&gt; \t\n\rtext&quot;
+                    <span class="string">"text&amp;lt;\"&amp;apos;&amp;amp;&gt; \t\n\rtext"
                 </span>);
             }
         }
@@ -1920,83 +1922,83 @@
                     <span class="kw">match </span><span class="macro-nonterminal">$data</span>.serialize(ser).unwrap_err() {
                         DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                         e =&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                            <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                             <span class="macro-nonterminal">$reason</span>,
                             e
                         ),
                     }
-                    <span class="macro">assert_eq!</span>(buffer, <span class="string">&quot;&quot;</span>);
+                    <span class="macro">assert_eq!</span>(buffer, <span class="string">""</span>);
                 }
             };
         }
 
-        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">&quot;false&quot;</span>);
-        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">&quot;true&quot;</span>);
+        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">"false"</span>);
+        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">"true"</span>);
 
-        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">&quot;-42&quot;</span>);
-        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">&quot;-4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">&quot;-42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">"-42"</span>);
+        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">"-4200"</span>);
+        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">"-42000000"</span>);
+        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">"-42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">"-42000000000000"</span>);
 
-        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">&quot;4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">&quot;42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">"4200"</span>);
+        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">"42000000"</span>);
+        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">"42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">"42000000000000"</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">&quot;-420000000000000000000000000000&quot;</span>);
-            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">&quot;420000000000000000000000000000&quot;</span>);
+            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">"-420000000000000000000000000000"</span>);
+            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">"420000000000000000000000000000"</span>);
         }
 
-        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
-        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
+        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">"4.2"</span>);
+        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">"4.2"</span>);
 
-        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">&#39;h&#39; </span>=&gt; <span class="string">&quot;h&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">&#39;&lt;&#39; </span>=&gt; <span class="string">&quot;&amp;lt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="string">&quot;&amp;gt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">&#39;&amp;&#39; </span>=&gt; <span class="string">&quot;&amp;amp;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_apos: <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="string">&quot;&amp;apos;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_quot: <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="string">&quot;&amp;quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">'h' </span>=&gt; <span class="string">"h"</span>);
+        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">'&lt;' </span>=&gt; <span class="string">"&amp;lt;"</span>);
+        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">'&gt;' </span>=&gt; <span class="string">"&amp;gt;"</span>);
+        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">'&amp;' </span>=&gt; <span class="string">"&amp;amp;"</span>);
+        <span class="macro">serialize_as!</span>(char_apos: <span class="string">'\'' </span>=&gt; <span class="string">"&amp;apos;"</span>);
+        <span class="macro">serialize_as!</span>(char_quot: <span class="string">'"' </span>=&gt; <span class="string">"&amp;quot;"</span>);
 
-        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">&quot;non-escaped-string&quot; </span>=&gt; <span class="string">&quot;non-escaped-string&quot;</span>);
-        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">&quot;&lt;\&quot;escaped &amp; string&#39;&gt;&quot; </span>=&gt; <span class="string">&quot;&amp;lt;&amp;quot;escaped&amp;#32;&amp;amp;&amp;#32;string&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">"non-escaped-string" </span>=&gt; <span class="string">"non-escaped-string"</span>);
+        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">"&lt;\"escaped &amp; string'&gt;" </span>=&gt; <span class="string">"&amp;lt;&amp;quot;escaped&amp;#32;&amp;amp;&amp;#32;string&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b&quot;&lt;\&quot;escaped &amp; bytes&#39;&gt;&quot;</span>)
-            =&gt; Unsupported(<span class="string">&quot;`serialize_bytes` not supported yet&quot;</span>));
+        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>)
+            =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 
-        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">&quot;non-escaped-string&quot;</span>) =&gt; <span class="string">&quot;non-escaped-string&quot;</span>);
+        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped-string"</span>) =&gt; <span class="string">"non-escaped-string"</span>);
 
         <span class="macro">err!</span>(unit: ()
-            =&gt; Unsupported(<span class="string">&quot;unit type `()` cannot be serialized as an `xs:list` item&quot;</span>));
+            =&gt; Unsupported(<span class="string">"unit type `()` cannot be serialized as an `xs:list` item"</span>));
         <span class="macro">err!</span>(unit_struct: Unit
-            =&gt; Unsupported(<span class="string">&quot;unit struct `Unit` cannot be serialized as an `xs:list` item&quot;</span>));
+            =&gt; Unsupported(<span class="string">"unit struct `Unit` cannot be serialized as an `xs:list` item"</span>));
 
-        <span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">&quot;Unit&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_unit_escaped: Enum::UnitEscaped =&gt; <span class="string">&quot;&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">"Unit"</span>);
+        <span class="macro">serialize_as!</span>(enum_unit_escaped: Enum::UnitEscaped =&gt; <span class="string">"&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;42&quot;</span>);
+        <span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">"42"</span>);
         <span class="macro">err!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>)
-            =&gt; Unsupported(<span class="string">&quot;enum newtype variant `Enum::Newtype` cannot be serialized as an `xs:list` item&quot;</span>));
+            =&gt; Unsupported(<span class="string">"enum newtype variant `Enum::Newtype` cannot be serialized as an `xs:list` item"</span>));
 
         <span class="macro">err!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]
-            =&gt; Unsupported(<span class="string">&quot;sequence cannot be serialized as an `xs:list` item&quot;</span>));
-        <span class="macro">err!</span>(tuple: (<span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>, <span class="string">&quot;with\t\n\r spaces&quot;</span>, <span class="number">3usize</span>)
-            =&gt; Unsupported(<span class="string">&quot;tuple cannot be serialized as an `xs:list` item&quot;</span>));
-        <span class="macro">err!</span>(tuple_struct: Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; Unsupported(<span class="string">&quot;tuple struct `Tuple` cannot be serialized as an `xs:list` item&quot;</span>));
-        <span class="macro">err!</span>(enum_tuple: Enum::Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; Unsupported(<span class="string">&quot;enum tuple variant `Enum::Tuple` cannot be serialized as an `xs:list` item&quot;</span>));
+            =&gt; Unsupported(<span class="string">"sequence cannot be serialized as an `xs:list` item"</span>));
+        <span class="macro">err!</span>(tuple: (<span class="string">"&lt;\"&amp;'&gt;"</span>, <span class="string">"with\t\n\r spaces"</span>, <span class="number">3usize</span>)
+            =&gt; Unsupported(<span class="string">"tuple cannot be serialized as an `xs:list` item"</span>));
+        <span class="macro">err!</span>(tuple_struct: Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; Unsupported(<span class="string">"tuple struct `Tuple` cannot be serialized as an `xs:list` item"</span>));
+        <span class="macro">err!</span>(enum_tuple: Enum::Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; Unsupported(<span class="string">"enum tuple variant `Enum::Tuple` cannot be serialized as an `xs:list` item"</span>));
 
         <span class="macro">err!</span>(map: BTreeMap::from([(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>)])
-            =&gt; Unsupported(<span class="string">&quot;map cannot be serialized as an `xs:list` item&quot;</span>));
-        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-            =&gt; Unsupported(<span class="string">&quot;struct `Struct` cannot be serialized as an `xs:list` item&quot;</span>));
-        <span class="macro">err!</span>(enum_struct: Enum::Struct { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-            =&gt; Unsupported(<span class="string">&quot;enum struct variant `Enum::Struct` cannot be serialized as an `xs:list` item&quot;</span>));
+            =&gt; Unsupported(<span class="string">"map cannot be serialized as an `xs:list` item"</span>));
+        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+            =&gt; Unsupported(<span class="string">"struct `Struct` cannot be serialized as an `xs:list` item"</span>));
+        <span class="macro">err!</span>(enum_struct: Enum::Struct { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+            =&gt; Unsupported(<span class="string">"enum struct variant `Enum::Struct` cannot be serialized as an `xs:list` item"</span>));
     }
 
     <span class="kw">mod </span>simple_type {
@@ -2038,82 +2040,82 @@
                     <span class="kw">match </span><span class="macro-nonterminal">$data</span>.serialize(ser).unwrap_err() {
                         DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                         e =&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                            <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                             <span class="macro-nonterminal">$reason</span>,
                             e
                         ),
                     }
-                    <span class="macro">assert_eq!</span>(buffer, <span class="string">&quot;&quot;</span>);
+                    <span class="macro">assert_eq!</span>(buffer, <span class="string">""</span>);
                 }
             };
         }
 
-        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">&quot;false&quot;</span>);
-        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">&quot;true&quot;</span>);
+        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">"false"</span>);
+        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">"true"</span>);
 
-        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">&quot;-42&quot;</span>);
-        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">&quot;-4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">&quot;-42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">"-42"</span>);
+        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">"-4200"</span>);
+        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">"-42000000"</span>);
+        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">"-42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">"-42000000000000"</span>);
 
-        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">&quot;4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">&quot;42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">"4200"</span>);
+        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">"42000000"</span>);
+        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">"42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">"42000000000000"</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">&quot;-420000000000000000000000000000&quot;</span>);
-            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">&quot;420000000000000000000000000000&quot;</span>);
+            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">"-420000000000000000000000000000"</span>);
+            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">"420000000000000000000000000000"</span>);
         }
 
-        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
-        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
+        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">"4.2"</span>);
+        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">"4.2"</span>);
 
-        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">&#39;h&#39; </span>=&gt; <span class="string">&quot;h&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">&#39;&lt;&#39; </span>=&gt; <span class="string">&quot;&amp;lt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="string">&quot;&amp;gt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">&#39;&amp;&#39; </span>=&gt; <span class="string">&quot;&amp;amp;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_apos: <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="string">&quot;&amp;apos;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_quot: <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="string">&quot;&amp;quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">'h' </span>=&gt; <span class="string">"h"</span>);
+        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">'&lt;' </span>=&gt; <span class="string">"&amp;lt;"</span>);
+        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">'&gt;' </span>=&gt; <span class="string">"&amp;gt;"</span>);
+        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">'&amp;' </span>=&gt; <span class="string">"&amp;amp;"</span>);
+        <span class="macro">serialize_as!</span>(char_apos: <span class="string">'\'' </span>=&gt; <span class="string">"&amp;apos;"</span>);
+        <span class="macro">serialize_as!</span>(char_quot: <span class="string">'"' </span>=&gt; <span class="string">"&amp;quot;"</span>);
 
-        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">&quot;&lt;\&quot;escaped &amp; string&#39;&gt;&quot; </span>=&gt; <span class="string">&quot;&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">"non-escaped string" </span>=&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">"&lt;\"escaped &amp; string'&gt;" </span>=&gt; <span class="string">"&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b&quot;&lt;\&quot;escaped &amp; bytes&#39;&gt;&quot;</span>)
-            =&gt; Unsupported(<span class="string">&quot;`serialize_bytes` not supported yet&quot;</span>));
+        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>)
+            =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 
-        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">&quot;non-escaped string&quot;</span>) =&gt; <span class="string">&quot;non-escaped string&quot;</span>);
+        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
 
-        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">&quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">""</span>);
 
-        <span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">&quot;Unit&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_unit_escaped: Enum::UnitEscaped =&gt; <span class="string">&quot;&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">"Unit"</span>);
+        <span class="macro">serialize_as!</span>(enum_unit_escaped: Enum::UnitEscaped =&gt; <span class="string">"&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;42&quot;</span>);
+        <span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">"42"</span>);
         <span class="macro">err!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>)
-            =&gt; Unsupported(<span class="string">&quot;enum newtype variant `Enum::Newtype` cannot be serialized as an attribute or text content value&quot;</span>));
+            =&gt; Unsupported(<span class="string">"enum newtype variant `Enum::Newtype` cannot be serialized as an attribute or text content value"</span>));
 
-        <span class="macro">serialize_as!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] =&gt; <span class="string">&quot;1 2 3&quot;</span>);
-        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(seq_with_1_empty_str: <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>] =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(seq_with_2_empty_strs: <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>] =&gt; <span class="string">&quot; &quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple: (<span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>, <span class="string">&quot;with\t\n\r spaces&quot;</span>, <span class="number">3usize</span>)
-            =&gt; <span class="string">&quot;&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt; with&amp;#9;&amp;#10;&amp;#13;&amp;#32;spaces 3&quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>) =&gt; <span class="string">&quot;first 42&quot;</span>);
-        <span class="macro">err!</span>(enum_tuple: Enum::Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; Unsupported(<span class="string">&quot;enum tuple variant `Enum::Tuple` cannot be serialized as an attribute or text content value&quot;</span>));
+        <span class="macro">serialize_as!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] =&gt; <span class="string">"1 2 3"</span>);
+        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(seq_with_1_empty_str: <span class="macro">vec!</span>[<span class="string">""</span>] =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(seq_with_2_empty_strs: <span class="macro">vec!</span>[<span class="string">""</span>, <span class="string">""</span>] =&gt; <span class="string">" "</span>);
+        <span class="macro">serialize_as!</span>(tuple: (<span class="string">"&lt;\"&amp;'&gt;"</span>, <span class="string">"with\t\n\r spaces"</span>, <span class="number">3usize</span>)
+            =&gt; <span class="string">"&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt; with&amp;#9;&amp;#10;&amp;#13;&amp;#32;spaces 3"</span>);
+        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">"first"</span>, <span class="number">42</span>) =&gt; <span class="string">"first 42"</span>);
+        <span class="macro">err!</span>(enum_tuple: Enum::Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; Unsupported(<span class="string">"enum tuple variant `Enum::Tuple` cannot be serialized as an attribute or text content value"</span>));
 
         <span class="macro">err!</span>(map: BTreeMap::from([(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>)])
-            =&gt; Unsupported(<span class="string">&quot;map cannot be serialized as an attribute or text content value&quot;</span>));
-        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-            =&gt; Unsupported(<span class="string">&quot;struct `Struct` cannot be serialized as an attribute or text content value&quot;</span>));
-        <span class="macro">err!</span>(enum_struct: Enum::Struct { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-            =&gt; Unsupported(<span class="string">&quot;enum struct variant `Enum::Struct` cannot be serialized as an attribute or text content value&quot;</span>));
+            =&gt; Unsupported(<span class="string">"map cannot be serialized as an attribute or text content value"</span>));
+        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+            =&gt; Unsupported(<span class="string">"struct `Struct` cannot be serialized as an attribute or text content value"</span>));
+        <span class="macro">err!</span>(enum_struct: Enum::Struct { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+            =&gt; Unsupported(<span class="string">"enum struct variant `Enum::Struct` cannot be serialized as an attribute or text content value"</span>));
     }
 }
 </code></pre></div></section></main></body></html>

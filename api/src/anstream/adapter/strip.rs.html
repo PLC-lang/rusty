@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.13/src/adapter/strip.rs`."><title>strip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.13/src/adapter/strip.rs`."><title>strip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../anstream/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -523,25 +525,25 @@
 /// ```rust
 /// use std::io::Write as _;
 ///
-/// let styled_text = &quot;\x1b[32mfoo\x1b[m bar&quot;;
+/// let styled_text = "\x1b[32mfoo\x1b[m bar";
 /// let plain_str = anstream::adapter::strip_str(&amp;styled_text).to_string();
-/// assert_eq!(plain_str, &quot;foo bar&quot;);
+/// assert_eq!(plain_str, "foo bar");
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>strip_str(data: <span class="kw-2">&amp;</span>str) -&gt; StrippedStr&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">pub fn </span>strip_str(data: <span class="kw-2">&amp;</span>str) -&gt; StrippedStr&lt;<span class="lifetime">'_</span>&gt; {
     StrippedStr::new(data)
 }
 
 <span class="doccomment">/// See [`strip_str`]
 </span><span class="attr">#[derive(Default, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>StrippedStr&lt;<span class="lifetime">&#39;s</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8],
+</span><span class="kw">pub struct </span>StrippedStr&lt;<span class="lifetime">'s</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8],
     state: State,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; StrippedStr&lt;<span class="lifetime">&#39;s</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; StrippedStr&lt;<span class="lifetime">'s</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bytes: data.as_bytes(),
             state: State::Ground,
@@ -554,15 +556,15 @@
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>stripped = String::with_capacity(<span class="self">self</span>.bytes.len());
-        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>stripped, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>);
+        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>stripped, <span class="string">"{}"</span>, <span class="self">self</span>);
         stripped
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; std::fmt::Display <span class="kw">for </span>StrippedStr&lt;<span class="lifetime">&#39;s</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; std::fmt::Display <span class="kw">for </span>StrippedStr&lt;<span class="lifetime">'s</span>&gt; {
     <span class="doccomment">/// **Note:** this does *not* exhaust the [`Iterator`]
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>iter = <span class="self">Self </span>{
             bytes: <span class="self">self</span>.bytes,
             state: <span class="self">self</span>.state,
@@ -574,8 +576,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>StrippedStr&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>StrippedStr&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -596,7 +598,7 @@
     }
 
     <span class="doccomment">/// Strip the next segment of data
-    </span><span class="kw">pub fn </span>strip_next&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str) -&gt; StripStrIter&lt;<span class="lifetime">&#39;s</span>&gt; {
+    </span><span class="kw">pub fn </span>strip_next&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; StripStrIter&lt;<span class="lifetime">'s</span>&gt; {
         StripStrIter {
             bytes: data.as_bytes(),
             state: <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
@@ -606,13 +608,13 @@
 
 <span class="doccomment">/// See [`StripStr`]
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>StripStrIter&lt;<span class="lifetime">&#39;s</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8],
-    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>State,
+</span><span class="kw">pub struct </span>StripStrIter&lt;<span class="lifetime">'s</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8],
+    state: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>State,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>StripStrIter&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>StripStrIter&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -621,7 +623,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>next_str&lt;<span class="lifetime">&#39;s</span>&gt;(bytes: <span class="kw-2">&amp;mut &amp;</span><span class="lifetime">&#39;s </span>[u8], state: <span class="kw-2">&amp;mut </span>State) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; {
+</span><span class="kw">fn </span>next_str&lt;<span class="lifetime">'s</span>&gt;(bytes: <span class="kw-2">&amp;mut &amp;</span><span class="lifetime">'s </span>[u8], state: <span class="kw-2">&amp;mut </span>State) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; {
     <span class="kw">let </span>offset = bytes.iter().copied().position(|b| {
         <span class="kw">let </span>(next_state, action) = state_change(<span class="kw-2">*</span>state, b);
         <span class="kw">if </span>next_state != State::Anywhere {
@@ -645,7 +647,7 @@
         <span class="kw">let </span>printable = <span class="kw">unsafe </span>{
             from_utf8_unchecked(
                 printable,
-                <span class="string">&quot;`bytes` was validated as UTF-8, the parser preserves UTF-8 continuations&quot;</span>,
+                <span class="string">"`bytes` was validated as UTF-8, the parser preserves UTF-8 continuations"</span>,
             )
         };
         <span class="prelude-val">Some</span>(printable)
@@ -653,7 +655,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">unsafe fn </span>from_utf8_unchecked&lt;<span class="lifetime">&#39;b</span>&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u8], safety_justification: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str {
+</span><span class="kw">unsafe fn </span>from_utf8_unchecked&lt;<span class="lifetime">'b</span>&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u8], safety_justification: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str {
     <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
         <span class="comment">// Catch problems more quickly when testing
         </span>std::str::from_utf8(bytes).expect(safety_justification)
@@ -677,27 +679,27 @@
 /// ```rust
 /// use std::io::Write as _;
 ///
-/// let styled_text = &quot;\x1b[32mfoo\x1b[m bar&quot;;
+/// let styled_text = "\x1b[32mfoo\x1b[m bar";
 /// let plain_str = anstream::adapter::strip_bytes(styled_text.as_bytes()).into_vec();
-/// assert_eq!(plain_str.as_slice(), &amp;b&quot;foo bar&quot;[..]);
+/// assert_eq!(plain_str.as_slice(), &amp;b"foo bar"[..]);
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>strip_bytes(data: <span class="kw-2">&amp;</span>[u8]) -&gt; StrippedBytes&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">pub fn </span>strip_bytes(data: <span class="kw-2">&amp;</span>[u8]) -&gt; StrippedBytes&lt;<span class="lifetime">'_</span>&gt; {
     StrippedBytes::new(data)
 }
 
 <span class="doccomment">/// See [`strip_bytes`]
 </span><span class="attr">#[derive(Default, Clone, Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>StrippedBytes&lt;<span class="lifetime">&#39;s</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8],
+</span><span class="kw">pub struct </span>StrippedBytes&lt;<span class="lifetime">'s</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8],
     state: State,
     utf8parser: Utf8Parser,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; StrippedBytes&lt;<span class="lifetime">&#39;s</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; StrippedBytes&lt;<span class="lifetime">'s</span>&gt; {
     <span class="doccomment">/// See [`strip_bytes`]
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bytes,
             state: State::Ground,
@@ -713,10 +715,10 @@
     ///
     /// May panic if it is not exhausted / empty
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>extend(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) {
+    </span><span class="kw">pub fn </span>extend(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.is_empty(),
-            <span class="string">&quot;current bytes must be processed to ensure we end at the right state&quot;
+            <span class="string">"current bytes must be processed to ensure we end at the right state"
         </span>);
         <span class="self">self</span>.bytes = bytes;
     }
@@ -738,8 +740,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>StrippedBytes&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8];
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>StrippedBytes&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8];
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -761,7 +763,7 @@
     }
 
     <span class="doccomment">/// Strip the next segment of data
-    </span><span class="kw">pub fn </span>strip_next&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) -&gt; StripBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
+    </span><span class="kw">pub fn </span>strip_next&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) -&gt; StripBytesIter&lt;<span class="lifetime">'s</span>&gt; {
         StripBytesIter {
             bytes,
             state: <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
@@ -772,14 +774,14 @@
 
 <span class="doccomment">/// See [`StripBytes`]
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>StripBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8],
-    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>State,
-    utf8parser: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Utf8Parser,
+</span><span class="kw">pub struct </span>StripBytesIter&lt;<span class="lifetime">'s</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8],
+    state: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>State,
+    utf8parser: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Utf8Parser,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>StripBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8];
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>StripBytesIter&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8];
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -788,11 +790,11 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>next_bytes&lt;<span class="lifetime">&#39;s</span>&gt;(
-    bytes: <span class="kw-2">&amp;mut &amp;</span><span class="lifetime">&#39;s </span>[u8],
+</span><span class="kw">fn </span>next_bytes&lt;<span class="lifetime">'s</span>&gt;(
+    bytes: <span class="kw-2">&amp;mut &amp;</span><span class="lifetime">'s </span>[u8],
     state: <span class="kw-2">&amp;mut </span>State,
     utf8parser: <span class="kw-2">&amp;mut </span>Utf8Parser,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]&gt; {
     <span class="kw">let </span>offset = bytes.iter().copied().position(|b| {
         <span class="kw">if </span><span class="kw-2">*</span>state == State::Utf8 {
             <span class="bool-val">true
@@ -849,9 +851,9 @@
     }
 }
 
-<span class="kw">struct </span>VtUtf8Receiver&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>bool);
+<span class="kw">struct </span>VtUtf8Receiver&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>bool);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; utf8parse::Receiver <span class="kw">for </span>VtUtf8Receiver&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; utf8parse::Receiver <span class="kw">for </span>VtUtf8Receiver&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>codepoint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: char) {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0 </span>= <span class="bool-val">true</span>;
     }
@@ -867,7 +869,7 @@
     // ISO Latin-1, making it DEL and non-printable
     </span><span class="kw">const </span>DEL: u8 = <span class="number">0x7f</span>;
 
-    <span class="comment">// Continuations aren&#39;t included as they may also be control codes, requiring more context
+    <span class="comment">// Continuations aren't included as they may also be control codes, requiring more context
     </span>(action == Action::Print &amp;&amp; byte != DEL)
         || action == Action::BeginUtf8
         || (action == Action::Execute &amp;&amp; byte.is_ascii_whitespace())
@@ -956,7 +958,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_strip_str_del() {
         <span class="kw">let </span>input = std::str::from_utf8(<span class="kw-2">&amp;</span>[<span class="number">0x7f</span>]).unwrap();
-        <span class="kw">let </span>expected = <span class="string">&quot;&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">""</span>;
         <span class="kw">let </span>actual = strip_str(input).to_string();
         <span class="macro">assert_eq!</span>(expected, actual);
     }
@@ -964,7 +966,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_strip_byte_del() {
         <span class="kw">let </span>bytes = [<span class="number">0x7f</span>];
-        <span class="kw">let </span>expected = <span class="string">&quot;&quot;</span>;
+        <span class="kw">let </span>expected = <span class="string">""</span>;
         <span class="kw">let </span>actual = String::from_utf8(strip_byte(<span class="kw-2">&amp;</span>bytes).to_vec()).unwrap();
         <span class="macro">assert_eq!</span>(expected, actual);
     }
@@ -972,16 +974,16 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_strip_str_handles_broken_sequence() {
         <span class="comment">// valid utf8: \xc3\xb6 then \x1b then \xf0\x9f\x98\x80
-        </span><span class="kw">let </span>s = <span class="string">&quot;ö\x1b😀hello😀goodbye&quot;</span>;
+        </span><span class="kw">let </span>s = <span class="string">"ö\x1b😀hello😀goodbye"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>it = strip_str(s);
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;ö&quot;</span>, it.next().unwrap());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;ello😀goodbye&quot;</span>, it.next().unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">"ö"</span>, it.next().unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">"ello😀goodbye"</span>, it.next().unwrap());
     }
 
     <span class="macro">proptest! </span>{
         <span class="attr">#[test]
         #[cfg_attr(miri, ignore)]  </span><span class="comment">// See https://github.com/AltSysrq/proptest/issues/253
-        </span><span class="kw">fn </span>strip_str_no_escapes(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) {
+        </span><span class="kw">fn </span>strip_str_no_escapes(s <span class="kw">in </span><span class="string">"\\PC*"</span>) {
             <span class="kw">let </span>expected = parser_strip(s.as_bytes());
             <span class="kw">let </span>actual = strip_str(<span class="kw-2">&amp;</span>s).to_string();
             <span class="macro">assert_eq!</span>(expected, actual);
@@ -989,7 +991,7 @@
 
         <span class="attr">#[test]
         #[cfg_attr(miri, ignore)]  </span><span class="comment">// See https://github.com/AltSysrq/proptest/issues/253
-        </span><span class="kw">fn </span>strip_char_no_escapes(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) {
+        </span><span class="kw">fn </span>strip_char_no_escapes(s <span class="kw">in </span><span class="string">"\\PC*"</span>) {
             <span class="kw">let </span>expected = parser_strip(s.as_bytes());
             <span class="kw">let </span>actual = strip_char(<span class="kw-2">&amp;</span>s);
             <span class="macro">assert_eq!</span>(expected, actual);
@@ -997,7 +999,7 @@
 
         <span class="attr">#[test]
         #[cfg_attr(miri, ignore)]  </span><span class="comment">// See https://github.com/AltSysrq/proptest/issues/253
-        </span><span class="kw">fn </span>strip_bytes_no_escapes(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) {
+        </span><span class="kw">fn </span>strip_bytes_no_escapes(s <span class="kw">in </span><span class="string">"\\PC*"</span>) {
             <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>s);
             <span class="macro">dbg!</span>(s.as_bytes());
             <span class="kw">let </span>expected = parser_strip(s.as_bytes());
@@ -1007,7 +1009,7 @@
 
         <span class="attr">#[test]
         #[cfg_attr(miri, ignore)]  </span><span class="comment">// See https://github.com/AltSysrq/proptest/issues/253
-        </span><span class="kw">fn </span>strip_byte_no_escapes(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) {
+        </span><span class="kw">fn </span>strip_byte_no_escapes(s <span class="kw">in </span><span class="string">"\\PC*"</span>) {
             <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>s);
             <span class="macro">dbg!</span>(s.as_bytes());
             <span class="kw">let </span>expected = parser_strip(s.as_bytes());

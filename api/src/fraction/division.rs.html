@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fraction-0.13.1/src/division.rs`."><title>division.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fraction-0.13.1/src/division.rs`."><title>division.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fraction/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1757,11 +1759,11 @@
 /// ```
 /// use fraction::division::divide_to_string;
 ///
-/// assert_eq! (divide_to_string(2, 4, 2, false).unwrap(), &quot;0.5&quot;);
-/// assert_eq! (divide_to_string(2, 4, 2, true).unwrap(), &quot;0.50&quot;);
-/// assert_eq! (divide_to_string(5, 7, 16, false).unwrap(), &quot;0.7142857142857142&quot;);
-/// assert_eq! (divide_to_string(1, 3, 3, false).unwrap(), &quot;0.333&quot;);
-/// assert_eq! (divide_to_string(1, 3, 3, true).unwrap(), &quot;0.333&quot;);
+/// assert_eq! (divide_to_string(2, 4, 2, false).unwrap(), "0.5");
+/// assert_eq! (divide_to_string(2, 4, 2, true).unwrap(), "0.50");
+/// assert_eq! (divide_to_string(5, 7, 16, false).unwrap(), "0.7142857142857142");
+/// assert_eq! (divide_to_string(1, 3, 3, false).unwrap(), "0.333");
+/// assert_eq! (divide_to_string(1, 3, 3, true).unwrap(), "0.333");
 /// ```
 ///
 /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
@@ -1801,10 +1803,10 @@
 /// ```
 /// use fraction::division::divide_to_ascii_vec;
 ///
-/// assert_eq! (divide_to_ascii_vec(2, 4, 2, false).unwrap(), vec![48, 46, 53]);  // &quot;0.5&quot; in ascii
-/// assert_eq! (divide_to_ascii_vec(2, 4, 2, true).unwrap(), vec![48, 46, 53, 48]);  // &quot;0.50&quot; in ascii
-/// assert_eq! (divide_to_ascii_vec(5, 7, 16, false).unwrap(), vec![48, 46, 55, 49, 52, 50, 56, 53, 55, 49, 52, 50, 56, 53, 55, 49, 52, 50]);  // &quot;0.7142857142857142&quot; in ascii
-/// assert_eq! (divide_to_ascii_vec(1, 3, 3, false).unwrap(), vec![48, 46, 51, 51, 51]);  // &quot;0.333&quot; in ascii
+/// assert_eq! (divide_to_ascii_vec(2, 4, 2, false).unwrap(), vec![48, 46, 53]);  // "0.5" in ascii
+/// assert_eq! (divide_to_ascii_vec(2, 4, 2, true).unwrap(), vec![48, 46, 53, 48]);  // "0.50" in ascii
+/// assert_eq! (divide_to_ascii_vec(5, 7, 16, false).unwrap(), vec![48, 46, 55, 49, 52, 50, 56, 53, 55, 49, 52, 50, 56, 53, 55, 49, 52, 50]);  // "0.7142857142857142" in ascii
+/// assert_eq! (divide_to_ascii_vec(1, 3, 3, false).unwrap(), vec![48, 46, 51, 51, 51]);  // "0.333" in ascii
 /// ```
 ///
 /// [`Vec&lt;u8&gt;`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
@@ -1860,7 +1862,7 @@
 ///
 /// divide_to_writeable(&amp;mut string, num, denom, 2, false).ok();
 ///
-/// assert_eq!(string, &quot;1.75&quot;);
+/// assert_eq!(string, "1.75");
 /// ```
 ///
 /// ```
@@ -1880,9 +1882,9 @@
 ///     }
 /// }
 ///
-/// assert_eq! (format!(&quot;{}&quot;, Foo(1, 2)), &quot;0.5&quot;);
-/// assert_eq! (format!(&quot;{:.3}&quot;, Foo(1, 3)), &quot;0.333&quot;);
-/// assert_eq! (format!(&quot;{:.16}&quot;, Foo(5, 7)), &quot;0.7142857142857142&quot;);
+/// assert_eq! (format!("{}", Foo(1, 2)), "0.5");
+/// assert_eq! (format!("{:.3}", Foo(1, 3)), "0.333");
+/// assert_eq! (format!("{:.16}", Foo(5, 7)), "0.7142857142857142");
 /// ```
 ///
 /// [`std::fmt::Write`]: https://doc.rust-lang.org/std/fmt/trait.Write.html
@@ -2095,17 +2097,17 @@
 /// // calculate 7/4, which is 1.75
 /// divide_to_callback(7, 4, 2, false, |d| { length += 1; write_digit(&amp;mut result, d) }).ok();
 ///
-/// assert_eq!(&amp;result, &quot;1.75&quot;);
+/// assert_eq!(&amp;result, "1.75");
 /// assert_eq!(length, result.len());
 /// ```
 </span><span class="kw">pub fn </span>write_digit(writeable: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write, digit: u8) -&gt; <span class="prelude-ty">Result</span>&lt;bool, DivisionError&gt; {
     <span class="kw">if </span>digit == <span class="number">10u8 </span>{
-        <span class="kw">match </span>writeable.write_char(<span class="string">&#39;.&#39;</span>) {
+        <span class="kw">match </span>writeable.write_char(<span class="string">'.'</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(DivisionError::from(e)),
         }
     } <span class="kw">else </span>{
-        <span class="kw">match </span>writeable.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, digit)) {
+        <span class="kw">match </span>writeable.write_fmt(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, digit)) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(DivisionError::from(e)),
         }
@@ -2120,307 +2122,307 @@
 
     <span class="comment">// mod divide_to_string_u8;
 
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;with-bigint&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"with-bigint"</span>)]
     </span><span class="kw">use </span>num::{bigint::BigUint, Num};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_division() {
         <span class="kw">const </span>PRECISION: usize = <span class="number">64</span>;
-        <span class="kw">let </span>data: Vec&lt;(u8, u8, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, bool)&gt; = <span class="macro">vec!</span>[
+        <span class="kw">let </span>data: Vec&lt;(u8, u8, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, bool)&gt; = <span class="macro">vec!</span>[
             (
                 <span class="number">1u8</span>,
                 <span class="number">255u8</span>,
-                <span class="string">&quot;0.0039215686274509803921568627450980392156862745098039215686274509&quot;</span>,
+                <span class="string">"0.0039215686274509803921568627450980392156862745098039215686274509"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">254u8</span>,
-                <span class="string">&quot;0.0039370078740157480314960629921259842519685039370078740157480314&quot;</span>,
+                <span class="string">"0.0039370078740157480314960629921259842519685039370078740157480314"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">253u8</span>,
-                <span class="string">&quot;0.003952569169960474308300395256916996047430830039525691699604743&quot;</span>,
+                <span class="string">"0.003952569169960474308300395256916996047430830039525691699604743"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">252u8</span>,
-                <span class="string">&quot;0.0039682539682539682539682539682539682539682539682539682539682539&quot;</span>,
+                <span class="string">"0.0039682539682539682539682539682539682539682539682539682539682539"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">251u8</span>,
-                <span class="string">&quot;0.0039840637450199203187250996015936254980079681274900398406374501&quot;</span>,
+                <span class="string">"0.0039840637450199203187250996015936254980079681274900398406374501"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">1u8</span>, <span class="number">250u8</span>, <span class="string">&quot;0.004&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">250u8</span>, <span class="string">"0.004"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">1u8</span>,
                 <span class="number">112u8</span>,
-                <span class="string">&quot;0.0089285714285714285714285714285714285714285714285714285714285714&quot;</span>,
+                <span class="string">"0.0089285714285714285714285714285714285714285714285714285714285714"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">111u8</span>,
-                <span class="string">&quot;0.009009009009009009009009009009009009009009009009009009009009009&quot;</span>,
+                <span class="string">"0.009009009009009009009009009009009009009009009009009009009009009"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">96u8</span>,
-                <span class="string">&quot;0.0104166666666666666666666666666666666666666666666666666666666666&quot;</span>,
+                <span class="string">"0.0104166666666666666666666666666666666666666666666666666666666666"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">92u8</span>,
-                <span class="string">&quot;0.0108695652173913043478260869565217391304347826086956521739130434&quot;</span>,
+                <span class="string">"0.0108695652173913043478260869565217391304347826086956521739130434"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">91u8</span>,
-                <span class="string">&quot;0.0109890109890109890109890109890109890109890109890109890109890109&quot;</span>,
+                <span class="string">"0.0109890109890109890109890109890109890109890109890109890109890109"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">90u8</span>,
-                <span class="string">&quot;0.0111111111111111111111111111111111111111111111111111111111111111&quot;</span>,
+                <span class="string">"0.0111111111111111111111111111111111111111111111111111111111111111"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">9u8</span>,
-                <span class="string">&quot;0.1111111111111111111111111111111111111111111111111111111111111111&quot;</span>,
+                <span class="string">"0.1111111111111111111111111111111111111111111111111111111111111111"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">1u8</span>, <span class="number">8u8</span>, <span class="string">&quot;0.125&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">8u8</span>, <span class="string">"0.125"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">1u8</span>,
                 <span class="number">7u8</span>,
-                <span class="string">&quot;0.1428571428571428571428571428571428571428571428571428571428571428&quot;</span>,
+                <span class="string">"0.1428571428571428571428571428571428571428571428571428571428571428"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">1u8</span>,
                 <span class="number">6u8</span>,
-                <span class="string">&quot;0.1666666666666666666666666666666666666666666666666666666666666666&quot;</span>,
+                <span class="string">"0.1666666666666666666666666666666666666666666666666666666666666666"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">1u8</span>, <span class="number">5u8</span>, <span class="string">&quot;0.2&quot;</span>, <span class="bool-val">true</span>),
-            (<span class="number">1u8</span>, <span class="number">4u8</span>, <span class="string">&quot;0.25&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">5u8</span>, <span class="string">"0.2"</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">4u8</span>, <span class="string">"0.25"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">1u8</span>,
                 <span class="number">3u8</span>,
-                <span class="string">&quot;0.3333333333333333333333333333333333333333333333333333333333333333&quot;</span>,
+                <span class="string">"0.3333333333333333333333333333333333333333333333333333333333333333"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="string">&quot;0.5&quot;</span>, <span class="bool-val">true</span>),
-            (<span class="number">1u8</span>, <span class="number">1u8</span>, <span class="string">&quot;1&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="string">"0.5"</span>, <span class="bool-val">true</span>),
+            (<span class="number">1u8</span>, <span class="number">1u8</span>, <span class="string">"1"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">49u8</span>,
                 <span class="number">255u8</span>,
-                <span class="string">&quot;0.192156862745098039215686274509803921568627450980392156862745098&quot;</span>,
+                <span class="string">"0.192156862745098039215686274509803921568627450980392156862745098"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">254u8</span>,
-                <span class="string">&quot;0.1929133858267716535433070866141732283464566929133858267716535433&quot;</span>,
+                <span class="string">"0.1929133858267716535433070866141732283464566929133858267716535433"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">253u8</span>,
-                <span class="string">&quot;0.193675889328063241106719367588932806324110671936758893280632411&quot;</span>,
+                <span class="string">"0.193675889328063241106719367588932806324110671936758893280632411"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">252u8</span>,
-                <span class="string">&quot;0.1944444444444444444444444444444444444444444444444444444444444444&quot;</span>,
+                <span class="string">"0.1944444444444444444444444444444444444444444444444444444444444444"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">251u8</span>,
-                <span class="string">&quot;0.1952191235059760956175298804780876494023904382470119521912350597&quot;</span>,
+                <span class="string">"0.1952191235059760956175298804780876494023904382470119521912350597"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">49u8</span>, <span class="number">250u8</span>, <span class="string">&quot;0.196&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">49u8</span>, <span class="number">250u8</span>, <span class="string">"0.196"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">49u8</span>,
                 <span class="number">249u8</span>,
-                <span class="string">&quot;0.1967871485943775100401606425702811244979919678714859437751004016&quot;</span>,
+                <span class="string">"0.1967871485943775100401606425702811244979919678714859437751004016"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">248u8</span>,
-                <span class="string">&quot;0.1975806451612903225806451612903225806451612903225806451612903225&quot;</span>,
+                <span class="string">"0.1975806451612903225806451612903225806451612903225806451612903225"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">247u8</span>,
-                <span class="string">&quot;0.1983805668016194331983805668016194331983805668016194331983805668&quot;</span>,
+                <span class="string">"0.1983805668016194331983805668016194331983805668016194331983805668"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">246u8</span>,
-                <span class="string">&quot;0.1991869918699186991869918699186991869918699186991869918699186991&quot;</span>,
+                <span class="string">"0.1991869918699186991869918699186991869918699186991869918699186991"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">49u8</span>, <span class="number">245u8</span>, <span class="string">&quot;0.2&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">49u8</span>, <span class="number">245u8</span>, <span class="string">"0.2"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">49u8</span>,
                 <span class="number">69u8</span>,
-                <span class="string">&quot;0.7101449275362318840579710144927536231884057971014492753623188405&quot;</span>,
+                <span class="string">"0.7101449275362318840579710144927536231884057971014492753623188405"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">68u8</span>,
-                <span class="string">&quot;0.7205882352941176470588235294117647058823529411764705882352941176&quot;</span>,
+                <span class="string">"0.7205882352941176470588235294117647058823529411764705882352941176"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">67u8</span>,
-                <span class="string">&quot;0.7313432835820895522388059701492537313432835820895522388059701492&quot;</span>,
+                <span class="string">"0.7313432835820895522388059701492537313432835820895522388059701492"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">66u8</span>,
-                <span class="string">&quot;0.7424242424242424242424242424242424242424242424242424242424242424&quot;</span>,
+                <span class="string">"0.7424242424242424242424242424242424242424242424242424242424242424"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">49u8</span>,
                 <span class="number">65u8</span>,
-                <span class="string">&quot;0.7538461538461538461538461538461538461538461538461538461538461538&quot;</span>,
+                <span class="string">"0.7538461538461538461538461538461538461538461538461538461538461538"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">49u8</span>, <span class="number">64u8</span>, <span class="string">&quot;0.765625&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">49u8</span>, <span class="number">64u8</span>, <span class="string">"0.765625"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">49u8</span>,
                 <span class="number">63u8</span>,
-                <span class="string">&quot;0.7777777777777777777777777777777777777777777777777777777777777777&quot;</span>,
+                <span class="string">"0.7777777777777777777777777777777777777777777777777777777777777777"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">255u8</span>,
-                <span class="string">&quot;0.3019607843137254901960784313725490196078431372549019607843137254&quot;</span>,
+                <span class="string">"0.3019607843137254901960784313725490196078431372549019607843137254"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">254u8</span>,
-                <span class="string">&quot;0.3031496062992125984251968503937007874015748031496062992125984251&quot;</span>,
+                <span class="string">"0.3031496062992125984251968503937007874015748031496062992125984251"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">253u8</span>,
-                <span class="string">&quot;0.3043478260869565217391304347826086956521739130434782608695652173&quot;</span>,
+                <span class="string">"0.3043478260869565217391304347826086956521739130434782608695652173"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">252u8</span>,
-                <span class="string">&quot;0.3055555555555555555555555555555555555555555555555555555555555555&quot;</span>,
+                <span class="string">"0.3055555555555555555555555555555555555555555555555555555555555555"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">251u8</span>,
-                <span class="string">&quot;0.3067729083665338645418326693227091633466135458167330677290836653&quot;</span>,
+                <span class="string">"0.3067729083665338645418326693227091633466135458167330677290836653"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">77u8</span>, <span class="number">250u8</span>, <span class="string">&quot;0.308&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">77u8</span>, <span class="number">250u8</span>, <span class="string">"0.308"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">77u8</span>,
                 <span class="number">249u8</span>,
-                <span class="string">&quot;0.3092369477911646586345381526104417670682730923694779116465863453&quot;</span>,
+                <span class="string">"0.3092369477911646586345381526104417670682730923694779116465863453"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">248u8</span>,
-                <span class="string">&quot;0.3104838709677419354838709677419354838709677419354838709677419354&quot;</span>,
+                <span class="string">"0.3104838709677419354838709677419354838709677419354838709677419354"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">231u8</span>,
-                <span class="string">&quot;0.3333333333333333333333333333333333333333333333333333333333333333&quot;</span>,
+                <span class="string">"0.3333333333333333333333333333333333333333333333333333333333333333"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">230u8</span>,
-                <span class="string">&quot;0.3347826086956521739130434782608695652173913043478260869565217391&quot;</span>,
+                <span class="string">"0.3347826086956521739130434782608695652173913043478260869565217391"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">229u8</span>,
-                <span class="string">&quot;0.3362445414847161572052401746724890829694323144104803493449781659&quot;</span>,
+                <span class="string">"0.3362445414847161572052401746724890829694323144104803493449781659"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">228u8</span>,
-                <span class="string">&quot;0.3377192982456140350877192982456140350877192982456140350877192982&quot;</span>,
+                <span class="string">"0.3377192982456140350877192982456140350877192982456140350877192982"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">227u8</span>,
-                <span class="string">&quot;0.3392070484581497797356828193832599118942731277533039647577092511&quot;</span>,
+                <span class="string">"0.3392070484581497797356828193832599118942731277533039647577092511"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">226u8</span>,
-                <span class="string">&quot;0.3407079646017699115044247787610619469026548672566371681415929203&quot;</span>,
+                <span class="string">"0.3407079646017699115044247787610619469026548672566371681415929203"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">225u8</span>,
-                <span class="string">&quot;0.3422222222222222222222222222222222222222222222222222222222222222&quot;</span>,
+                <span class="string">"0.3422222222222222222222222222222222222222222222222222222222222222"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">77u8</span>, <span class="number">224u8</span>, <span class="string">&quot;0.34375&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">77u8</span>, <span class="number">224u8</span>, <span class="string">"0.34375"</span>, <span class="bool-val">true</span>),
             (
                 <span class="number">77u8</span>,
                 <span class="number">223u8</span>,
-                <span class="string">&quot;0.3452914798206278026905829596412556053811659192825112107623318385&quot;</span>,
+                <span class="string">"0.3452914798206278026905829596412556053811659192825112107623318385"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">222u8</span>,
-                <span class="string">&quot;0.3468468468468468468468468468468468468468468468468468468468468468&quot;</span>,
+                <span class="string">"0.3468468468468468468468468468468468468468468468468468468468468468"</span>,
                 <span class="bool-val">false</span>,
             ),
             (
                 <span class="number">77u8</span>,
                 <span class="number">221u8</span>,
-                <span class="string">&quot;0.3484162895927601809954751131221719457013574660633484162895927601&quot;</span>,
+                <span class="string">"0.3484162895927601809954751131221719457013574660633484162895927601"</span>,
                 <span class="bool-val">false</span>,
             ),
-            (<span class="number">77u8</span>, <span class="number">220u8</span>, <span class="string">&quot;0.35&quot;</span>, <span class="bool-val">true</span>),
+            (<span class="number">77u8</span>, <span class="number">220u8</span>, <span class="string">"0.35"</span>, <span class="bool-val">true</span>),
         ];
 
         <span class="kw">for </span>i <span class="kw">in </span>data.iter() {
@@ -2436,7 +2438,7 @@
             }
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;with-bigint&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"with-bigint"</span>)]
         </span>{
             <span class="kw">for </span>i <span class="kw">in </span>data {
                 <span class="macro">assert_eq!</span>(
@@ -2450,31 +2452,31 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_divide_to_string() {
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">0</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">0</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;0.00000&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">30</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;15&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">30</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;15.00000&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">2</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;0.5&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">2</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;0.50&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">255u8</span>, <span class="number">3u8</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;85&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">255u8</span>, <span class="number">3u8</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;85.00000&quot;</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">0</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"0"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">0</span>, <span class="number">5</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"0.00000"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">30</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"15"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">30</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"15.00000"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">2</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"0.5"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">2</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"0.50"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">255u8</span>, <span class="number">3u8</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"85"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">255u8</span>, <span class="number">3u8</span>, <span class="number">5</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"85.00000"</span>);
 
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">155u8</span>, <span class="number">253u8</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;0.61264&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">1</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;0.5&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">1</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;0.5&quot;</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">155u8</span>, <span class="number">253u8</span>, <span class="number">5</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"0.61264"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">1</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"0.5"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1u8</span>, <span class="number">2u8</span>, <span class="number">1</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"0.5"</span>);
 
         <span class="macro">assert_eq!</span>(
             divide_to_string(<span class="number">1</span>, <span class="number">3</span>, <span class="number">28</span>, <span class="bool-val">false</span>).unwrap(),
-            <span class="string">&quot;0.3333333333333333333333333333&quot;
+            <span class="string">"0.3333333333333333333333333333"
         </span>);
         <span class="macro">assert_eq!</span>(
             divide_to_string(<span class="number">1</span>, <span class="number">3</span>, <span class="number">28</span>, <span class="bool-val">true</span>).unwrap(),
-            <span class="string">&quot;0.3333333333333333333333333333&quot;
+            <span class="string">"0.3333333333333333333333333333"
         </span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">806</span>, <span class="number">31</span>, <span class="number">0</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;26&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">806</span>, <span class="number">31</span>, <span class="number">0</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;26&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">807</span>, <span class="number">31</span>, <span class="number">4</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;26.0322&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">807</span>, <span class="number">31</span>, <span class="number">4</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;26.0322&quot;</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">806</span>, <span class="number">31</span>, <span class="number">0</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"26"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">806</span>, <span class="number">31</span>, <span class="number">0</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"26"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">807</span>, <span class="number">31</span>, <span class="number">4</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"26.0322"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">807</span>, <span class="number">31</span>, <span class="number">4</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"26.0322"</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Err</span>(DivisionError::DivisionByZero) = divide_to_string(<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="bool-val">false</span>) {
         } <span class="kw">else </span>{
@@ -2486,14 +2488,14 @@
             <span class="macro">assert!</span>(<span class="bool-val">false</span>);
         };
 
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1</span>, <span class="number">10000</span>, <span class="number">2</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1</span>, <span class="number">10000</span>, <span class="number">2</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">&quot;0.00&quot;</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1</span>, <span class="number">10000</span>, <span class="number">2</span>, <span class="bool-val">false</span>).unwrap(), <span class="string">"0"</span>);
+        <span class="macro">assert_eq!</span>(divide_to_string(<span class="number">1</span>, <span class="number">10000</span>, <span class="number">2</span>, <span class="bool-val">true</span>).unwrap(), <span class="string">"0.00"</span>);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;with-bigint&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"with-bigint"</span>)]
         </span>{
-            <span class="kw">let </span>num = <span class="string">&quot;820123456789012345678901234567890123456789&quot;</span>;
-            <span class="kw">let </span>den = <span class="string">&quot;420420420420240240420240420240420420420&quot;</span>;
-            <span class="kw">let </span>result = <span class="string">&quot;1950.7222222204153880534352079149419688493160244330759069204925259490806291881834407646199555744655166719234903156227406500953778757619920899563294795746797267246703798051247915744867884912121330007705286911209791422213223230426822190127666529437572025264829201539629594175021000386486667365851813562015885600393107707737453721144405603009059457352854387023006301508907770762997683254372534811586343569328131455924964081595076622200116354403760742833073621862325616259444084808295834752749082040590201012701034118255745516514972270054835928011374231619434684843847682844123336846713100440285930668493675706096464476187809105398269815519780303174023949885603320678109566772031394249633001137109155600514761384776616827086908396960584246277151426685095767130738996420461009015758184659365258827537226581854494195009714400547427050697946126012192691851549545189173091941689299722345297086508711845865506663262915436874050594522308464492248968916100678819937355384703664061966410613989688966690413319849627099468906113991173042101218&quot;</span>;
+            <span class="kw">let </span>num = <span class="string">"820123456789012345678901234567890123456789"</span>;
+            <span class="kw">let </span>den = <span class="string">"420420420420240240420240420240420420420"</span>;
+            <span class="kw">let </span>result = <span class="string">"1950.7222222204153880534352079149419688493160244330759069204925259490806291881834407646199555744655166719234903156227406500953778757619920899563294795746797267246703798051247915744867884912121330007705286911209791422213223230426822190127666529437572025264829201539629594175021000386486667365851813562015885600393107707737453721144405603009059457352854387023006301508907770762997683254372534811586343569328131455924964081595076622200116354403760742833073621862325616259444084808295834752749082040590201012701034118255745516514972270054835928011374231619434684843847682844123336846713100440285930668493675706096464476187809105398269815519780303174023949885603320678109566772031394249633001137109155600514761384776616827086908396960584246277151426685095767130738996420461009015758184659365258827537226581854494195009714400547427050697946126012192691851549545189173091941689299722345297086508711845865506663262915436874050594522308464492248968916100678819937355384703664061966410613989688966690413319849627099468906113991173042101218"</span>;
 
             <span class="kw">let </span>asrt1 = divide_to_string(
                 BigUint::from_str_radix(num, <span class="number">10</span>).ok().unwrap(),

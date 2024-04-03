@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/output.rs`."><title>output.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/output.rs`."><title>output.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -402,7 +404,7 @@
 <a href="#402" id="402">402</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implementation of json schema output formats specified in &lt;https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.12.2&gt;
 //!
-//! Currently the &quot;flag&quot; and &quot;basic&quot; formats are supported. The &quot;flag&quot; format is
+//! Currently the "flag" and "basic" formats are supported. The "flag" format is
 //! idential to the [`JSONSchema::is_valid`] method and so is uninteresting. The
 //! main contribution of this module is [`Output::basic`]. See the documentation
 //! of that method for more information.
@@ -429,20 +431,20 @@
 /// converted into various representations based on the definitions in
 /// &lt;https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.12.2&gt;
 ///
-/// Currently only the &quot;flag&quot; and &quot;basic&quot; output formats are supported
+/// Currently only the "flag" and "basic" output formats are supported
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Output&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JSONSchema,
-    root_node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SchemaNode,
-    instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>serde_json::Value,
+</span><span class="kw">pub struct </span>Output&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>JSONSchema,
+    root_node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SchemaNode,
+    instance: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>serde_json::Value,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Output&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;d</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>JSONSchema,
-        root_node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>SchemaNode,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span>serde_json::Value,
-    ) -&gt; Output&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;d</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; Output&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new&lt;<span class="lifetime">'c</span>, <span class="lifetime">'d</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'c </span>JSONSchema,
+        root_node: <span class="kw-2">&amp;</span><span class="lifetime">'c </span>SchemaNode,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'d </span>serde_json::Value,
+    ) -&gt; Output&lt;<span class="lifetime">'c</span>, <span class="lifetime">'d</span>&gt; {
         Output {
             schema,
             root_node,
@@ -450,7 +452,7 @@
         }
     }
 
-    <span class="doccomment">/// Indicates whether the schema was valid, corresponds to the &quot;flag&quot; output
+    <span class="doccomment">/// Indicates whether the schema was valid, corresponds to the "flag" output
     /// format
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>flag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -463,7 +465,7 @@
     /// one way to use this is to serialize the `BasicOutput` and examine the
     /// JSON which is produced. However, for rust programs this is not
     /// necessary. Instead you can match on the `BasicOutput` and examine the
-    /// results. To use this API you&#39;ll need to understand a few things:
+    /// results. To use this API you'll need to understand a few things:
     ///
     /// Regardless of whether the the schema validation was successful or not
     /// the `BasicOutput` is a sequence of [`OutputUnit`]s. An `OutputUnit` is
@@ -471,7 +473,7 @@
     /// and where in the instance). The difference between the
     /// `BasicOutput::Valid` and `BasicOutput::Invalid` cases is the value which
     /// is associated with each `OutputUnit`. For `Valid` outputs the value is
-    /// an annotation, whilst for `Invalid` outputs it&#39;s an `ErrorDescription`
+    /// an annotation, whilst for `Invalid` outputs it's an `ErrorDescription`
     /// (a `String` really).
     ///
     /// # Examples
@@ -479,17 +481,17 @@
     /// ```rust
     /// # use crate::jsonschema::{Draft, output::{Output, BasicOutput}, JSONSchema};
     /// # let schema_json = serde_json::json!({
-    /// #     &quot;title&quot;: &quot;string value&quot;,
-    /// #     &quot;type&quot;: &quot;string&quot;
+    /// #     "title": "string value",
+    /// #     "type": "string"
     /// # });
-    /// # let instance = serde_json::json!{&quot;some string&quot;};
+    /// # let instance = serde_json::json!{"some string"};
     /// # let schema = JSONSchema::options().compile(&amp;schema_json).unwrap();
     /// let output: BasicOutput = schema.apply(&amp;instance).basic();
     /// match output {
     ///     BasicOutput::Valid(annotations) =&gt; {
     ///         for annotation in annotations {
     ///             println!(
-    ///                 &quot;Value: {} at path {}&quot;,
+    ///                 "Value: {} at path {}",
     ///                 annotation.value(),
     ///                 annotation.instance_location()
     ///             )
@@ -498,7 +500,7 @@
     ///     BasicOutput::Invalid(errors) =&gt; {
     ///         for error in errors {
     ///             println!(
-    ///                 &quot;Error: {} at path {}&quot;,
+    ///                 "Error: {} at path {}",
     ///                 error.error_description(),
     ///                 error.instance_location()
     ///             )
@@ -507,23 +509,23 @@
     /// }
     /// ```
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>basic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>basic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.root_node
             .apply_rooted(<span class="self">self</span>.instance, <span class="kw-2">&amp;</span>InstancePath::new())
     }
 }
 
-<span class="doccomment">/// The &quot;basic&quot; output format. See the documentation for [`Output::basic`] for
+<span class="doccomment">/// The "basic" output format. See the documentation for [`Output::basic`] for
 /// examples of how to use this.
 </span><span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub enum </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The schema was valid, collected annotations can be examined
-    </span>Valid(VecDeque&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;),
+    </span>Valid(VecDeque&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;),
     <span class="doccomment">/// The schema was invalid
     </span>Invalid(VecDeque&lt;OutputUnit&lt;ErrorDescription&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// A shortcut to check whether the output represents passed validation.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -534,15 +536,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt; <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(unit: OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;OutputUnit&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt;&gt; <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(unit: OutputUnit&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>units = VecDeque::new();
         units.push_front(unit);
         BasicOutput::Valid(units)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AddAssign <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; AddAssign <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="self">Self</span>) {
         <span class="kw">match </span>(<span class="kw-2">&amp;mut *</span><span class="self">self</span>, rhs) {
             (BasicOutput::Valid(<span class="kw-2">ref mut </span>anns), BasicOutput::Valid(anns_rhs)) =&gt; {
@@ -559,7 +561,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Sum <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Sum <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>sum&lt;I: Iterator&lt;Item = <span class="self">Self</span>&gt;&gt;(iter: I) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>result = BasicOutput::Valid(VecDeque::new());
         iter.fold(result, |<span class="kw-2">mut </span>acc, elem| {
@@ -569,14 +571,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         BasicOutput::Valid(VecDeque::new())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(output: BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;BasicOutput&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(output: BasicOutput&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>output {
             BasicOutput::Valid(anns) =&gt; PartialApplication::Valid {
                 annotations: <span class="prelude-val">None</span>,
@@ -590,9 +592,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromIterator&lt;BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
-        iter.into_iter().sum::&lt;BasicOutput&lt;<span class="lifetime">&#39;_</span>&gt;&gt;().into()
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; FromIterator&lt;BasicOutput&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = BasicOutput&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        iter.into_iter().sum::&lt;BasicOutput&lt;<span class="lifetime">'_</span>&gt;&gt;().into()
     }
 }
 
@@ -614,8 +616,8 @@
         keyword_location: JSONPointer,
         instance_location: JSONPointer,
         absolute_keyword_location: <span class="prelude-ty">Option</span>&lt;AbsolutePath&gt;,
-        annotations: Annotations&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        annotations: Annotations&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; OutputUnit&lt;Annotations&lt;<span class="lifetime">'_</span>&gt;&gt; {
         OutputUnit {
             keyword_location,
             instance_location,
@@ -655,10 +657,10 @@
     }
 }
 
-<span class="kw">impl </span>OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+<span class="kw">impl </span>OutputUnit&lt;Annotations&lt;<span class="lifetime">'_</span>&gt;&gt; {
     <span class="doccomment">/// The annotations found at this output unit
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, serde_json::Value&gt; {
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, serde_json::Value&gt; {
         <span class="self">self</span>.value.value()
     }
 }
@@ -673,18 +675,18 @@
 
 <span class="doccomment">/// Annotations associated with an output unit.
 </span><span class="attr">#[derive(serde::Serialize, Debug, Clone, PartialEq)]
-</span><span class="kw">pub struct </span>Annotations&lt;<span class="lifetime">&#39;a</span>&gt;(AnnotationsInner&lt;<span class="lifetime">&#39;a</span>&gt;);
+</span><span class="kw">pub struct </span>Annotations&lt;<span class="lifetime">'a</span>&gt;(AnnotationsInner&lt;<span class="lifetime">'a</span>&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Annotations&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Annotations&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// The `serde_json::Value` of the annotation
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, serde_json::Value&gt; {
+    </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'a</span>, serde_json::Value&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
             AnnotationsInner::Value(v) =&gt; Cow::Borrowed(v),
             AnnotationsInner::ValueRef(v) =&gt; Cow::Borrowed(v),
             AnnotationsInner::UnmatchedKeywords(kvs) =&gt; {
                 <span class="kw">let </span>value = serde_json::to_value(kvs)
-                    .expect(<span class="string">&quot;&amp;AHashMap&lt;String, serde_json::Value&gt; cannot fail serializing&quot;</span>);
+                    .expect(<span class="string">"&amp;AHashMap&lt;String, serde_json::Value&gt; cannot fail serializing"</span>);
                 Cow::Owned(value)
             }
         }
@@ -692,25 +694,25 @@
 }
 
 <span class="attr">#[derive(Debug, Clone, PartialEq)]
-</span><span class="kw">enum </span>AnnotationsInner&lt;<span class="lifetime">&#39;a</span>&gt; {
-    UnmatchedKeywords(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AHashMap&lt;String, serde_json::Value&gt;),
-    ValueRef(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>serde_json::Value),
+</span><span class="kw">enum </span>AnnotationsInner&lt;<span class="lifetime">'a</span>&gt; {
+    UnmatchedKeywords(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AHashMap&lt;String, serde_json::Value&gt;),
+    ValueRef(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>serde_json::Value),
     Value(Box&lt;serde_json::Value&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AHashMap&lt;String, serde_json::Value&gt;&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(anns: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AHashMap&lt;String, serde_json::Value&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AHashMap&lt;String, serde_json::Value&gt;&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(anns: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AHashMap&lt;String, serde_json::Value&gt;) -&gt; <span class="self">Self </span>{
         Annotations(AnnotationsInner::UnmatchedKeywords(anns))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>serde_json::Value&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>serde_json::Value) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>serde_json::Value&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(v: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>serde_json::Value) -&gt; <span class="self">Self </span>{
         Annotations(AnnotationsInner::ValueRef(v))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;serde_json::Value&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;serde_json::Value&gt; <span class="kw">for </span>Annotations&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>from(v: serde_json::Value) -&gt; <span class="self">Self </span>{
         Annotations(AnnotationsInner::Value(Box::new(v)))
     }
@@ -721,24 +723,24 @@
 </span><span class="kw">pub struct </span>ErrorDescription(String);
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ErrorDescription {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         f.write_str(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl </span>From&lt;ValidationError&lt;<span class="lifetime">&#39;_</span>&gt;&gt; <span class="kw">for </span>ErrorDescription {
-    <span class="kw">fn </span>from(e: ValidationError&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;ValidationError&lt;<span class="lifetime">'_</span>&gt;&gt; <span class="kw">for </span>ErrorDescription {
+    <span class="kw">fn </span>from(e: ValidationError&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="self">Self </span>{
         ErrorDescription(e.to_string())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>ErrorDescription {
-    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>ErrorDescription {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         ErrorDescription(s.to_string())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; serde::Serialize <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; serde::Serialize <span class="kw">for </span>BasicOutput&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::Serializer,
@@ -746,19 +748,19 @@
         <span class="kw">let </span><span class="kw-2">mut </span>map_ser = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">2</span>))<span class="question-mark">?</span>;
         <span class="kw">match </span><span class="self">self </span>{
             BasicOutput::Valid(outputs) =&gt; {
-                map_ser.serialize_entry(<span class="string">&quot;valid&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                map_ser.serialize_entry(<span class="string">&quot;annotations&quot;</span>, outputs)<span class="question-mark">?</span>;
+                map_ser.serialize_entry(<span class="string">"valid"</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                map_ser.serialize_entry(<span class="string">"annotations"</span>, outputs)<span class="question-mark">?</span>;
             }
             BasicOutput::Invalid(errors) =&gt; {
-                map_ser.serialize_entry(<span class="string">&quot;valid&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                map_ser.serialize_entry(<span class="string">&quot;errors&quot;</span>, errors)<span class="question-mark">?</span>;
+                map_ser.serialize_entry(<span class="string">"valid"</span>, <span class="kw-2">&amp;</span><span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                map_ser.serialize_entry(<span class="string">"errors"</span>, errors)<span class="question-mark">?</span>;
             }
         }
         map_ser.end()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; serde::Serialize <span class="kw">for </span>AnnotationsInner&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; serde::Serialize <span class="kw">for </span>AnnotationsInner&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::Serializer,
@@ -771,18 +773,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; serde::Serialize <span class="kw">for </span>OutputUnit&lt;Annotations&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; serde::Serialize <span class="kw">for </span>OutputUnit&lt;Annotations&lt;<span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::Serializer,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>map_ser = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">4</span>))<span class="question-mark">?</span>;
-        map_ser.serialize_entry(<span class="string">&quot;keywordLocation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.keyword_location)<span class="question-mark">?</span>;
-        map_ser.serialize_entry(<span class="string">&quot;instanceLocation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.instance_location)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"keywordLocation"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.keyword_location)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"instanceLocation"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.instance_location)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(absolute) = <span class="kw-2">&amp;</span><span class="self">self</span>.absolute_keyword_location {
-            map_ser.serialize_entry(<span class="string">&quot;absoluteKeywordLocation&quot;</span>, <span class="kw-2">&amp;</span>absolute)<span class="question-mark">?</span>;
+            map_ser.serialize_entry(<span class="string">"absoluteKeywordLocation"</span>, <span class="kw-2">&amp;</span>absolute)<span class="question-mark">?</span>;
         }
-        map_ser.serialize_entry(<span class="string">&quot;annotations&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"annotations"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)<span class="question-mark">?</span>;
         map_ser.end()
     }
 }
@@ -793,12 +795,12 @@
         </span>S: serde::Serializer,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>map_ser = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">4</span>))<span class="question-mark">?</span>;
-        map_ser.serialize_entry(<span class="string">&quot;keywordLocation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.keyword_location)<span class="question-mark">?</span>;
-        map_ser.serialize_entry(<span class="string">&quot;instanceLocation&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.instance_location)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"keywordLocation"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.keyword_location)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"instanceLocation"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.instance_location)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(absolute) = <span class="kw-2">&amp;</span><span class="self">self</span>.absolute_keyword_location {
-            map_ser.serialize_entry(<span class="string">&quot;absoluteKeywordLocation&quot;</span>, <span class="kw-2">&amp;</span>absolute)<span class="question-mark">?</span>;
+            map_ser.serialize_entry(<span class="string">"absoluteKeywordLocation"</span>, <span class="kw-2">&amp;</span>absolute)<span class="question-mark">?</span>;
         }
-        map_ser.serialize_entry(<span class="string">&quot;error&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)<span class="question-mark">?</span>;
+        map_ser.serialize_entry(<span class="string">"error"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)<span class="question-mark">?</span>;
         map_ser.end()
     }
 }

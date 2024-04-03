@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/system.rs`."><title>system.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/system.rs`."><title>system.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -868,29 +870,29 @@
 }
 
 <span class="kw">fn </span>boot_time() -&gt; u64 {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(f) = File::open(<span class="string">&quot;/proc/stat&quot;</span>) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(f) = File::open(<span class="string">"/proc/stat"</span>) {
         <span class="kw">let </span>buf = BufReader::new(f);
         <span class="kw">let </span>line = buf
-            .split(<span class="string">b&#39;\n&#39;</span>)
+            .split(<span class="string">b'\n'</span>)
             .filter_map(|r| r.ok())
-            .find(|l| l.starts_with(<span class="string">b&quot;btime&quot;</span>));
+            .find(|l| l.starts_with(<span class="string">b"btime"</span>));
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = line {
             <span class="kw">return </span>line
-                .split(|x| <span class="kw-2">*</span>x == <span class="string">b&#39; &#39;</span>)
+                .split(|x| <span class="kw-2">*</span>x == <span class="string">b' '</span>)
                 .filter(|s| !s.is_empty())
                 .nth(<span class="number">1</span>)
                 .map(to_u64)
                 .unwrap_or(<span class="number">0</span>);
         }
     }
-    <span class="comment">// Either we didn&#39;t find &quot;btime&quot; or &quot;/proc/stat&quot; wasn&#39;t available for some reason...
+    <span class="comment">// Either we didn't find "btime" or "/proc/stat" wasn't available for some reason...
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>up: libc::timespec = std::mem::zeroed();
         <span class="kw">if </span>libc::clock_gettime(libc::CLOCK_BOOTTIME, <span class="kw-2">&amp;mut </span>up) == <span class="number">0 </span>{
             up.tv_sec <span class="kw">as </span>u64
         } <span class="kw">else </span>{
-            <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;clock_gettime failed: boot time cannot be retrieve...&quot;</span>);
+            <span class="macro">sysinfo_debug!</span>(<span class="string">"clock_gettime failed: boot time cannot be retrieve..."</span>);
             <span class="number">0
         </span>}
     }
@@ -950,7 +952,7 @@
     Signal::Sys =&gt; libc::SIGSYS,
 }
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/system.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/system.md"</span>)]
 </span><span class="kw">pub struct </span>System {
     process_list: Process,
     mem_total: u64,
@@ -972,10 +974,10 @@
 
 <span class="kw">impl </span>System {
     <span class="doccomment">/// It is sometime possible that a CPU usage computation is bigger than
-    /// `&quot;number of CPUs&quot; * 100`.
+    /// `"number of CPUs" * 100`.
     ///
-    /// To prevent that, we compute ahead of time this maximum value and ensure that processes&#39;
-    /// CPU usage don&#39;t go over it.
+    /// To prevent that, we compute ahead of time this maximum value and ensure that processes'
+    /// CPU usage don't go over it.
     </span><span class="kw">fn </span>get_max_process_cpu_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="self">self</span>.cpus.len() <span class="kw">as </span>f32 * <span class="number">100.
     </span>}
@@ -986,7 +988,7 @@
                 .refresh_if_needed(<span class="bool-val">true</span>, CpuRefreshKind::new().with_cpu_usage());
 
             <span class="kw">if </span><span class="self">self</span>.cpus.is_empty() {
-                <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;cannot compute processes CPU usage: no CPU found...&quot;</span>);
+                <span class="macro">sysinfo_debug!</span>(<span class="string">"cannot compute processes CPU usage: no CPU found..."</span>);
                 (<span class="number">0.</span>, <span class="bool-val">false</span>, <span class="number">0.</span>)
             } <span class="kw">else </span>{
                 <span class="kw">let </span>(new, old) = <span class="self">self</span>.cpus.get_global_raw_times();
@@ -1020,7 +1022,7 @@
 
 <span class="kw">impl </span>SystemExt <span class="kw">for </span>System {
     <span class="kw">const </span>IS_SUPPORTED: bool = <span class="bool-val">true</span>;
-    <span class="kw">const </span>SUPPORTED_SIGNALS: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[Signal] = supported_signals();
+    <span class="kw">const </span>SUPPORTED_SIGNALS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[Signal] = supported_signals();
     <span class="kw">const </span>MINIMUM_CPU_UPDATE_INTERVAL: Duration = Duration::from_millis(<span class="number">200</span>);
 
     <span class="kw">fn </span>new_with_specifics(refreshes: RefreshKind) -&gt; System {
@@ -1053,23 +1055,23 @@
 
     <span class="kw">fn </span>refresh_memory(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>mem_available_found = <span class="bool-val">false</span>;
-        read_table(<span class="string">&quot;/proc/meminfo&quot;</span>, <span class="string">&#39;:&#39;</span>, |key, value_kib| {
+        read_table(<span class="string">"/proc/meminfo"</span>, <span class="string">':'</span>, |key, value_kib| {
             <span class="kw">let </span>field = <span class="kw">match </span>key {
-                <span class="string">&quot;MemTotal&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_total,
-                <span class="string">&quot;MemFree&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_free,
-                <span class="string">&quot;MemAvailable&quot; </span>=&gt; {
+                <span class="string">"MemTotal" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_total,
+                <span class="string">"MemFree" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_free,
+                <span class="string">"MemAvailable" </span>=&gt; {
                     mem_available_found = <span class="bool-val">true</span>;
                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_available
                 }
-                <span class="string">&quot;Buffers&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_buffers,
-                <span class="string">&quot;Cached&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
-                <span class="string">&quot;Shmem&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
-                <span class="string">&quot;SReclaimable&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
-                <span class="string">&quot;SwapTotal&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_total,
-                <span class="string">&quot;SwapFree&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_free,
+                <span class="string">"Buffers" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_buffers,
+                <span class="string">"Cached" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
+                <span class="string">"Shmem" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
+                <span class="string">"SReclaimable" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
+                <span class="string">"SwapTotal" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_total,
+                <span class="string">"SwapFree" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.swap_free,
                 <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
             };
-            <span class="comment">// /proc/meminfo reports KiB, though it says &quot;kB&quot;. Convert it.
+            <span class="comment">// /proc/meminfo reports KiB, though it says "kB". Convert it.
             </span><span class="kw-2">*</span>field = value_kib.saturating_mul(<span class="number">1_024</span>);
         });
 
@@ -1086,23 +1088,23 @@
         }
 
         <span class="kw">if let </span>(<span class="prelude-val">Some</span>(mem_cur), <span class="prelude-val">Some</span>(mem_max)) = (
-            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.current&quot;</span>),
-            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.max&quot;</span>),
+            read_u64(<span class="string">"/sys/fs/cgroup/memory.current"</span>),
+            read_u64(<span class="string">"/sys/fs/cgroup/memory.max"</span>),
         ) {
             <span class="comment">// cgroups v2
             </span><span class="self">self</span>.mem_total = min(mem_max, <span class="self">self</span>.mem_total);
             <span class="self">self</span>.mem_free = <span class="self">self</span>.mem_total.saturating_sub(mem_cur);
             <span class="self">self</span>.mem_available = <span class="self">self</span>.mem_free;
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(swap_cur) = read_u64(<span class="string">&quot;/sys/fs/cgroup/memory.swap.current&quot;</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(swap_cur) = read_u64(<span class="string">"/sys/fs/cgroup/memory.swap.current"</span>) {
                 <span class="self">self</span>.swap_free = <span class="self">self</span>.swap_total.saturating_sub(swap_cur);
             }
 
-            read_table(<span class="string">&quot;/sys/fs/cgroup/memory.stat&quot;</span>, <span class="string">&#39; &#39;</span>, |key, value| {
+            read_table(<span class="string">"/sys/fs/cgroup/memory.stat"</span>, <span class="string">' '</span>, |key, value| {
                 <span class="kw">let </span>field = <span class="kw">match </span>key {
-                    <span class="string">&quot;slab_reclaimable&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
-                    <span class="string">&quot;file&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
-                    <span class="string">&quot;shmem&quot; </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
+                    <span class="string">"slab_reclaimable" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_slab_reclaimable,
+                    <span class="string">"file" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_page_cache,
+                    <span class="string">"shmem" </span>=&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.mem_shmem,
                     <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
                 };
                 <span class="kw-2">*</span>field = value;
@@ -1110,8 +1112,8 @@
             });
         } <span class="kw">else if let </span>(<span class="prelude-val">Some</span>(mem_cur), <span class="prelude-val">Some</span>(mem_max)) = (
             <span class="comment">// cgroups v1
-            </span>read_u64(<span class="string">&quot;/sys/fs/cgroup/memory/memory.usage_in_bytes&quot;</span>),
-            read_u64(<span class="string">&quot;/sys/fs/cgroup/memory/memory.limit_in_bytes&quot;</span>),
+            </span>read_u64(<span class="string">"/sys/fs/cgroup/memory/memory.usage_in_bytes"</span>),
+            read_u64(<span class="string">"/sys/fs/cgroup/memory/memory.limit_in_bytes"</span>),
         ) {
             <span class="self">self</span>.mem_total = min(mem_max, <span class="self">self</span>.mem_total);
             <span class="self">self</span>.mem_free = <span class="self">self</span>.mem_total.saturating_sub(mem_cur);
@@ -1127,7 +1129,7 @@
         <span class="kw">let </span>uptime = <span class="self">self</span>.uptime();
         refresh_procs(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.process_list,
-            Path::new(<span class="string">&quot;/proc&quot;</span>),
+            Path::new(<span class="string">"/proc"</span>),
             Pid(<span class="number">0</span>),
             uptime,
             <span class="kw-2">&amp;</span><span class="self">self</span>.info,
@@ -1140,7 +1142,7 @@
     <span class="kw">fn </span>refresh_process_specifics(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pid: Pid, refresh_kind: ProcessRefreshKind) -&gt; bool {
         <span class="kw">let </span>uptime = <span class="self">self</span>.uptime();
         <span class="kw">match </span>_get_process_data(
-            <span class="kw-2">&amp;</span>Path::new(<span class="string">&quot;/proc/&quot;</span>).join(pid.to_string()),
+            <span class="kw-2">&amp;</span>Path::new(<span class="string">"/proc/"</span>).join(pid.to_string()),
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.process_list,
             Pid(<span class="number">0</span>),
             uptime,
@@ -1152,7 +1154,7 @@
             }
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
             <span class="prelude-val">Err</span>(_e) =&gt; {
-                <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;Cannot get information for PID {:?}: {:?}&quot;</span>, pid, _e);
+                <span class="macro">sysinfo_debug!</span>(<span class="string">"Cannot get information for PID {:?}: {:?}"</span>, pid, _e);
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
         };
@@ -1160,7 +1162,7 @@
             <span class="self">self</span>.refresh_cpus(<span class="bool-val">true</span>, CpuRefreshKind::new().with_cpu_usage());
 
             <span class="kw">if </span><span class="self">self</span>.cpus.is_empty() {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;Cannot compute process CPU usage: no cpus found...&quot;</span>);
+                <span class="macro">eprintln!</span>(<span class="string">"Cannot compute process CPU usage: no cpus found..."</span>);
                 <span class="kw">return </span><span class="bool-val">true</span>;
             }
             <span class="kw">let </span>(new, old) = <span class="self">self</span>.cpus.get_global_raw_times();
@@ -1188,7 +1190,7 @@
 
     <span class="comment">// COMMON PART
     //
-    // Need to be moved into a &quot;common&quot; file to avoid duplication.
+    // Need to be moved into a "common" file to avoid duplication.
 
     </span><span class="kw">fn </span>processes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;Pid, Process&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.process_list.tasks
@@ -1271,9 +1273,9 @@
     }
 
     <span class="kw">fn </span>uptime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
-        <span class="kw">let </span>content = get_all_data(<span class="string">&quot;/proc/uptime&quot;</span>, <span class="number">50</span>).unwrap_or_default();
+        <span class="kw">let </span>content = get_all_data(<span class="string">"/proc/uptime"</span>, <span class="number">50</span>).unwrap_or_default();
         content
-            .split(<span class="string">&#39;.&#39;</span>)
+            .split(<span class="string">'.'</span>)
             .next()
             .and_then(|t| t.parse().ok())
             .unwrap_or_default()
@@ -1285,7 +1287,7 @@
 
     <span class="kw">fn </span>load_average(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LoadAvg {
         <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
-        <span class="kw">if </span>File::open(<span class="string">&quot;/proc/loadavg&quot;</span>)
+        <span class="kw">if </span>File::open(<span class="string">"/proc/loadavg"</span>)
             .and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s))
             .is_err()
         {
@@ -1293,7 +1295,7 @@
         }
         <span class="kw">let </span>loads = s
             .trim()
-            .split(<span class="string">&#39; &#39;</span>)
+            .split(<span class="string">' '</span>)
             .take(<span class="number">3</span>)
             .map(|val| val.parse::&lt;f64&gt;().unwrap())
             .collect::&lt;Vec&lt;f64&gt;&gt;();
@@ -1308,29 +1310,29 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.users
     }
 
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         get_system_info_linux(
             InfoType::Name,
-            Path::new(<span class="string">&quot;/etc/os-release&quot;</span>),
-            Path::new(<span class="string">&quot;/etc/lsb-release&quot;</span>),
+            Path::new(<span class="string">"/etc/os-release"</span>),
+            Path::new(<span class="string">"/etc/lsb-release"</span>),
         )
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         get_system_info_android(InfoType::Name)
     }
 
     <span class="kw">fn </span>long_os_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
-        </span><span class="kw">let </span>system_name = <span class="string">&quot;Android&quot;</span>;
+        <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
+        </span><span class="kw">let </span>system_name = <span class="string">"Android"</span>;
 
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
-        </span><span class="kw">let </span>system_name = <span class="string">&quot;Linux&quot;</span>;
+        <span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
+        </span><span class="kw">let </span>system_name = <span class="string">"Linux"</span>;
 
         <span class="prelude-val">Some</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;{} {} {}&quot;</span>,
+            <span class="string">"{} {} {}"</span>,
             system_name,
             <span class="self">self</span>.os_version().unwrap_or_default(),
             <span class="self">self</span>.name().unwrap_or_default()
@@ -1348,7 +1350,7 @@
                 }
                 String::from_utf8(buffer).ok()
             } <span class="kw">else </span>{
-                <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;gethostname failed: hostname cannot be retrieved...&quot;</span>);
+                <span class="macro">sysinfo_debug!</span>(<span class="string">"gethostname failed: hostname cannot be retrieved..."</span>);
                 <span class="prelude-val">None
             </span>}
         }
@@ -1375,33 +1377,33 @@
         }
     }
 
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
     </span><span class="kw">fn </span>os_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         get_system_info_linux(
             InfoType::OsVersion,
-            Path::new(<span class="string">&quot;/etc/os-release&quot;</span>),
-            Path::new(<span class="string">&quot;/etc/lsb-release&quot;</span>),
+            Path::new(<span class="string">"/etc/os-release"</span>),
+            Path::new(<span class="string">"/etc/lsb-release"</span>),
         )
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
     </span><span class="kw">fn </span>os_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         get_system_info_android(InfoType::OsVersion)
     }
 
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
     </span><span class="kw">fn </span>distribution_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         get_system_info_linux(
             InfoType::DistributionID,
-            Path::new(<span class="string">&quot;/etc/os-release&quot;</span>),
-            Path::new(<span class="string">&quot;&quot;</span>),
+            Path::new(<span class="string">"/etc/os-release"</span>),
+            Path::new(<span class="string">""</span>),
         )
         .unwrap_or_else(|| std::env::consts::OS.to_owned())
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
     </span><span class="kw">fn </span>distribution_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="comment">// Currently get_system_info_android doesn&#39;t support InfoType::DistributionID and always
+        <span class="comment">// Currently get_system_info_android doesn't support InfoType::DistributionID and always
         // returns None. This call is done anyway for consistency with non-Android implementation
         // and to suppress dead-code warning for DistributionID on Android.
         </span>get_system_info_android(InfoType::DistributionID)
@@ -1421,12 +1423,12 @@
 {
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(content) = get_all_data(filename, <span class="number">16_635</span>) {
         content
-            .split(<span class="string">&#39;\n&#39;</span>)
+            .split(<span class="string">'\n'</span>)
             .flat_map(|line| {
                 <span class="kw">let </span><span class="kw-2">mut </span>split = line.split(colsep);
                 <span class="kw">let </span>key = split.next()<span class="question-mark">?</span>;
                 <span class="kw">let </span>value = split.next()<span class="question-mark">?</span>;
-                <span class="kw">let </span>value0 = value.trim_start().split(<span class="string">&#39; &#39;</span>).next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>value0 = value.trim_start().split(<span class="string">' '</span>).next()<span class="question-mark">?</span>;
                 <span class="kw">let </span>value0_u64 = u64::from_str(value0).ok()<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>((key, value0_u64))
             })
@@ -1452,20 +1454,20 @@
     </span>DistributionID,
 }
 
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+<span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
 </span><span class="kw">fn </span>get_system_info_linux(info: InfoType, path: <span class="kw-2">&amp;</span>Path, fallback_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(f) = File::open(path) {
         <span class="kw">let </span>reader = BufReader::new(f);
 
         <span class="kw">let </span>info_str = <span class="kw">match </span>info {
-            InfoType::Name =&gt; <span class="string">&quot;NAME=&quot;</span>,
-            InfoType::OsVersion =&gt; <span class="string">&quot;VERSION_ID=&quot;</span>,
-            InfoType::DistributionID =&gt; <span class="string">&quot;ID=&quot;</span>,
+            InfoType::Name =&gt; <span class="string">"NAME="</span>,
+            InfoType::OsVersion =&gt; <span class="string">"VERSION_ID="</span>,
+            InfoType::DistributionID =&gt; <span class="string">"ID="</span>,
         };
 
         <span class="kw">for </span>line <span class="kw">in </span>reader.lines().flatten() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(stripped) = line.strip_prefix(info_str) {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(stripped.replace(<span class="string">&#39;&quot;&#39;</span>, <span class="string">&quot;&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Some</span>(stripped.replace(<span class="string">'"'</span>, <span class="string">""</span>));
             }
         }
     }
@@ -1477,8 +1479,8 @@
     </span><span class="kw">let </span>reader = BufReader::new(File::open(fallback_path).ok()<span class="question-mark">?</span>);
 
     <span class="kw">let </span>info_str = <span class="kw">match </span>info {
-        InfoType::OsVersion =&gt; <span class="string">&quot;DISTRIB_RELEASE=&quot;</span>,
-        InfoType::Name =&gt; <span class="string">&quot;DISTRIB_ID=&quot;</span>,
+        InfoType::OsVersion =&gt; <span class="string">"DISTRIB_RELEASE="</span>,
+        InfoType::Name =&gt; <span class="string">"DISTRIB_ID="</span>,
         InfoType::DistributionID =&gt; {
             <span class="comment">// lsb-release is inconsistent with os-release and unsupported.
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1486,18 +1488,18 @@
     };
     <span class="kw">for </span>line <span class="kw">in </span>reader.lines().flatten() {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(stripped) = line.strip_prefix(info_str) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(stripped.replace(<span class="string">&#39;&quot;&#39;</span>, <span class="string">&quot;&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Some</span>(stripped.replace(<span class="string">'"'</span>, <span class="string">""</span>));
         }
     }
     <span class="prelude-val">None
 </span>}
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
 </span><span class="kw">fn </span>get_system_info_android(info: InfoType) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
     <span class="comment">// https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/java/android/os/Build.java#58
-    </span><span class="kw">let </span>name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="kw">match </span>info {
-        InfoType::Name =&gt; <span class="string">b&quot;ro.product.model\0&quot;</span>,
-        InfoType::OsVersion =&gt; <span class="string">b&quot;ro.build.version.release\0&quot;</span>,
+    </span><span class="kw">let </span>name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] = <span class="kw">match </span>info {
+        InfoType::Name =&gt; <span class="string">b"ro.product.model\0"</span>,
+        InfoType::OsVersion =&gt; <span class="string">b"ro.build.version.release\0"</span>,
         InfoType::DistributionID =&gt; {
             <span class="comment">// Not supported.
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1524,14 +1526,14 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
     </span><span class="kw">use </span><span class="kw">super</span>::get_system_info_android;
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"android"</span>))]
     </span><span class="kw">use </span><span class="kw">super</span>::get_system_info_linux;
     <span class="kw">use </span><span class="kw">super</span>::InfoType;
 
     <span class="attr">#[test]
-    #[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+    #[cfg(target_os = <span class="string">"android"</span>)]
     </span><span class="kw">fn </span>lsb_release_fallback_android() {
         <span class="macro">assert!</span>(get_system_info_android(InfoType::OsVersion).is_some());
         <span class="macro">assert!</span>(get_system_info_android(InfoType::Name).is_some());
@@ -1539,65 +1541,65 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+    #[cfg(not(target_os = <span class="string">"android"</span>))]
     </span><span class="kw">fn </span>lsb_release_fallback_not_android() {
         <span class="kw">use </span>std::path::Path;
 
-        <span class="kw">let </span>dir = tempfile::tempdir().expect(<span class="string">&quot;failed to create temporary directory&quot;</span>);
-        <span class="kw">let </span>tmp1 = dir.path().join(<span class="string">&quot;tmp1&quot;</span>);
-        <span class="kw">let </span>tmp2 = dir.path().join(<span class="string">&quot;tmp2&quot;</span>);
+        <span class="kw">let </span>dir = tempfile::tempdir().expect(<span class="string">"failed to create temporary directory"</span>);
+        <span class="kw">let </span>tmp1 = dir.path().join(<span class="string">"tmp1"</span>);
+        <span class="kw">let </span>tmp2 = dir.path().join(<span class="string">"tmp2"</span>);
 
         <span class="comment">// /etc/os-release
         </span>std::fs::write(
             <span class="kw-2">&amp;</span>tmp1,
-            <span class="string">r#&quot;NAME=&quot;Ubuntu&quot;
-VERSION=&quot;20.10 (Groovy Gorilla)&quot;
+            <span class="string">r#"NAME="Ubuntu"
+VERSION="20.10 (Groovy Gorilla)"
 ID=ubuntu
 ID_LIKE=debian
-PRETTY_NAME=&quot;Ubuntu 20.10&quot;
-VERSION_ID=&quot;20.10&quot;
+PRETTY_NAME="Ubuntu 20.10"
+VERSION_ID="20.10"
 VERSION_CODENAME=groovy
 UBUNTU_CODENAME=groovy
-&quot;#</span>,
+"#</span>,
         )
-        .expect(<span class="string">&quot;Failed to create tmp1&quot;</span>);
+        .expect(<span class="string">"Failed to create tmp1"</span>);
 
         <span class="comment">// /etc/lsb-release
         </span>std::fs::write(
             <span class="kw-2">&amp;</span>tmp2,
-            <span class="string">r#&quot;DISTRIB_ID=Ubuntu
+            <span class="string">r#"DISTRIB_ID=Ubuntu
 DISTRIB_RELEASE=20.10
 DISTRIB_CODENAME=groovy
-DISTRIB_DESCRIPTION=&quot;Ubuntu 20.10&quot;
-&quot;#</span>,
+DISTRIB_DESCRIPTION="Ubuntu 20.10"
+"#</span>,
         )
-        .expect(<span class="string">&quot;Failed to create tmp2&quot;</span>);
+        .expect(<span class="string">"Failed to create tmp2"</span>);
 
-        <span class="comment">// Check for the &quot;normal&quot; path: &quot;/etc/os-release&quot;
+        <span class="comment">// Check for the "normal" path: "/etc/os-release"
         </span><span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::OsVersion, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">&quot;&quot;</span>)),
-            <span class="prelude-val">Some</span>(<span class="string">&quot;20.10&quot;</span>.to_owned())
+            get_system_info_linux(InfoType::OsVersion, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">""</span>)),
+            <span class="prelude-val">Some</span>(<span class="string">"20.10"</span>.to_owned())
         );
         <span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::Name, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">&quot;&quot;</span>)),
-            <span class="prelude-val">Some</span>(<span class="string">&quot;Ubuntu&quot;</span>.to_owned())
+            get_system_info_linux(InfoType::Name, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">""</span>)),
+            <span class="prelude-val">Some</span>(<span class="string">"Ubuntu"</span>.to_owned())
         );
         <span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::DistributionID, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">&quot;&quot;</span>)),
-            <span class="prelude-val">Some</span>(<span class="string">&quot;ubuntu&quot;</span>.to_owned())
+            get_system_info_linux(InfoType::DistributionID, <span class="kw-2">&amp;</span>tmp1, Path::new(<span class="string">""</span>)),
+            <span class="prelude-val">Some</span>(<span class="string">"ubuntu"</span>.to_owned())
         );
 
-        <span class="comment">// Check for the &quot;fallback&quot; path: &quot;/etc/lsb-release&quot;
+        <span class="comment">// Check for the "fallback" path: "/etc/lsb-release"
         </span><span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::OsVersion, Path::new(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span>tmp2),
-            <span class="prelude-val">Some</span>(<span class="string">&quot;20.10&quot;</span>.to_owned())
+            get_system_info_linux(InfoType::OsVersion, Path::new(<span class="string">""</span>), <span class="kw-2">&amp;</span>tmp2),
+            <span class="prelude-val">Some</span>(<span class="string">"20.10"</span>.to_owned())
         );
         <span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::Name, Path::new(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span>tmp2),
-            <span class="prelude-val">Some</span>(<span class="string">&quot;Ubuntu&quot;</span>.to_owned())
+            get_system_info_linux(InfoType::Name, Path::new(<span class="string">""</span>), <span class="kw-2">&amp;</span>tmp2),
+            <span class="prelude-val">Some</span>(<span class="string">"Ubuntu"</span>.to_owned())
         );
         <span class="macro">assert_eq!</span>(
-            get_system_info_linux(InfoType::DistributionID, Path::new(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span>tmp2),
+            get_system_info_linux(InfoType::DistributionID, Path::new(<span class="string">""</span>), <span class="kw-2">&amp;</span>tmp2),
             <span class="prelude-val">None
         </span>);
     }

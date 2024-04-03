@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -258,10 +260,10 @@
 <span class="kw">mod </span>traits;
 <span class="kw">mod </span>vec_value;
 
-<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm15-0&quot;</span>, feature = <span class="string">&quot;llvm16-0&quot;</span>)))]
+<span class="attr">#[cfg(not(any(feature = <span class="string">"llvm15-0"</span>, feature = <span class="string">"llvm16-0"</span>)))]
 </span><span class="kw">mod </span>callable_value;
 
-<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm15-0&quot;</span>, feature = <span class="string">&quot;llvm16-0&quot;</span>)))]
+<span class="attr">#[cfg(not(any(feature = <span class="string">"llvm15-0"</span>, feature = <span class="string">"llvm16-0"</span>)))]
 </span><span class="kw">pub use </span><span class="kw">crate</span>::values::callable_value::CallableValue;
 
 <span class="kw">use </span><span class="kw">crate</span>::support::{to_c_str, LLVMString};
@@ -296,16 +298,16 @@
 <span class="kw">use </span>std::marker::PhantomData;
 
 <span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-</span><span class="kw">struct </span>Value&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">struct </span>Value&lt;<span class="lifetime">'ctx</span>&gt; {
     value: LLVMValueRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>()&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>()&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Value&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Value&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(value: LLVMValueRef) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(
             !value.is_null(),
-            <span class="string">&quot;This should never happen since containing struct should check null ptrs&quot;
+            <span class="string">"This should never happen since containing struct should check null ptrs"
         </span>);
 
         Value {
@@ -318,7 +320,7 @@
         <span class="kw">unsafe </span>{ !LLVMIsAInstruction(<span class="self">self</span>.value).is_null() }
     }
 
-    <span class="kw">fn </span>as_instruction(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">fn </span>as_instruction(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_instruction() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -335,15 +337,15 @@
     }
 
     <span class="comment">// TODOC: According to https://stackoverflow.com/questions/21593752/llvm-how-to-pass-a-name-to-constantint
-    // you can&#39;t use set_name name on a constant(by can&#39;t, I mean it wont do anything), unless it&#39;s also a global.
+    // you can't use set_name name on a constant(by can't, I mean it wont do anything), unless it's also a global.
     // So, you can set names on variables (ie a function parameter)
-    // REVIEW: It&#39;d be great if we could encode this into the type system somehow. For example,
+    // REVIEW: It'd be great if we could encode this into the type system somehow. For example,
     // add a ParamValue wrapper type that always have it but conditional types (IntValue&lt;Variable&gt;)
-    // that also have it. This isn&#39;t a huge deal though, since it hasn&#39;t proven to be UB so far
+    // that also have it. This isn't a huge deal though, since it hasn't proven to be UB so far
     </span><span class="kw">fn </span>set_name(<span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
         <span class="kw">let </span>c_string = to_c_str(name);
 
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>))]
         </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMSetValueName;
 
@@ -351,7 +353,7 @@
                 LLVMSetValueName(<span class="self">self</span>.value, c_string.as_ptr());
             }
         }
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
         </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMSetValueName2;
 
@@ -360,15 +362,15 @@
     }
 
     <span class="comment">// get_name should *not* return a LLVMString, because it is not an owned value AFAICT
-    // TODO: Should make this take ownership of self. But what is the lifetime of the string? &#39;ctx?
+    // TODO: Should make this take ownership of self. But what is the lifetime of the string? 'ctx?
     </span><span class="kw">fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CStr {
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>))]
         </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMGetValueName;
 
             LLVMGetValueName(<span class="self">self</span>.value)
         };
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
         </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMGetValueName2;
             <span class="kw">let </span><span class="kw-2">mut </span>len = <span class="number">0</span>;
@@ -398,13 +400,13 @@
     <span class="comment">// REVIEW: I think this is memory safe, though it may result in an IR error
     // if used incorrectly, which is OK.
     </span><span class="kw">fn </span>replace_all_uses_with(<span class="self">self</span>, other: LLVMValueRef) {
-        <span class="comment">// LLVM may infinite-loop when they aren&#39;t distinct, which is UB in C++.
+        <span class="comment">// LLVM may infinite-loop when they aren't distinct, which is UB in C++.
         </span><span class="kw">if </span><span class="self">self</span>.value != other {
             <span class="kw">unsafe </span>{ LLVMReplaceAllUsesWith(<span class="self">self</span>.value, other) }
         }
     }
 
-    <span class="kw">pub fn </span>get_first_use(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_first_use(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>use_ = <span class="kw">unsafe </span>{ LLVMGetFirstUse(<span class="self">self</span>.value) };
 
         <span class="kw">if </span>use_.is_null() {
@@ -422,12 +424,12 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// On MacOS we need to remove &#39;,&#39; before section name
-        </span><span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">&quot;macos&quot;</span>) {
+        <span class="comment">// On MacOS we need to remove ',' before section name
+        </span><span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"macos"</span>) {
             <span class="kw">let </span>name = <span class="kw">unsafe </span>{ CStr::from_ptr(ptr) };
             <span class="kw">let </span>name_string = name.to_string_lossy();
             <span class="kw">let </span><span class="kw-2">mut </span>chars = name_string.chars();
-            <span class="kw">if </span><span class="prelude-val">Some</span>(<span class="string">&#39;,&#39;</span>) == chars.next() {
+            <span class="kw">if </span><span class="prelude-val">Some</span>(<span class="string">','</span>) == chars.next() {
                 <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ CStr::from_ptr(ptr.add(<span class="number">1</span>)) })
             } <span class="kw">else </span>{
                 <span class="prelude-val">Some</span>(name)
@@ -439,22 +441,22 @@
 
     <span class="doccomment">/// Sets the section of the global value
     </span><span class="kw">fn </span>set_section(<span class="self">self</span>, section: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
-        </span><span class="kw">let </span>section = section.map(|s| <span class="kw">if </span>s.contains(<span class="string">&quot;,&quot;</span>) { <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, s) } <span class="kw">else </span>{ <span class="macro">format!</span>(<span class="string">&quot;,{}&quot;</span>, s) });
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
+        </span><span class="kw">let </span>section = section.map(|s| <span class="kw">if </span>s.contains(<span class="string">","</span>) { <span class="macro">format!</span>(<span class="string">"{}"</span>, s) } <span class="kw">else </span>{ <span class="macro">format!</span>(<span class="string">",{}"</span>, s) });
 
         <span class="kw">let </span>c_string = section.as_deref().map(to_c_str);
 
         <span class="kw">unsafe </span>{
             LLVMSetSection(
                 <span class="self">self</span>.value,
-                <span class="comment">// The as_ref call is important here so that we don&#39;t drop the cstr mid use
+                <span class="comment">// The as_ref call is important here so that we don't drop the cstr mid use
                 </span>c_string.as_ref().map(|s| s.as_ptr()).unwrap_or(std::ptr::null()),
             )
         }
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Value&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Value&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>llvm_value = <span class="self">self</span>.print_to_string();
         <span class="kw">let </span>llvm_type = <span class="kw">unsafe </span>{ CStr::from_ptr(LLVMPrintTypeToString(LLVMTypeOf(<span class="self">self</span>.value))) };
@@ -463,14 +465,14 @@
         <span class="kw">let </span>is_null = <span class="self">self</span>.is_null();
         <span class="kw">let </span>is_undef = <span class="self">self</span>.is_undef();
 
-        f.debug_struct(<span class="string">&quot;Value&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span>name)
-            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)
-            .field(<span class="string">&quot;is_const&quot;</span>, <span class="kw-2">&amp;</span>is_const)
-            .field(<span class="string">&quot;is_null&quot;</span>, <span class="kw-2">&amp;</span>is_null)
-            .field(<span class="string">&quot;is_undef&quot;</span>, <span class="kw-2">&amp;</span>is_undef)
-            .field(<span class="string">&quot;llvm_value&quot;</span>, <span class="kw-2">&amp;</span>llvm_value)
-            .field(<span class="string">&quot;llvm_type&quot;</span>, <span class="kw-2">&amp;</span>llvm_type)
+        f.debug_struct(<span class="string">"Value"</span>)
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span>name)
+            .field(<span class="string">"address"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value)
+            .field(<span class="string">"is_const"</span>, <span class="kw-2">&amp;</span>is_const)
+            .field(<span class="string">"is_null"</span>, <span class="kw-2">&amp;</span>is_null)
+            .field(<span class="string">"is_undef"</span>, <span class="kw-2">&amp;</span>is_undef)
+            .field(<span class="string">"llvm_value"</span>, <span class="kw-2">&amp;</span>llvm_value)
+            .field(<span class="string">"llvm_type"</span>, <span class="kw-2">&amp;</span>llvm_type)
             .finish()
     }
 }

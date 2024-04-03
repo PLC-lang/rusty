@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/path/path.rs`."><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="async_std"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/path/path.rs`."><title>path.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../async_std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1046,7 +1048,7 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span><span class="kw">crate</span>::path::{Ancestors, Components, Display, Iter, PathBuf, StripPrefixError};
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+<span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
 </span><span class="kw">use crate</span>::{fs, io};
 
 <span class="doccomment">/// A slice of a path.
@@ -1075,16 +1077,16 @@
 /// use std::ffi::OsStr;
 ///
 /// // Note: this example does work on Windows
-/// let path = Path::new(&quot;./foo/bar.txt&quot;);
+/// let path = Path::new("./foo/bar.txt");
 ///
 /// let parent = path.parent();
-/// assert_eq!(parent, Some(Path::new(&quot;./foo&quot;)));
+/// assert_eq!(parent, Some(Path::new("./foo")));
 ///
 /// let file_stem = path.file_stem();
-/// assert_eq!(file_stem, Some(OsStr::new(&quot;bar&quot;)));
+/// assert_eq!(file_stem, Some(OsStr::new("bar")));
 ///
 /// let extension = path.extension();
-/// assert_eq!(extension, Some(OsStr::new(&quot;txt&quot;)));
+/// assert_eq!(extension, Some(OsStr::new("txt")));
 /// ```
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>Path {
@@ -1101,7 +1103,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// Path::new(&quot;foo.txt&quot;);
+    /// Path::new("foo.txt");
     /// ```
     ///
     /// You can create `Path`s from `String`s, or even other `Path`s:
@@ -1109,7 +1111,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let string = String::from(&quot;foo.txt&quot;);
+    /// let string = String::from("foo.txt");
     /// let from_string = Path::new(&amp;string);
     /// let from_path = Path::new(&amp;from_string);
     /// assert_eq!(from_string, from_path);
@@ -1129,8 +1131,8 @@
     ///
     /// use async_std::path::Path;
     ///
-    /// let os_str = Path::new(&quot;foo.txt&quot;).as_os_str();
-    /// assert_eq!(os_str, OsStr::new(&quot;foo.txt&quot;));
+    /// let os_str = Path::new("foo.txt").as_os_str();
+    /// assert_eq!(os_str, OsStr::new("foo.txt"));
     /// ```
     </span><span class="kw">pub fn </span>as_os_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OsStr {
         <span class="self">self</span>.inner.as_os_str()
@@ -1149,8 +1151,8 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo.txt&quot;);
-    /// assert_eq!(path.to_str(), Some(&quot;foo.txt&quot;));
+    /// let path = Path::new("foo.txt");
+    /// assert_eq!(path.to_str(), Some("foo.txt"));
     /// ```
     </span><span class="kw">pub fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.inner.to_str()
@@ -1171,13 +1173,13 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo.txt&quot;);
-    /// assert_eq!(path.to_string_lossy(), &quot;foo.txt&quot;);
+    /// let path = Path::new("foo.txt");
+    /// assert_eq!(path.to_string_lossy(), "foo.txt");
     /// ```
     ///
     /// Had `path` contained invalid unicode, the `to_string_lossy` call might
-    /// have returned `&quot;fo�.txt&quot;`.
-    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+    /// have returned `"fo�.txt"`.
+    </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
         <span class="self">self</span>.inner.to_string_lossy()
     }
 
@@ -1190,8 +1192,8 @@
     /// ```
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// let path_buf = Path::new(&quot;foo.txt&quot;).to_path_buf();
-    /// assert_eq!(path_buf, PathBuf::from(&quot;foo.txt&quot;));
+    /// let path_buf = Path::new("foo.txt").to_path_buf();
+    /// assert_eq!(path_buf, PathBuf::from("foo.txt"));
     /// ```
     </span><span class="kw">pub fn </span>to_path_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
         PathBuf::from(<span class="self">self</span>.inner.to_path_buf())
@@ -1213,7 +1215,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// assert!(!Path::new(&quot;foo.txt&quot;).is_absolute());
+    /// assert!(!Path::new("foo.txt").is_absolute());
     /// ```
     </span><span class="kw">pub fn </span>is_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.is_absolute()
@@ -1221,7 +1223,7 @@
 
     <span class="doccomment">/// Returns `true` if the `Path` is relative, i.e. not absolute.
     ///
-    /// See [`is_absolute`]&#39;s documentation for more details.
+    /// See [`is_absolute`]'s documentation for more details.
     ///
     /// [`is_absolute`]: #method.is_absolute
     ///
@@ -1230,7 +1232,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// assert!(Path::new(&quot;foo.txt&quot;).is_relative());
+    /// assert!(Path::new("foo.txt").is_relative());
     /// ```
     </span><span class="kw">pub fn </span>is_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.is_relative()
@@ -1250,7 +1252,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// assert!(Path::new(&quot;/etc/passwd&quot;).has_root());
+    /// assert!(Path::new("/etc/passwd").has_root());
     /// ```
     </span><span class="kw">pub fn </span>has_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.has_root()
@@ -1267,12 +1269,12 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/foo/bar&quot;);
+    /// let path = Path::new("/foo/bar");
     /// let parent = path.parent().unwrap();
-    /// assert_eq!(parent, Path::new(&quot;/foo&quot;));
+    /// assert_eq!(parent, Path::new("/foo"));
     ///
     /// let grand_parent = parent.parent().unwrap();
-    /// assert_eq!(grand_parent, Path::new(&quot;/&quot;));
+    /// assert_eq!(grand_parent, Path::new("/"));
     /// assert_eq!(grand_parent.parent(), None);
     /// ```
     </span><span class="kw">pub fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
@@ -1295,19 +1297,19 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let mut ancestors = Path::new(&quot;/foo/bar&quot;).ancestors();
-    /// assert_eq!(ancestors.next(), Some(Path::new(&quot;/foo/bar&quot;).into()));
-    /// assert_eq!(ancestors.next(), Some(Path::new(&quot;/foo&quot;).into()));
-    /// assert_eq!(ancestors.next(), Some(Path::new(&quot;/&quot;).into()));
+    /// let mut ancestors = Path::new("/foo/bar").ancestors();
+    /// assert_eq!(ancestors.next(), Some(Path::new("/foo/bar").into()));
+    /// assert_eq!(ancestors.next(), Some(Path::new("/foo").into()));
+    /// assert_eq!(ancestors.next(), Some(Path::new("/").into()));
     /// assert_eq!(ancestors.next(), None);
     /// ```
-    </span><span class="kw">pub fn </span>ancestors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ancestors&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>ancestors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ancestors&lt;<span class="lifetime">'_</span>&gt; {
         Ancestors { next: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns the final component of the `Path`, if there is one.
     ///
-    /// If the path is a normal file, this is the file name. If it&#39;s the path of a directory, this
+    /// If the path is a normal file, this is the file name. If it's the path of a directory, this
     /// is the directory name.
     ///
     /// Returns [`None`] if the path terminates in `..`.
@@ -1321,12 +1323,12 @@
     ///
     /// use async_std::path::Path;
     ///
-    /// assert_eq!(Some(OsStr::new(&quot;bin&quot;)), Path::new(&quot;/usr/bin/&quot;).file_name());
-    /// assert_eq!(Some(OsStr::new(&quot;foo.txt&quot;)), Path::new(&quot;tmp/foo.txt&quot;).file_name());
-    /// assert_eq!(Some(OsStr::new(&quot;foo.txt&quot;)), Path::new(&quot;foo.txt/.&quot;).file_name());
-    /// assert_eq!(Some(OsStr::new(&quot;foo.txt&quot;)), Path::new(&quot;foo.txt/.//&quot;).file_name());
-    /// assert_eq!(None, Path::new(&quot;foo.txt/..&quot;).file_name());
-    /// assert_eq!(None, Path::new(&quot;/&quot;).file_name());
+    /// assert_eq!(Some(OsStr::new("bin")), Path::new("/usr/bin/").file_name());
+    /// assert_eq!(Some(OsStr::new("foo.txt")), Path::new("tmp/foo.txt").file_name());
+    /// assert_eq!(Some(OsStr::new("foo.txt")), Path::new("foo.txt/.").file_name());
+    /// assert_eq!(Some(OsStr::new("foo.txt")), Path::new("foo.txt/.//").file_name());
+    /// assert_eq!(None, Path::new("foo.txt/..").file_name());
+    /// assert_eq!(None, Path::new("/").file_name());
     /// ```
     </span><span class="kw">pub fn </span>file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
         <span class="self">self</span>.inner.file_name()
@@ -1347,18 +1349,18 @@
     /// ```
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// let path = Path::new(&quot;/test/haha/foo.txt&quot;);
+    /// let path = Path::new("/test/haha/foo.txt");
     ///
-    /// assert_eq!(path.strip_prefix(&quot;/&quot;), Ok(Path::new(&quot;test/haha/foo.txt&quot;)));
-    /// assert_eq!(path.strip_prefix(&quot;/test&quot;), Ok(Path::new(&quot;haha/foo.txt&quot;)));
-    /// assert_eq!(path.strip_prefix(&quot;/test/&quot;), Ok(Path::new(&quot;haha/foo.txt&quot;)));
-    /// assert_eq!(path.strip_prefix(&quot;/test/haha/foo.txt&quot;), Ok(Path::new(&quot;&quot;)));
-    /// assert_eq!(path.strip_prefix(&quot;/test/haha/foo.txt/&quot;), Ok(Path::new(&quot;&quot;)));
-    /// assert_eq!(path.strip_prefix(&quot;test&quot;).is_ok(), false);
-    /// assert_eq!(path.strip_prefix(&quot;/haha&quot;).is_ok(), false);
+    /// assert_eq!(path.strip_prefix("/"), Ok(Path::new("test/haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test"), Ok(Path::new("haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test/"), Ok(Path::new("haha/foo.txt")));
+    /// assert_eq!(path.strip_prefix("/test/haha/foo.txt"), Ok(Path::new("")));
+    /// assert_eq!(path.strip_prefix("/test/haha/foo.txt/"), Ok(Path::new("")));
+    /// assert_eq!(path.strip_prefix("test").is_ok(), false);
+    /// assert_eq!(path.strip_prefix("/haha").is_ok(), false);
     ///
-    /// let prefix = PathBuf::from(&quot;/test/&quot;);
-    /// assert_eq!(path.strip_prefix(prefix), Ok(Path::new(&quot;haha/foo.txt&quot;)));
+    /// let prefix = PathBuf::from("/test/");
+    /// assert_eq!(path.strip_prefix(prefix), Ok(Path::new("haha/foo.txt")));
     /// ```
     </span><span class="kw">pub fn </span>strip_prefix&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>Path, StripPrefixError&gt;
     <span class="kw">where
@@ -1376,14 +1378,14 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/etc/passwd&quot;);
+    /// let path = Path::new("/etc/passwd");
     ///
-    /// assert!(path.starts_with(&quot;/etc&quot;));
-    /// assert!(path.starts_with(&quot;/etc/&quot;));
-    /// assert!(path.starts_with(&quot;/etc/passwd&quot;));
-    /// assert!(path.starts_with(&quot;/etc/passwd/&quot;));
+    /// assert!(path.starts_with("/etc"));
+    /// assert!(path.starts_with("/etc/"));
+    /// assert!(path.starts_with("/etc/passwd"));
+    /// assert!(path.starts_with("/etc/passwd/"));
     ///
-    /// assert!(!path.starts_with(&quot;/e&quot;));
+    /// assert!(!path.starts_with("/e"));
     /// ```
     </span><span class="kw">pub fn </span>starts_with&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, base: P) -&gt; bool {
         <span class="self">self</span>.inner.starts_with(base.as_ref())
@@ -1398,9 +1400,9 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/etc/passwd&quot;);
+    /// let path = Path::new("/etc/passwd");
     ///
-    /// assert!(path.ends_with(&quot;passwd&quot;));
+    /// assert!(path.ends_with("passwd"));
     /// ```
     </span><span class="kw">pub fn </span>ends_with&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, child: P) -&gt; bool {
         <span class="self">self</span>.inner.ends_with(child.as_ref())
@@ -1424,9 +1426,9 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo.rs&quot;);
+    /// let path = Path::new("foo.rs");
     ///
-    /// assert_eq!(&quot;foo&quot;, path.file_stem().unwrap());
+    /// assert_eq!("foo", path.file_stem().unwrap());
     /// ```
     </span><span class="kw">pub fn </span>file_stem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
         <span class="self">self</span>.inner.file_stem()
@@ -1449,9 +1451,9 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo.rs&quot;);
+    /// let path = Path::new("foo.rs");
     ///
-    /// assert_eq!(&quot;rs&quot;, path.extension().unwrap());
+    /// assert_eq!("rs", path.extension().unwrap());
     /// ```
     </span><span class="kw">pub fn </span>extension(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt; {
         <span class="self">self</span>.inner.extension()
@@ -1469,7 +1471,7 @@
     /// ```
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// assert_eq!(Path::new(&quot;/etc&quot;).join(&quot;passwd&quot;), PathBuf::from(&quot;/etc/passwd&quot;));
+    /// assert_eq!(Path::new("/etc").join("passwd"), PathBuf::from("/etc/passwd"));
     /// ```
     </span><span class="kw">pub fn </span>join&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; PathBuf {
         <span class="self">self</span>.inner.join(path.as_ref()).into()
@@ -1487,11 +1489,11 @@
     /// ```
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// let path = Path::new(&quot;/tmp/foo.txt&quot;);
-    /// assert_eq!(path.with_file_name(&quot;bar.txt&quot;), PathBuf::from(&quot;/tmp/bar.txt&quot;));
+    /// let path = Path::new("/tmp/foo.txt");
+    /// assert_eq!(path.with_file_name("bar.txt"), PathBuf::from("/tmp/bar.txt"));
     ///
-    /// let path = Path::new(&quot;/tmp&quot;);
-    /// assert_eq!(path.with_file_name(&quot;var&quot;), PathBuf::from(&quot;/var&quot;));
+    /// let path = Path::new("/tmp");
+    /// assert_eq!(path.with_file_name("var"), PathBuf::from("/var"));
     /// ```
     </span><span class="kw">pub fn </span>with_file_name&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, file_name: S) -&gt; PathBuf {
         <span class="self">self</span>.inner.with_file_name(file_name).into()
@@ -1509,8 +1511,8 @@
     /// ```
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// let path = Path::new(&quot;foo.rs&quot;);
-    /// assert_eq!(path.with_extension(&quot;txt&quot;), PathBuf::from(&quot;foo.txt&quot;));
+    /// let path = Path::new("foo.rs");
+    /// assert_eq!(path.with_extension("txt"), PathBuf::from("foo.txt"));
     /// ```
     </span><span class="kw">pub fn </span>with_extension&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, extension: S) -&gt; PathBuf {
         <span class="self">self</span>.inner.with_extension(extension).into()
@@ -1532,7 +1534,7 @@
     ///
     /// Note that no other normalization takes place; in particular, `a/c`
     /// and `a/b/../c` are distinct, to account for the possibility that `b`
-    /// is a symbolic link (so its parent isn&#39;t `a`).
+    /// is a symbolic link (so its parent isn't `a`).
     ///
     /// [`Component`]: enum.Component.html
     /// [`CurDir`]: enum.Component.html#variant.CurDir
@@ -1544,20 +1546,20 @@
     ///
     /// use async_std::path::{Path, Component};
     ///
-    /// let mut components = Path::new(&quot;/tmp/foo.txt&quot;).components();
+    /// let mut components = Path::new("/tmp/foo.txt").components();
     ///
     /// assert_eq!(components.next(), Some(Component::RootDir));
-    /// assert_eq!(components.next(), Some(Component::Normal(OsStr::new(&quot;tmp&quot;))));
-    /// assert_eq!(components.next(), Some(Component::Normal(OsStr::new(&quot;foo.txt&quot;))));
+    /// assert_eq!(components.next(), Some(Component::Normal(OsStr::new("tmp"))));
+    /// assert_eq!(components.next(), Some(Component::Normal(OsStr::new("foo.txt"))));
     /// assert_eq!(components.next(), None);
     /// ```
-    </span><span class="kw">pub fn </span>components(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Components&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>components(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Components&lt;<span class="lifetime">'_</span>&gt; {
         Components {
             inner: <span class="self">self</span>.inner.components(),
         }
     }
 
-    <span class="doccomment">/// Produces an iterator over the path&#39;s components viewed as [`OsStr`]
+    <span class="doccomment">/// Produces an iterator over the path's components viewed as [`OsStr`]
     /// slices.
     ///
     /// For more information about the particulars of how the path is separated
@@ -1573,13 +1575,13 @@
     ///
     /// use async_std::path::{self, Path};
     ///
-    /// let mut it = Path::new(&quot;/tmp/foo.txt&quot;).iter();
+    /// let mut it = Path::new("/tmp/foo.txt").iter();
     /// assert_eq!(it.next(), Some(OsStr::new(&amp;path::MAIN_SEPARATOR.to_string())));
-    /// assert_eq!(it.next(), Some(OsStr::new(&quot;tmp&quot;)));
-    /// assert_eq!(it.next(), Some(OsStr::new(&quot;foo.txt&quot;)));
+    /// assert_eq!(it.next(), Some(OsStr::new("tmp")));
+    /// assert_eq!(it.next(), Some(OsStr::new("foo.txt")));
     /// assert_eq!(it.next(), None)
     /// ```
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'_</span>&gt; {
         Iter {
             inner: <span class="self">self</span>.components(),
         }
@@ -1595,11 +1597,11 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/tmp/foo.rs&quot;);
+    /// let path = Path::new("/tmp/foo.rs");
     ///
-    /// println!(&quot;{}&quot;, path.display());
+    /// println!("{}", path.display());
     /// ```
-    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Display&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Display&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.inner.display()
     }
 
@@ -1619,13 +1621,13 @@
     /// #
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/Minas/tirith&quot;);
+    /// let path = Path::new("/Minas/tirith");
     /// let metadata = path.metadata().await?;
-    /// println!(&quot;{:?}&quot;, metadata.file_type());
+    /// println!("{:?}", metadata.file_type());
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::Metadata&gt; {
         fs::metadata(<span class="self">self</span>).<span class="kw">await
     </span>}
@@ -1643,13 +1645,13 @@
     /// #
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/Minas/tirith&quot;);
+    /// let path = Path::new("/Minas/tirith");
     /// let metadata = path.symlink_metadata().await?;
-    /// println!(&quot;{:?}&quot;, metadata.file_type());
+    /// println!("{:?}", metadata.file_type());
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>symlink_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::Metadata&gt; {
         fs::symlink_metadata(<span class="self">self</span>).<span class="kw">await
     </span>}
@@ -1670,12 +1672,12 @@
     /// #
     /// use async_std::path::{Path, PathBuf};
     ///
-    /// let path = Path::new(&quot;/foo/test/../test/bar.rs&quot;);
-    /// assert_eq!(path.canonicalize().await?, PathBuf::from(&quot;/foo/test/bar.rs&quot;));
+    /// let path = Path::new("/foo/test/../test/bar.rs");
+    /// assert_eq!(path.canonicalize().await?, PathBuf::from("/foo/test/bar.rs"));
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>canonicalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;PathBuf&gt; {
         fs::canonicalize(<span class="self">self</span>).<span class="kw">await
     </span>}
@@ -1693,12 +1695,12 @@
     /// #
     /// use async_std::path::Path;
     ///
-    /// let path = Path::new(&quot;/laputa/sky_castle.rs&quot;);
+    /// let path = Path::new("/laputa/sky_castle.rs");
     /// let path_link = path.read_link().await?;
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>read_link(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;PathBuf&gt; {
         fs::read_link(<span class="self">self</span>).<span class="kw">await
     </span>}
@@ -1723,17 +1725,17 @@
     /// use async_std::path::Path;
     /// use async_std::prelude::*;
     ///
-    /// let path = Path::new(&quot;/laputa&quot;);
+    /// let path = Path::new("/laputa");
     /// let mut dir = fs::read_dir(&amp;path).await?;
     ///
     /// while let Some(res) = dir.next().await {
     ///     let entry = res?;
-    ///     println!(&quot;{}&quot;, entry.file_name().to_string_lossy());
+    ///     println!("{}", entry.file_name().to_string_lossy());
     /// }
     /// #
     /// # Ok(()) }) }
     /// ```
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>read_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;fs::ReadDir&gt; {
         fs::read_dir(<span class="self">self</span>).<span class="kw">await
     </span>}
@@ -1752,7 +1754,7 @@
     /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
     /// #
     /// use async_std::path::Path;
-    /// assert_eq!(Path::new(&quot;does_not_exist.txt&quot;).exists().await, false);
+    /// assert_eq!(Path::new("does_not_exist.txt").exists().await, false);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -1763,7 +1765,7 @@
     /// check errors, call [fs::metadata].
     ///
     /// [fs::metadata]: ../fs/fn.metadata.html
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>exists(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>).<span class="kw">await</span>.is_ok()
     }
@@ -1782,8 +1784,8 @@
     /// # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {
     /// #
     /// use async_std::path::Path;
-    /// assert_eq!(Path::new(&quot;./is_a_directory/&quot;).is_file().await, false);
-    /// assert_eq!(Path::new(&quot;a_file.txt&quot;).is_file().await, true);
+    /// assert_eq!(Path::new("./is_a_directory/").is_file().await, false);
+    /// assert_eq!(Path::new("a_file.txt").is_file().await, true);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -1796,7 +1798,7 @@
     ///
     /// [fs::metadata]: ../fs/fn.metadata.html
     /// [fs::Metadata::is_file]: ../fs/struct.Metadata.html#method.is_file
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>is_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>)
             .<span class="kw">await
@@ -1819,8 +1821,8 @@
     /// #
     /// use async_std::path::Path;
     ///
-    /// assert_eq!(Path::new(&quot;./is_a_directory/&quot;).is_dir().await, true);
-    /// assert_eq!(Path::new(&quot;a_file.txt&quot;).is_dir().await, false);
+    /// assert_eq!(Path::new("./is_a_directory/").is_dir().await, true);
+    /// assert_eq!(Path::new("a_file.txt").is_dir().await, false);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -1833,7 +1835,7 @@
     ///
     /// [fs::metadata]: ../fs/fn.metadata.html
     /// [fs::Metadata::is_dir]: ../fs/struct.Metadata.html#method.is_dir
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">pub async fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         fs::metadata(<span class="self">self</span>)
             .<span class="kw">await
@@ -1852,7 +1854,7 @@
     /// ```
     /// use async_std::path::Path;
     ///
-    /// let path: Box&lt;Path&gt; = Path::new(&quot;foo.txt&quot;).into();
+    /// let path: Box&lt;Path&gt; = Path::new("foo.txt").into();
     /// let path_buf = path.into_path_buf();
     /// ```
     </span><span class="kw">pub fn </span>into_path_buf(<span class="self">self</span>: Box&lt;Path&gt;) -&gt; PathBuf {
@@ -1913,14 +1915,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, Path&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt; {
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path) -&gt; Cow&lt;<span class="lifetime">'a</span>, Path&gt; {
         Cow::Borrowed(s)
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;_</span>, OsStr&gt; {
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'_</span>, OsStr&gt; {
     <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
         Path::new(<span class="self">self</span>)
     }
@@ -1950,48 +1952,48 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PathBuf {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>PathBuf {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>&gt;;
 
-    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.iter()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>&gt;;
 
-    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.iter()
     }
 }
 
 <span class="macro">macro_rules! </span>impl_cmp {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>: ty) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; bool {
                 &lt;Path <span class="kw">as </span>PartialEq&gt;::eq(<span class="self">self</span>, other)
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; bool {
                 &lt;Path <span class="kw">as </span>PartialEq&gt;::eq(<span class="self">self</span>, other)
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 &lt;Path <span class="kw">as </span>PartialOrd&gt;::partial_cmp(<span class="self">self</span>, other)
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 &lt;Path <span class="kw">as </span>PartialOrd&gt;::partial_cmp(<span class="self">self</span>, other)
@@ -2001,35 +2003,35 @@
 }
 
 <span class="macro">impl_cmp!</span>(PathBuf, Path);
-<span class="macro">impl_cmp!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path);
-<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, Path);
-<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Path);
-<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">&#39;a</span>, Path&gt;, PathBuf);
+<span class="macro">impl_cmp!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">'a</span>, Path&gt;, Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">'a</span>, Path&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Path);
+<span class="macro">impl_cmp!</span>(Cow&lt;<span class="lifetime">'a</span>, Path&gt;, PathBuf);
 
 <span class="macro">macro_rules! </span>impl_cmp_os_str {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>: ty) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; bool {
                 &lt;Path <span class="kw">as </span>PartialEq&gt;::eq(<span class="self">self</span>, other.as_ref())
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; bool {
                 &lt;Path <span class="kw">as </span>PartialEq&gt;::eq(<span class="self">self</span>.as_ref(), other)
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 &lt;Path <span class="kw">as </span>PartialOrd&gt;::partial_cmp(<span class="self">self</span>, other.as_ref())
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 &lt;Path <span class="kw">as </span>PartialOrd&gt;::partial_cmp(<span class="self">self</span>.as_ref(), other)
@@ -2039,25 +2041,25 @@
 }
 
 <span class="macro">impl_cmp_os_str!</span>(PathBuf, OsStr);
-<span class="macro">impl_cmp_os_str!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr);
-<span class="macro">impl_cmp_os_str!</span>(PathBuf, Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr);
+<span class="macro">impl_cmp_os_str!</span>(PathBuf, Cow&lt;<span class="lifetime">'a</span>, OsStr&gt;);
 <span class="macro">impl_cmp_os_str!</span>(PathBuf, OsString);
 <span class="macro">impl_cmp_os_str!</span>(Path, OsStr);
-<span class="macro">impl_cmp_os_str!</span>(Path, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OsStr);
-<span class="macro">impl_cmp_os_str!</span>(Path, Cow&lt;<span class="lifetime">&#39;a</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(Path, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OsStr);
+<span class="macro">impl_cmp_os_str!</span>(Path, Cow&lt;<span class="lifetime">'a</span>, OsStr&gt;);
 <span class="macro">impl_cmp_os_str!</span>(Path, OsString);
-<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, OsStr);
-<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, Cow&lt;<span class="lifetime">&#39;b</span>, OsStr&gt;);
-<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path, OsString);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path, OsStr);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path, Cow&lt;<span class="lifetime">'b</span>, OsStr&gt;);
+<span class="macro">impl_cmp_os_str!</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path, OsString);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
-    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path {
+    <span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>std::path::Path) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path {
         <span class="kw-2">&amp;</span>Path::new(path.as_os_str())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path {
-    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>std::path::Path {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>std::path::Path&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>std::path::Path {
         std::path::Path::new(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/content.rs`."><title>content.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/content.rs`."><title>content.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../quick_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -911,15 +913,15 @@
 /// with indent, sequence of strings become one big string with additional content
 /// and it would be impossible to distinguish between content of the original
 /// strings and inserted indent characters.
-</span><span class="kw">pub struct </span>ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; {
-    <span class="kw">pub </span>writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;w </span><span class="kw-2">mut </span>W,
+</span><span class="kw">pub struct </span>ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; {
+    <span class="kw">pub </span>writer: <span class="kw-2">&amp;</span><span class="lifetime">'w </span><span class="kw-2">mut </span>W,
     <span class="doccomment">/// Defines which XML characters need to be escaped in text content
     </span><span class="kw">pub </span>level: QuoteLevel,
     <span class="doccomment">/// Current indentation level. Note, that `Indent::None` means that there is
     /// no indentation at all, but `write_indent == false` means only, that indent
     /// writing is disabled in this instantiation of `ContentSerializer`, but
     /// child serializers should have access to the actual state of indentation.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) indent: Indent&lt;<span class="lifetime">&#39;i</span>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) indent: Indent&lt;<span class="lifetime">'i</span>&gt;,
     <span class="doccomment">/// If `true`, then current indent will be written before writing the content,
     /// but only if content is not empty.
     </span><span class="kw">pub </span>write_indent: bool,
@@ -929,10 +931,10 @@
     <span class="comment">//TODO: add settings to disallow consequent serialization of primitives
 </span>}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt; {
     <span class="doccomment">/// Turns this serializer into serializer of a text content
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>into_simple_type_serializer(<span class="self">self</span>) -&gt; SimpleTypeSerializer&lt;<span class="lifetime">&#39;i</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;w </span><span class="kw-2">mut </span>W&gt; {
+    </span><span class="kw">pub fn </span>into_simple_type_serializer(<span class="self">self</span>) -&gt; SimpleTypeSerializer&lt;<span class="lifetime">'i</span>, <span class="kw-2">&amp;</span><span class="lifetime">'w </span><span class="kw-2">mut </span>W&gt; {
         <span class="comment">//TODO: Customization point: choose between CDATA and Text representation
         </span>SimpleTypeSerializer {
             writer: <span class="self">self</span>.writer,
@@ -964,15 +966,15 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>write_empty(<span class="kw-2">mut </span><span class="self">self</span>, name: XmlName) -&gt; <span class="prelude-ty">Result</span>&lt;(), DeError&gt; {
         <span class="self">self</span>.write_indent()<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.expand_empty_elements {
-            <span class="self">self</span>.writer.write_char(<span class="string">&#39;&lt;&#39;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_char(<span class="string">'&lt;'</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.writer.write_str(name.<span class="number">0</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.writer.write_str(<span class="string">&quot;&gt;&lt;/&quot;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_str(<span class="string">"&gt;&lt;/"</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.writer.write_str(name.<span class="number">0</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.writer.write_char(<span class="string">&#39;&gt;&#39;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_char(<span class="string">'&gt;'</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="self">self</span>.writer.write_str(<span class="string">&quot;&lt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_str(<span class="string">"&lt;"</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.writer.write_str(name.<span class="number">0</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.writer.write_str(<span class="string">&quot;/&gt;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.writer.write_str(<span class="string">"/&gt;"</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -980,18 +982,18 @@
     <span class="doccomment">/// Writes simple type content between `name` tags
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>write_wrapped&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: XmlName, serialize: S) -&gt; <span class="prelude-ty">Result</span>&lt;(), DeError&gt;
     <span class="kw">where
-        </span>S: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(SimpleTypeSerializer&lt;<span class="lifetime">&#39;i</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W, DeError&gt;,
+        </span>S: <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; FnOnce(SimpleTypeSerializer&lt;<span class="lifetime">'i</span>, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W, DeError&gt;,
     {
         <span class="self">self</span>.write_indent()<span class="question-mark">?</span>;
-        <span class="self">self</span>.writer.write_char(<span class="string">&#39;&lt;&#39;</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.writer.write_char(<span class="string">'&lt;'</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.writer.write_str(name.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.writer.write_char(<span class="string">&#39;&gt;&#39;</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.writer.write_char(<span class="string">'&gt;'</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>writer = serialize(<span class="self">self</span>.into_simple_type_serializer())<span class="question-mark">?</span>;
 
-        writer.write_str(<span class="string">&quot;&lt;/&quot;</span>)<span class="question-mark">?</span>;
+        writer.write_str(<span class="string">"&lt;/"</span>)<span class="question-mark">?</span>;
         writer.write_str(name.<span class="number">0</span>)<span class="question-mark">?</span>;
-        writer.write_char(<span class="string">&#39;&gt;&#39;</span>)<span class="question-mark">?</span>;
+        writer.write_char(<span class="string">'&gt;'</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1004,17 +1006,17 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; Serializer <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; Serializer <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = DeError;
 
     <span class="kw">type </span>SerializeSeq = <span class="self">Self</span>;
     <span class="kw">type </span>SerializeTuple = <span class="self">Self</span>;
     <span class="kw">type </span>SerializeTupleStruct = <span class="self">Self</span>;
-    <span class="kw">type </span>SerializeTupleVariant = Tuple&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = Tuple&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt;;
     <span class="kw">type </span>SerializeMap = Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
     <span class="kw">type </span>SerializeStruct = Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
-    <span class="kw">type </span>SerializeStructVariant = Struct&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt;;
+    <span class="kw">type </span>SerializeStructVariant = Struct&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt;;
 
     <span class="macro">write_primitive!</span>(serialize_bool(bool));
 
@@ -1065,16 +1067,16 @@
 
     <span class="doccomment">/// Does not write anything
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Checks `variant` for XML name validity and writes `&lt;${variant}/&gt;`
     </span><span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>name = XmlName::try_from(variant)<span class="question-mark">?</span>;
         <span class="self">self</span>.write_empty(name)
@@ -1082,7 +1084,7 @@
 
     <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         value.serialize(<span class="self">self</span>)
@@ -1092,9 +1094,9 @@
     /// with name `variant`.
     </span><span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         value.serialize(ElementSerializer {
@@ -1116,7 +1118,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_tuple(len)
@@ -1125,9 +1127,9 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>ser = ElementSerializer {
@@ -1142,27 +1144,27 @@
 
     <span class="kw">fn </span>serialize_map(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="macro">format!</span>(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>).into(),
+            <span class="macro">format!</span>(<span class="string">"serialization of map types is not supported in `$value` field"</span>).into(),
         ))
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="macro">format!</span>(<span class="string">&quot;serialization of struct `{name}` is not supported in `$value` field&quot;</span>).into(),
+            <span class="macro">format!</span>(<span class="string">"serialization of struct `{name}` is not supported in `$value` field"</span>).into(),
         ))
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span>ser = ElementSerializer {
@@ -1176,7 +1178,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; SerializeSeq <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; SerializeSeq <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = DeError;
 
@@ -1196,7 +1198,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; SerializeTuple <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; SerializeTuple <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = DeError;
 
@@ -1214,7 +1216,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W: Write&gt; SerializeTupleStruct <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;i</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W: Write&gt; SerializeTupleStruct <span class="kw">for </span>ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'i</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = DeError;
 
@@ -1246,55 +1248,55 @@
     </span><span class="kw">pub struct </span>Unit;
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
-    #[serde(rename = <span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>)]
+    #[serde(rename = <span class="string">"&lt;\"&amp;'&gt;"</span>)]
     </span><span class="kw">pub struct </span>UnitEscaped;
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>Newtype(<span class="kw">pub </span>usize);
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
-    </span><span class="kw">pub struct </span>Tuple(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw">pub </span>usize);
+    </span><span class="kw">pub struct </span>Tuple(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw">pub </span>usize);
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>Struct {
-        <span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         <span class="kw">pub </span>val: (usize, usize),
     }
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>Text&lt;T&gt; {
-        <span class="kw">pub </span>before: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        <span class="attr">#[serde(rename = <span class="string">&quot;$text&quot;</span>)]
+        <span class="kw">pub </span>before: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
         </span><span class="kw">pub </span>content: T,
-        <span class="kw">pub </span>after: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="kw">pub </span>after: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     }
 
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>Value&lt;T&gt; {
-        <span class="kw">pub </span>before: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        <span class="attr">#[serde(rename = <span class="string">&quot;$value&quot;</span>)]
+        <span class="kw">pub </span>before: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
         </span><span class="kw">pub </span>content: T,
-        <span class="kw">pub </span>after: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="kw">pub </span>after: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     }
 
     <span class="doccomment">/// Attributes identified by starting with `@` character
     </span><span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>Attributes {
-        <span class="attr">#[serde(rename = <span class="string">&quot;@key&quot;</span>)]
-        </span><span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        <span class="attr">#[serde(rename = <span class="string">&quot;@val&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">"@key"</span>)]
+        </span><span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        <span class="attr">#[serde(rename = <span class="string">"@val"</span>)]
         </span><span class="kw">pub </span>val: (usize, usize),
     }
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>AttributesBefore {
-        <span class="attr">#[serde(rename = <span class="string">&quot;@key&quot;</span>)]
-        </span><span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="attr">#[serde(rename = <span class="string">"@key"</span>)]
+        </span><span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         <span class="kw">pub </span>val: usize,
     }
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub struct </span>AttributesAfter {
-        <span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        <span class="attr">#[serde(rename = <span class="string">&quot;@val&quot;</span>)]
+        <span class="kw">pub </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        <span class="attr">#[serde(rename = <span class="string">"@val"</span>)]
         </span><span class="kw">pub </span>val: usize,
     }
 
@@ -1303,29 +1305,29 @@
         Unit,
         <span class="doccomment">/// Variant name becomes a tag name, but the name of variant is invalid
         /// XML name. Serialization of this element should be forbidden
-        </span><span class="attr">#[serde(rename = <span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>)]
+        </span><span class="attr">#[serde(rename = <span class="string">"&lt;\"&amp;'&gt;"</span>)]
         </span>UnitEscaped,
         Newtype(usize),
-        Tuple(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, usize),
+        Tuple(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, usize),
         Struct {
-            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             <span class="doccomment">/// Should be serialized as elements
             </span>val: (usize, usize),
         },
         Attributes {
-            <span class="attr">#[serde(rename = <span class="string">&quot;@key&quot;</span>)]
-            </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-            <span class="attr">#[serde(rename = <span class="string">&quot;@val&quot;</span>)]
+            <span class="attr">#[serde(rename = <span class="string">"@key"</span>)]
+            </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+            <span class="attr">#[serde(rename = <span class="string">"@val"</span>)]
             </span>val: (usize, usize),
         },
         AttributesBefore {
-            <span class="attr">#[serde(rename = <span class="string">&quot;@key&quot;</span>)]
-            </span>key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            <span class="attr">#[serde(rename = <span class="string">"@key"</span>)]
+            </span>key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             val: usize,
         },
         AttributesAfter {
-            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-            <span class="attr">#[serde(rename = <span class="string">&quot;@val&quot;</span>)]
+            key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+            <span class="attr">#[serde(rename = <span class="string">"@val"</span>)]
             </span>val: usize,
         },
     }
@@ -1333,16 +1335,16 @@
     <span class="attr">#[derive(Debug, Serialize, PartialEq)]
     </span><span class="kw">pub enum </span>SpecialEnum&lt;T&gt; {
         Text {
-            before: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-            <span class="attr">#[serde(rename = <span class="string">&quot;$text&quot;</span>)]
+            before: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+            <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
             </span>content: T,
-            after: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            after: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         },
         Value {
-            before: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-            <span class="attr">#[serde(rename = <span class="string">&quot;$value&quot;</span>)]
+            before: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+            <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
             </span>content: T,
-            after: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            after: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         },
     }
 
@@ -1389,150 +1391,150 @@
                     <span class="kw">match </span><span class="macro-nonterminal">$data</span>.serialize(ser).unwrap_err() {
                         DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                         e =&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                            <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                             <span class="macro-nonterminal">$reason</span>,
                             e
                         ),
                     }
                     <span class="comment">// We could write something before fail
-                    // assert_eq!(buffer, &quot;&quot;);
+                    // assert_eq!(buffer, "");
                 </span>}
             };
         }
 
         <span class="comment">// Primitives is serialized in the same way as for SimpleTypeSerializer
-        </span><span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">&quot;false&quot;</span>);
-        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">&quot;true&quot;</span>);
+        </span><span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">"false"</span>);
+        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">"true"</span>);
 
-        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">&quot;-42&quot;</span>);
-        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">&quot;-4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">&quot;-42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">"-42"</span>);
+        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">"-4200"</span>);
+        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">"-42000000"</span>);
+        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">"-42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">"-42000000000000"</span>);
 
-        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">&quot;4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">&quot;42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">"4200"</span>);
+        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">"42000000"</span>);
+        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">"42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">"42000000000000"</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">&quot;-420000000000000000000000000000&quot;</span>);
-            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">&quot;420000000000000000000000000000&quot;</span>);
+            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">"-420000000000000000000000000000"</span>);
+            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">"420000000000000000000000000000"</span>);
         }
 
-        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
-        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
+        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">"4.2"</span>);
+        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">"4.2"</span>);
 
-        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">&#39;h&#39; </span>=&gt; <span class="string">&quot;h&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">&#39;&lt;&#39; </span>=&gt; <span class="string">&quot;&amp;lt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="string">&quot;&amp;gt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">&#39;&amp;&#39; </span>=&gt; <span class="string">&quot;&amp;amp;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_apos: <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="string">&quot;&amp;apos;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_quot: <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="string">&quot;&amp;quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">'h' </span>=&gt; <span class="string">"h"</span>);
+        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">'&lt;' </span>=&gt; <span class="string">"&amp;lt;"</span>);
+        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">'&gt;' </span>=&gt; <span class="string">"&amp;gt;"</span>);
+        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">'&amp;' </span>=&gt; <span class="string">"&amp;amp;"</span>);
+        <span class="macro">serialize_as!</span>(char_apos: <span class="string">'\'' </span>=&gt; <span class="string">"&amp;apos;"</span>);
+        <span class="macro">serialize_as!</span>(char_quot: <span class="string">'"' </span>=&gt; <span class="string">"&amp;quot;"</span>);
         <span class="comment">//TODO: add a setting to escape leading/trailing spaces, in order to
         // pretty-print does not change the content
-        </span><span class="macro">serialize_as!</span>(char_space: <span class="string">&#39; &#39; </span>=&gt; <span class="string">&quot; &quot;</span>);
+        </span><span class="macro">serialize_as!</span>(char_space: <span class="string">' ' </span>=&gt; <span class="string">" "</span>);
 
-        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">&quot;&lt;\&quot;escaped &amp; string&#39;&gt;&quot; </span>=&gt; <span class="string">&quot;&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">"non-escaped string" </span>=&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">"&lt;\"escaped &amp; string'&gt;" </span>=&gt; <span class="string">"&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b&quot;&lt;\&quot;escaped &amp; bytes&#39;&gt;&quot;</span>) =&gt; Unsupported(<span class="string">&quot;`serialize_bytes` not supported yet&quot;</span>));
+        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>) =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 
-        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">&quot;non-escaped string&quot;</span>) =&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">serialize_as!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) =&gt; <span class="string">&quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">serialize_as!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>);
 
-        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(unit_struct_escaped: UnitEscaped =&gt; <span class="string">&quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(unit_struct_escaped: UnitEscaped =&gt; <span class="string">""</span>);
 
         <span class="comment">// Unlike SimpleTypeSerializer, enumeration values serialized as tags
-        </span><span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">&quot;&lt;Unit/&gt;&quot;</span>);
+        </span><span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">"&lt;Unit/&gt;"</span>);
         <span class="macro">err!</span>(enum_unit_escaped: Enum::UnitEscaped
-            =&gt; Unsupported(<span class="string">&quot;character `&lt;` is not allowed at the start of an XML name `&lt;\&quot;&amp;&#39;&gt;`&quot;</span>));
+            =&gt; Unsupported(<span class="string">"character `&lt;` is not allowed at the start of an XML name `&lt;\"&amp;'&gt;`"</span>));
 
         <span class="comment">// Newtypes recursively applies ContentSerializer
-        </span><span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;&lt;Newtype&gt;42&lt;/Newtype&gt;&quot;</span>);
+        </span><span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>) =&gt; <span class="string">"&lt;Newtype&gt;42&lt;/Newtype&gt;"</span>);
 
         <span class="comment">// Note that sequences of primitives serialized without delimiters!
-        </span><span class="macro">serialize_as!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] =&gt; <span class="string">&quot;123&quot;</span>);
-        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple: (<span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>, <span class="string">&quot;with\t\r\n spaces&quot;</span>, <span class="number">3usize</span>)
-            =&gt; <span class="string">&quot;&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;\
+        </span><span class="macro">serialize_as!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] =&gt; <span class="string">"123"</span>);
+        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(tuple: (<span class="string">"&lt;\"&amp;'&gt;"</span>, <span class="string">"with\t\r\n spaces"</span>, <span class="number">3usize</span>)
+            =&gt; <span class="string">"&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;\
                 with\t\r\n spaces\
-                3&quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; <span class="string">&quot;first\
-                42&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_tuple: Enum::Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; <span class="string">&quot;&lt;Tuple&gt;first&lt;/Tuple&gt;\
-                &lt;Tuple&gt;42&lt;/Tuple&gt;&quot;</span>);
+                3"</span>);
+        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; <span class="string">"first\
+                42"</span>);
+        <span class="macro">serialize_as!</span>(enum_tuple: Enum::Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; <span class="string">"&lt;Tuple&gt;first&lt;/Tuple&gt;\
+                &lt;Tuple&gt;42&lt;/Tuple&gt;"</span>);
 
         <span class="comment">// Structured types cannot be serialized without surrounding tag, which
         // only `enum` can provide
-        </span><span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">&quot;_1&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;_3&quot;</span>, <span class="number">4</span>)])
-            =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
-        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-            =&gt; Unsupported(<span class="string">&quot;serialization of struct `Struct` is not supported in `$value` field&quot;</span>));
-        <span class="macro">serialize_as!</span>(enum_struct: Enum::Struct { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-            =&gt; <span class="string">&quot;&lt;Struct&gt;\
+        </span><span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"_1"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
+            =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
+        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+            =&gt; Unsupported(<span class="string">"serialization of struct `Struct` is not supported in `$value` field"</span>));
+        <span class="macro">serialize_as!</span>(enum_struct: Enum::Struct { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+            =&gt; <span class="string">"&lt;Struct&gt;\
                     &lt;key&gt;answer&lt;/key&gt;\
                     &lt;val&gt;42&lt;/val&gt;\
                     &lt;val&gt;42&lt;/val&gt;\
-                &lt;/Struct&gt;&quot;</span>);
+                &lt;/Struct&gt;"</span>);
 
         <span class="doccomment">/// Special field name `$text` should be serialized as a text content
         </span><span class="kw">mod </span>text {
             <span class="kw">use super</span>::<span class="kw-2">*</span>;
             <span class="kw">use </span>pretty_assertions::assert_eq;
 
-            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">&quot;$text&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;_3&quot;</span>, <span class="number">4</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"$text"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
             <span class="macro">err!</span>(struct_:
                 Text {
-                    before: <span class="string">&quot;answer&quot;</span>,
+                    before: <span class="string">"answer"</span>,
                     content: (<span class="number">42</span>, <span class="number">42</span>),
-                    after: <span class="string">&quot;answer&quot;</span>,
+                    after: <span class="string">"answer"</span>,
                 }
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `Text` is not supported in `$value` field&quot;</span>));
+                =&gt; Unsupported(<span class="string">"serialization of struct `Text` is not supported in `$value` field"</span>));
             <span class="macro">serialize_as!</span>(enum_struct:
                 SpecialEnum::Text {
-                    before: <span class="string">&quot;answer&quot;</span>,
+                    before: <span class="string">"answer"</span>,
                     content: (<span class="number">42</span>, <span class="number">42</span>),
-                    after: <span class="string">&quot;answer&quot;</span>,
+                    after: <span class="string">"answer"</span>,
                 }
-                =&gt; <span class="string">&quot;&lt;Text&gt;\
+                =&gt; <span class="string">"&lt;Text&gt;\
                         &lt;before&gt;answer&lt;/before&gt;\
                         42 42\
                         &lt;after&gt;answer&lt;/after&gt;\
-                    &lt;/Text&gt;&quot;</span>);
+                    &lt;/Text&gt;"</span>);
         }
 
         <span class="kw">mod </span>attributes {
             <span class="kw">use super</span>::<span class="kw-2">*</span>;
             <span class="kw">use </span>pretty_assertions::assert_eq;
 
-            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">&quot;@key1&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;@key2&quot;</span>, <span class="number">2</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(map_mixed: BTreeMap::from([(<span class="string">&quot;@key1&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;key2&quot;</span>, <span class="number">2</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"@key2"</span>, <span class="number">2</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(map_mixed: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"key2"</span>, <span class="number">2</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
 
-            <span class="macro">err!</span>(struct_: Attributes { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `Attributes` is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(struct_before: AttributesBefore { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `AttributesBefore` is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(struct_after: AttributesAfter { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `AttributesAfter` is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(struct_: Attributes { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+                =&gt; Unsupported(<span class="string">"serialization of struct `Attributes` is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(struct_before: AttributesBefore { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; Unsupported(<span class="string">"serialization of struct `AttributesBefore` is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(struct_after: AttributesAfter { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; Unsupported(<span class="string">"serialization of struct `AttributesAfter` is not supported in `$value` field"</span>));
 
-            <span class="macro">serialize_as!</span>(enum_: Enum::Attributes { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-                =&gt; <span class="string">r#&quot;&lt;Attributes key=&quot;answer&quot; val=&quot;42 42&quot;/&gt;&quot;#</span>);
-            <span class="macro">serialize_as!</span>(enum_before: Enum::AttributesBefore { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; <span class="string">r#&quot;&lt;AttributesBefore key=&quot;answer&quot;&gt;&lt;val&gt;42&lt;/val&gt;&lt;/AttributesBefore&gt;&quot;#</span>);
-            <span class="macro">serialize_as!</span>(enum_after: Enum::AttributesAfter { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; <span class="string">r#&quot;&lt;AttributesAfter val=&quot;42&quot;&gt;&lt;key&gt;answer&lt;/key&gt;&lt;/AttributesAfter&gt;&quot;#</span>);
+            <span class="macro">serialize_as!</span>(enum_: Enum::Attributes { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+                =&gt; <span class="string">r#"&lt;Attributes key="answer" val="42 42"/&gt;"#</span>);
+            <span class="macro">serialize_as!</span>(enum_before: Enum::AttributesBefore { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; <span class="string">r#"&lt;AttributesBefore key="answer"&gt;&lt;val&gt;42&lt;/val&gt;&lt;/AttributesBefore&gt;"#</span>);
+            <span class="macro">serialize_as!</span>(enum_after: Enum::AttributesAfter { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; <span class="string">r#"&lt;AttributesAfter val="42"&gt;&lt;key&gt;answer&lt;/key&gt;&lt;/AttributesAfter&gt;"#</span>);
         }
     }
 
@@ -1551,7 +1553,7 @@
                     <span class="kw">let </span>ser = ContentSerializer {
                         writer: <span class="kw-2">&amp;mut </span>buffer,
                         level: QuoteLevel::Full,
-                        indent: Indent::Owned(Indentation::new(<span class="string">b&#39; &#39;</span>, <span class="number">2</span>)),
+                        indent: Indent::Owned(Indentation::new(<span class="string">b' '</span>, <span class="number">2</span>)),
                         write_indent: <span class="bool-val">false</span>,
                         expand_empty_elements: <span class="bool-val">false</span>,
                     };
@@ -1572,7 +1574,7 @@
                     <span class="kw">let </span>ser = ContentSerializer {
                         writer: <span class="kw-2">&amp;mut </span>buffer,
                         level: QuoteLevel::Full,
-                        indent: Indent::Owned(Indentation::new(<span class="string">b&#39; &#39;</span>, <span class="number">2</span>)),
+                        indent: Indent::Owned(Indentation::new(<span class="string">b' '</span>, <span class="number">2</span>)),
                         write_indent: <span class="bool-val">false</span>,
                         expand_empty_elements: <span class="bool-val">false</span>,
                     };
@@ -1580,155 +1582,155 @@
                     <span class="kw">match </span><span class="macro-nonterminal">$data</span>.serialize(ser).unwrap_err() {
                         DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                         e =&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                            <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                             <span class="macro-nonterminal">$reason</span>,
                             e
                         ),
                     }
                     <span class="comment">// We can write something before fail
-                    // assert_eq!(buffer, &quot;&quot;);
+                    // assert_eq!(buffer, "");
                 </span>}
             };
         }
 
-        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">&quot;false&quot;</span>);
-        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">&quot;true&quot;</span>);
+        <span class="macro">serialize_as!</span>(false_: <span class="bool-val">false </span>=&gt; <span class="string">"false"</span>);
+        <span class="macro">serialize_as!</span>(true_:  <span class="bool-val">true  </span>=&gt; <span class="string">"true"</span>);
 
-        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">&quot;-42&quot;</span>);
-        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">&quot;-4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">&quot;-42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">&quot;-42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(i8_:    -<span class="number">42i8                </span>=&gt; <span class="string">"-42"</span>);
+        <span class="macro">serialize_as!</span>(i16_:   -<span class="number">4200i16             </span>=&gt; <span class="string">"-4200"</span>);
+        <span class="macro">serialize_as!</span>(i32_:   -<span class="number">42000000i32         </span>=&gt; <span class="string">"-42000000"</span>);
+        <span class="macro">serialize_as!</span>(i64_:   -<span class="number">42000000000000i64   </span>=&gt; <span class="string">"-42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(isize_: -<span class="number">42000000000000isize </span>=&gt; <span class="string">"-42000000000000"</span>);
 
-        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">&quot;4200&quot;</span>);
-        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">&quot;42000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
-        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">&quot;42000000000000&quot;</span>);
+        <span class="macro">serialize_as!</span>(u8_:    <span class="number">42u8                </span>=&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(u16_:   <span class="number">4200u16             </span>=&gt; <span class="string">"4200"</span>);
+        <span class="macro">serialize_as!</span>(u32_:   <span class="number">42000000u32         </span>=&gt; <span class="string">"42000000"</span>);
+        <span class="macro">serialize_as!</span>(u64_:   <span class="number">42000000000000u64   </span>=&gt; <span class="string">"42000000000000"</span>);
+        <span class="macro">serialize_as!</span>(usize_: <span class="number">42000000000000usize </span>=&gt; <span class="string">"42000000000000"</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">&quot;-420000000000000000000000000000&quot;</span>);
-            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">&quot;420000000000000000000000000000&quot;</span>);
+            <span class="macro">serialize_as!</span>(i128_: -<span class="number">420000000000000000000000000000i128 </span>=&gt; <span class="string">"-420000000000000000000000000000"</span>);
+            <span class="macro">serialize_as!</span>(u128_:  <span class="number">420000000000000000000000000000u128 </span>=&gt; <span class="string">"420000000000000000000000000000"</span>);
         }
 
-        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
-        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">&quot;4.2&quot;</span>);
+        <span class="macro">serialize_as!</span>(f32_: <span class="number">4.2f32 </span>=&gt; <span class="string">"4.2"</span>);
+        <span class="macro">serialize_as!</span>(f64_: <span class="number">4.2f64 </span>=&gt; <span class="string">"4.2"</span>);
 
-        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">&#39;h&#39; </span>=&gt; <span class="string">&quot;h&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">&#39;&lt;&#39; </span>=&gt; <span class="string">&quot;&amp;lt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="string">&quot;&amp;gt;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">&#39;&amp;&#39; </span>=&gt; <span class="string">&quot;&amp;amp;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_apos: <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="string">&quot;&amp;apos;&quot;</span>);
-        <span class="macro">serialize_as!</span>(char_quot: <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="string">&quot;&amp;quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(char_non_escaped: <span class="string">'h' </span>=&gt; <span class="string">"h"</span>);
+        <span class="macro">serialize_as!</span>(char_lt:   <span class="string">'&lt;' </span>=&gt; <span class="string">"&amp;lt;"</span>);
+        <span class="macro">serialize_as!</span>(char_gt:   <span class="string">'&gt;' </span>=&gt; <span class="string">"&amp;gt;"</span>);
+        <span class="macro">serialize_as!</span>(char_amp:  <span class="string">'&amp;' </span>=&gt; <span class="string">"&amp;amp;"</span>);
+        <span class="macro">serialize_as!</span>(char_apos: <span class="string">'\'' </span>=&gt; <span class="string">"&amp;apos;"</span>);
+        <span class="macro">serialize_as!</span>(char_quot: <span class="string">'"' </span>=&gt; <span class="string">"&amp;quot;"</span>);
         <span class="comment">//TODO: add a setting to escape leading/trailing spaces, in order to
         // pretty-print does not change the content
-        </span><span class="macro">serialize_as!</span>(char_space: <span class="string">&#39; &#39; </span>=&gt; <span class="string">&quot; &quot;</span>);
+        </span><span class="macro">serialize_as!</span>(char_space: <span class="string">' ' </span>=&gt; <span class="string">" "</span>);
 
-        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">&quot;&lt;\&quot;escaped &amp; string&#39;&gt;&quot; </span>=&gt; <span class="string">&quot;&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(str_non_escaped: <span class="string">"non-escaped string" </span>=&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">serialize_as!</span>(str_escaped: <span class="string">"&lt;\"escaped &amp; string'&gt;" </span>=&gt; <span class="string">"&amp;lt;&amp;quot;escaped &amp;amp; string&amp;apos;&amp;gt;"</span>);
 
-        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b&quot;&lt;\&quot;escaped &amp; bytes&#39;&gt;&quot;</span>) =&gt; Unsupported(<span class="string">&quot;`serialize_bytes` not supported yet&quot;</span>));
+        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>) =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 
-        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(Enum::Unit) =&gt; <span class="string">&quot;&lt;Unit/&gt;&quot;</span>);
+        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(Enum::Unit) =&gt; <span class="string">"&lt;Unit/&gt;"</span>);
 
-        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(unit_struct_escaped: UnitEscaped =&gt; <span class="string">&quot;&quot;</span>);
+        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(unit_struct: Unit =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(unit_struct_escaped: UnitEscaped =&gt; <span class="string">""</span>);
 
         <span class="comment">// Unlike SimpleTypeSerializer, enumeration values serialized as tags
-        </span><span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">&quot;&lt;Unit/&gt;&quot;</span>);
+        </span><span class="macro">serialize_as!</span>(enum_unit: Enum::Unit =&gt; <span class="string">"&lt;Unit/&gt;"</span>);
         <span class="macro">err!</span>(enum_unit_escaped: Enum::UnitEscaped
-            =&gt; Unsupported(<span class="string">&quot;character `&lt;` is not allowed at the start of an XML name `&lt;\&quot;&amp;&#39;&gt;`&quot;</span>));
+            =&gt; Unsupported(<span class="string">"character `&lt;` is not allowed at the start of an XML name `&lt;\"&amp;'&gt;`"</span>));
 
         <span class="comment">// Newtypes recursively applies ContentSerializer
-        </span><span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;42&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>) =&gt; <span class="string">&quot;&lt;Newtype&gt;42&lt;/Newtype&gt;&quot;</span>);
+        </span><span class="macro">serialize_as!</span>(newtype: Newtype(<span class="number">42</span>) =&gt; <span class="string">"42"</span>);
+        <span class="macro">serialize_as!</span>(enum_newtype: Enum::Newtype(<span class="number">42</span>) =&gt; <span class="string">"&lt;Newtype&gt;42&lt;/Newtype&gt;"</span>);
 
         <span class="comment">// Note that sequences of primitives serialized without delimiters other that indent!
         </span><span class="macro">serialize_as!</span>(seq: <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]
-            =&gt; <span class="string">&quot;1\n\
+            =&gt; <span class="string">"1\n\
                 2\n\
-                3&quot;</span>);
-        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">&quot;&quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple: (<span class="string">&quot;&lt;\&quot;&amp;&#39;&gt;&quot;</span>, <span class="string">&quot;with\t\r\n spaces&quot;</span>, <span class="number">3usize</span>)
-            =&gt; <span class="string">&quot;&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;\n\
+                3"</span>);
+        <span class="macro">serialize_as!</span>(seq_empty: Vec::&lt;usize&gt;::new() =&gt; <span class="string">""</span>);
+        <span class="macro">serialize_as!</span>(tuple: (<span class="string">"&lt;\"&amp;'&gt;"</span>, <span class="string">"with\t\r\n spaces"</span>, <span class="number">3usize</span>)
+            =&gt; <span class="string">"&amp;lt;&amp;quot;&amp;amp;&amp;apos;&amp;gt;\n\
                 with\t\r\n spaces\n\
-                3&quot;</span>);
-        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; <span class="string">&quot;first\n\
-                42&quot;</span>);
-        <span class="macro">serialize_as!</span>(enum_tuple: Enum::Tuple(<span class="string">&quot;first&quot;</span>, <span class="number">42</span>)
-            =&gt; <span class="string">&quot;&lt;Tuple&gt;first&lt;/Tuple&gt;\n\
-                &lt;Tuple&gt;42&lt;/Tuple&gt;&quot;</span>);
+                3"</span>);
+        <span class="macro">serialize_as!</span>(tuple_struct: Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; <span class="string">"first\n\
+                42"</span>);
+        <span class="macro">serialize_as!</span>(enum_tuple: Enum::Tuple(<span class="string">"first"</span>, <span class="number">42</span>)
+            =&gt; <span class="string">"&lt;Tuple&gt;first&lt;/Tuple&gt;\n\
+                &lt;Tuple&gt;42&lt;/Tuple&gt;"</span>);
 
         <span class="comment">// Structured types cannot be serialized without surrounding tag, which
         // only `enum` can provide
-        </span><span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">&quot;_1&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;_3&quot;</span>, <span class="number">4</span>)])
-            =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
-        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-            =&gt; Unsupported(<span class="string">&quot;serialization of struct `Struct` is not supported in `$value` field&quot;</span>));
-        <span class="macro">serialize_as!</span>(enum_struct: Enum::Struct { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-            =&gt; <span class="string">&quot;&lt;Struct&gt;\n  \
+        </span><span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"_1"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
+            =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
+        <span class="macro">err!</span>(struct_: Struct { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+            =&gt; Unsupported(<span class="string">"serialization of struct `Struct` is not supported in `$value` field"</span>));
+        <span class="macro">serialize_as!</span>(enum_struct: Enum::Struct { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+            =&gt; <span class="string">"&lt;Struct&gt;\n  \
                     &lt;key&gt;answer&lt;/key&gt;\n  \
                     &lt;val&gt;42&lt;/val&gt;\n  \
                     &lt;val&gt;42&lt;/val&gt;\n\
-                &lt;/Struct&gt;&quot;</span>);
+                &lt;/Struct&gt;"</span>);
 
         <span class="doccomment">/// Special field name `$text` should be serialized as text content
         </span><span class="kw">mod </span>text {
             <span class="kw">use super</span>::<span class="kw-2">*</span>;
             <span class="kw">use </span>pretty_assertions::assert_eq;
 
-            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">&quot;$text&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;_3&quot;</span>, <span class="number">4</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"$text"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
             <span class="macro">err!</span>(struct_:
                 Text {
-                    before: <span class="string">&quot;answer&quot;</span>,
+                    before: <span class="string">"answer"</span>,
                     content: (<span class="number">42</span>, <span class="number">42</span>),
-                    after: <span class="string">&quot;answer&quot;</span>,
+                    after: <span class="string">"answer"</span>,
                 }
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `Text` is not supported in `$value` field&quot;</span>));
+                =&gt; Unsupported(<span class="string">"serialization of struct `Text` is not supported in `$value` field"</span>));
             <span class="macro">serialize_as!</span>(enum_struct:
                 SpecialEnum::Text {
-                    before: <span class="string">&quot;answer&quot;</span>,
+                    before: <span class="string">"answer"</span>,
                     content: (<span class="number">42</span>, <span class="number">42</span>),
-                    after: <span class="string">&quot;answer&quot;</span>,
+                    after: <span class="string">"answer"</span>,
                 }
-                =&gt; <span class="string">&quot;&lt;Text&gt;\n  \
+                =&gt; <span class="string">"&lt;Text&gt;\n  \
                         &lt;before&gt;answer&lt;/before&gt;\n  \
                         42 42\n  \
                         &lt;after&gt;answer&lt;/after&gt;\n\
-                    &lt;/Text&gt;&quot;</span>);
+                    &lt;/Text&gt;"</span>);
         }
 
         <span class="kw">mod </span>attributes {
             <span class="kw">use super</span>::<span class="kw-2">*</span>;
             <span class="kw">use </span>pretty_assertions::assert_eq;
 
-            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">&quot;@key1&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;@key2&quot;</span>, <span class="number">2</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(map_mixed: BTreeMap::from([(<span class="string">&quot;@key1&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;key2&quot;</span>, <span class="number">2</span>)])
-                =&gt; Unsupported(<span class="string">&quot;serialization of map types is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"@key2"</span>, <span class="number">2</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(map_mixed: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"key2"</span>, <span class="number">2</span>)])
+                =&gt; Unsupported(<span class="string">"serialization of map types is not supported in `$value` field"</span>));
 
-            <span class="macro">err!</span>(struct_: Attributes { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `Attributes` is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(struct_before: AttributesBefore { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `AttributesBefore` is not supported in `$value` field&quot;</span>));
-            <span class="macro">err!</span>(struct_after: AttributesAfter { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; Unsupported(<span class="string">&quot;serialization of struct `AttributesAfter` is not supported in `$value` field&quot;</span>));
+            <span class="macro">err!</span>(struct_: Attributes { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+                =&gt; Unsupported(<span class="string">"serialization of struct `Attributes` is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(struct_before: AttributesBefore { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; Unsupported(<span class="string">"serialization of struct `AttributesBefore` is not supported in `$value` field"</span>));
+            <span class="macro">err!</span>(struct_after: AttributesAfter { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; Unsupported(<span class="string">"serialization of struct `AttributesAfter` is not supported in `$value` field"</span>));
 
-            <span class="macro">serialize_as!</span>(enum_: Enum::Attributes { key: <span class="string">&quot;answer&quot;</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
-                =&gt; <span class="string">r#&quot;&lt;Attributes key=&quot;answer&quot; val=&quot;42 42&quot;/&gt;&quot;#</span>);
-            <span class="macro">serialize_as!</span>(enum_before: Enum::AttributesBefore { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; <span class="string">&quot;&lt;AttributesBefore key=\&quot;answer\&quot;&gt;\n  \
+            <span class="macro">serialize_as!</span>(enum_: Enum::Attributes { key: <span class="string">"answer"</span>, val: (<span class="number">42</span>, <span class="number">42</span>) }
+                =&gt; <span class="string">r#"&lt;Attributes key="answer" val="42 42"/&gt;"#</span>);
+            <span class="macro">serialize_as!</span>(enum_before: Enum::AttributesBefore { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; <span class="string">"&lt;AttributesBefore key=\"answer\"&gt;\n  \
                         &lt;val&gt;42&lt;/val&gt;\n\
-                    &lt;/AttributesBefore&gt;&quot;</span>);
-            <span class="macro">serialize_as!</span>(enum_after: Enum::AttributesAfter { key: <span class="string">&quot;answer&quot;</span>, val: <span class="number">42 </span>}
-                =&gt; <span class="string">&quot;&lt;AttributesAfter val=\&quot;42\&quot;&gt;\n  \
+                    &lt;/AttributesBefore&gt;"</span>);
+            <span class="macro">serialize_as!</span>(enum_after: Enum::AttributesAfter { key: <span class="string">"answer"</span>, val: <span class="number">42 </span>}
+                =&gt; <span class="string">"&lt;AttributesAfter val=\"42\"&gt;\n  \
                         &lt;key&gt;answer&lt;/key&gt;\n\
-                    &lt;/AttributesAfter&gt;&quot;</span>);
+                    &lt;/AttributesAfter&gt;"</span>);
         }
     }
 }

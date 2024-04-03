@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_io"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_io/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2252,16 +2254,16 @@
 //!
 //! # Implementation
 //!
-//! The first time [`Async`] or [`Timer`] is used, a thread named &quot;async-io&quot; will be spawned.
+//! The first time [`Async`] or [`Timer`] is used, a thread named "async-io" will be spawned.
 //! The purpose of this thread is to wait for I/O events reported by the operating system, and then
 //! wake appropriate futures blocked on I/O or timers when they can be resumed.
 //!
-//! To wait for the next I/O event, the &quot;async-io&quot; thread uses [epoll] on Linux/Android/illumos,
+//! To wait for the next I/O event, the "async-io" thread uses [epoll] on Linux/Android/illumos,
 //! [kqueue] on macOS/iOS/BSD, [event ports] on illumos/Solaris, and [IOCP] on Windows. That
 //! functionality is provided by the [`polling`] crate.
 //!
 //! However, note that you can also process I/O events and wake futures on any thread using the
-//! [`block_on()`] function. The &quot;async-io&quot; thread is therefore just a fallback mechanism
+//! [`block_on()`] function. The "async-io" thread is therefore just a fallback mechanism
 //! processing I/O events in case no other threads are.
 //!
 //! [epoll]: https://en.wikipedia.org/wiki/Epoll
@@ -2282,7 +2284,7 @@
 //! use std::time::Duration;
 //!
 //! # futures_lite::future::block_on(async {
-//! let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();
+//! let addr = "example.com:80".to_socket_addrs()?.next().unwrap();
 //!
 //! let stream = Async::&lt;TcpStream&gt;::connect(addr).or(async {
 //!     Timer::after(Duration::from_secs(10)).await;
@@ -2294,10 +2296,10 @@
 
 </span><span class="attr">#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
 </span><span class="kw">use </span>std::future::Future;
@@ -2369,7 +2371,7 @@
 /// use std::time::Duration;
 ///
 /// # futures_lite::future::block_on(async {
-/// let addrs = async_net::resolve(&quot;google.com:80&quot;)
+/// let addrs = async_net::resolve("google.com:80")
 ///     .or(async {
 ///         Timer::after(Duration::from_secs(1)).await;
 ///         Err(std::io::ErrorKind::TimedOut.into())
@@ -2379,7 +2381,7 @@
 /// ```
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Timer {
-    <span class="doccomment">/// This timer&#39;s ID and last waker that polled it.
+    <span class="doccomment">/// This timer's ID and last waker that polled it.
     ///
     /// When this field is set to `None`, this timer is not registered in the reactor.
     </span>id_and_waker: <span class="prelude-ty">Option</span>&lt;(usize, Waker)&gt;,
@@ -2417,7 +2419,7 @@
     /// }
     /// # // Note that since a Timer as a Future returns an Instant,
     /// # // this function needs to return an Instant to be used
-    /// # // in &quot;or&quot;.
+    /// # // in "or".
     /// # async fn run_lengthy_operation() -&gt; std::time::Instant {
     /// #    std::time::Instant::now()
     /// # }
@@ -2702,7 +2704,7 @@
 <span class="kw">impl </span>Future <span class="kw">for </span>Timer {
     <span class="kw">type </span>Output = Instant;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">match </span><span class="self">self</span>.poll_next(cx) {
             Poll::Ready(<span class="prelude-val">Some</span>(when)) =&gt; Poll::Ready(when),
             Poll::Pending =&gt; Poll::Pending,
@@ -2714,7 +2716,7 @@
 <span class="kw">impl </span>Stream <span class="kw">for </span>Timer {
     <span class="kw">type </span>Item = Instant;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.get_mut();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>when) = this.when {
@@ -2777,7 +2779,7 @@
 ///
 /// The most notable caveat is that it is unsafe to access the inner I/O source mutably
 /// using this primitive. Traits likes [`AsyncRead`] and [`AsyncWrite`] are not implemented by
-/// default unless it is guaranteed that the resource won&#39;t be invalidated by reading or writing.
+/// default unless it is guaranteed that the resource won't be invalidated by reading or writing.
 /// See the [`IoSafe`] trait for more information.
 ///
 /// [`async-net`]: https://github.com/smol-rs/async-net
@@ -2938,7 +2940,7 @@
 
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">impl</span>&lt;T: AsFd&gt; AsFd <span class="kw">for </span>Async&lt;T&gt; {
-    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.get_ref().as_fd()
     }
 }
@@ -3034,7 +3036,7 @@
 
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">impl</span>&lt;T: AsSocket&gt; AsSocket <span class="kw">for </span>Async&lt;T&gt; {
-    <span class="kw">fn </span>as_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedSocket&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedSocket&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.get_ref().as_socket()
     }
 }
@@ -3122,7 +3124,7 @@
 
     <span class="doccomment">/// Waits until the I/O handle is readable.
     ///
-    /// This method completes when a read operation on this I/O handle wouldn&#39;t block.
+    /// This method completes when a read operation on this I/O handle wouldn't block.
     ///
     /// # Examples
     ///
@@ -3137,20 +3139,20 @@
     /// listener.readable().await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Readable&lt;<span class="lifetime">'_</span>, T&gt; {
         Source::readable(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Waits until the I/O handle is readable.
     ///
-    /// This method completes when a read operation on this I/O handle wouldn&#39;t block.
+    /// This method completes when a read operation on this I/O handle wouldn't block.
     </span><span class="kw">pub fn </span>readable_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; ReadableOwned&lt;T&gt; {
         Source::readable_owned(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Waits until the I/O handle is writable.
     ///
-    /// This method completes when a write operation on this I/O handle wouldn&#39;t block.
+    /// This method completes when a write operation on this I/O handle wouldn't block.
     ///
     /// # Examples
     ///
@@ -3159,20 +3161,20 @@
     /// use std::net::{TcpStream, ToSocketAddrs};
     ///
     /// # futures_lite::future::block_on(async {
-    /// let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();
+    /// let addr = "example.com:80".to_socket_addrs()?.next().unwrap();
     /// let stream = Async::&lt;TcpStream&gt;::connect(addr).await?;
     ///
     /// // Wait until the stream is writable.
     /// stream.writable().await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Writable&lt;<span class="lifetime">'_</span>, T&gt; {
         Source::writable(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Waits until the I/O handle is writable.
     ///
-    /// This method completes when a write operation on this I/O handle wouldn&#39;t block.
+    /// This method completes when a write operation on this I/O handle wouldn't block.
     </span><span class="kw">pub fn </span>writable_owned(<span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;) -&gt; WritableOwned&lt;T&gt; {
         Source::writable_owned(<span class="self">self</span>)
     }
@@ -3204,7 +3206,7 @@
     /// future::poll_fn(|cx| listener.poll_readable(cx)).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>poll_readable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_readable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.source.poll_readable(cx)
     }
 
@@ -3229,14 +3231,14 @@
     /// use std::net::{TcpStream, ToSocketAddrs};
     ///
     /// # futures_lite::future::block_on(async {
-    /// let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();
+    /// let addr = "example.com:80".to_socket_addrs()?.next().unwrap();
     /// let stream = Async::&lt;TcpStream&gt;::connect(addr).await?;
     ///
     /// // Wait until the stream is writable.
     /// future::poll_fn(|cx| stream.poll_writable(cx)).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>poll_writable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_writable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.source.poll_writable(cx)
     }
 
@@ -3330,9 +3332,9 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 8000))?;
-    /// socket.get_ref().connect(&quot;127.0.0.1:9000&quot;)?;
+    /// socket.get_ref().connect("127.0.0.1:9000")?;
     ///
-    /// let msg = b&quot;hello&quot;;
+    /// let msg = b"hello";
     /// let len = socket.write_with(|s| s.send(msg)).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -3367,9 +3369,9 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let mut socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 8000))?;
-    /// socket.get_ref().connect(&quot;127.0.0.1:9000&quot;)?;
+    /// socket.get_ref().connect("127.0.0.1:9000")?;
     ///
-    /// let msg = b&quot;hello&quot;;
+    /// let msg = b"hello";
     /// let len = unsafe { socket.write_with_mut(|s| s.send(msg)).await? };
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -3411,15 +3413,15 @@
 /// The resource contained inside of the [`Async`] cannot be invalidated. This invalidation can
 /// happen if the inner resource (the [`TcpStream`], [`UnixListener`] or other `T`) is moved out
 /// and dropped before the [`Async`]. Because of this, functions that grant mutable access to
-/// the inner type are unsafe, as there is no way to guarantee that the source won&#39;t be dropped
-/// and a dangling handle won&#39;t be left behind.
+/// the inner type are unsafe, as there is no way to guarantee that the source won't be dropped
+/// and a dangling handle won't be left behind.
 ///
 /// Unfortunately this extends to implementations of [`Read`] and [`Write`]. Since methods on those
-/// traits take `&amp;mut`, there is no guarantee that the implementor of those traits won&#39;t move the
+/// traits take `&amp;mut`, there is no guarantee that the implementor of those traits won't move the
 /// source out while the method is being run.
 ///
 /// This trait is an antidote to this predicament. By implementing this trait, the user pledges
-/// that using any I/O traits won&#39;t destroy the source. This way, [`Async`] can implement the
+/// that using any I/O traits won't destroy the source. This way, [`Async`] can implement the
 /// `async` version of these I/O traits, like [`AsyncRead`] and [`AsyncWrite`].
 ///
 /// # Safety
@@ -3429,7 +3431,7 @@
 ///
 /// This trait is implemented by default on top of `libstd` types. In addition, it is implemented
 /// for immutable reference types, as it is impossible to invalidate any outstanding references
-/// while holding an immutable reference, even with interior mutability. As Rust&#39;s current pinning
+/// while holding an immutable reference, even with interior mutability. As Rust's current pinning
 /// system relies on similar guarantees, I believe that this approach is robust.
 ///
 /// [`BufRead`]: https://doc.rust-lang.org/std/io/trait.BufRead.html
@@ -3441,7 +3443,7 @@
 /// [`AsyncWrite`]: https://docs.rs/futures-io/latest/futures_io/trait.AsyncWrite.html
 </span><span class="kw">pub unsafe trait </span>IoSafe {}
 
-<span class="doccomment">/// Reference types can&#39;t be mutated.
+<span class="doccomment">/// Reference types can't be mutated.
 ///
 /// The worst thing that can happen is that external state is used to change what kind of pointer
 /// `as_fd()` returns. For instance:
@@ -3459,7 +3461,7 @@
 /// }
 ///
 /// impl AsFd for Bar {
-///     fn as_fd(&amp;self) -&gt; BorrowedFd&lt;&#39;_&gt; {
+///     fn as_fd(&amp;self) -&gt; BorrowedFd&lt;'_&gt; {
 ///         if self.flag.replace(!self.flag.get()) {
 ///             self.a.as_fd()
 ///         } else {
@@ -3479,9 +3481,9 @@
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::Stderr {}
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::Stdin {}
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::Stdout {}
-<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StderrLock&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StdinLock&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StdoutLock&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StderrLock&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StdinLock&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::io::StdoutLock&lt;<span class="lifetime">'_</span>&gt; {}
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::net::TcpStream {}
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::process::ChildStdin {}
 <span class="kw">unsafe impl </span>IoSafe <span class="kw">for </span>std::process::ChildStdout {}
@@ -3495,12 +3497,12 @@
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + Write&gt; IoSafe <span class="kw">for </span>std::io::LineWriter&lt;T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {}
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span>Box&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Clone + IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span>std::borrow::Cow&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Clone + IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span>std::borrow::Cow&lt;<span class="lifetime">'_</span>, T&gt; {}
 
 <span class="kw">impl</span>&lt;T: IoSafe + Read&gt; AsyncRead <span class="kw">for </span>Async&lt;T&gt; {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
@@ -3514,8 +3516,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>).get_mut() }.read_vectored(bufs) {
@@ -3527,15 +3529,15 @@
     }
 }
 
-<span class="comment">// Since this is through a reference, we can&#39;t mutate the inner I/O source.
+<span class="comment">// Since this is through a reference, we can't mutate the inner I/O source.
 // Therefore this is safe!
 </span><span class="kw">impl</span>&lt;T&gt; AsyncRead <span class="kw">for </span><span class="kw-2">&amp;</span>Async&lt;T&gt;
 <span class="kw">where
-    for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T: Read,
+    for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T: Read,
 {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
@@ -3549,8 +3551,8 @@
 
     <span class="kw">fn </span>poll_read_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span>(<span class="kw-2">*</span><span class="self">self</span>).get_ref().read_vectored(bufs) {
@@ -3565,7 +3567,7 @@
 <span class="kw">impl</span>&lt;T: IoSafe + Write&gt; AsyncWrite <span class="kw">for </span>Async&lt;T&gt; {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
@@ -3579,8 +3581,8 @@
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>).get_mut() }.write_vectored(bufs) {
@@ -3591,7 +3593,7 @@
         }
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>).get_mut() }.flush() {
                 <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::WouldBlock =&gt; {}
@@ -3601,18 +3603,18 @@
         }
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; AsyncWrite <span class="kw">for </span><span class="kw-2">&amp;</span>Async&lt;T&gt;
 <span class="kw">where
-    for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T: Write,
+    for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T: Write,
 {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
@@ -3626,8 +3628,8 @@
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span>(<span class="kw-2">*</span><span class="self">self</span>).get_ref().write_vectored(bufs) {
@@ -3638,7 +3640,7 @@
         }
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span>(<span class="kw-2">*</span><span class="self">self</span>).get_ref().flush() {
                 <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::WouldBlock =&gt; {}
@@ -3648,7 +3650,7 @@
         }
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_flush(cx)
     }
 }
@@ -3666,7 +3668,7 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let listener = Async::&lt;TcpListener&gt;::bind(([127, 0, 0, 1], 0))?;
-    /// println!(&quot;Listening on {}&quot;, listener.get_ref().local_addr()?);
+    /// println!("Listening on {}", listener.get_ref().local_addr()?);
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub fn </span>bind&lt;A: Into&lt;SocketAddr&gt;&gt;(addr: A) -&gt; io::Result&lt;Async&lt;TcpListener&gt;&gt; {
@@ -3688,7 +3690,7 @@
     /// # futures_lite::future::block_on(async {
     /// let listener = Async::&lt;TcpListener&gt;::bind(([127, 0, 0, 1], 8000))?;
     /// let (stream, addr) = listener.accept().await?;
-    /// println!(&quot;Accepted client: {}&quot;, addr);
+    /// println!("Accepted client: {}", addr);
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub async fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(Async&lt;TcpStream&gt;, SocketAddr)&gt; {
@@ -3714,11 +3716,11 @@
     ///
     /// while let Some(stream) = incoming.next().await {
     ///     let stream = stream?;
-    ///     println!(&quot;Accepted client: {}&quot;, stream.get_ref().peer_addr()?);
+    ///     println!("Accepted client: {}", stream.get_ref().peer_addr()?);
     /// }
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = io::Result&lt;Async&lt;TcpStream&gt;&gt;&gt; + Send + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = io::Result&lt;Async&lt;TcpStream&gt;&gt;&gt; + Send + <span class="lifetime">'_ </span>{
         stream::unfold(<span class="self">self</span>, |listener| <span class="kw">async move </span>{
             <span class="kw">let </span>res = listener.accept().<span class="kw">await</span>.map(|(stream, <span class="kw">_</span>)| stream);
             <span class="prelude-val">Some</span>((res, listener))
@@ -3744,7 +3746,7 @@
     /// use std::net::{TcpStream, ToSocketAddrs};
     ///
     /// # futures_lite::future::block_on(async {
-    /// let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();
+    /// let addr = "example.com:80".to_socket_addrs()?.next().unwrap();
     /// let stream = Async::&lt;TcpStream&gt;::connect(addr).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -3783,11 +3785,11 @@
     /// use std::net::{TcpStream, ToSocketAddrs};
     ///
     /// # futures_lite::future::block_on(async {
-    /// let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();
+    /// let addr = "example.com:80".to_socket_addrs()?.next().unwrap();
     /// let mut stream = Async::&lt;TcpStream&gt;::connect(addr).await?;
     ///
     /// stream
-    ///     .write_all(b&quot;GET / HTTP/1.1\r\nHost: example.com\r\n\r\n&quot;)
+    ///     .write_all(b"GET / HTTP/1.1\r\nHost: example.com\r\n\r\n")
     ///     .await?;
     ///
     /// let mut buf = [0u8; 1024];
@@ -3820,7 +3822,7 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 0))?;
-    /// println!(&quot;Bound to {}&quot;, socket.get_ref().local_addr()?);
+    /// println!("Bound to {}", socket.get_ref().local_addr()?);
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub fn </span>bind&lt;A: Into&lt;SocketAddr&gt;&gt;(addr: A) -&gt; io::Result&lt;Async&lt;UdpSocket&gt;&gt; {
@@ -3890,7 +3892,7 @@
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 0))?;
     /// let addr = socket.get_ref().local_addr()?;
     ///
-    /// let msg = b&quot;hello&quot;;
+    /// let msg = b"hello";
     /// let len = socket.send_to(msg, addr).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -3917,7 +3919,7 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 8000))?;
-    /// socket.get_ref().connect(&quot;127.0.0.1:9000&quot;)?;
+    /// socket.get_ref().connect("127.0.0.1:9000")?;
     ///
     /// let mut buf = [0u8; 1024];
     /// let len = socket.recv(&amp;mut buf).await?;
@@ -3946,7 +3948,7 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 8000))?;
-    /// socket.get_ref().connect(&quot;127.0.0.1:9000&quot;)?;
+    /// socket.get_ref().connect("127.0.0.1:9000")?;
     ///
     /// let mut buf = [0u8; 1024];
     /// let len = socket.peek(&amp;mut buf).await?;
@@ -3971,9 +3973,9 @@
     ///
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UdpSocket&gt;::bind(([127, 0, 0, 1], 8000))?;
-    /// socket.get_ref().connect(&quot;127.0.0.1:9000&quot;)?;
+    /// socket.get_ref().connect("127.0.0.1:9000")?;
     ///
-    /// let msg = b&quot;hello&quot;;
+    /// let msg = b"hello";
     /// let len = socket.send(msg).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -4001,8 +4003,8 @@
     /// use std::os::unix::net::UnixListener;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let listener = Async::&lt;UnixListener&gt;::bind(&quot;/tmp/socket&quot;)?;
-    /// println!(&quot;Listening on {:?}&quot;, listener.get_ref().local_addr()?);
+    /// let listener = Async::&lt;UnixListener&gt;::bind("/tmp/socket")?;
+    /// println!("Listening on {:?}", listener.get_ref().local_addr()?);
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub fn </span>bind&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;Async&lt;UnixListener&gt;&gt; {
@@ -4022,9 +4024,9 @@
     /// use std::os::unix::net::UnixListener;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let listener = Async::&lt;UnixListener&gt;::bind(&quot;/tmp/socket&quot;)?;
+    /// let listener = Async::&lt;UnixListener&gt;::bind("/tmp/socket")?;
     /// let (stream, addr) = listener.accept().await?;
-    /// println!(&quot;Accepted client: {:?}&quot;, addr);
+    /// println!("Accepted client: {:?}", addr);
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub async fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(Async&lt;UnixStream&gt;, UnixSocketAddr)&gt; {
@@ -4044,17 +4046,17 @@
     /// use std::os::unix::net::UnixListener;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let listener = Async::&lt;UnixListener&gt;::bind(&quot;/tmp/socket&quot;)?;
+    /// let listener = Async::&lt;UnixListener&gt;::bind("/tmp/socket")?;
     /// let incoming = listener.incoming();
     /// pin!(incoming);
     ///
     /// while let Some(stream) = incoming.next().await {
     ///     let stream = stream?;
-    ///     println!(&quot;Accepted client: {:?}&quot;, stream.get_ref().peer_addr()?);
+    ///     println!("Accepted client: {:?}", stream.get_ref().peer_addr()?);
     /// }
     /// # std::io::Result::Ok(()) });
     /// ```
-    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = io::Result&lt;Async&lt;UnixStream&gt;&gt;&gt; + Send + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Stream&lt;Item = io::Result&lt;Async&lt;UnixStream&gt;&gt;&gt; + Send + <span class="lifetime">'_ </span>{
         stream::unfold(<span class="self">self</span>, |listener| <span class="kw">async move </span>{
             <span class="kw">let </span>res = listener.accept().<span class="kw">await</span>.map(|(stream, <span class="kw">_</span>)| stream);
             <span class="prelude-val">Some</span>((res, listener))
@@ -4082,7 +4084,7 @@
     /// use std::os::unix::net::UnixStream;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let stream = Async::&lt;UnixStream&gt;::connect(&quot;/tmp/socket&quot;).await?;
+    /// let stream = Async::&lt;UnixStream&gt;::connect("/tmp/socket").await?;
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub async fn </span>connect&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;Async&lt;UnixStream&gt;&gt; {
@@ -4140,7 +4142,7 @@
     /// use std::os::unix::net::UnixDatagram;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let socket = Async::&lt;UnixDatagram&gt;::bind(&quot;/tmp/socket&quot;)?;
+    /// let socket = Async::&lt;UnixDatagram&gt;::bind("/tmp/socket")?;
     /// # std::io::Result::Ok(()) });
     /// ```
     </span><span class="kw">pub fn </span>bind&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;Async&lt;UnixDatagram&gt;&gt; {
@@ -4192,7 +4194,7 @@
     /// use std::os::unix::net::UnixDatagram;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let socket = Async::&lt;UnixDatagram&gt;::bind(&quot;/tmp/socket&quot;)?;
+    /// let socket = Async::&lt;UnixDatagram&gt;::bind("/tmp/socket")?;
     ///
     /// let mut buf = [0u8; 1024];
     /// let (len, addr) = socket.recv_from(&amp;mut buf).await?;
@@ -4215,8 +4217,8 @@
     /// # futures_lite::future::block_on(async {
     /// let socket = Async::&lt;UnixDatagram&gt;::unbound()?;
     ///
-    /// let msg = b&quot;hello&quot;;
-    /// let addr = &quot;/tmp/socket&quot;;
+    /// let msg = b"hello";
+    /// let addr = "/tmp/socket";
     /// let len = socket.send_to(msg, addr).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -4238,8 +4240,8 @@
     /// use std::os::unix::net::UnixDatagram;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let socket = Async::&lt;UnixDatagram&gt;::bind(&quot;/tmp/socket1&quot;)?;
-    /// socket.get_ref().connect(&quot;/tmp/socket2&quot;)?;
+    /// let socket = Async::&lt;UnixDatagram&gt;::bind("/tmp/socket1")?;
+    /// socket.get_ref().connect("/tmp/socket2")?;
     ///
     /// let mut buf = [0u8; 1024];
     /// let len = socket.recv(&amp;mut buf).await?;
@@ -4263,10 +4265,10 @@
     /// use std::os::unix::net::UnixDatagram;
     ///
     /// # futures_lite::future::block_on(async {
-    /// let socket = Async::&lt;UnixDatagram&gt;::bind(&quot;/tmp/socket1&quot;)?;
-    /// socket.get_ref().connect(&quot;/tmp/socket2&quot;)?;
+    /// let socket = Async::&lt;UnixDatagram&gt;::bind("/tmp/socket1")?;
+    /// socket.get_ref().connect("/tmp/socket2")?;
     ///
-    /// let msg = b&quot;hello&quot;;
+    /// let msg = b"hello";
     /// let len = socket.send(msg).await?;
     /// # std::io::Result::Ok(()) });
     /// ```
@@ -4311,14 +4313,14 @@
     setup_networking();
 
     <span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;android&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;fuchsia&quot;</span>,
-        target_os = <span class="string">&quot;illumos&quot;</span>,
-        target_os = <span class="string">&quot;linux&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;
+        target_os = <span class="string">"android"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"linux"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"
     </span>))]
     </span><span class="kw">let </span>socket = rn::socket_with(
         domain,
@@ -4328,31 +4330,31 @@
     )<span class="question-mark">?</span>;
 
     <span class="attr">#[cfg(not(any(
-        target_os = <span class="string">&quot;android&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;fuchsia&quot;</span>,
-        target_os = <span class="string">&quot;illumos&quot;</span>,
-        target_os = <span class="string">&quot;linux&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;
+        target_os = <span class="string">"android"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"linux"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"
     </span>)))]
     </span><span class="kw">let </span>socket = {
         <span class="attr">#[cfg(not(any(
-            target_os = <span class="string">&quot;macos&quot;</span>,
-            target_os = <span class="string">&quot;ios&quot;</span>,
-            target_os = <span class="string">&quot;tvos&quot;</span>,
-            target_os = <span class="string">&quot;watchos&quot;</span>,
-            target_os = <span class="string">&quot;espidf&quot;</span>,
+            target_os = <span class="string">"macos"</span>,
+            target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"tvos"</span>,
+            target_os = <span class="string">"watchos"</span>,
+            target_os = <span class="string">"espidf"</span>,
             windows,
         )))]
         </span><span class="kw">let </span>flags = rn::SocketFlags::CLOEXEC;
         <span class="attr">#[cfg(any(
-            target_os = <span class="string">&quot;macos&quot;</span>,
-            target_os = <span class="string">&quot;ios&quot;</span>,
-            target_os = <span class="string">&quot;tvos&quot;</span>,
-            target_os = <span class="string">&quot;watchos&quot;</span>,
-            target_os = <span class="string">&quot;espidf&quot;</span>,
+            target_os = <span class="string">"macos"</span>,
+            target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"tvos"</span>,
+            target_os = <span class="string">"watchos"</span>,
+            target_os = <span class="string">"espidf"</span>,
             windows,
         ))]
         </span><span class="kw">let </span>flags = rn::SocketFlags::empty();
@@ -4362,10 +4364,10 @@
 
         <span class="comment">// Set cloexec if necessary.
         </span><span class="attr">#[cfg(any(
-            target_os = <span class="string">&quot;macos&quot;</span>,
-            target_os = <span class="string">&quot;ios&quot;</span>,
-            target_os = <span class="string">&quot;tvos&quot;</span>,
-            target_os = <span class="string">&quot;watchos&quot;</span>,
+            target_os = <span class="string">"macos"</span>,
+            target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"tvos"</span>,
+            target_os = <span class="string">"watchos"</span>,
         ))]
         </span>rio::fcntl_setfd(<span class="kw-2">&amp;</span>socket, rio::fcntl_getfd(<span class="kw-2">&amp;</span>socket)<span class="question-mark">? </span>| rio::FdFlags::CLOEXEC)<span class="question-mark">?</span>;
 
@@ -4377,11 +4379,11 @@
 
     <span class="comment">// Set nosigpipe if necessary.
     </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;ios&quot;</span>,
-        target_os = <span class="string">&quot;tvos&quot;</span>,
-        target_os = <span class="string">&quot;watchos&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"freebsd"
     </span>))]
     </span>rn::sockopt::set_socket_nosigpipe(<span class="kw-2">&amp;</span>socket, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
@@ -4425,8 +4427,8 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>set_nonblocking(
-    <span class="attr">#[cfg(unix)] </span>fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
-    <span class="attr">#[cfg(windows)] </span>fd: BorrowedSocket&lt;<span class="lifetime">&#39;_</span>&gt;,
+    <span class="attr">#[cfg(unix)] </span>fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
+    <span class="attr">#[cfg(windows)] </span>fd: BorrowedSocket&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; io::Result&lt;()&gt; {
     <span class="macro">cfg_if::cfg_if! </span>{
         <span class="comment">// ioctl(FIONBIO) sets the flag atomically, but we use this only on Linux
@@ -4435,7 +4437,7 @@
         // https://github.com/rust-lang/rust/commit/efeb42be2837842d1beb47b51bb693c7474aba3d
         // https://github.com/libuv/libuv/blob/e9d91fccfc3e5ff772d5da90e1c4a24061198ca0/src/unix/poll.c#L78-L80
         // https://github.com/tokio-rs/mio/commit/0db49f6d5caf54b12176821363d154384357e70a
-        </span><span class="kw">if </span><span class="attr">#[cfg(any(windows, target_os = <span class="string">&quot;linux&quot;</span>))] </span>{
+        </span><span class="kw">if </span><span class="attr">#[cfg(any(windows, target_os = <span class="string">"linux"</span>))] </span>{
             rustix::io::ioctl_fionbio(fd, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">let </span>previous = rustix::fs::fcntl_getfl(fd)<span class="question-mark">?</span>;
@@ -4459,7 +4461,7 @@
     // However, some users expect to be able to pass in paths to abstract sockets, which
     // triggers this error as it has a zero in it. Therefore, if a path starts with a zero,
     // make it an abstract socket.
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
     </span><span class="kw">let </span>address = {
         <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
@@ -4471,7 +4473,7 @@
     };
 
     <span class="comment">// Only Linux and Android support abstract sockets.
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>)))]
     </span><span class="kw">let </span>address = rn::SocketAddrUnix::new(path)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(address)

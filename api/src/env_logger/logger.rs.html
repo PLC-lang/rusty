@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.2/src/logger.rs`."><title>logger.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../env_logger/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="env_logger"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.2/src/logger.rs`."><title>logger.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../env_logger/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1025,10 +1027,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::fmt::{FormatFn, Formatter};
 
 <span class="doccomment">/// The default name for the environment variable to read filters from.
-</span><span class="kw">pub const </span>DEFAULT_FILTER_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;RUST_LOG&quot;</span>;
+</span><span class="kw">pub const </span>DEFAULT_FILTER_ENV: <span class="kw-2">&amp;</span>str = <span class="string">"RUST_LOG"</span>;
 
 <span class="doccomment">/// The default name for the environment variable to read style preferences from.
-</span><span class="kw">pub const </span>DEFAULT_WRITE_STYLE_ENV: <span class="kw-2">&amp;</span>str = <span class="string">&quot;RUST_LOG_STYLE&quot;</span>;
+</span><span class="kw">pub const </span>DEFAULT_WRITE_STYLE_ENV: <span class="kw-2">&amp;</span>str = <span class="string">"RUST_LOG_STYLE"</span>;
 
 <span class="doccomment">/// `Builder` acts as builder for initializing a `Logger`.
 ///
@@ -1045,12 +1047,12 @@
 /// let mut builder = Builder::from_default_env();
 ///
 /// builder
-///     .format(|buf, record| writeln!(buf, &quot;{} - {}&quot;, record.level(), record.args()))
+///     .format(|buf, record| writeln!(buf, "{} - {}", record.level(), record.args()))
 ///     .filter(None, LevelFilter::Info)
 ///     .init();
 ///
-/// error!(&quot;error message&quot;);
-/// info!(&quot;info message&quot;);
+/// error!("error message");
+/// info!("info message");
 /// ```
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>Builder {
@@ -1063,7 +1065,7 @@
 <span class="kw">impl </span>Builder {
     <span class="doccomment">/// Initializes the log builder with defaults.
     ///
-    /// **NOTE:** This method won&#39;t read from any environment variables.
+    /// **NOTE:** This method won't read from any environment variables.
     /// Use the [`filter`] and [`write_style`] methods to configure the builder
     /// or use [`from_env`] or [`from_default_env`] instead.
     ///
@@ -1104,7 +1106,7 @@
     /// ```
     /// use env_logger::Builder;
     ///
-    /// let mut builder = Builder::from_env(&quot;MY_LOG&quot;);
+    /// let mut builder = Builder::from_env("MY_LOG");
     /// builder.init();
     /// ```
     ///
@@ -1114,14 +1116,14 @@
     /// ```
     /// use env_logger::{Builder, Env};
     ///
-    /// let env = Env::new().filter(&quot;MY_LOG&quot;).write_style(&quot;MY_LOG_STYLE&quot;);
+    /// let env = Env::new().filter("MY_LOG").write_style("MY_LOG_STYLE");
     ///
     /// let mut builder = Builder::from_env(env);
     /// builder.init();
     /// ```
-    </span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(env: E) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">'a</span>, E&gt;(env: E) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::new();
         builder.parse_env(env);
@@ -1145,7 +1147,7 @@
     /// let mut builder = Builder::new();
     ///
     /// builder.filter_level(LevelFilter::Off);
-    /// builder.parse_env(&quot;MY_LOG&quot;);
+    /// builder.parse_env("MY_LOG");
     /// builder.init();
     /// ```
     ///
@@ -1157,16 +1159,16 @@
     /// use log::LevelFilter;
     /// use env_logger::{Builder, Env};
     ///
-    /// let env = Env::new().filter(&quot;MY_LOG&quot;).write_style(&quot;MY_LOG_STYLE&quot;);
+    /// let env = Env::new().filter("MY_LOG").write_style("MY_LOG_STYLE");
     ///
     /// let mut builder = Builder::new();
     /// builder.filter_level(LevelFilter::Off);
     /// builder.parse_env(env);
     /// builder.init();
     /// ```
-    </span><span class="kw">pub fn </span>parse_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, env: E) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">pub fn </span>parse_env&lt;<span class="lifetime">'a</span>, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, env: E) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
     {
         <span class="kw">let </span>env = env.into();
 
@@ -1249,13 +1251,13 @@
     ///
     /// let mut builder = Builder::new();
     ///
-    /// builder.format(|buf, record| writeln!(buf, &quot;{}&quot;, record.args()));
+    /// builder.format(|buf, record| writeln!(buf, "{}", record.args()));
     /// ```
     ///
     /// [`Formatter`]: fmt/struct.Formatter.html
     /// [`String`]: https://doc.rust-lang.org/stable/std/string/struct.String.html
     /// [`std::fmt`]: https://doc.rust-lang.org/std/fmt/index.html
-    </span><span class="kw">pub fn </span>format&lt;F: <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, format: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
+    </span><span class="kw">pub fn </span>format&lt;F: <span class="lifetime">'static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, format: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;mut </span>Formatter, <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; + Sync + Send,
     {
@@ -1323,7 +1325,7 @@
     }
 
     <span class="doccomment">/// Configures the end of line suffix.
-    </span><span class="kw">pub fn </span>format_suffix(<span class="kw-2">&amp;mut </span><span class="self">self</span>, suffix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>format_suffix(<span class="kw-2">&amp;mut </span><span class="self">self</span>, suffix: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.format.format_suffix = suffix;
         <span class="self">self
     </span>}
@@ -1340,7 +1342,7 @@
     ///
     /// let mut builder = Builder::new();
     ///
-    /// builder.filter_module(&quot;path::to::module&quot;, LevelFilter::Info);
+    /// builder.filter_module("path::to::module", LevelFilter::Info);
     /// ```
     </span><span class="kw">pub fn </span>filter_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>str, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.filter.filter_module(module, level);
@@ -1381,7 +1383,7 @@
     ///
     /// let mut builder = Builder::new();
     ///
-    /// builder.filter(Some(&quot;path::to::module&quot;), LevelFilter::Info);
+    /// builder.filter(Some("path::to::module"), LevelFilter::Info);
     /// ```
     </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.filter.filter(module, level);
@@ -1422,7 +1424,7 @@
 
     <span class="doccomment">/// Sets whether or not styles will be written.
     ///
-    /// This can be useful in environments that don&#39;t support control characters
+    /// This can be useful in environments that don't support control characters
     /// for setting colors.
     ///
     /// # Examples
@@ -1492,7 +1494,7 @@
     /// library has already initialized a global logger.
     </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.try_init()
-            .expect(<span class="string">&quot;Builder::init should not be called after logger initialized&quot;</span>);
+            .expect(<span class="string">"Builder::init should not be called after logger initialized"</span>);
     }
 
     <span class="doccomment">/// Build an env logger.
@@ -1500,7 +1502,7 @@
     /// The returned logger implements the `Log` trait and can be installed manually
     /// or nested within another logger.
     </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Logger {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">"attempt to re-use consumed builder"</span>);
         <span class="self">self</span>.built = <span class="bool-val">true</span>;
 
         Logger {
@@ -1514,11 +1516,11 @@
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Builder {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.built {
-            f.debug_struct(<span class="string">&quot;Logger&quot;</span>).field(<span class="string">&quot;built&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
+            f.debug_struct(<span class="string">"Logger"</span>).field(<span class="string">"built"</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
         } <span class="kw">else </span>{
-            f.debug_struct(<span class="string">&quot;Logger&quot;</span>)
-                .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
-                .field(<span class="string">&quot;writer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.writer)
+            f.debug_struct(<span class="string">"Logger"</span>)
+                .field(<span class="string">"filter"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+                .field(<span class="string">"writer"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.writer)
                 .finish()
         }
     }
@@ -1533,7 +1535,7 @@
 /// methods will each construct a `Logger` and immediately initialize it as the
 /// default global logger.
 ///
-/// If you&#39;d instead need access to the constructed `Logger`, you can use
+/// If you'd instead need access to the constructed `Logger`, you can use
 /// the associated [`Builder`] and install it with the
 /// [`log` crate][log-crate-url] directly.
 ///
@@ -1563,7 +1565,7 @@
     /// ```
     /// use env_logger::Logger;
     ///
-    /// let logger = Logger::from_env(&quot;MY_LOG&quot;);
+    /// let logger = Logger::from_env("MY_LOG");
     /// ```
     ///
     /// Create a logger using the `MY_LOG` variable for filtering and
@@ -1572,13 +1574,13 @@
     /// ```
     /// use env_logger::{Logger, Env};
     ///
-    /// let env = Env::new().filter_or(&quot;MY_LOG&quot;, &quot;info&quot;).write_style_or(&quot;MY_LOG_STYLE&quot;, &quot;always&quot;);
+    /// let env = Env::new().filter_or("MY_LOG", "info").write_style_or("MY_LOG_STYLE", "always");
     ///
     /// let logger = Logger::from_env(env);
     /// ```
-    </span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(env: E) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">'a</span>, E&gt;(env: E) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
     {
         Builder::from_env(env).build()
     }
@@ -1624,7 +1626,7 @@
     <span class="kw">fn </span>log(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) {
         <span class="kw">if </span><span class="self">self</span>.matches(record) {
             <span class="comment">// Log records are written to a thread-local buffer before being printed
-            // to the terminal. We clear these buffers afterwards, but they aren&#39;t shrunk
+            // to the terminal. We clear these buffers afterwards, but they aren't shrunk
             // so will always at least have capacity for the largest log record formatted
             // on that thread.
             //
@@ -1651,7 +1653,7 @@
                         </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>tl_buf) =&gt; <span class="kw">match </span><span class="kw-2">*</span>tl_buf {
                             <span class="comment">// We have a previously set formatter
                             </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>formatter) =&gt; {
-                                <span class="comment">// Check the buffer style. If it&#39;s different from the logger&#39;s
+                                <span class="comment">// Check the buffer style. If it's different from the logger's
                                 // style then drop the buffer and recreate it.
                                 </span><span class="kw">if </span>formatter.write_style() != <span class="self">self</span>.writer.write_style() {
                                     <span class="kw-2">*</span>formatter = Formatter::new(<span class="kw-2">&amp;</span><span class="self">self</span>.writer);
@@ -1659,7 +1661,7 @@
 
                                 print(formatter, record);
                             }
-                            <span class="comment">// We don&#39;t have a previously set formatter
+                            <span class="comment">// We don't have a previously set formatter
                             </span><span class="prelude-val">None </span>=&gt; {
                                 <span class="kw">let </span><span class="kw-2">mut </span>formatter = Formatter::new(<span class="kw-2">&amp;</span><span class="self">self</span>.writer);
                                 print(<span class="kw-2">&amp;mut </span>formatter, record);
@@ -1667,7 +1669,7 @@
                                 <span class="kw-2">*</span>tl_buf = <span class="prelude-val">Some</span>(formatter);
                             }
                         },
-                        <span class="comment">// There&#39;s already an active borrow of the buffer (due to re-entrancy)
+                        <span class="comment">// There's already an active borrow of the buffer (due to re-entrancy)
                         </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                             print(<span class="kw-2">&amp;mut </span>Formatter::new(<span class="kw-2">&amp;</span><span class="self">self</span>.writer), record);
                         }
@@ -1689,8 +1691,8 @@
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Logger {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Logger&quot;</span>)
-            .field(<span class="string">&quot;filter&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
+        f.debug_struct(<span class="string">"Logger"</span>)
+            .field(<span class="string">"filter"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
             .finish()
     }
 }
@@ -1706,12 +1708,12 @@
 ///
 /// These sources can be configured using the builder methods on `Env`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Env&lt;<span class="lifetime">&#39;a</span>&gt; {
-    filter: Var&lt;<span class="lifetime">&#39;a</span>&gt;,
-    write_style: Var&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>Env&lt;<span class="lifetime">'a</span>&gt; {
+    filter: Var&lt;<span class="lifetime">'a</span>&gt;,
+    write_style: Var&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Env&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Env&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Get a default set of environment variables.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
@@ -1720,7 +1722,7 @@
     <span class="doccomment">/// Specify an environment variable to read the filter from.
     </span><span class="kw">pub fn </span>filter&lt;E&gt;(<span class="kw-2">mut </span><span class="self">self</span>, filter_env: E) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.filter = Var::new(filter_env);
 
@@ -1732,8 +1734,8 @@
     /// If the variable is not set, the default value will be used.
     </span><span class="kw">pub fn </span>filter_or&lt;E, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, filter_env: E, default: V) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
-        V: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
+        V: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.filter = Var::new_with_default(filter_env, default);
 
@@ -1745,7 +1747,7 @@
     /// If the variable is not set, the default value will be used.
     </span><span class="kw">pub fn </span>default_filter_or&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, default: V) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>V: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>V: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.filter = Var::new_with_default(DEFAULT_FILTER_ENV, default);
 
@@ -1759,7 +1761,7 @@
     <span class="doccomment">/// Specify an environment variable to read the style from.
     </span><span class="kw">pub fn </span>write_style&lt;E&gt;(<span class="kw-2">mut </span><span class="self">self</span>, write_style_env: E) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.write_style = Var::new(write_style_env);
 
@@ -1771,8 +1773,8 @@
     /// If the variable is not set, the default value will be used.
     </span><span class="kw">pub fn </span>write_style_or&lt;E, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, write_style_env: E, default: V) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
-        V: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
+        V: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.write_style = Var::new_with_default(write_style_env, default);
 
@@ -1784,7 +1786,7 @@
     /// If the variable is not set, the default value will be used.
     </span><span class="kw">pub fn </span>default_write_style_or&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, default: V) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>V: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>V: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.write_style = Var::new_with_default(DEFAULT_WRITE_STYLE_ENV, default);
 
@@ -1796,16 +1798,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; From&lt;T&gt; <span class="kw">for </span>Env&lt;<span class="lifetime">&#39;a</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; From&lt;T&gt; <span class="kw">for </span>Env&lt;<span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+    </span>T: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
 {
     <span class="kw">fn </span>from(filter_env: T) -&gt; <span class="self">Self </span>{
         Env::default().filter(filter_env.into())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Default <span class="kw">for </span>Env&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>Env&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         Env {
             filter: Var::new(DEFAULT_FILTER_ENV),
@@ -1815,15 +1817,15 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>Var&lt;<span class="lifetime">&#39;a</span>&gt; {
-    name: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
-    default: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+</span><span class="kw">struct </span>Var&lt;<span class="lifetime">'a</span>&gt; {
+    name: Cow&lt;<span class="lifetime">'a</span>, str&gt;,
+    default: <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Var&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Var&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>new&lt;E&gt;(name: E) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         Var {
             name: name.into(),
@@ -1833,8 +1835,8 @@
 
     <span class="kw">fn </span>new_with_default&lt;E, V&gt;(name: E, default: V) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>E: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
-        V: Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
+        </span>E: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
+        V: Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
     {
         Var {
             name: name.into(),
@@ -1872,7 +1874,7 @@
 /// This function will panic if it is called more than once, or if another
 /// library has already initialized a global logger.
 </span><span class="kw">pub fn </span>init() {
-    try_init().expect(<span class="string">&quot;env_logger::init should not be called after logger initialized&quot;</span>);
+    try_init().expect(<span class="string">"env_logger::init should not be called after logger initialized"</span>);
 }
 
 <span class="doccomment">/// Attempts to initialize the global logger with an env logger from the given
@@ -1890,7 +1892,7 @@
 /// use env_logger::{Builder, Env};
 ///
 /// # fn run() -&gt; Result&lt;(), Box&lt;dyn ::std::error::Error&gt;&gt; {
-/// let env = Env::new().filter(&quot;MY_LOG&quot;).write_style(&quot;MY_LOG_STYLE&quot;);
+/// let env = Env::new().filter("MY_LOG").write_style("MY_LOG_STYLE");
 ///
 /// env_logger::try_init_from_env(env)?;
 ///
@@ -1903,9 +1905,9 @@
 ///
 /// This function will fail if it is called more than once, or if another
 /// library has already initialized a global logger.
-</span><span class="kw">pub fn </span>try_init_from_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(env: E) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetLoggerError&gt;
+</span><span class="kw">pub fn </span>try_init_from_env&lt;<span class="lifetime">'a</span>, E&gt;(env: E) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetLoggerError&gt;
 <span class="kw">where
-    </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::from_env(env);
 
@@ -1926,7 +1928,7 @@
 /// ```
 /// use env_logger::{Builder, Env};
 ///
-/// let env = Env::new().filter(&quot;MY_LOG&quot;).write_style(&quot;MY_LOG_STYLE&quot;);
+/// let env = Env::new().filter("MY_LOG").write_style("MY_LOG_STYLE");
 ///
 /// env_logger::init_from_env(env);
 /// ```
@@ -1935,12 +1937,12 @@
 ///
 /// This function will panic if it is called more than once, or if another
 /// library has already initialized a global logger.
-</span><span class="kw">pub fn </span>init_from_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(env: E)
+</span><span class="kw">pub fn </span>init_from_env&lt;<span class="lifetime">'a</span>, E&gt;(env: E)
 <span class="kw">where
-    </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     try_init_from_env(env)
-        .expect(<span class="string">&quot;env_logger::init_from_env should not be called after logger initialized&quot;</span>);
+        .expect(<span class="string">"env_logger::init_from_env should not be called after logger initialized"</span>);
 }
 
 <span class="doccomment">/// Create a new builder with the default environment variables.
@@ -1957,12 +1959,12 @@
 ///
 /// The builder can be configured before being initialized.
 </span><span class="attr">#[deprecated(
-    since = <span class="string">&quot;0.8.0&quot;</span>,
-    note = <span class="string">&quot;Prefer `env_logger::Builder::from_env()` instead.&quot;
+    since = <span class="string">"0.8.0"</span>,
+    note = <span class="string">"Prefer `env_logger::Builder::from_env()` instead."
 </span>)]
-</span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">&#39;a</span>, E&gt;(env: E) -&gt; Builder
+</span><span class="kw">pub fn </span>from_env&lt;<span class="lifetime">'a</span>, E&gt;(env: E) -&gt; Builder
 <span class="kw">where
-    </span>E: Into&lt;Env&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span>E: Into&lt;Env&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     Builder::from_env(env)
 }
@@ -1973,54 +1975,54 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>env_get_filter_reads_from_var_if_set() {
-        env::set_var(<span class="string">&quot;env_get_filter_reads_from_var_if_set&quot;</span>, <span class="string">&quot;from var&quot;</span>);
+        env::set_var(<span class="string">"env_get_filter_reads_from_var_if_set"</span>, <span class="string">"from var"</span>);
 
-        <span class="kw">let </span>env = Env::new().filter_or(<span class="string">&quot;env_get_filter_reads_from_var_if_set&quot;</span>, <span class="string">&quot;from default&quot;</span>);
+        <span class="kw">let </span>env = Env::new().filter_or(<span class="string">"env_get_filter_reads_from_var_if_set"</span>, <span class="string">"from default"</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;from var&quot;</span>.to_owned()), env.get_filter());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">"from var"</span>.to_owned()), env.get_filter());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>env_get_filter_reads_from_default_if_var_not_set() {
-        env::remove_var(<span class="string">&quot;env_get_filter_reads_from_default_if_var_not_set&quot;</span>);
+        env::remove_var(<span class="string">"env_get_filter_reads_from_default_if_var_not_set"</span>);
 
         <span class="kw">let </span>env = Env::new().filter_or(
-            <span class="string">&quot;env_get_filter_reads_from_default_if_var_not_set&quot;</span>,
-            <span class="string">&quot;from default&quot;</span>,
+            <span class="string">"env_get_filter_reads_from_default_if_var_not_set"</span>,
+            <span class="string">"from default"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;from default&quot;</span>.to_owned()), env.get_filter());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">"from default"</span>.to_owned()), env.get_filter());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>env_get_write_style_reads_from_var_if_set() {
-        env::set_var(<span class="string">&quot;env_get_write_style_reads_from_var_if_set&quot;</span>, <span class="string">&quot;from var&quot;</span>);
+        env::set_var(<span class="string">"env_get_write_style_reads_from_var_if_set"</span>, <span class="string">"from var"</span>);
 
         <span class="kw">let </span>env =
-            Env::new().write_style_or(<span class="string">&quot;env_get_write_style_reads_from_var_if_set&quot;</span>, <span class="string">&quot;from default&quot;</span>);
+            Env::new().write_style_or(<span class="string">"env_get_write_style_reads_from_var_if_set"</span>, <span class="string">"from default"</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;from var&quot;</span>.to_owned()), env.get_write_style());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">"from var"</span>.to_owned()), env.get_write_style());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>env_get_write_style_reads_from_default_if_var_not_set() {
-        env::remove_var(<span class="string">&quot;env_get_write_style_reads_from_default_if_var_not_set&quot;</span>);
+        env::remove_var(<span class="string">"env_get_write_style_reads_from_default_if_var_not_set"</span>);
 
         <span class="kw">let </span>env = Env::new().write_style_or(
-            <span class="string">&quot;env_get_write_style_reads_from_default_if_var_not_set&quot;</span>,
-            <span class="string">&quot;from default&quot;</span>,
+            <span class="string">"env_get_write_style_reads_from_default_if_var_not_set"</span>,
+            <span class="string">"from default"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;from default&quot;</span>.to_owned()), env.get_write_style());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">"from default"</span>.to_owned()), env.get_write_style());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>builder_parse_env_overrides_existing_filters() {
         env::set_var(
-            <span class="string">&quot;builder_parse_default_env_overrides_existing_filters&quot;</span>,
-            <span class="string">&quot;debug&quot;</span>,
+            <span class="string">"builder_parse_default_env_overrides_existing_filters"</span>,
+            <span class="string">"debug"</span>,
         );
-        <span class="kw">let </span>env = Env::new().filter(<span class="string">&quot;builder_parse_default_env_overrides_existing_filters&quot;</span>);
+        <span class="kw">let </span>env = Env::new().filter(<span class="string">"builder_parse_default_env_overrides_existing_filters"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::new();
         builder.filter_level(LevelFilter::Trace);

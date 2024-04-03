@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/net/sockopt.rs`."><title>sockopt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1055,26 +1057,26 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::backend::c;
 <span class="kw">use </span><span class="kw">crate</span>::backend::conv::{by_mut, c_uint, ret, socklen_t};
 <span class="kw">use </span><span class="kw">crate</span>::fd::BorrowedFd;
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::ffi::CStr;
 <span class="kw">use </span><span class="kw">crate</span>::io;
 <span class="kw">use </span><span class="kw">crate</span>::net::sockopt::Timeout;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::xdp::{XdpMmapOffsets, XdpOptionsFlags, XdpRingOffset, XdpStatistics, XdpUmemReg};
 <span class="kw">use </span><span class="kw">crate</span>::net::{
     AddressFamily, Ipv4Addr, Ipv6Addr, Protocol, RawProtocol, SocketAddrAny, SocketAddrStorage,
     SocketAddrV4, SocketAddrV6, SocketType, UCred,
 };
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::borrow::ToOwned;
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::string::String;
 <span class="kw">use </span>core::mem::MaybeUninit;
 <span class="kw">use </span>core::time::Duration;
 <span class="kw">use </span>linux_raw_sys::general::{__kernel_old_timeval, __kernel_sock_timeval};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span>linux_raw_sys::xdp::{xdp_mmap_offsets, xdp_statistics, xdp_statistics_v1};
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
 </span><span class="kw">use </span>{
     <span class="kw">crate</span>::backend::conv::{slice_just_addr, x86_sys},
     <span class="kw">crate</span>::backend::reg::{ArgReg, SocketArg},
@@ -1082,11 +1084,11 @@
 };
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>getsockopt&lt;T: Copy&gt;(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, level: u32, optname: u32) -&gt; io::Result&lt;T&gt; {
+</span><span class="kw">fn </span>getsockopt&lt;T: Copy&gt;(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, level: u32, optname: u32) -&gt; io::Result&lt;T&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>optlen: c::socklen_t = core::mem::size_of::&lt;T&gt;().try_into().unwrap();
     <span class="macro">debug_assert!</span>(
         optlen <span class="kw">as </span>usize &gt;= core::mem::size_of::&lt;c::c_int&gt;(),
-        <span class="string">&quot;Socket APIs don&#39;t ever use `bool` directly&quot;
+        <span class="string">"Socket APIs don't ever use `bool` directly"
     </span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>value = MaybeUninit::&lt;T&gt;::uninit();
@@ -1095,7 +1097,7 @@
     <span class="macro">assert_eq!</span>(
         optlen <span class="kw">as </span>usize,
         core::mem::size_of::&lt;T&gt;(),
-        <span class="string">&quot;unexpected getsockopt size&quot;
+        <span class="string">"unexpected getsockopt size"
     </span>);
 
     <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(value.assume_init()) }
@@ -1103,13 +1105,13 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>getsockopt_raw&lt;T&gt;(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     level: u32,
     optname: u32,
     value: <span class="kw-2">&amp;mut </span>MaybeUninit&lt;T&gt;,
     optlen: <span class="kw-2">&amp;mut </span>c::socklen_t,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall!</span>(
             __NR_getsockopt,
@@ -1120,12 +1122,12 @@
             by_mut(optlen)
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall!</span>(
             __NR_socketcall,
             x86_sys(SYS_GETSOCKOPT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 c_uint(level),
                 c_uint(optname),
@@ -1137,24 +1139,24 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>setsockopt&lt;T: Copy&gt;(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, level: u32, optname: u32, value: T) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">fn </span>setsockopt&lt;T: Copy&gt;(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, level: u32, optname: u32, value: T) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>optlen = core::mem::size_of::&lt;T&gt;().try_into().unwrap();
     <span class="macro">debug_assert!</span>(
         optlen <span class="kw">as </span>usize &gt;= core::mem::size_of::&lt;c::c_int&gt;(),
-        <span class="string">&quot;Socket APIs don&#39;t ever use `bool` directly&quot;
+        <span class="string">"Socket APIs don't ever use `bool` directly"
     </span>);
     setsockopt_raw(fd, level, optname, <span class="kw-2">&amp;</span>value, optlen)
 }
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>setsockopt_raw&lt;T&gt;(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     level: u32,
     optname: u32,
     ptr: <span class="kw-2">*const </span>T,
     optlen: c::socklen_t,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;x86&quot;</span>))]
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"x86"</span>))]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_setsockopt,
@@ -1165,12 +1167,12 @@
             socklen_t(optlen)
         ))
     }
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
     </span><span class="kw">unsafe </span>{
         ret(<span class="macro">syscall_readonly!</span>(
             __NR_socketcall,
             x86_sys(SYS_SETSOCKOPT),
-            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">&#39;_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
+            slice_just_addr::&lt;ArgReg&lt;<span class="lifetime">'_</span>, SocketArg&gt;, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>[
                 fd.into(),
                 c_uint(level),
                 c_uint(optname),
@@ -1182,32 +1184,32 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_type(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;SocketType&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_type(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;SocketType&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_TYPE)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_reuseaddr(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, reuseaddr: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_reuseaddr(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, reuseaddr: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_REUSEADDR, from_bool(reuseaddr))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_reuseaddr(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_reuseaddr(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_REUSEADDR).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_broadcast(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, broadcast: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_broadcast(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, broadcast: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_BROADCAST, from_bool(broadcast))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_broadcast(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_broadcast(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_BROADCAST).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_linger(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, linger: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_linger(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, linger: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="comment">// Convert `linger` to seconds, rounding up.
     </span><span class="kw">let </span>l_linger = <span class="kw">if let </span><span class="prelude-val">Some</span>(linger) = linger {
         duration_to_secs(linger)<span class="question-mark">?
@@ -1222,24 +1224,24 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_linger(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_linger(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
     <span class="kw">let </span>linger: c::linger = getsockopt(fd, c::SOL_SOCKET, c::SO_LINGER)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((linger.l_onoff != <span class="number">0</span>).then(|| Duration::from_secs(linger.l_linger <span class="kw">as </span>u64)))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_passcred(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, passcred: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_passcred(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, passcred: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_PASSCRED, from_bool(passcred))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_passcred(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_passcred(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_PASSCRED).map(to_bool)
 }
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_timeout(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     id: Timeout,
     timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1259,7 +1261,7 @@
 <span class="doccomment">/// Same as `set_socket_timeout` but uses `__kernel_old_timeval` instead of
 /// `__kernel_sock_timeval` and `_OLD` constants instead of `_NEW`.
 </span><span class="kw">fn </span>set_socket_timeout_old(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     id: Timeout,
     timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1272,7 +1274,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_timeout(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, id: Timeout) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_timeout(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, id: Timeout) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
     <span class="kw">let </span>optname = <span class="kw">match </span>id {
         Timeout::Recv =&gt; c::SO_RCVTIMEO_NEW,
         Timeout::Send =&gt; c::SO_SNDTIMEO_NEW,
@@ -1288,7 +1290,7 @@
 
 <span class="doccomment">/// Same as `get_socket_timeout` but uses `__kernel_old_timeval` instead of
 /// `__kernel_sock_timeval` and `_OLD` constants instead of `_NEW`.
-</span><span class="kw">fn </span>get_socket_timeout_old(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, id: Timeout) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
+</span><span class="kw">fn </span>get_socket_timeout_old(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, id: Timeout) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
     <span class="kw">let </span>optname = <span class="kw">match </span>id {
         Timeout::Recv =&gt; c::SO_RCVTIMEO_OLD,
         Timeout::Send =&gt; c::SO_SNDTIMEO_OLD,
@@ -1307,7 +1309,7 @@
     }
 }
 
-<span class="doccomment">/// Like `duration_from_linux` but uses Linux&#39;s old 32-bit
+<span class="doccomment">/// Like `duration_from_linux` but uses Linux's old 32-bit
 /// `__kernel_old_timeval`.
 </span><span class="kw">fn </span>duration_from_linux_old_timeval(time: __kernel_old_timeval) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
     <span class="kw">if </span>time.tv_sec == <span class="number">0 </span>&amp;&amp; time.tv_usec == <span class="number">0 </span>{
@@ -1343,7 +1345,7 @@
     })
 }
 
-<span class="doccomment">/// Like `duration_to_linux` but uses Linux&#39;s old 32-bit
+<span class="doccomment">/// Like `duration_to_linux` but uses Linux's old 32-bit
 /// `__kernel_old_timeval`.
 </span><span class="kw">fn </span>duration_to_linux_old_timeval(timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;__kernel_old_timeval&gt; {
     <span class="prelude-val">Ok</span>(<span class="kw">match </span>timeout {
@@ -1371,7 +1373,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_error(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Result</span>&lt;(), io::Errno&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_error(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Result</span>&lt;(), io::Errno&gt;&gt; {
     <span class="kw">let </span>err: c::c_int = getsockopt(fd, c::SOL_SOCKET, c::SO_ERROR)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="kw">if </span>err == <span class="number">0 </span>{
         <span class="prelude-val">Ok</span>(())
@@ -1381,39 +1383,39 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_keepalive(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, keepalive: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_keepalive(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, keepalive: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_KEEPALIVE, from_bool(keepalive))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_keepalive(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_keepalive(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_KEEPALIVE).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_recv_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, size: usize) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_recv_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, size: usize) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>size: c::c_int = size.try_into().map_err(|<span class="kw">_</span>| io::Errno::INVAL)<span class="question-mark">?</span>;
     setsockopt(fd, c::SOL_SOCKET, c::SO_RCVBUF, size)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_recv_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_recv_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_RCVBUF).map(|size: u32| size <span class="kw">as </span>usize)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_send_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, size: usize) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_send_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, size: usize) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>size: c::c_int = size.try_into().map_err(|<span class="kw">_</span>| io::Errno::INVAL)<span class="question-mark">?</span>;
     setsockopt(fd, c::SOL_SOCKET, c::SO_SNDBUF, size)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_send_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_send_buffer_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_SNDBUF).map(|size: u32| size <span class="kw">as </span>usize)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_domain(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;AddressFamily&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_domain(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;AddressFamily&gt; {
     <span class="kw">let </span>domain: c::c_int = getsockopt(fd, c::SOL_SOCKET, c::SO_DOMAIN)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(AddressFamily(
         domain.try_into().map_err(|<span class="kw">_</span>| io::Errno::OPNOTSUPP)<span class="question-mark">?</span>,
@@ -1421,73 +1423,73 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_acceptconn(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_acceptconn(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_ACCEPTCONN).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_oobinline(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_oobinline(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_OOBINLINE, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_oobinline(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_oobinline(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_OOBINLINE).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_reuseport(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_reuseport(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_REUSEPORT, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_reuseport(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_reuseport(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_REUSEPORT).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_protocol(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Protocol&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_protocol(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Protocol&gt;&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_PROTOCOL)
         .map(|raw: u32| RawProtocol::new(raw).map(Protocol::from_raw))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_cookie(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u64&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_cookie(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u64&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_COOKIE)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_incoming_cpu(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_incoming_cpu(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::SOL_SOCKET, c::SO_INCOMING_CPU)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_incoming_cpu(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_socket_incoming_cpu(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_SOCKET, c::SO_INCOMING_CPU, value)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_ttl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, ttl: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_ttl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, ttl: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IP_TTL, ttl)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_ttl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_ttl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IP_TTL)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_v6only(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, only_v6: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_v6only(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, only_v6: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IPV6, c::IPV6_V6ONLY, from_bool(only_v6))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_v6only(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_v6only(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_V6ONLY).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, multicast_loop: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, multicast_loop: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(
         fd,
         c::IPPROTO_IP,
@@ -1497,22 +1499,22 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IP_MULTICAST_LOOP).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_multicast_ttl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, multicast_ttl: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_multicast_ttl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, multicast_ttl: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IP_MULTICAST_TTL, multicast_ttl)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_multicast_ttl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_multicast_ttl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IP_MULTICAST_TTL)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, multicast_loop: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, multicast_loop: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(
         fd,
         c::IPPROTO_IPV6,
@@ -1522,23 +1524,23 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_multicast_loop(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_MULTICAST_LOOP).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_multicast_hops(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, multicast_hops: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_multicast_hops(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, multicast_hops: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IPV6_MULTICAST_HOPS, multicast_hops)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_multicast_hops(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_multicast_hops(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IPV6_MULTICAST_HOPS)
 }
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_add_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     interface: <span class="kw-2">&amp;</span>Ipv4Addr,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1548,7 +1550,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_add_membership_with_ifindex(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     address: <span class="kw-2">&amp;</span>Ipv4Addr,
     ifindex: i32,
@@ -1559,7 +1561,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_add_source_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     interface: <span class="kw-2">&amp;</span>Ipv4Addr,
     sourceaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -1570,7 +1572,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_drop_source_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     interface: <span class="kw-2">&amp;</span>Ipv4Addr,
     sourceaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
@@ -1581,7 +1583,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_add_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr,
     interface: u32,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1591,7 +1593,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_drop_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     interface: <span class="kw-2">&amp;</span>Ipv4Addr,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1601,7 +1603,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_drop_membership_with_ifindex(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv4Addr,
     address: <span class="kw-2">&amp;</span>Ipv4Addr,
     ifindex: i32,
@@ -1612,7 +1614,7 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_drop_membership(
-    fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;,
+    fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     multiaddr: <span class="kw-2">&amp;</span>Ipv6Addr,
     interface: u32,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1621,12 +1623,12 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_unicast_hops(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_unicast_hops(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u8&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_UNICAST_HOPS).map(|hops: c::c_int| hops <span class="kw">as </span>u8)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_unicast_hops(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, hops: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_unicast_hops(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, hops: <span class="prelude-ty">Option</span>&lt;u8&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>hops = <span class="kw">match </span>hops {
         <span class="prelude-val">Some</span>(hops) =&gt; hops.into(),
         <span class="prelude-val">None </span>=&gt; -<span class="number">1</span>,
@@ -1635,58 +1637,58 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_tos(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u8) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_tos(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u8) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IP_TOS, i32::from(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_tos(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_tos(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u8&gt; {
     <span class="kw">let </span>value: i32 = getsockopt(fd, c::IPPROTO_IP, c::IP_TOS)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(value <span class="kw">as </span>u8)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_recvtos(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_recvtos(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IP_RECVTOS, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_recvtos(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_recvtos(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IP_RECVTOS).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_recvtclass(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_recvtclass(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IPV6, c::IPV6_RECVTCLASS, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_recvtclass(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_recvtclass(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_RECVTCLASS).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_freebind(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ip_freebind(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IP, c::IP_FREEBIND, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_freebind(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_freebind(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IP, c::IP_FREEBIND).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_freebind(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_freebind(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IPV6, c::IPV6_FREEBIND, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_freebind(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_freebind(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_FREEBIND).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_original_dst(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;SocketAddrV4&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ip_original_dst(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;SocketAddrV4&gt; {
     <span class="kw">let </span>level = c::IPPROTO_IP;
     <span class="kw">let </span>optname = c::SO_ORIGINAL_DST;
     <span class="kw">let </span><span class="kw-2">mut </span>value = MaybeUninit::&lt;SocketAddrStorage&gt;::uninit();
@@ -1702,7 +1704,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_original_dst(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;SocketAddrV6&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_original_dst(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;SocketAddrV6&gt; {
     <span class="kw">let </span>level = c::IPPROTO_IPV6;
     <span class="kw">let </span>optname = c::IP6T_SO_ORIGINAL_DST;
     <span class="kw">let </span><span class="kw-2">mut </span>value = MaybeUninit::&lt;SocketAddrStorage&gt;::uninit();
@@ -1718,90 +1720,90 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_tclass(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_ipv6_tclass(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_IPV6, c::IPV6_TCLASS, value)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_tclass(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ipv6_tclass(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_IPV6, c::IPV6_TCLASS)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_nodelay(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, nodelay: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_nodelay(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, nodelay: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_NODELAY, from_bool(nodelay))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_nodelay(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_nodelay(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_NODELAY).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepcnt(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, count: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepcnt(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, count: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPCNT, count)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepcnt(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepcnt(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPCNT)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepidle(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, duration: Duration) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepidle(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, duration: Duration) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>secs: c::c_uint = duration_to_secs(duration)<span class="question-mark">?</span>;
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPIDLE, secs)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepidle(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;Duration&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepidle(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;Duration&gt; {
     <span class="kw">let </span>secs: c::c_uint = getsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPIDLE)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(Duration::from_secs(secs <span class="kw">as </span>u64))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepintvl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, duration: Duration) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_keepintvl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, duration: Duration) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>secs: c::c_uint = duration_to_secs(duration)<span class="question-mark">?</span>;
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPINTVL, secs)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepintvl(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;Duration&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_keepintvl(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;Duration&gt; {
     <span class="kw">let </span>secs: c::c_uint = getsockopt(fd, c::IPPROTO_TCP, c::TCP_KEEPINTVL)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(Duration::from_secs(secs <span class="kw">as </span>u64))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_user_timeout(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_user_timeout(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_USER_TIMEOUT, value)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_user_timeout(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_user_timeout(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;u32&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_USER_TIMEOUT)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_quickack(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_quickack(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_QUICKACK, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_quickack(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_quickack(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_QUICKACK).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_congestion(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_congestion(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: <span class="kw-2">&amp;</span>str) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>level = c::IPPROTO_TCP;
     <span class="kw">let </span>optname = c::TCP_CONGESTION;
     <span class="kw">let </span>optlen = value.len().try_into().unwrap();
     setsockopt_raw(fd, level, optname, value.as_ptr(), optlen)
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_congestion(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;String&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_congestion(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;String&gt; {
     <span class="kw">let </span>level = c::IPPROTO_TCP;
     <span class="kw">let </span>optname = c::TCP_CONGESTION;
     <span class="kw">const </span>OPTLEN: c::socklen_t = <span class="number">16</span>;
@@ -1811,7 +1813,7 @@
     <span class="kw">unsafe </span>{
         <span class="kw">let </span>value = value.assume_init();
         <span class="kw">let </span>slice: <span class="kw-2">&amp;</span>[u8] = core::mem::transmute(<span class="kw-2">&amp;</span>value[..optlen <span class="kw">as </span>usize]);
-        <span class="macro">assert!</span>(slice.iter().any(|b| <span class="kw-2">*</span>b == <span class="string">b&#39;\0&#39;</span>));
+        <span class="macro">assert!</span>(slice.iter().any(|b| <span class="kw-2">*</span>b == <span class="string">b'\0'</span>));
         <span class="prelude-val">Ok</span>(
             core::str::from_utf8(CStr::from_ptr(slice.as_ptr().cast()).to_bytes())
                 .unwrap()
@@ -1821,7 +1823,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_thin_linear_timeouts(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_thin_linear_timeouts(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(
         fd,
         c::IPPROTO_TCP,
@@ -1831,58 +1833,58 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_thin_linear_timeouts(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_thin_linear_timeouts(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_THIN_LINEAR_TIMEOUTS).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_cork(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_tcp_cork(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: bool) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::IPPROTO_TCP, c::TCP_CORK, from_bool(value))
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_cork(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tcp_cork(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;bool&gt; {
     getsockopt(fd, c::IPPROTO_TCP, c::TCP_CORK).map(to_bool)
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_peercred(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;UCred&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_socket_peercred(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;UCred&gt; {
     getsockopt(fd, c::SOL_SOCKET, linux_raw_sys::net::SO_PEERCRED)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_reg(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: XdpUmemReg) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_reg(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: XdpUmemReg) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_XDP, c::XDP_UMEM_REG, value)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_fill_ring_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_fill_ring_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_XDP, c::XDP_UMEM_FILL_RING, value)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_completion_ring_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_umem_completion_ring_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_XDP, c::XDP_UMEM_COMPLETION_RING, value)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_tx_ring_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_tx_ring_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_XDP, c::XDP_TX_RING, value)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_rx_ring_size(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_xdp_rx_ring_size(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, value: u32) -&gt; io::Result&lt;()&gt; {
     setsockopt(fd, c::SOL_XDP, c::XDP_RX_RING, value)
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_mmap_offsets(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;XdpMmapOffsets&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_mmap_offsets(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;XdpMmapOffsets&gt; {
     <span class="comment">// The kernel will write `xdp_mmap_offsets` or `xdp_mmap_offsets_v1` to the supplied pointer,
     // depending on the kernel version. Both structs only contain u64 values.
     // By using the larger of both as the parameter, we can shuffle the values to the non-v1 version
@@ -1892,7 +1894,7 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>optlen = core::mem::size_of::&lt;xdp_mmap_offsets&gt;().try_into().unwrap();
     <span class="macro">debug_assert!</span>(
         optlen <span class="kw">as </span>usize &gt;= core::mem::size_of::&lt;c::c_int&gt;(),
-        <span class="string">&quot;Socket APIs don&#39;t ever use `bool` directly&quot;
+        <span class="string">"Socket APIs don't ever use `bool` directly"
     </span>);
     <span class="kw">let </span><span class="kw-2">mut </span>value = MaybeUninit::&lt;xdp_mmap_offsets&gt;::zeroed();
     getsockopt_raw(fd, c::SOL_XDP, c::XDP_MMAP_OFFSETS, <span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>optlen)<span class="question-mark">?</span>;
@@ -1931,7 +1933,7 @@
         <span class="macro">assert_eq!</span>(
             optlen <span class="kw">as </span>usize,
             core::mem::size_of::&lt;xdp_mmap_offsets&gt;(),
-            <span class="string">&quot;unexpected getsockopt size&quot;
+            <span class="string">"unexpected getsockopt size"
         </span>);
         <span class="comment">// Safety: All members of xdp_mmap_offsets are u64 and thus are correctly initialized
         // by `MaybeUninit::&lt;xdp_statistics&gt;::zeroed()`
@@ -1965,13 +1967,13 @@
     }
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_statistics(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;XdpStatistics&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_statistics(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;XdpStatistics&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>optlen = core::mem::size_of::&lt;xdp_statistics&gt;().try_into().unwrap();
     <span class="macro">debug_assert!</span>(
         optlen <span class="kw">as </span>usize &gt;= core::mem::size_of::&lt;c::c_int&gt;(),
-        <span class="string">&quot;Socket APIs don&#39;t ever use `bool` directly&quot;
+        <span class="string">"Socket APIs don't ever use `bool` directly"
     </span>);
     <span class="kw">let </span><span class="kw-2">mut </span>value = MaybeUninit::&lt;xdp_statistics&gt;::zeroed();
     getsockopt_raw(fd, c::SOL_XDP, c::XDP_STATISTICS, <span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span>optlen)<span class="question-mark">?</span>;
@@ -1992,7 +1994,7 @@
         <span class="macro">assert_eq!</span>(
             optlen <span class="kw">as </span>usize,
             core::mem::size_of::&lt;xdp_statistics&gt;(),
-            <span class="string">&quot;unexpected getsockopt size&quot;
+            <span class="string">"unexpected getsockopt size"
         </span>);
         <span class="comment">// Safety: All members of xdp_statistics are u64 and thus are correctly initialized
         // by `MaybeUninit::&lt;xdp_statistics&gt;::zeroed()`
@@ -2008,9 +2010,9 @@
     }
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_options(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;XdpOptionsFlags&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_xdp_options(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;XdpOptionsFlags&gt; {
     getsockopt(fd, c::SOL_XDP, c::XDP_OPTIONS)
 }
 

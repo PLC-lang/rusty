@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lexer.rs`."><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lexer.rs`."><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -357,8 +359,8 @@
 </span><span class="kw">mod </span>tests;
 <span class="kw">mod </span>tokens;
 
-<span class="kw">pub struct </span>ParseSession&lt;<span class="lifetime">&#39;a</span>&gt; {
-    lexer: Lexer&lt;<span class="lifetime">&#39;a</span>, Token&gt;,
+<span class="kw">pub struct </span>ParseSession&lt;<span class="lifetime">'a</span>&gt; {
+    lexer: Lexer&lt;<span class="lifetime">'a</span>, Token&gt;,
     <span class="kw">pub </span>token: Token,
     <span class="kw">pub </span>diagnostics: Vec&lt;Diagnostic&gt;,
     <span class="kw">pub </span>closing_keywords: Vec&lt;Vec&lt;Token&gt;&gt;,
@@ -377,7 +379,7 @@
     (<span class="macro-nonterminal">$lexer</span>:expr, <span class="macro-nonterminal">$token</span>:expr, <span class="macro-nonterminal">$return_value</span>:expr) =&gt; {
         <span class="kw">if </span><span class="macro-nonterminal">$lexer</span>.token != <span class="macro-nonterminal">$token </span>{
             <span class="macro-nonterminal">$lexer</span>.accept_diagnostic(Diagnostic::unexpected_token_found(
-                <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="macro-nonterminal">$token</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="macro-nonterminal">$token</span>).as_str(),
                 <span class="macro-nonterminal">$lexer</span>.slice(),
                 <span class="macro-nonterminal">$lexer</span>.location(),
             ));
@@ -386,12 +388,12 @@
     };
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ParseSession&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ParseSession&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub fn </span>new(
-        l: Lexer&lt;<span class="lifetime">&#39;a</span>, Token&gt;,
+        l: Lexer&lt;<span class="lifetime">'a</span>, Token&gt;,
         id_provider: IdProvider,
         source_range_factory: SourceLocationFactory,
-    ) -&gt; ParseSession&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; ParseSession&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>lexer = ParseSession {
             lexer: l,
             token: Token::KeywordBy,
@@ -428,7 +430,7 @@
 
     <span class="kw">pub fn </span>consume_or_report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) {
         <span class="kw">if </span>!<span class="self">self</span>.try_consume(<span class="kw-2">&amp;</span>token) {
-            <span class="self">self</span>.accept_diagnostic(Diagnostic::missing_token(<span class="macro">format!</span>(<span class="string">&quot;{token:?}&quot;</span>).as_str(), <span class="self">self</span>.location()));
+            <span class="self">self</span>.accept_diagnostic(Diagnostic::missing_token(<span class="macro">format!</span>(<span class="string">"{token:?}"</span>).as_str(), <span class="self">self</span>.location()));
         }
     }
 
@@ -447,7 +449,7 @@
     }
 
     <span class="kw">pub fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.slice());
+        <span class="macro">log::trace!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.slice());
         <span class="self">self</span>.last_range = <span class="self">self</span>.range();
         <span class="self">self</span>.last_token = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.token, <span class="self">self</span>.lexer.next().unwrap_or(Token::End));
         <span class="self">self</span>.parse_progress += <span class="number">1</span>;
@@ -474,13 +476,13 @@
             | Token::KeywordEndRepeat
             | Token::KeywordEndMethod
             | Token::KeywordEndClass =&gt; {
-                <span class="kw">if </span>!<span class="self">self</span>.slice().to_string().contains(<span class="string">&#39;_&#39;</span>) {
+                <span class="kw">if </span>!<span class="self">self</span>.slice().to_string().contains(<span class="string">'_'</span>) {
                     <span class="self">self</span>.accept_diagnostic(
                         Diagnostic::new(<span class="macro">format!</span>(
-                            <span class="string">&quot;the words in {} should be separated by a `_`&quot;</span>,
+                            <span class="string">"the words in {} should be separated by a `_`"</span>,
                             <span class="self">self</span>.slice()
                         ))
-                        .with_error_code(<span class="string">&quot;E013&quot;</span>)
+                        .with_error_code(<span class="string">"E013"</span>)
                         .with_location(<span class="self">self</span>.location()),
                     );
                 }
@@ -517,8 +519,8 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_token) = <span class="self">self</span>.closing_keywords.pop() {
             <span class="kw">if </span>!expected_token.contains(<span class="kw-2">&amp;</span><span class="self">self</span>.token) {
                 <span class="self">self</span>.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, expected_token[<span class="number">0</span>]).as_str(),
-                    <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, <span class="self">self</span>.slice()).as_str(),
+                    <span class="macro">format!</span>(<span class="string">"{:?}"</span>, expected_token[<span class="number">0</span>]).as_str(),
+                    <span class="macro">format!</span>(<span class="string">"'{}'"</span>, <span class="self">self</span>.slice()).as_str(),
                     <span class="self">self</span>.location(),
                 ));
             } <span class="kw">else </span>{
@@ -553,11 +555,11 @@
             <span class="kw">let </span>range = start.start..end;
             <span class="self">self</span>.accept_diagnostic(Diagnostic::unexpected_token_found(
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:?}&quot;</span>,
+                    <span class="string">"{:?}"</span>,
                     <span class="self">self</span>.closing_keywords.last().and_then(|it| it.first()).unwrap_or(<span class="kw-2">&amp;</span>Token::End) <span class="comment">//only show first expected token
                 </span>)
                 .as_str(),
-                <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, <span class="self">self</span>.slice_region(range.clone())).as_str(),
+                <span class="macro">format!</span>(<span class="string">"'{}'"</span>, <span class="self">self</span>.slice_region(range.clone())).as_str(),
                 <span class="self">self</span>.source_range_factory.create_range(range),
             ));
         }
@@ -567,8 +569,8 @@
                 <span class="kw">let </span>closing = <span class="self">self
                     </span>.closing_keywords
                     .last()
-                    .expect(<span class="string">&quot;parse-recovery has no closing-keyword to recover from.&quot;</span>); <span class="comment">//illegal state! invalid use of parser-recovery?
-                </span><span class="kw">let </span>expected_tokens = <span class="macro">format!</span>(<span class="string">&quot;{closing:?}&quot;</span>);
+                    .expect(<span class="string">"parse-recovery has no closing-keyword to recover from."</span>); <span class="comment">//illegal state! invalid use of parser-recovery?
+                </span><span class="kw">let </span>expected_tokens = <span class="macro">format!</span>(<span class="string">"{closing:?}"</span>);
                 <span class="self">self</span>.accept_diagnostic(Diagnostic::missing_token(expected_tokens.as_str(), <span class="self">self</span>.location()));
             }
         }
@@ -581,7 +583,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>traversed = <span class="number">0</span>;
     <span class="kw">for </span>c <span class="kw">in </span>chars {
         traversed += c.len_utf8();
-        <span class="kw">if </span>c == <span class="string">&#39;}&#39; </span>{
+        <span class="kw">if </span>c == <span class="string">'}' </span>{
             lexer.bump(traversed);
             <span class="kw">return </span>Filter::Skip;
         }
@@ -595,14 +597,14 @@
     <span class="kw">let </span><span class="kw-2">mut </span>unclosed = <span class="number">1</span>;
     <span class="kw">let </span>chars = remainder.chars();
 
-    <span class="kw">let </span><span class="kw-2">mut </span>prev = <span class="string">&#39; &#39;</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>prev = <span class="string">' '</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>traversed = <span class="number">0</span>;
     <span class="kw">for </span>c <span class="kw">in </span>chars {
-        <span class="kw">if </span>c == <span class="string">&#39;*&#39; </span>&amp;&amp; prev == open {
+        <span class="kw">if </span>c == <span class="string">'*' </span>&amp;&amp; prev == open {
             unclosed += <span class="number">1</span>;
             <span class="comment">//Make sure the next action does not consume the star
-            </span>prev = <span class="string">&#39; &#39;</span>;
-        } <span class="kw">else if </span>c == close &amp;&amp; prev == <span class="string">&#39;*&#39; </span>{
+            </span>prev = <span class="string">' '</span>;
+        } <span class="kw">else if </span>c == close &amp;&amp; prev == <span class="string">'*' </span>{
             unclosed -= <span class="number">1</span>;
             prev = c;
         } <span class="kw">else </span>{
@@ -620,8 +622,8 @@
 
 <span class="kw">fn </span>get_closing_tag(open_tag: <span class="kw-2">&amp;</span>str) -&gt; (char, char) {
     <span class="kw">match </span>open_tag {
-        <span class="string">&quot;(*&quot; </span>=&gt; (<span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>),
-        <span class="string">&quot;/*&quot; </span>=&gt; (<span class="string">&#39;/&#39;</span>, <span class="string">&#39;/&#39;</span>),
+        <span class="string">"(*" </span>=&gt; (<span class="string">'('</span>, <span class="string">')'</span>),
+        <span class="string">"/*" </span>=&gt; (<span class="string">'/'</span>, <span class="string">'/'</span>),
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
@@ -633,14 +635,14 @@
         .chars()
         .nth(<span class="number">1</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
-            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
-            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
-            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
-            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
+            <span class="string">'x' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
+            <span class="string">'b' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
+            <span class="string">'w' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
+            <span class="string">'d' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
+            <span class="string">'l' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
-        .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
+        .expect(<span class="string">"Unknown access type - tokenizer/grammar incomplete?"</span>);
 
     <span class="prelude-val">Some</span>(access)
 }
@@ -652,28 +654,28 @@
         .chars()
         .nth(<span class="number">1</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;i&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Input),
-            <span class="string">&#39;q&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Output),
-            <span class="string">&#39;m&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Memory),
-            <span class="string">&#39;g&#39; </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Global),
+            <span class="string">'i' </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Input),
+            <span class="string">'q' </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Output),
+            <span class="string">'m' </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Memory),
+            <span class="string">'g' </span>=&gt; <span class="prelude-val">Some</span>(HardwareAccessType::Global),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
-        .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
+        .expect(<span class="string">"Unknown access type - tokenizer/grammar incomplete?"</span>);
     <span class="comment">//Find the size from position 2
     </span><span class="kw">let </span>access = lexer
         .slice()
         .chars()
         .nth(<span class="number">2</span>)
         .and_then(|c| <span class="kw">match </span>c.to_ascii_lowercase() {
-            <span class="string">&#39;x&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
-            <span class="string">&#39;b&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
-            <span class="string">&#39;w&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
-            <span class="string">&#39;d&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
-            <span class="string">&#39;l&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
-            <span class="string">&#39;*&#39; </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Template),
+            <span class="string">'x' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Bit),
+            <span class="string">'b' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Byte),
+            <span class="string">'w' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Word),
+            <span class="string">'d' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::DWord),
+            <span class="string">'l' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::LWord),
+            <span class="string">'*' </span>=&gt; <span class="prelude-val">Some</span>(DirectAccessType::Template),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
-        .expect(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
+        .expect(<span class="string">"Unknown access type - tokenizer/grammar incomplete?"</span>);
 
     <span class="prelude-val">Some</span>((hardware_type, access))
 }

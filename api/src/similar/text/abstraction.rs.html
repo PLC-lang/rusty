@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/text/abstraction.rs`."><title>abstraction.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/text/abstraction.rs`."><title>abstraction.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -458,7 +460,7 @@
 /// work with `&amp;str` and `&amp;[u8]` there are types that deref into those string
 /// slices such as `String` and `Vec&lt;u8&gt;`.
 ///
-/// This trait is used in the library whenever it&#39;s nice to be able to pass
+/// This trait is used in the library whenever it's nice to be able to pass
 /// strings of different types in.
 ///
 /// Requires the `text` feature.
@@ -486,7 +488,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; DiffableStrRef <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; DiffableStrRef <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>as_diffable_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
@@ -516,18 +518,18 @@
     </span><span class="kw">fn </span>tokenize_chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Tokenizes into unicode words.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>tokenize_unicode_words(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Tokenizes into unicode graphemes.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>tokenize_graphemes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Decodes the string (potentially) lossy.
     </span><span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;;
 
     <span class="doccomment">/// Decodes the string (potentially) lossy.
-    </span><span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt;;
+    </span><span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt;;
 
     <span class="doccomment">/// Checks if the string ends in a newline.
     </span><span class="kw">fn </span>ends_with_newline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
@@ -554,8 +556,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>lines = <span class="macro">vec!</span>[];
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>((idx, c)) = iter.next() {
-            <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>{
-                <span class="kw">if </span>iter.peek().map_or(<span class="bool-val">false</span>, |x| x.<span class="number">1 </span>== <span class="string">&#39;\n&#39;</span>) {
+            <span class="kw">if </span>c == <span class="string">'\r' </span>{
+                <span class="kw">if </span>iter.peek().map_or(<span class="bool-val">false</span>, |x| x.<span class="number">1 </span>== <span class="string">'\n'</span>) {
                     lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..=idx + <span class="number">1</span>]);
                     iter.next();
                     last_pos = idx + <span class="number">2</span>;
@@ -563,7 +565,7 @@
                     lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..=idx]);
                     last_pos = idx + <span class="number">1</span>;
                 }
-            } <span class="kw">else if </span>c == <span class="string">&#39;\n&#39; </span>{
+            } <span class="kw">else if </span>c == <span class="string">'\n' </span>{
                 lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..=idx]);
                 last_pos = idx + <span class="number">1</span>;
             }
@@ -581,11 +583,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.char_indices().peekable();
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>((idx, c)) = iter.next() {
-            <span class="kw">let </span>is_newline = c == <span class="string">&#39;\r&#39; </span>|| c == <span class="string">&#39;\n&#39;</span>;
+            <span class="kw">let </span>is_newline = c == <span class="string">'\r' </span>|| c == <span class="string">'\n'</span>;
             <span class="kw">let </span>start = idx;
             <span class="kw">let </span><span class="kw-2">mut </span>end = idx + c.len_utf8();
             <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, next_char)) = iter.peek() {
-                <span class="kw">if </span>(next_char == <span class="string">&#39;\r&#39; </span>|| next_char == <span class="string">&#39;\n&#39;</span>) != is_newline {
+                <span class="kw">if </span>(next_char == <span class="string">'\r' </span>|| next_char == <span class="string">'\n'</span>) != is_newline {
                     <span class="kw">break</span>;
                 }
                 iter.next();
@@ -624,12 +626,12 @@
             .collect()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>tokenize_unicode_words(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         unicode_segmentation::UnicodeSegmentation::split_word_bounds(<span class="self">self</span>).collect()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>tokenize_graphemes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         unicode_segmentation::UnicodeSegmentation::graphemes(<span class="self">self</span>, <span class="bool-val">true</span>).collect()
     }
@@ -638,12 +640,12 @@
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+    <span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
         Cow::Borrowed(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>ends_with_newline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.ends_with(<span class="kw-2">&amp;</span>[<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\n&#39;</span>][..])
+        <span class="self">self</span>.ends_with(<span class="kw-2">&amp;</span>[<span class="string">'\r'</span>, <span class="string">'\n'</span>][..])
     }
 
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -659,7 +661,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"bytes"</span>)]
 </span><span class="kw">mod </span>bytes_support {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -683,8 +685,8 @@
             <span class="kw">let </span><span class="kw-2">mut </span>lines = <span class="macro">vec!</span>[];
 
             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, end, c)) = iter.next() {
-                <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>{
-                    <span class="kw">if </span>iter.peek().map_or(<span class="bool-val">false</span>, |x| x.<span class="number">2 </span>== <span class="string">&#39;\n&#39;</span>) {
+                <span class="kw">if </span>c == <span class="string">'\r' </span>{
+                    <span class="kw">if </span>iter.peek().map_or(<span class="bool-val">false</span>, |x| x.<span class="number">2 </span>== <span class="string">'\n'</span>) {
                         lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..end + <span class="number">1</span>]);
                         iter.next();
                         last_pos = end + <span class="number">1</span>;
@@ -692,7 +694,7 @@
                         lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..end]);
                         last_pos = end;
                     }
-                } <span class="kw">else if </span>c == <span class="string">&#39;\n&#39; </span>{
+                } <span class="kw">else if </span>c == <span class="string">'\n' </span>{
                     lines.push(<span class="kw-2">&amp;</span><span class="self">self</span>[last_pos..end]);
                     last_pos = end;
                 }
@@ -710,9 +712,9 @@
             <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.char_indices().peekable();
 
             <span class="kw">while let </span><span class="prelude-val">Some</span>((start, <span class="kw-2">mut </span>end, c)) = iter.next() {
-                <span class="kw">let </span>is_newline = c == <span class="string">&#39;\r&#39; </span>|| c == <span class="string">&#39;\n&#39;</span>;
+                <span class="kw">let </span>is_newline = c == <span class="string">'\r' </span>|| c == <span class="string">'\n'</span>;
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, new_end, next_char)) = iter.peek() {
-                    <span class="kw">if </span>(next_char == <span class="string">&#39;\r&#39; </span>|| next_char == <span class="string">&#39;\n&#39;</span>) != is_newline {
+                    <span class="kw">if </span>(next_char == <span class="string">'\r' </span>|| next_char == <span class="string">'\n'</span>) != is_newline {
                         <span class="kw">break</span>;
                     }
                     iter.next();
@@ -743,12 +745,12 @@
             rv
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
         </span><span class="kw">fn </span>tokenize_unicode_words(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
             <span class="self">self</span>.words_with_breaks().map(|x| x.as_bytes()).collect()
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
         </span><span class="kw">fn </span>tokenize_graphemes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
             <span class="self">self</span>.graphemes().map(|x| x.as_bytes()).collect()
         }
@@ -763,12 +765,12 @@
             std::str::from_utf8(<span class="self">self</span>).ok()
         }
 
-        <span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+        <span class="kw">fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
             String::from_utf8_lossy(<span class="self">self</span>)
         }
 
         <span class="kw">fn </span>ends_with_newline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) = <span class="self">self</span>.last_byte() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">b'\r'</span>) | <span class="prelude-val">Some</span>(<span class="string">b'\n'</span>) = <span class="self">self</span>.last_byte() {
                 <span class="bool-val">true
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
@@ -792,109 +794,109 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_split_lines() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_lines(<span class="string">&quot;first\nsecond\rthird\r\nfourth\nlast&quot;</span>),
-        <span class="macro">vec!</span>[<span class="string">&quot;first\n&quot;</span>, <span class="string">&quot;second\r&quot;</span>, <span class="string">&quot;third\r\n&quot;</span>, <span class="string">&quot;fourth\n&quot;</span>, <span class="string">&quot;last&quot;</span>]
+        DiffableStr::tokenize_lines(<span class="string">"first\nsecond\rthird\r\nfourth\nlast"</span>),
+        <span class="macro">vec!</span>[<span class="string">"first\n"</span>, <span class="string">"second\r"</span>, <span class="string">"third\r\n"</span>, <span class="string">"fourth\n"</span>, <span class="string">"last"</span>]
     );
-    <span class="macro">assert_eq!</span>(DiffableStr::tokenize_lines(<span class="string">&quot;\n\n&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\n&quot;</span>]);
-    <span class="macro">assert_eq!</span>(DiffableStr::tokenize_lines(<span class="string">&quot;\n&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>]);
-    <span class="macro">assert!</span>(DiffableStr::tokenize_lines(<span class="string">&quot;&quot;</span>).is_empty());
+    <span class="macro">assert_eq!</span>(DiffableStr::tokenize_lines(<span class="string">"\n\n"</span>), <span class="macro">vec!</span>[<span class="string">"\n"</span>, <span class="string">"\n"</span>]);
+    <span class="macro">assert_eq!</span>(DiffableStr::tokenize_lines(<span class="string">"\n"</span>), <span class="macro">vec!</span>[<span class="string">"\n"</span>]);
+    <span class="macro">assert!</span>(DiffableStr::tokenize_lines(<span class="string">""</span>).is_empty());
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_split_words() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_words(<span class="string">&quot;foo    bar baz\n\n  aha&quot;</span>),
-        [<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;    &quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="string">&quot; &quot;</span>, <span class="string">&quot;baz&quot;</span>, <span class="string">&quot;\n\n  &quot;</span>, <span class="string">&quot;aha&quot;</span>]
+        DiffableStr::tokenize_words(<span class="string">"foo    bar baz\n\n  aha"</span>),
+        [<span class="string">"foo"</span>, <span class="string">"    "</span>, <span class="string">"bar"</span>, <span class="string">" "</span>, <span class="string">"baz"</span>, <span class="string">"\n\n  "</span>, <span class="string">"aha"</span>]
     );
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_split_chars() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_chars(<span class="string">&quot;abcfö❄️&quot;</span>),
-        <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;f&quot;</span>, <span class="string">&quot;ö&quot;</span>, <span class="string">&quot;❄&quot;</span>, <span class="string">&quot;\u{fe0f}&quot;</span>]
+        DiffableStr::tokenize_chars(<span class="string">"abcfö❄️"</span>),
+        <span class="macro">vec!</span>[<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>, <span class="string">"f"</span>, <span class="string">"ö"</span>, <span class="string">"❄"</span>, <span class="string">"\u{fe0f}"</span>]
     );
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+#[cfg(feature = <span class="string">"unicode"</span>)]
 </span><span class="kw">fn </span>test_split_graphemes() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_graphemes(<span class="string">&quot;abcfö❄️&quot;</span>),
-        <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;f&quot;</span>, <span class="string">&quot;ö&quot;</span>, <span class="string">&quot;❄️&quot;</span>]
+        DiffableStr::tokenize_graphemes(<span class="string">"abcfö❄️"</span>),
+        <span class="macro">vec!</span>[<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>, <span class="string">"f"</span>, <span class="string">"ö"</span>, <span class="string">"❄️"</span>]
     );
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+#[cfg(feature = <span class="string">"bytes"</span>)]
 </span><span class="kw">fn </span>test_split_lines_bytes() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_lines(<span class="string">&quot;first\nsecond\rthird\r\nfourth\nlast&quot;</span>.as_bytes()),
+        DiffableStr::tokenize_lines(<span class="string">"first\nsecond\rthird\r\nfourth\nlast"</span>.as_bytes()),
         <span class="macro">vec!</span>[
-            <span class="string">&quot;first\n&quot;</span>.as_bytes(),
-            <span class="string">&quot;second\r&quot;</span>.as_bytes(),
-            <span class="string">&quot;third\r\n&quot;</span>.as_bytes(),
-            <span class="string">&quot;fourth\n&quot;</span>.as_bytes(),
-            <span class="string">&quot;last&quot;</span>.as_bytes()
+            <span class="string">"first\n"</span>.as_bytes(),
+            <span class="string">"second\r"</span>.as_bytes(),
+            <span class="string">"third\r\n"</span>.as_bytes(),
+            <span class="string">"fourth\n"</span>.as_bytes(),
+            <span class="string">"last"</span>.as_bytes()
         ]
     );
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_lines(<span class="string">&quot;\n\n&quot;</span>.as_bytes()),
-        <span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>.as_bytes(), <span class="string">&quot;\n&quot;</span>.as_bytes()]
+        DiffableStr::tokenize_lines(<span class="string">"\n\n"</span>.as_bytes()),
+        <span class="macro">vec!</span>[<span class="string">"\n"</span>.as_bytes(), <span class="string">"\n"</span>.as_bytes()]
     );
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_lines(<span class="string">&quot;\n&quot;</span>.as_bytes()),
-        <span class="macro">vec!</span>[<span class="string">&quot;\n&quot;</span>.as_bytes()]
+        DiffableStr::tokenize_lines(<span class="string">"\n"</span>.as_bytes()),
+        <span class="macro">vec!</span>[<span class="string">"\n"</span>.as_bytes()]
     );
-    <span class="macro">assert!</span>(DiffableStr::tokenize_lines(<span class="string">&quot;&quot;</span>.as_bytes()).is_empty());
+    <span class="macro">assert!</span>(DiffableStr::tokenize_lines(<span class="string">""</span>.as_bytes()).is_empty());
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+#[cfg(feature = <span class="string">"bytes"</span>)]
 </span><span class="kw">fn </span>test_split_words_bytes() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_words(<span class="string">&quot;foo    bar baz\n\n  aha&quot;</span>.as_bytes()),
+        DiffableStr::tokenize_words(<span class="string">"foo    bar baz\n\n  aha"</span>.as_bytes()),
         [
-            <span class="kw-2">&amp;</span><span class="string">b&quot;foo&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;    &quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;bar&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot; &quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;baz&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;\n\n  &quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;aha&quot;</span>[..]
+            <span class="kw-2">&amp;</span><span class="string">b"foo"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"    "</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"bar"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b" "</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"baz"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"\n\n  "</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"aha"</span>[..]
         ]
     );
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+#[cfg(feature = <span class="string">"bytes"</span>)]
 </span><span class="kw">fn </span>test_split_chars_bytes() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_chars(<span class="string">&quot;abcfö❄️&quot;</span>.as_bytes()),
+        DiffableStr::tokenize_chars(<span class="string">"abcfö❄️"</span>.as_bytes()),
         <span class="macro">vec!</span>[
-            <span class="kw-2">&amp;</span><span class="string">b&quot;a&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;b&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;c&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;f&quot;</span>[..],
-            <span class="string">&quot;ö&quot;</span>.as_bytes(),
-            <span class="string">&quot;❄&quot;</span>.as_bytes(),
-            <span class="string">&quot;\u{fe0f}&quot;</span>.as_bytes()
+            <span class="kw-2">&amp;</span><span class="string">b"a"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"b"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"c"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"f"</span>[..],
+            <span class="string">"ö"</span>.as_bytes(),
+            <span class="string">"❄"</span>.as_bytes(),
+            <span class="string">"\u{fe0f}"</span>.as_bytes()
         ]
     );
 }
 
 <span class="attr">#[test]
-#[cfg(all(feature = <span class="string">&quot;bytes&quot;</span>, feature = <span class="string">&quot;unicode&quot;</span>))]
+#[cfg(all(feature = <span class="string">"bytes"</span>, feature = <span class="string">"unicode"</span>))]
 </span><span class="kw">fn </span>test_split_graphemes_bytes() {
     <span class="macro">assert_eq!</span>(
-        DiffableStr::tokenize_graphemes(<span class="string">&quot;abcfö❄️&quot;</span>.as_bytes()),
+        DiffableStr::tokenize_graphemes(<span class="string">"abcfö❄️"</span>.as_bytes()),
         <span class="macro">vec!</span>[
-            <span class="kw-2">&amp;</span><span class="string">b&quot;a&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;b&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;c&quot;</span>[..],
-            <span class="kw-2">&amp;</span><span class="string">b&quot;f&quot;</span>[..],
-            <span class="string">&quot;ö&quot;</span>.as_bytes(),
-            <span class="string">&quot;❄️&quot;</span>.as_bytes()
+            <span class="kw-2">&amp;</span><span class="string">b"a"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"b"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"c"</span>[..],
+            <span class="kw-2">&amp;</span><span class="string">b"f"</span>[..],
+            <span class="string">"ö"</span>.as_bytes(),
+            <span class="string">"❄️"</span>.as_bytes()
         ]
     );
 }

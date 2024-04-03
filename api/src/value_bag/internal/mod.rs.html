@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.7.0/src/internal/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.7.0/src/internal/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../value_bag/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -341,7 +343,7 @@
 <a href="#341" id="341">341</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The internal `Value` serialization API.
 //!
-//! This implementation isn&#39;t intended to be public. It may need to change
+//! This implementation isn't intended to be public. It may need to change
 //! for optimizations or to support new external serialization frameworks.
 
 </span><span class="kw">use crate</span>::{
@@ -350,37 +352,37 @@
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>cast;
-<span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>error;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>fill;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>fmt;
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>serde;
-<span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>sval;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;owned&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"owned"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>owned;
 
 <span class="comment">// NOTE: It takes less space to have separate variants for the presence
-// of a `TypeId` instead of using `Option&lt;T&gt;`, because `TypeId` doesn&#39;t
+// of a `TypeId` instead of using `Option&lt;T&gt;`, because `TypeId` doesn't
 // have a niche value
 </span><span class="doccomment">/// A container for a structured value for a specific kind of visitor.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Internal&lt;<span class="lifetime">&#39;v</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Internal&lt;<span class="lifetime">'v</span>&gt; {
     <span class="doccomment">/// A signed integer.
     </span>Signed(i64),
     <span class="doccomment">/// An unsigned integer.
     </span>Unsigned(u64),
     <span class="doccomment">/// An extra large signed integer.
-    </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;inline-i128&quot;</span>))]
-    </span>BigSigned(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>i128),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;inline-i128&quot;</span>)]
+    </span><span class="attr">#[cfg(not(feature = <span class="string">"inline-i128"</span>))]
+    </span>BigSigned(<span class="kw-2">&amp;</span><span class="lifetime">'v </span>i128),
+    <span class="attr">#[cfg(feature = <span class="string">"inline-i128"</span>)]
     </span>BigSigned(i128),
     <span class="doccomment">/// An extra large unsigned integer.
-    </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;inline-i128&quot;</span>))]
-    </span>BigUnsigned(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>u128),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;inline-i128&quot;</span>)]
+    </span><span class="attr">#[cfg(not(feature = <span class="string">"inline-i128"</span>))]
+    </span>BigUnsigned(<span class="kw-2">&amp;</span><span class="lifetime">'v </span>u128),
+    <span class="attr">#[cfg(feature = <span class="string">"inline-i128"</span>)]
     </span>BigUnsigned(u128),
     <span class="doccomment">/// A floating point number.
     </span>Float(f64),
@@ -389,68 +391,68 @@
     <span class="doccomment">/// A UTF8 codepoint.
     </span>Char(char),
     <span class="doccomment">/// A UTF8 string.
-    </span>Str(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str),
+    </span>Str(<span class="kw-2">&amp;</span><span class="lifetime">'v </span>str),
     <span class="doccomment">/// An empty value.
     </span><span class="prelude-val">None</span>,
 
     <span class="doccomment">/// A value that can be filled.
-    </span>Fill(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>Fill),
+    </span>Fill(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>Fill),
 
     <span class="doccomment">/// A debuggable value.
-    </span>AnonDebug(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Debug),
+    </span>AnonDebug(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Debug),
     <span class="doccomment">/// A debuggable value.
-    </span>Debug(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::DowncastDebug),
+    </span>Debug(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::DowncastDebug),
 
     <span class="doccomment">/// A displayable value.
-    </span>AnonDisplay(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Display),
+    </span>AnonDisplay(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Display),
     <span class="doccomment">/// A displayable value.
-    </span>Display(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::DowncastDisplay),
+    </span>Display(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::DowncastDisplay),
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
     </span><span class="doccomment">/// An error.
-    </span>AnonError(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+    </span>AnonError(<span class="kw-2">&amp;</span><span class="lifetime">'v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)),
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
     </span><span class="doccomment">/// An error.
-    </span>Error(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>error::DowncastError),
+    </span>Error(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>error::DowncastError),
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
     </span><span class="doccomment">/// A structured value from `sval`.
-    </span>AnonSval2(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>sval::v2::Value),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+    </span>AnonSval2(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>sval::v2::Value),
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
     </span><span class="doccomment">/// A structured value from `sval`.
-    </span>Sval2(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>sval::v2::DowncastValue),
+    </span>Sval2(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>sval::v2::DowncastValue),
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
     </span><span class="doccomment">/// A structured value from `serde`.
-    </span>AnonSerde1(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>serde::v1::Serialize),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+    </span>AnonSerde1(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>serde::v1::Serialize),
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
     </span><span class="doccomment">/// A structured value from `serde`.
-    </span>Serde1(<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>serde::v1::DowncastSerialize),
+    </span>Serde1(<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>serde::v1::DowncastSerialize),
 
     <span class="doccomment">/// A poisoned value.
-    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;owned&quot;</span>), allow(dead_code))]
-    </span>Poisoned(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    </span><span class="attr">#[cfg_attr(not(feature = <span class="string">"owned"</span>), allow(dead_code))]
+    </span>Poisoned(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
 }
 
 <span class="doccomment">/// The internal serialization contract.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>InternalVisitor&lt;<span class="lifetime">'v</span>&gt; {
     <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="kw">fn </span>borrowed_debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.debug(v)
     }
     <span class="kw">fn </span>display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="kw">fn </span>borrowed_display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.display(v)
     }
 
     <span class="kw">fn </span>u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
     <span class="kw">fn </span>i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: i64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
     <span class="kw">fn </span>u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="kw">fn </span>borrowed_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.u128(v)
     }
     <span class="kw">fn </span>i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="kw">fn </span>borrowed_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.i128(v)
     }
     <span class="kw">fn </span>f64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: f64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
@@ -458,42 +460,42 @@
     <span class="kw">fn </span>char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: char) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 
     <span class="kw">fn </span>str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.str(v)
     }
 
     <span class="kw">fn </span>none(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+    </span><span class="kw">fn </span>borrowed_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.error(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
     </span><span class="kw">fn </span>sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
+    </span><span class="kw">fn </span>borrowed_sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.sval2(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
     </span><span class="kw">fn </span>serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
+    </span><span class="kw">fn </span>borrowed_serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.serde1(v)
     }
 
-    <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
+    <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;v</span>, V: InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; + <span class="question-mark">?</span>Sized&gt; InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'v</span>, V: InternalVisitor&lt;<span class="lifetime">'v</span>&gt; + <span class="question-mark">?</span>Sized&gt; InternalVisitor&lt;<span class="lifetime">'v</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
     <span class="kw">fn </span>debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).debug(v)
     }
 
-    <span class="kw">fn </span>borrowed_debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_debug(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Debug) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_debug(v)
     }
 
@@ -501,7 +503,7 @@
         (<span class="kw-2">**</span><span class="self">self</span>).display(v)
     }
 
-    <span class="kw">fn </span>borrowed_display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_display(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>fmt::Display) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_display(v)
     }
 
@@ -517,7 +519,7 @@
         (<span class="kw-2">**</span><span class="self">self</span>).u128(v)
     }
 
-    <span class="kw">fn </span>borrowed_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_u128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>u128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_u128(v)
     }
 
@@ -525,7 +527,7 @@
         (<span class="kw-2">**</span><span class="self">self</span>).i128(v)
     }
 
-    <span class="kw">fn </span>borrowed_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_i128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>i128) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_i128(v)
     }
 
@@ -545,7 +547,7 @@
         (<span class="kw-2">**</span><span class="self">self</span>).str(v)
     }
 
-    <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>borrowed_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_str(v)
     }
 
@@ -553,52 +555,52 @@
         (<span class="kw-2">**</span><span class="self">self</span>).none()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+    </span><span class="kw">fn </span>error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).error(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">&#39;static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
+    </span><span class="kw">fn </span>borrowed_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>(<span class="kw">dyn </span>error::Error + <span class="lifetime">'static</span>)) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_error(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
     </span><span class="kw">fn </span>sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).sval2(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
+    </span><span class="kw">fn </span>borrowed_sval2(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>sval::v2::Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_sval2(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
     </span><span class="kw">fn </span>serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).serde1(v)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
-    </span><span class="kw">fn </span>borrowed_serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
+    </span><span class="kw">fn </span>borrowed_serde1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw">dyn </span>serde::v1::Serialize) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).borrowed_serde1(v)
     }
 
-    <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>poisoned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).poisoned(msg)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; ValueBag&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; ValueBag&lt;<span class="lifetime">'v</span>&gt; {
     <span class="doccomment">/// Visit the value using an internal visitor.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>internal_visit(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw">impl </span>InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>internal_visit(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw">impl </span>InternalVisitor&lt;<span class="lifetime">'v</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.inner.internal_visit(visitor)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;v</span>&gt; Internal&lt;<span class="lifetime">&#39;v</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; Internal&lt;<span class="lifetime">'v</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>by_ref&lt;<span class="lifetime">&#39;u</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;u </span><span class="self">self</span>) -&gt; Internal&lt;<span class="lifetime">&#39;u</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>by_ref&lt;<span class="lifetime">'u</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'u </span><span class="self">self</span>) -&gt; Internal&lt;<span class="lifetime">'u</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Internal::Signed(value) =&gt; Internal::Signed(<span class="kw-2">*</span>value),
             Internal::Unsigned(value) =&gt; Internal::Unsigned(<span class="kw-2">*</span>value),
@@ -618,19 +620,19 @@
             Internal::AnonDisplay(value) =&gt; Internal::AnonDisplay(<span class="kw-2">*</span>value),
             Internal::Display(value) =&gt; Internal::Display(<span class="kw-2">*</span>value),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
             </span>Internal::AnonError(value) =&gt; Internal::AnonError(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
             </span>Internal::Error(value) =&gt; Internal::Error(<span class="kw-2">*</span>value),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span>Internal::AnonSval2(value) =&gt; Internal::AnonSval2(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span>Internal::Sval2(value) =&gt; Internal::Sval2(<span class="kw-2">*</span>value),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span>Internal::AnonSerde1(value) =&gt; Internal::AnonSerde1(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span>Internal::Serde1(value) =&gt; Internal::Serde1(<span class="kw-2">*</span>value),
 
             Internal::Poisoned(msg) =&gt; Internal::Poisoned(msg),
@@ -640,7 +642,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>internal_visit(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw-2">mut </span>visitor: <span class="kw">impl </span>InternalVisitor&lt;<span class="lifetime">&#39;v</span>&gt;,
+        <span class="kw-2">mut </span>visitor: <span class="kw">impl </span>InternalVisitor&lt;<span class="lifetime">'v</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Internal::Signed(value) =&gt; visitor.i64(<span class="kw-2">*</span>value),
@@ -661,19 +663,19 @@
             Internal::AnonDisplay(value) =&gt; visitor.display(value),
             Internal::Display(value) =&gt; visitor.display(value.as_super()),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
             </span>Internal::AnonError(value) =&gt; visitor.borrowed_error(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;error&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"error"</span>)]
             </span>Internal::Error(value) =&gt; visitor.borrowed_error(value.as_super()),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span>Internal::AnonSval2(value) =&gt; visitor.borrowed_sval2(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;sval2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"sval2"</span>)]
             </span>Internal::Sval2(value) =&gt; visitor.borrowed_sval2(value.as_super()),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span>Internal::AnonSerde1(value) =&gt; visitor.borrowed_serde1(<span class="kw-2">*</span>value),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serde1&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"serde1"</span>)]
             </span>Internal::Serde1(value) =&gt; visitor.borrowed_serde1(value.as_super()),
 
             Internal::Poisoned(msg) =&gt; visitor.poisoned(<span class="kw-2">*</span>msg),

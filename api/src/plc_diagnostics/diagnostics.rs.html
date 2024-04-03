@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_diagnostics/src/diagnostics.rs`."><title>diagnostics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_diagnostics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_diagnostics/src/diagnostics.rs`."><title>diagnostics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_diagnostics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_diagnostics/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -342,11 +344,11 @@
 
 <span class="kw">pub mod </span>diagnostics_registry;
 
-<span class="kw">pub const </span>INTERNAL_LLVM_ERROR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;internal llvm codegen error&quot;</span>;
+<span class="kw">pub const </span>INTERNAL_LLVM_ERROR: <span class="kw-2">&amp;</span>str = <span class="string">"internal llvm codegen error"</span>;
 
 <span class="doccomment">/// a diagnostics severity
 </span><span class="attr">#[derive(Default, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = <span class="string">&quot;lowercase&quot;</span>)]
+#[serde(rename_all = <span class="string">"lowercase"</span>)]
 </span><span class="kw">pub enum </span>Severity {
     Ignore,
     <span class="attr">#[default]
@@ -367,7 +369,7 @@
     <span class="doccomment">/// Seconday locations relevant to the diagnostics
     </span>secondary_locations: <span class="prelude-ty">Option</span>&lt;Vec&lt;SourceLocation&gt;&gt;,
     <span class="doccomment">/// Error code for reference in the documentation
-    </span>error_code: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    </span>error_code: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     <span class="doccomment">/// Children of the current diagnostic
     </span>sub_diagnostics: Vec&lt;Diagnostic&gt;,
     <span class="doccomment">/// If the diagnostic is caused by an error, this field contains the original error
@@ -375,14 +377,14 @@
 }
 
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>Diagnostic {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">'static</span>)&gt; {
         <span class="self">self</span>.internal_error.as_ref().and_then(|it| it.source())
     }
 }
 
 <span class="kw">impl </span>From&lt;std::io::Error&gt; <span class="kw">for </span>Diagnostic {
     <span class="kw">fn </span>from(value: std::io::Error) -&gt; <span class="self">Self </span>{
-        Diagnostic::new(value.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(value.into())
+        Diagnostic::new(value.to_string()).with_error_code(<span class="string">"E002"</span>).with_internal_error(value.into())
     }
 }
 
@@ -393,7 +395,7 @@
             message: message.into(),
             primary_location: SourceLocation::undefined(),
             secondary_locations: Default::default(),
-            error_code: <span class="string">&quot;E001&quot;</span>, <span class="comment">//Default error if none specified
+            error_code: <span class="string">"E001"</span>, <span class="comment">//Default error if none specified
             </span>sub_diagnostics: Default::default(),
             internal_error: Default::default(),
         }
@@ -414,7 +416,7 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>with_error_code(<span class="kw-2">mut </span><span class="self">self</span>, error_code: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>with_error_code(<span class="kw-2">mut </span><span class="self">self</span>, error_code: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.error_code = error_code;
         <span class="self">self
     </span>}
@@ -441,13 +443,13 @@
 
         <span class="comment">// remove line, column from message
         </span><span class="kw">let </span>message = error.to_string();
-        <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = message.find(<span class="string">&quot;at line&quot;</span>) {
+        <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = message.find(<span class="string">"at line"</span>) {
             message.chars().take(pos).collect()
         } <span class="kw">else </span>{
             message
         };
         <span class="kw">let </span>range = factory.create_range_to_end_of_line(line, column);
-        Diagnostic::new(message).with_error_code(<span class="string">&quot;E088&quot;</span>).with_location(range)
+        Diagnostic::new(message).with_error_code(<span class="string">"E088"</span>).with_location(range)
     }
 }
 
@@ -464,11 +466,11 @@
 <span class="kw">impl </span>Eq <span class="kw">for </span>Diagnostic {}
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Diagnostic {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.get_message())<span class="question-mark">?</span>;
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.get_message())<span class="question-mark">?</span>;
         <span class="kw">let </span>location = <span class="self">self</span>.get_location();
         <span class="kw">if </span>!location.is_undefined() {
-            <span class="macro">write!</span>(f, <span class="string">&quot; at: {location}&quot;</span>)
+            <span class="macro">write!</span>(f, <span class="string">" at: {location}"</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
@@ -488,7 +490,7 @@
         <span class="self">self</span>.secondary_locations.as_deref()
     }
 
-    <span class="kw">pub fn </span>get_error_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">pub fn </span>get_error_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="self">self</span>.error_code
     }
 
@@ -500,74 +502,74 @@
 <span class="comment">//Helper methods for diagnostics
 </span><span class="kw">impl </span>Diagnostic {
     <span class="kw">pub fn </span>unexpected_token_found(expected: <span class="kw-2">&amp;</span>str, found: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Unexpected token: expected {expected} but found {found}&quot;</span>))
-            .with_error_code(<span class="string">&quot;E007&quot;</span>)
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unexpected token: expected {expected} but found {found}"</span>))
+            .with_error_code(<span class="string">"E007"</span>)
             .with_location(range)
     }
 
     <span class="kw">pub fn </span>missing_function(location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="string">&quot;Cannot generate code outside of function context.&quot;</span>)
-            .with_error_code(<span class="string">&quot;E072&quot;</span>)
+        Diagnostic::new(<span class="string">"Cannot generate code outside of function context."</span>)
+            .with_error_code(<span class="string">"E072"</span>)
             .with_location(location)
     }
 
     <span class="kw">pub fn </span>codegen_error(message: <span class="kw">impl </span>Into&lt;String&gt;, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(message).with_location(location).with_error_code(<span class="string">&quot;E071&quot;</span>)
+        Diagnostic::new(message).with_location(location).with_error_code(<span class="string">"E071"</span>)
     }
 
     <span class="kw">pub fn </span>llvm_error(file: <span class="kw-2">&amp;</span>str, llvm_error: <span class="kw-2">&amp;</span>str) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;{file}: Internal llvm error: {:}&quot;</span>, llvm_error)).with_error_code(<span class="string">&quot;E005&quot;</span>)
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{file}: Internal llvm error: {:}"</span>, llvm_error)).with_error_code(<span class="string">"E005"</span>)
     }
 
     <span class="kw">pub fn </span>missing_token(expected_token: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Missing expected Token {expected_token}&quot;</span>))
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Missing expected Token {expected_token}"</span>))
             .with_location(range)
-            .with_error_code(<span class="string">&quot;E006&quot;</span>)
+            .with_error_code(<span class="string">"E006"</span>)
     }
 
     <span class="kw">pub fn </span>invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::new(
              <span class="macro">format!</span>(
-                <span class="string">&quot;Invalid parameter count. Received {received} parameters while {expected} parameters were expected.&quot;</span>,
-            )).with_error_code(<span class="string">&quot;E032&quot;</span>)
+                <span class="string">"Invalid parameter count. Received {received} parameters while {expected} parameters were expected."</span>,
+            )).with_error_code(<span class="string">"E032"</span>)
             .with_location(location)
     }
 
     <span class="kw">pub fn </span>unknown_type(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Unknown type: {type_name:}&quot;</span>)).with_error_code(<span class="string">&quot;E052&quot;</span>).with_location(location)
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unknown type: {type_name:}"</span>)).with_error_code(<span class="string">"E052"</span>).with_location(location)
     }
 
     <span class="kw">pub fn </span>unresolved_reference(reference: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Could not resolve reference to {reference:}&quot;</span>))
-            .with_error_code(<span class="string">&quot;E048&quot;</span>)
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Could not resolve reference to {reference:}"</span>))
+            .with_error_code(<span class="string">"E048"</span>)
             .with_location(location)
     }
 
     <span class="kw">pub fn </span>invalid_assignment(right_type: <span class="kw-2">&amp;</span>str, left_type: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Invalid assignment: cannot assign &#39;{right_type}&#39; to &#39;{left_type}&#39;&quot;</span>))
-            .with_error_code(<span class="string">&quot;E037&quot;</span>)
+        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Invalid assignment: cannot assign '{right_type}' to '{left_type}'"</span>))
+            .with_error_code(<span class="string">"E037"</span>)
             .with_location(location)
     }
 
     <span class="kw">pub fn </span>cannot_generate_initializer(variable_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         <span class="self">Self</span>::new(<span class="macro">format!</span>(
-            <span class="string">&quot;Cannot generate literal initializer for &#39;{variable_name}&#39;: Value cannot be derived&quot;
+            <span class="string">"Cannot generate literal initializer for '{variable_name}': Value cannot be derived"
         </span>))
-        .with_error_code(<span class="string">&quot;E041&quot;</span>)
+        .with_error_code(<span class="string">"E041"</span>)
         .with_location(location)
     }
 
     <span class="kw">pub fn </span>cannot_generate_call_statement(operator: <span class="kw-2">&amp;</span>AstNode) -&gt; Diagnostic {
         <span class="comment">//TODO: We could probably get a better slice here
         </span>Diagnostic::codegen_error(
-            <span class="macro">format!</span>(<span class="string">&quot;cannot generate call statement for {:?}&quot;</span>, operator),
+            <span class="macro">format!</span>(<span class="string">"cannot generate call statement for {:?}"</span>, operator),
             operator.get_location(),
         )
     }
 
     <span class="kw">pub fn </span>cannot_generate_from_empty_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::codegen_error(
-            <span class="macro">format!</span>(<span class="string">&quot;Cannot generate {type_name} from empty literal&quot;</span>).as_str(),
+            <span class="macro">format!</span>(<span class="string">"Cannot generate {type_name} from empty literal"</span>).as_str(),
             location,
         )
     }
@@ -576,7 +578,7 @@
 <span class="comment">// CFC related diagnostics
 </span><span class="kw">impl </span>Diagnostic {
     <span class="kw">pub fn </span>unnamed_control(location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="string">&quot;Unnamed control&quot;</span>).with_error_code(<span class="string">&quot;E087&quot;</span>).with_location(location)
+        Diagnostic::new(<span class="string">"Unnamed control"</span>).with_error_code(<span class="string">"E087"</span>).with_location(location)
     }
 }
 
@@ -589,53 +591,53 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_build_diagnostic_msg() {
         <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-        <span class="kw">let </span>file = SimpleFile::new(<span class="string">&quot;test.st&quot;</span>.to_string(), <span class="string">&quot;source&quot;</span>.to_string());
+        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
         <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
         <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">4 </span>};
         <span class="kw">let </span>res = reporter.build_diagnostic_msg(
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
-            <span class="string">&quot;E001&quot;</span>,
+            <span class="string">"E001"</span>,
             <span class="kw-2">&amp;</span>Severity::Error,
-            <span class="string">&quot;This is an error&quot;</span>,
+            <span class="string">"This is an error"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(res, <span class="string">&quot;test.st:4:1:{4:1-4:4}: error[E001]: This is an error&quot;</span>);
+        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1:{4:1-4:4}: error[E001]: This is an error"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_build_diagnostic_msg_equal_start_end() {
         <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-        <span class="kw">let </span>file = SimpleFile::new(<span class="string">&quot;test.st&quot;</span>.to_string(), <span class="string">&quot;source&quot;</span>.to_string());
+        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
         <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
         <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
         <span class="kw">let </span>res = reporter.build_diagnostic_msg(
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
-            <span class="string">&quot;E001&quot;</span>,
+            <span class="string">"E001"</span>,
             <span class="kw-2">&amp;</span>Severity::Error,
-            <span class="string">&quot;This is an error&quot;</span>,
+            <span class="string">"This is an error"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(res, <span class="string">&quot;test.st:4:1: error[E001]: This is an error&quot;</span>);
+        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1: error[E001]: This is an error"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_build_diagnostic_msg_no_location() {
         <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-        <span class="kw">let </span>file = SimpleFile::new(<span class="string">&quot;test.st&quot;</span>.to_string(), <span class="string">&quot;source&quot;</span>.to_string());
+        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
         <span class="kw">let </span>res = reporter.build_diagnostic_msg(
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
-            <span class="string">&quot;E001&quot;</span>,
+            <span class="string">"E001"</span>,
             <span class="kw-2">&amp;</span>Severity::Error,
-            <span class="string">&quot;This is an error&quot;</span>,
+            <span class="string">"This is an error"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(res, <span class="string">&quot;test.st: error[E001]: This is an error&quot;</span>);
+        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st: error[E001]: This is an error"</span>);
     }
 
     <span class="attr">#[test]
@@ -647,21 +649,21 @@
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
-            <span class="string">&quot;E001&quot;</span>,
+            <span class="string">"E001"</span>,
             <span class="kw-2">&amp;</span>Severity::Error,
-            <span class="string">&quot;This is an error&quot;</span>,
+            <span class="string">"This is an error"</span>,
         );
 
-        <span class="macro">assert_eq!</span>(res, <span class="string">&quot;error[E001]: This is an error&quot;</span>);
+        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_build_diagnostic_msg_no_file_no_location() {
         <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
         <span class="kw">let </span>res =
-            reporter.build_diagnostic_msg(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="string">&quot;E001&quot;</span>, <span class="kw-2">&amp;</span>Severity::Error, <span class="string">&quot;This is an error&quot;</span>);
+            reporter.build_diagnostic_msg(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="string">"E001"</span>, <span class="kw-2">&amp;</span>Severity::Error, <span class="string">"This is an error"</span>);
 
-        <span class="macro">assert_eq!</span>(res, <span class="string">&quot;error[E001]: This is an error&quot;</span>);
+        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/xml_parser.rs`."><title>xml_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/xml_parser.rs`."><title>xml_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -206,9 +208,6 @@
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>ast::{
@@ -267,13 +266,13 @@
 
     <span class="kw">loop </span>{
         <span class="kw">match </span>reader.read_event()<span class="question-mark">? </span>{
-            Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;pou&quot; </span>=&gt; {
+            Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"pou" </span>=&gt; {
                 project.pous.push(Pou::visit(<span class="kw-2">&amp;mut </span>reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>)
             }
-            Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;project&quot; </span>|| tag.name().as_ref() == <span class="string">b&quot;pous&quot; </span>=&gt; {
-                <span class="macro">todo!</span>(<span class="string">&quot;Project support comming in #977&quot;</span>)
+            Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"project" </span>|| tag.name().as_ref() == <span class="string">b"pous" </span>=&gt; {
+                <span class="macro">todo!</span>(<span class="string">"Project support comming in #977"</span>)
             }
-            Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;project&quot; </span>|| tag.name().as_ref() == <span class="string">b&quot;pous&quot; </span>=&gt; <span class="kw">break</span>,
+            Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"project" </span>|| tag.name().as_ref() == <span class="string">b"pous" </span>=&gt; <span class="kw">break</span>,
             Event::Eof =&gt; <span class="kw">break</span>,
             <span class="kw">_ </span>=&gt; {}
         }
@@ -291,7 +290,7 @@
     <span class="comment">//Register the source file with the diagnostician
     </span>diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); <span class="comment">// TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
     </span><span class="kw">if </span>diagnostician.handle(<span class="kw-2">&amp;</span>errors) == Severity::Error {
-        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Compilation aborted due to parse errors&quot;</span>))
+        <span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">"Compilation aborted due to parse errors"</span>))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(unit)
     }
@@ -307,7 +306,7 @@
     // XXX: consecutive call-statements are nested in a single ast-statement. this will be broken up with temporary variables in the future
     </span><span class="kw">let </span><span class="kw-2">mut </span>project = <span class="kw">match </span>visit(<span class="kw-2">&amp;</span>source.source) {
         <span class="prelude-val">Ok</span>(project) =&gt; project,
-        <span class="prelude-val">Err</span>(why) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;cfc errors need to be transformed into diagnostics; {why:?}&quot;</span>),
+        <span class="prelude-val">Err</span>(why) =&gt; <span class="macro">todo!</span>(<span class="string">"cfc errors need to be transformed into diagnostics; {why:?}"</span>),
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = <span class="macro">vec!</span>[];
@@ -318,7 +317,7 @@
         ParseSession::new(<span class="kw-2">&amp;</span>project, source.get_location_str(), id_provider, linkage, source_location_factory);
     <span class="comment">// Parse the declaration data field
     </span><span class="kw">let </span><span class="prelude-val">Some</span>((unit, declaration_diagnostics)) = parser.try_parse_declaration() <span class="kw">else </span>{
-        <span class="macro">unimplemented!</span>(<span class="string">&quot;XML schemas without text declarations are not yet supported&quot;</span>)
+        <span class="macro">unimplemented!</span>(<span class="string">"XML schemas without text declarations are not yet supported"</span>)
     };
     diagnostics.extend(declaration_diagnostics);
 
@@ -329,19 +328,19 @@
     (unit.with_implementations(implementations), diagnostics)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseSession&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; {
-    project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project&lt;<span class="lifetime">&#39;xml</span>&gt;,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseSession&lt;<span class="lifetime">'parse</span>, <span class="lifetime">'xml</span>&gt; {
+    project: <span class="kw-2">&amp;</span><span class="lifetime">'parse </span>Project&lt;<span class="lifetime">'xml</span>&gt;,
     id_provider: IdProvider,
     linkage: LinkageType,
-    file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    file_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     range_factory: SourceLocationFactory,
     diagnostics: Vec&lt;Diagnostic&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; ParseSession&lt;<span class="lifetime">&#39;parse</span>, <span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'parse</span>, <span class="lifetime">'xml</span>&gt; ParseSession&lt;<span class="lifetime">'parse</span>, <span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>new(
-        project: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parse </span>Project&lt;<span class="lifetime">&#39;xml</span>&gt;,
-        file_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        project: <span class="kw-2">&amp;</span><span class="lifetime">'parse </span>Project&lt;<span class="lifetime">'xml</span>&gt;,
+        file_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         id_provider: IdProvider,
         linkage: LinkageType,
         range_factory: SourceLocationFactory,
@@ -351,14 +350,11 @@
 
     <span class="doccomment">/// parse the compilation unit from the addData field
     </span><span class="kw">fn </span>try_parse_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(CompilationUnit, Vec&lt;Diagnostic&gt;)&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(content) = <span class="self">self
+        <span class="kw">let </span>content = <span class="self">self
             </span>.project
             .pous
             .first()
-            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))
-        <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">None</span>;
-        };
+            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))<span class="question-mark">?</span>;
 
         <span class="comment">//TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration

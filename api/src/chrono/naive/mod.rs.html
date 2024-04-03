@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/naive/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/naive/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -206,7 +208,7 @@
 <span class="kw">pub use </span><span class="self">self</span>::date::{NaiveDate, NaiveDateDaysIterator, NaiveDateWeeksIterator};
 <span class="attr">#[allow(deprecated)]
 </span><span class="kw">pub use </span><span class="self">self</span>::date::{MAX_DATE, MIN_DATE};
-<span class="attr">#[cfg(feature = <span class="string">&quot;rustc-serialize&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"rustc-serialize"</span>)]
 #[allow(deprecated)]
 </span><span class="kw">pub use </span><span class="self">self</span>::datetime::rustc_serialize::TsSeconds;
 <span class="attr">#[allow(deprecated)]
@@ -214,7 +216,7 @@
 <span class="kw">pub use </span><span class="self">self</span>::isoweek::IsoWeek;
 <span class="kw">pub use </span><span class="self">self</span>::time::NaiveTime;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;__internal_bench&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"__internal_bench"</span>)]
 #[doc(hidden)]
 </span><span class="kw">pub use </span><span class="self">self</span>::internals::YearFlags <span class="kw">as </span>__BenchYearFlags;
 
@@ -257,7 +259,7 @@
         // Do not construct an intermediate date beyond `self.date`, because that may be out of
         // range if `date` is close to `NaiveDate::MAX`.
         </span><span class="kw">let </span>days = start - ref_day - <span class="kw">if </span>start &gt; ref_day { <span class="number">7 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
-        <span class="macro">expect!</span>(<span class="self">self</span>.date.add_days(days), <span class="string">&quot;first weekday out of range for `NaiveDate`&quot;</span>)
+        <span class="macro">expect!</span>(<span class="self">self</span>.date.add_days(days), <span class="string">"first weekday out of range for `NaiveDate`"</span>)
     }
 
     <span class="doccomment">/// Returns a date representing the last day of the week.
@@ -285,7 +287,7 @@
         // Do not construct an intermediate date before `self.date` (like with `first_day()`),
         // because that may be out of range if `date` is close to `NaiveDate::MIN`.
         </span><span class="kw">let </span>days = end - ref_day + <span class="kw">if </span>end &lt; ref_day { <span class="number">7 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
-        <span class="macro">expect!</span>(<span class="self">self</span>.date.add_days(days), <span class="string">&quot;last weekday out of range for `NaiveDate`&quot;</span>)
+        <span class="macro">expect!</span>(<span class="self">self</span>.date.add_days(days), <span class="string">"last weekday out of range for `NaiveDate`"</span>)
     }
 
     <span class="doccomment">/// Returns a [`RangeInclusive&lt;T&gt;`] representing the whole week bounded by
@@ -316,7 +318,7 @@
 <span class="doccomment">/// A duration in calendar days.
 ///
 /// This is useful because when using `TimeDelta` it is possible that adding `TimeDelta::days(1)`
-/// doesn&#39;t increment the day value as expected due to it being a fixed number of seconds. This
+/// doesn't increment the day value as expected due to it being a fixed number of seconds. This
 /// difference applies only when dealing with `DateTime&lt;TimeZone&gt;` data types and in other cases
 /// `TimeDelta::days(n)` and `Days::new(n)` are equivalent.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -331,13 +333,13 @@
 
 <span class="doccomment">/// Serialization/Deserialization of naive types in alternate formats
 ///
-/// The various modules in here are intended to be used with serde&#39;s [`with`
+/// The various modules in here are intended to be used with serde's [`with`
 /// annotation][1] to serialize as something other than the default [RFC
 /// 3339][2] format.
 ///
 /// [1]: https://serde.rs/attributes.html#field-attributes
 /// [2]: https://tools.ietf.org/html/rfc3339
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">pub mod </span>serde {
     <span class="kw">pub use </span><span class="kw">super</span>::datetime::serde::<span class="kw-2">*</span>;
 }
@@ -349,19 +351,19 @@
     </span><span class="kw">fn </span>test_naiveweek() {
         <span class="kw">let </span>date = NaiveDate::from_ymd_opt(<span class="number">2022</span>, <span class="number">5</span>, <span class="number">18</span>).unwrap();
         <span class="kw">let </span>asserts = [
-            (Weekday::Mon, <span class="string">&quot;Mon 2022-05-16&quot;</span>, <span class="string">&quot;Sun 2022-05-22&quot;</span>),
-            (Weekday::Tue, <span class="string">&quot;Tue 2022-05-17&quot;</span>, <span class="string">&quot;Mon 2022-05-23&quot;</span>),
-            (Weekday::Wed, <span class="string">&quot;Wed 2022-05-18&quot;</span>, <span class="string">&quot;Tue 2022-05-24&quot;</span>),
-            (Weekday::Thu, <span class="string">&quot;Thu 2022-05-12&quot;</span>, <span class="string">&quot;Wed 2022-05-18&quot;</span>),
-            (Weekday::Fri, <span class="string">&quot;Fri 2022-05-13&quot;</span>, <span class="string">&quot;Thu 2022-05-19&quot;</span>),
-            (Weekday::Sat, <span class="string">&quot;Sat 2022-05-14&quot;</span>, <span class="string">&quot;Fri 2022-05-20&quot;</span>),
-            (Weekday::Sun, <span class="string">&quot;Sun 2022-05-15&quot;</span>, <span class="string">&quot;Sat 2022-05-21&quot;</span>),
+            (Weekday::Mon, <span class="string">"Mon 2022-05-16"</span>, <span class="string">"Sun 2022-05-22"</span>),
+            (Weekday::Tue, <span class="string">"Tue 2022-05-17"</span>, <span class="string">"Mon 2022-05-23"</span>),
+            (Weekday::Wed, <span class="string">"Wed 2022-05-18"</span>, <span class="string">"Tue 2022-05-24"</span>),
+            (Weekday::Thu, <span class="string">"Thu 2022-05-12"</span>, <span class="string">"Wed 2022-05-18"</span>),
+            (Weekday::Fri, <span class="string">"Fri 2022-05-13"</span>, <span class="string">"Thu 2022-05-19"</span>),
+            (Weekday::Sat, <span class="string">"Sat 2022-05-14"</span>, <span class="string">"Fri 2022-05-20"</span>),
+            (Weekday::Sun, <span class="string">"Sun 2022-05-15"</span>, <span class="string">"Sat 2022-05-21"</span>),
         ];
         <span class="kw">for </span>(start, first_day, last_day) <span class="kw">in </span>asserts {
             <span class="kw">let </span>week = date.week(start);
             <span class="kw">let </span>days = week.days();
-            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.first_day()), NaiveDate::parse_from_str(first_day, <span class="string">&quot;%a %Y-%m-%d&quot;</span>));
-            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.last_day()), NaiveDate::parse_from_str(last_day, <span class="string">&quot;%a %Y-%m-%d&quot;</span>));
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.first_day()), NaiveDate::parse_from_str(first_day, <span class="string">"%a %Y-%m-%d"</span>));
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.last_day()), NaiveDate::parse_from_str(last_day, <span class="string">"%a %Y-%m-%d"</span>));
             <span class="macro">assert!</span>(days.contains(<span class="kw-2">&amp;</span>date));
         }
     }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/collect/consumer.rs`."><title>consumer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/collect/consumer.rs`."><title>consumer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -190,16 +192,16 @@
 <span class="kw">use </span>std::ptr;
 <span class="kw">use </span>std::slice;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CollectConsumer&lt;<span class="lifetime">&#39;c</span>, T: Send&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CollectConsumer&lt;<span class="lifetime">'c</span>, T: Send&gt; {
     <span class="doccomment">/// See `CollectResult` for explanation of why this is not a slice
     </span>start: SendPtr&lt;T&gt;,
     len: usize,
-    marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="kw-2">mut </span>T&gt;,
+    marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'c </span><span class="kw-2">mut </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: Send&gt; CollectConsumer&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: Send&gt; CollectConsumer&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="doccomment">/// Create a collector for `len` items in the unused capacity of the vector.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>appender(vec: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, len: usize) -&gt; CollectConsumer&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>appender(vec: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, len: usize) -&gt; CollectConsumer&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="kw">let </span>start = vec.len();
         <span class="macro">assert!</span>(vec.capacity() - start &gt;= len);
 
@@ -210,7 +212,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T: Send + <span class="lifetime">&#39;c</span>&gt; CollectConsumer&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T: Send + <span class="lifetime">'c</span>&gt; CollectConsumer&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="doccomment">/// The target memory is considered uninitialized, and will be
     /// overwritten without reading or dropping existing values.
     </span><span class="kw">unsafe fn </span>new(start: <span class="kw-2">*mut </span>T, len: usize) -&gt; <span class="self">Self </span>{
@@ -227,7 +229,7 @@
 /// This is a proxy owner of the elements in the slice; when it drops,
 /// the elements will be dropped, unless its ownership is released before then.
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CollectResult&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="doccomment">/// This pointer and length has the same representation as a slice,
     /// but retains the provenance of the entire array so that we can merge
     /// these regions together in `CollectReducer`.
@@ -237,12 +239,12 @@
     </span>initialized_len: usize,
     <span class="doccomment">/// Lifetime invariance guarantees that the data flows from consumer to result,
     /// especially for the `scope_fn` callback in `Collect::with_consumer`.
-    </span>invariant_lifetime: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="kw-2">mut &amp;</span><span class="lifetime">&#39;c </span><span class="kw-2">mut </span>[T]&gt;,
+    </span>invariant_lifetime: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'c </span><span class="kw-2">mut &amp;</span><span class="lifetime">'c </span><span class="kw-2">mut </span>[T]&gt;,
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; Send <span class="kw">for </span>CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; <span class="kw">where </span>T: Send {}
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'c</span>, T&gt; Send <span class="kw">for </span>CollectResult&lt;<span class="lifetime">'c</span>, T&gt; <span class="kw">where </span>T: Send {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T&gt; CollectResult&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="doccomment">/// The current length of the collect result
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.initialized_len
@@ -256,7 +258,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; Drop <span class="kw">for </span>CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T&gt; Drop <span class="kw">for </span>CollectResult&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Drop the first `self.initialized_len` elements, which have been recorded
         // to be initialized by the folder.
@@ -269,10 +271,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T: Send + <span class="lifetime">&#39;c</span>&gt; Consumer&lt;T&gt; <span class="kw">for </span>CollectConsumer&lt;<span class="lifetime">&#39;c</span>, T&gt; {
-    <span class="kw">type </span>Folder = CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T: Send + <span class="lifetime">'c</span>&gt; Consumer&lt;T&gt; <span class="kw">for </span>CollectConsumer&lt;<span class="lifetime">'c</span>, T&gt; {
+    <span class="kw">type </span>Folder = CollectResult&lt;<span class="lifetime">'c</span>, T&gt;;
     <span class="kw">type </span>Reducer = CollectReducer;
-    <span class="kw">type </span><span class="prelude-ty">Result </span>= CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt;;
+    <span class="kw">type </span><span class="prelude-ty">Result </span>= CollectResult&lt;<span class="lifetime">'c</span>, T&gt;;
 
     <span class="kw">fn </span>split_at(<span class="self">self</span>, index: usize) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, CollectReducer) {
         <span class="kw">let </span>CollectConsumer { start, len, .. } = <span class="self">self</span>;
@@ -305,13 +307,13 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T: Send + <span class="lifetime">&#39;c</span>&gt; Folder&lt;T&gt; <span class="kw">for </span>CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T: Send + <span class="lifetime">'c</span>&gt; Folder&lt;T&gt; <span class="kw">for </span>CollectResult&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="kw">type </span><span class="prelude-ty">Result </span>= <span class="self">Self</span>;
 
     <span class="kw">fn </span>consume(<span class="kw-2">mut </span><span class="self">self</span>, item: T) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(
             <span class="self">self</span>.initialized_len &lt; <span class="self">self</span>.total_len,
-            <span class="string">&quot;too many values pushed to consumer&quot;
+            <span class="string">"too many values pushed to consumer"
         </span>);
 
         <span class="comment">// SAFETY: The assert above is a bounds check for this write, and we
@@ -326,7 +328,7 @@
     </span>}
 
     <span class="kw">fn </span>complete(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Result {
-        <span class="comment">// NB: We don&#39;t explicitly check that the local writes were complete,
+        <span class="comment">// NB: We don't explicitly check that the local writes were complete,
         // but Collect will assert the total result length in the end.
         </span><span class="self">self
     </span>}
@@ -338,9 +340,9 @@
 
 <span class="doccomment">/// Pretend to be unindexed for `special_collect_into_vec`,
 /// but we should never actually get used that way...
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T: Send + <span class="lifetime">&#39;c</span>&gt; UnindexedConsumer&lt;T&gt; <span class="kw">for </span>CollectConsumer&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T: Send + <span class="lifetime">'c</span>&gt; UnindexedConsumer&lt;T&gt; <span class="kw">for </span>CollectConsumer&lt;<span class="lifetime">'c</span>, T&gt; {
     <span class="kw">fn </span>split_off_left(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;CollectConsumer must be indexed!&quot;</span>)
+        <span class="macro">unreachable!</span>(<span class="string">"CollectConsumer must be indexed!"</span>)
     }
     <span class="kw">fn </span>to_reducer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Reducer {
         CollectReducer
@@ -351,12 +353,12 @@
 /// be contiguous so that it is one combined slice.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>CollectReducer;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, T&gt; Reducer&lt;CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt;&gt; <span class="kw">for </span>CollectReducer {
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, T&gt; Reducer&lt;CollectResult&lt;<span class="lifetime">'c</span>, T&gt;&gt; <span class="kw">for </span>CollectReducer {
     <span class="kw">fn </span>reduce(
         <span class="self">self</span>,
-        <span class="kw-2">mut </span>left: CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt;,
-        right: CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt;,
-    ) -&gt; CollectResult&lt;<span class="lifetime">&#39;c</span>, T&gt; {
+        <span class="kw-2">mut </span>left: CollectResult&lt;<span class="lifetime">'c</span>, T&gt;,
+        right: CollectResult&lt;<span class="lifetime">'c</span>, T&gt;,
+    ) -&gt; CollectResult&lt;<span class="lifetime">'c</span>, T&gt; {
         <span class="comment">// Merge if the CollectResults are adjacent and in left to right order
         // else: drop the right piece now and total length will end up short in the end,
         // when the correctness of the collected result is asserted.

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/schemas.rs`."><title>schemas.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/schemas.rs`."><title>schemas.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -253,11 +255,11 @@
     </span>Draft6,
     <span class="doccomment">/// JSON Schema Draft 7
     </span>Draft7,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     </span><span class="doccomment">/// JSON Schema Draft 2019-09
     </span>Draft201909,
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
     </span><span class="doccomment">/// JSON Schema Draft 2020-12
     </span>Draft202012,
 }
@@ -272,152 +274,152 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>validate_formats_by_default(<span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
             Draft::Draft4 | Draft::Draft6 | Draft::Draft7 =&gt; <span class="bool-val">true</span>,
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
             </span>Draft::Draft201909 | Draft::Draft202012 =&gt; <span class="bool-val">false</span>,
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft201909&quot;</span>, not(feature = <span class="string">&quot;draft202012&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"draft201909"</span>, not(feature = <span class="string">"draft202012"</span>)))]
             </span>Draft::Draft201909 =&gt; <span class="bool-val">false</span>,
-            <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft202012&quot;</span>, not(feature = <span class="string">&quot;draft201909&quot;</span>)))]
+            <span class="attr">#[cfg(all(feature = <span class="string">"draft202012"</span>, not(feature = <span class="string">"draft201909"</span>)))]
             </span>Draft::Draft202012 =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">type </span>CompileFunc&lt;<span class="lifetime">&#39;a</span>&gt; = <span class="kw">fn</span>(
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+<span class="kw">type </span>CompileFunc&lt;<span class="lifetime">'a</span>&gt; = <span class="kw">fn</span>(
+    <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     <span class="kw-2">&amp;</span>CompilationContext,
-) -&gt; <span class="prelude-ty">Option</span>&lt;keywords::CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt;&gt;;
+) -&gt; <span class="prelude-ty">Option</span>&lt;keywords::CompilationResult&lt;<span class="lifetime">'a</span>&gt;&gt;;
 
 <span class="kw">impl </span>Draft {
     <span class="attr">#[allow(clippy::match_same_arms)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_validator(<span class="self">self</span>, keyword: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;CompileFunc&gt; {
         <span class="kw">match </span>keyword {
-            <span class="string">&quot;$ref&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::ref_::compile),
-            <span class="string">&quot;additionalItems&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::additional_items::compile),
-            <span class="string">&quot;additionalProperties&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::additional_properties::compile),
-            <span class="string">&quot;allOf&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::all_of::compile),
-            <span class="string">&quot;anyOf&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::any_of::compile),
-            <span class="string">&quot;const&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"$ref" </span>=&gt; <span class="prelude-val">Some</span>(keywords::ref_::compile),
+            <span class="string">"additionalItems" </span>=&gt; <span class="prelude-val">Some</span>(keywords::additional_items::compile),
+            <span class="string">"additionalProperties" </span>=&gt; <span class="prelude-val">Some</span>(keywords::additional_properties::compile),
+            <span class="string">"allOf" </span>=&gt; <span class="prelude-val">Some</span>(keywords::all_of::compile),
+            <span class="string">"anyOf" </span>=&gt; <span class="prelude-val">Some</span>(keywords::any_of::compile),
+            <span class="string">"const" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::const_::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::const_::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::const_::compile),
             },
-            <span class="string">&quot;contains&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"contains" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::contains::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::contains::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::contains::compile),
             },
-            <span class="string">&quot;contentMediaType&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"contentMediaType" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft7 | Draft::Draft6 =&gt; <span class="prelude-val">Some</span>(keywords::content::compile_media_type),
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span><span class="comment">// Should be collected as an annotation
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">None</span>,
             },
-            <span class="string">&quot;contentEncoding&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"contentEncoding" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft7 | Draft::Draft6 =&gt; <span class="prelude-val">Some</span>(keywords::content::compile_content_encoding),
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span><span class="comment">// Should be collected as an annotation
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">None</span>,
             },
-            <span class="string">&quot;dependencies&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile),
-            <span class="attr">#[cfg(any(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
-            </span><span class="string">&quot;dependentRequired&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile_dependent_required),
-            <span class="attr">#[cfg(any(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
-            </span><span class="string">&quot;dependentSchemas&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile_dependent_schemas),
-            <span class="string">&quot;enum&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::enum_::compile),
-            <span class="string">&quot;exclusiveMaximum&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"dependencies" </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile),
+            <span class="attr">#[cfg(any(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
+            </span><span class="string">"dependentRequired" </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile_dependent_required),
+            <span class="attr">#[cfg(any(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
+            </span><span class="string">"dependentSchemas" </span>=&gt; <span class="prelude-val">Some</span>(keywords::dependencies::compile_dependent_schemas),
+            <span class="string">"enum" </span>=&gt; <span class="prelude-val">Some</span>(keywords::enum_::compile),
+            <span class="string">"exclusiveMaximum" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft7 | Draft::Draft6 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_maximum::compile),
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_maximum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_maximum::compile),
             },
-            <span class="string">&quot;exclusiveMinimum&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"exclusiveMinimum" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft7 | Draft::Draft6 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_minimum::compile),
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_minimum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::exclusive_minimum::compile),
             },
-            <span class="string">&quot;format&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::format::compile),
-            <span class="string">&quot;if&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"format" </span>=&gt; <span class="prelude-val">Some</span>(keywords::format::compile),
+            <span class="string">"if" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::if_::compile),
                 Draft::Draft6 | Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::if_::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::if_::compile),
             },
-            <span class="string">&quot;items&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::items::compile),
-            <span class="string">&quot;maximum&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"items" </span>=&gt; <span class="prelude-val">Some</span>(keywords::items::compile),
+            <span class="string">"maximum" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">Some</span>(keywords::legacy::maximum_draft_4::compile),
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::maximum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::maximum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::maximum::compile),
             },
-            <span class="string">&quot;maxItems&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_items::compile),
-            <span class="string">&quot;maxLength&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_length::compile),
-            <span class="string">&quot;maxProperties&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_properties::compile),
-            <span class="string">&quot;minimum&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"maxItems" </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_items::compile),
+            <span class="string">"maxLength" </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_length::compile),
+            <span class="string">"maxProperties" </span>=&gt; <span class="prelude-val">Some</span>(keywords::max_properties::compile),
+            <span class="string">"minimum" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">Some</span>(keywords::legacy::minimum_draft_4::compile),
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::minimum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::minimum::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::minimum::compile),
             },
-            <span class="string">&quot;minItems&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_items::compile),
-            <span class="string">&quot;minLength&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_length::compile),
-            <span class="string">&quot;minProperties&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_properties::compile),
-            <span class="string">&quot;multipleOf&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::multiple_of::compile),
-            <span class="string">&quot;not&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::not::compile),
-            <span class="string">&quot;oneOf&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::one_of::compile),
-            <span class="string">&quot;pattern&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::pattern::compile),
-            <span class="string">&quot;patternProperties&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::pattern_properties::compile),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
-            </span><span class="string">&quot;prefixItems&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::prefix_items::compile),
-            <span class="string">&quot;properties&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::properties::compile),
-            <span class="string">&quot;propertyNames&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"minItems" </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_items::compile),
+            <span class="string">"minLength" </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_length::compile),
+            <span class="string">"minProperties" </span>=&gt; <span class="prelude-val">Some</span>(keywords::min_properties::compile),
+            <span class="string">"multipleOf" </span>=&gt; <span class="prelude-val">Some</span>(keywords::multiple_of::compile),
+            <span class="string">"not" </span>=&gt; <span class="prelude-val">Some</span>(keywords::not::compile),
+            <span class="string">"oneOf" </span>=&gt; <span class="prelude-val">Some</span>(keywords::one_of::compile),
+            <span class="string">"pattern" </span>=&gt; <span class="prelude-val">Some</span>(keywords::pattern::compile),
+            <span class="string">"patternProperties" </span>=&gt; <span class="prelude-val">Some</span>(keywords::pattern_properties::compile),
+            <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
+            </span><span class="string">"prefixItems" </span>=&gt; <span class="prelude-val">Some</span>(keywords::prefix_items::compile),
+            <span class="string">"properties" </span>=&gt; <span class="prelude-val">Some</span>(keywords::properties::compile),
+            <span class="string">"propertyNames" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">None</span>,
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::property_names::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::property_names::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::property_names::compile),
             },
-            <span class="string">&quot;required&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::required::compile),
-            <span class="string">&quot;type&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+            <span class="string">"required" </span>=&gt; <span class="prelude-val">Some</span>(keywords::required::compile),
+            <span class="string">"type" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
                 Draft::Draft4 =&gt; <span class="prelude-val">Some</span>(keywords::legacy::type_draft_4::compile),
                 Draft::Draft6 | Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(keywords::type_::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::type_::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::type_::compile),
             },
-            <span class="string">&quot;unevaluatedProperties&quot; </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+            <span class="string">"unevaluatedProperties" </span>=&gt; <span class="kw">match </span><span class="self">self </span>{
+                <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
                 </span>Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(keywords::unevaluated_properties::compile),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
                 </span>Draft::Draft202012 =&gt; <span class="prelude-val">Some</span>(keywords::unevaluated_properties::compile),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
-            <span class="string">&quot;uniqueItems&quot; </span>=&gt; <span class="prelude-val">Some</span>(keywords::unique_items::compile),
+            <span class="string">"uniqueItems" </span>=&gt; <span class="prelude-val">Some</span>(keywords::unique_items::compile),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -427,13 +429,13 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>draft_from_url(url: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Draft&gt; {
     <span class="kw">match </span>url {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;draft202012&quot;</span>)]
-        </span><span class="string">&quot;https://json-schema.org/draft/2020-12/schema#&quot; </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft202012),
-        <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-        </span><span class="string">&quot;https://json-schema.org/draft/2019-09/schema#&quot; </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft201909),
-        <span class="string">&quot;http://json-schema.org/draft-07/schema#&quot; </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft7),
-        <span class="string">&quot;http://json-schema.org/draft-06/schema#&quot; </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft6),
-        <span class="string">&quot;http://json-schema.org/draft-04/schema#&quot; </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft4),
+        <span class="attr">#[cfg(feature = <span class="string">"draft202012"</span>)]
+        </span><span class="string">"https://json-schema.org/draft/2020-12/schema#" </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft202012),
+        <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+        </span><span class="string">"https://json-schema.org/draft/2019-09/schema#" </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft201909),
+        <span class="string">"http://json-schema.org/draft-07/schema#" </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft7),
+        <span class="string">"http://json-schema.org/draft-06/schema#" </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft6),
+        <span class="string">"http://json-schema.org/draft-04/schema#" </span>=&gt; <span class="prelude-val">Some</span>(Draft::Draft4),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
@@ -442,7 +444,7 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>draft_from_schema(schema: <span class="kw-2">&amp;</span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;Draft&gt; {
     schema
-        .get(<span class="string">&quot;$schema&quot;</span>)
+        .get(<span class="string">"$schema"</span>)
         .and_then(Value::as_str)
         .and_then(draft_from_url)
 }
@@ -451,9 +453,9 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>id_of(draft: Draft, schema: <span class="kw-2">&amp;</span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
     <span class="kw">if let </span>Value::Object(object) = schema {
         <span class="kw">if </span>draft == Draft::Draft4 {
-            object.get(<span class="string">&quot;id&quot;</span>)
+            object.get(<span class="string">"id"</span>)
         } <span class="kw">else </span>{
-            object.get(<span class="string">&quot;$id&quot;</span>)
+            object.get(<span class="string">"$id"</span>)
         }
         .and_then(Value::as_str)
     } <span class="kw">else </span>{
@@ -467,12 +469,12 @@
     <span class="kw">use </span>serde_json::{json, Value};
     <span class="kw">use </span>test_case::test_case;
 
-    <span class="attr">#[cfg_attr(feature = <span class="string">&quot;draft201909&quot;</span>, test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;https://json-schema.org/draft/2019-09/schema#&quot;</span>}), <span class="prelude-val">Some</span>(Draft::Draft201909)))]
-    #[cfg_attr(feature = <span class="string">&quot;draft202012&quot;</span>, test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;https://json-schema.org/draft/2020-12/schema#&quot;</span>}), <span class="prelude-val">Some</span>(Draft::Draft202012)))]
-    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;http://json-schema.org/draft-07/schema#&quot;</span>}), <span class="prelude-val">Some</span>(Draft::Draft7))]
-    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;http://json-schema.org/draft-06/schema#&quot;</span>}), <span class="prelude-val">Some</span>(Draft::Draft6))]
-    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;http://json-schema.org/draft-04/schema#&quot;</span>}), <span class="prelude-val">Some</span>(Draft::Draft4))]
-    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;$schema&quot;</span>: <span class="string">&quot;http://example.com/custom/schema#&quot;</span>}), <span class="prelude-val">None</span>)]
+    <span class="attr">#[cfg_attr(feature = <span class="string">"draft201909"</span>, test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"https://json-schema.org/draft/2019-09/schema#"</span>}), <span class="prelude-val">Some</span>(Draft::Draft201909)))]
+    #[cfg_attr(feature = <span class="string">"draft202012"</span>, test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"https://json-schema.org/draft/2020-12/schema#"</span>}), <span class="prelude-val">Some</span>(Draft::Draft202012)))]
+    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-07/schema#"</span>}), <span class="prelude-val">Some</span>(Draft::Draft7))]
+    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-06/schema#"</span>}), <span class="prelude-val">Some</span>(Draft::Draft6))]
+    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-04/schema#"</span>}), <span class="prelude-val">Some</span>(Draft::Draft4))]
+    #[test_case(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://example.com/custom/schema#"</span>}), <span class="prelude-val">None</span>)]
     </span><span class="kw">fn </span>test_draft_from_schema(schema: <span class="kw-2">&amp;</span>Value, draft: <span class="prelude-ty">Option</span>&lt;Draft&gt;) {
         <span class="macro">assert_eq!</span>(draft_from_schema(schema), draft)
     }

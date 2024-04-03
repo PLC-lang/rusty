@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_ast/src/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_ast/src/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_ast/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1647,7 +1649,7 @@
     <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt;,
     <span class="doccomment">/// the SourceLocation of the whole POU
     </span><span class="kw">pub </span>location: SourceLocation,
-    <span class="doccomment">/// the SourceLocation of the POU&#39;s name
+    <span class="doccomment">/// the SourceLocation of the POU's name
     </span><span class="kw">pub </span>name_location: SourceLocation,
     <span class="kw">pub </span>poly_mode: <span class="prelude-ty">Option</span>&lt;PolymorphismMode&gt;,
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
@@ -1663,7 +1665,7 @@
 }
 
 <span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(tag = <span class="string">&quot;direction&quot;</span>)]
+#[serde(tag = <span class="string">"direction"</span>)]
 </span><span class="kw">pub enum </span>HardwareAccessType {
     Input,
     Output,
@@ -1672,7 +1674,7 @@
 }
 
 <span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(tag = <span class="string">&quot;type&quot;</span>)]
+#[serde(tag = <span class="string">"type"</span>)]
 </span><span class="kw">pub enum </span>DirectAccessType {
     Bit,
     Byte,
@@ -1770,26 +1772,26 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>TypeNature {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>name = <span class="kw">match </span><span class="self">self </span>{
-            TypeNature::Any =&gt; <span class="string">&quot;ANY&quot;</span>,
-            TypeNature::Derived =&gt; <span class="string">&quot;ANY_DERIVED&quot;</span>,
-            TypeNature::Elementary =&gt; <span class="string">&quot;ANY_ELEMENTARY&quot;</span>,
-            TypeNature::Magnitude =&gt; <span class="string">&quot;ANY_MAGNITUDE&quot;</span>,
-            TypeNature::Num =&gt; <span class="string">&quot;ANY_NUMBER&quot;</span>,
-            TypeNature::Real =&gt; <span class="string">&quot;ANY_REAL&quot;</span>,
-            TypeNature::Int =&gt; <span class="string">&quot;ANY_INT&quot;</span>,
-            TypeNature::Signed =&gt; <span class="string">&quot;ANY_SIGNED&quot;</span>,
-            TypeNature::Unsigned =&gt; <span class="string">&quot;ANY_UNSIGNED&quot;</span>,
-            TypeNature::Duration =&gt; <span class="string">&quot;ANY_DURATION&quot;</span>,
-            TypeNature::Bit =&gt; <span class="string">&quot;ANY_BIT&quot;</span>,
-            TypeNature::Chars =&gt; <span class="string">&quot;ANY_CHARS&quot;</span>,
-            TypeNature::String =&gt; <span class="string">&quot;ANY_STRING&quot;</span>,
-            TypeNature::Char =&gt; <span class="string">&quot;ANY_CHAR&quot;</span>,
-            TypeNature::Date =&gt; <span class="string">&quot;ANY_DATE&quot;</span>,
-            TypeNature::__VLA =&gt; <span class="string">&quot;__ANY_VLA&quot;</span>,
+            TypeNature::Any =&gt; <span class="string">"ANY"</span>,
+            TypeNature::Derived =&gt; <span class="string">"ANY_DERIVED"</span>,
+            TypeNature::Elementary =&gt; <span class="string">"ANY_ELEMENTARY"</span>,
+            TypeNature::Magnitude =&gt; <span class="string">"ANY_MAGNITUDE"</span>,
+            TypeNature::Num =&gt; <span class="string">"ANY_NUMBER"</span>,
+            TypeNature::Real =&gt; <span class="string">"ANY_REAL"</span>,
+            TypeNature::Int =&gt; <span class="string">"ANY_INT"</span>,
+            TypeNature::Signed =&gt; <span class="string">"ANY_SIGNED"</span>,
+            TypeNature::Unsigned =&gt; <span class="string">"ANY_UNSIGNED"</span>,
+            TypeNature::Duration =&gt; <span class="string">"ANY_DURATION"</span>,
+            TypeNature::Bit =&gt; <span class="string">"ANY_BIT"</span>,
+            TypeNature::Chars =&gt; <span class="string">"ANY_CHARS"</span>,
+            TypeNature::String =&gt; <span class="string">"ANY_STRING"</span>,
+            TypeNature::Char =&gt; <span class="string">"ANY_CHAR"</span>,
+            TypeNature::Date =&gt; <span class="string">"ANY_DATE"</span>,
+            TypeNature::__VLA =&gt; <span class="string">"__ANY_VLA"</span>,
         };
-        <span class="macro">write!</span>(f, <span class="string">&quot;{name}&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">"{name}"</span>)
     }
 }
 
@@ -1802,20 +1804,20 @@
             DirectAccessType::Word =&gt; <span class="number">16</span>,
             DirectAccessType::DWord =&gt; <span class="number">32</span>,
             DirectAccessType::LWord =&gt; <span class="number">64</span>,
-            DirectAccessType::Template =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;Should not test for template width&quot;</span>),
+            DirectAccessType::Template =&gt; <span class="macro">unimplemented!</span>(<span class="string">"Should not test for template width"</span>),
         }
     }
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Pou {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>str = f.debug_struct(<span class="string">&quot;POU&quot;</span>);
-        str.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
-            .field(<span class="string">&quot;variable_blocks&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_blocks)
-            .field(<span class="string">&quot;pou_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pou_type)
-            .field(<span class="string">&quot;return_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.return_type);
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>str = f.debug_struct(<span class="string">"POU"</span>);
+        str.field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
+            .field(<span class="string">"variable_blocks"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_blocks)
+            .field(<span class="string">"pou_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pou_type)
+            .field(<span class="string">"return_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.return_type);
         <span class="kw">if </span>!<span class="self">self</span>.generics.is_empty() {
-            str.field(<span class="string">&quot;generics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.generics);
+            str.field(<span class="string">"generics"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.generics);
         }
         str.finish()
     }
@@ -1827,7 +1829,7 @@
     }
 
     <span class="kw">pub fn </span>calc_return_name(pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
-        pou_name.split(<span class="string">&#39;.&#39;</span>).last().unwrap_or_default()
+        pou_name.split(<span class="string">'.'</span>).last().unwrap_or_default()
     }
 }
 
@@ -1871,14 +1873,14 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>PouType {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            PouType::Program =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Program&quot;</span>),
-            PouType::Function =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Function&quot;</span>),
-            PouType::FunctionBlock =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;FunctionBlock&quot;</span>),
-            PouType::Action =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action&quot;</span>),
-            PouType::Class =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Class&quot;</span>),
-            PouType::Method { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Method&quot;</span>),
+            PouType::Program =&gt; <span class="macro">write!</span>(f, <span class="string">"Program"</span>),
+            PouType::Function =&gt; <span class="macro">write!</span>(f, <span class="string">"Function"</span>),
+            PouType::FunctionBlock =&gt; <span class="macro">write!</span>(f, <span class="string">"FunctionBlock"</span>),
+            PouType::Action =&gt; <span class="macro">write!</span>(f, <span class="string">"Action"</span>),
+            PouType::Class =&gt; <span class="macro">write!</span>(f, <span class="string">"Class"</span>),
+            PouType::Method { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"Method"</span>),
         }
     }
 }
@@ -1944,14 +1946,14 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>VariableBlockType {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            VariableBlockType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Local&quot;</span>),
-            VariableBlockType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Temp&quot;</span>),
-            VariableBlockType::Input(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Input&quot;</span>),
-            VariableBlockType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Output&quot;</span>),
-            VariableBlockType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Global&quot;</span>),
-            VariableBlockType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;InOut&quot;</span>),
+            VariableBlockType::Local =&gt; <span class="macro">write!</span>(f, <span class="string">"Local"</span>),
+            VariableBlockType::Temp =&gt; <span class="macro">write!</span>(f, <span class="string">"Temp"</span>),
+            VariableBlockType::Input(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Input"</span>),
+            VariableBlockType::Output =&gt; <span class="macro">write!</span>(f, <span class="string">"Output"</span>),
+            VariableBlockType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">"Global"</span>),
+            VariableBlockType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">"InOut"</span>),
         }
     }
 }
@@ -1974,10 +1976,10 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>VariableBlock {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;VariableBlock&quot;</span>)
-            .field(<span class="string">&quot;variables&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variables)
-            .field(<span class="string">&quot;variable_block_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_block_type)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"VariableBlock"</span>)
+            .field(<span class="string">"variables"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variables)
+            .field(<span class="string">"variable_block_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_block_type)
             .finish()
     }
 }
@@ -1992,14 +1994,14 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Variable {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>var = f.debug_struct(<span class="string">&quot;Variable&quot;</span>);
-        var.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name).field(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type_declaration);
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>var = f.debug_struct(<span class="string">"Variable"</span>);
+        var.field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name).field(<span class="string">"data_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type_declaration);
         <span class="kw">if </span><span class="self">self</span>.initializer.is_some() {
-            var.field(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer);
+            var.field(<span class="string">"initializer"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer);
         }
         <span class="kw">if </span><span class="self">self</span>.address.is_some() {
-            var.field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.address);
+            var.field(<span class="string">"address"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.address);
         }
         var.finish()
     }
@@ -2022,13 +2024,13 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>DataTypeDeclaration {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeDeclaration::DataTypeReference { referenced_type, .. } =&gt; {
-                f.debug_struct(<span class="string">&quot;DataTypeReference&quot;</span>).field(<span class="string">&quot;referenced_type&quot;</span>, referenced_type).finish()
+                f.debug_struct(<span class="string">"DataTypeReference"</span>).field(<span class="string">"referenced_type"</span>, referenced_type).finish()
             }
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } =&gt; {
-                f.debug_struct(<span class="string">&quot;DataTypeDefinition&quot;</span>).field(<span class="string">&quot;data_type&quot;</span>, data_type).finish()
+                f.debug_struct(<span class="string">"DataTypeDefinition"</span>).field(<span class="string">"data_type"</span>, data_type).finish()
             }
         }
     }
@@ -2065,11 +2067,11 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>UserTypeDeclaration {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;UserTypeDeclaration&quot;</span>)
-            .field(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type)
-            .field(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer)
-            .field(<span class="string">&quot;scope&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scope)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"UserTypeDeclaration"</span>)
+            .field(<span class="string">"data_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type)
+            .field(<span class="string">"initializer"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer)
+            .field(<span class="string">"scope"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.scope)
             .finish()
     }
 }
@@ -2243,75 +2245,75 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>AstNode {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
-            AstStatement::EmptyStatement(..) =&gt; f.debug_struct(<span class="string">&quot;EmptyStatement&quot;</span>).finish(),
-            AstStatement::DefaultValue(..) =&gt; f.debug_struct(<span class="string">&quot;DefaultValue&quot;</span>).finish(),
+            AstStatement::EmptyStatement(..) =&gt; f.debug_struct(<span class="string">"EmptyStatement"</span>).finish(),
+            AstStatement::DefaultValue(..) =&gt; f.debug_struct(<span class="string">"DefaultValue"</span>).finish(),
             AstStatement::Literal(literal) =&gt; literal.fmt(f),
-            AstStatement::Identifier(name) =&gt; f.debug_struct(<span class="string">&quot;Identifier&quot;</span>).field(<span class="string">&quot;name&quot;</span>, name).finish(),
+            AstStatement::Identifier(name) =&gt; f.debug_struct(<span class="string">"Identifier"</span>).field(<span class="string">"name"</span>, name).finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) =&gt; f
-                .debug_struct(<span class="string">&quot;BinaryExpression&quot;</span>)
-                .field(<span class="string">&quot;operator&quot;</span>, operator)
-                .field(<span class="string">&quot;left&quot;</span>, left)
-                .field(<span class="string">&quot;right&quot;</span>, right)
+                .debug_struct(<span class="string">"BinaryExpression"</span>)
+                .field(<span class="string">"operator"</span>, operator)
+                .field(<span class="string">"left"</span>, left)
+                .field(<span class="string">"right"</span>, right)
                 .finish(),
             AstStatement::UnaryExpression(UnaryExpression { operator, value }) =&gt; {
-                f.debug_struct(<span class="string">&quot;UnaryExpression&quot;</span>).field(<span class="string">&quot;operator&quot;</span>, operator).field(<span class="string">&quot;value&quot;</span>, value).finish()
+                f.debug_struct(<span class="string">"UnaryExpression"</span>).field(<span class="string">"operator"</span>, operator).field(<span class="string">"value"</span>, value).finish()
             }
             AstStatement::ExpressionList(expressions) =&gt; {
-                f.debug_struct(<span class="string">&quot;ExpressionList&quot;</span>).field(<span class="string">&quot;expressions&quot;</span>, expressions).finish()
+                f.debug_struct(<span class="string">"ExpressionList"</span>).field(<span class="string">"expressions"</span>, expressions).finish()
             }
             AstStatement::ParenExpression(expression) =&gt; {
-                f.debug_struct(<span class="string">&quot;ParenExpression&quot;</span>).field(<span class="string">&quot;expression&quot;</span>, expression).finish()
+                f.debug_struct(<span class="string">"ParenExpression"</span>).field(<span class="string">"expression"</span>, expression).finish()
             }
             AstStatement::RangeStatement(RangeStatement { start, end }) =&gt; {
-                f.debug_struct(<span class="string">&quot;RangeStatement&quot;</span>).field(<span class="string">&quot;start&quot;</span>, start).field(<span class="string">&quot;end&quot;</span>, end).finish()
+                f.debug_struct(<span class="string">"RangeStatement"</span>).field(<span class="string">"start"</span>, start).field(<span class="string">"end"</span>, end).finish()
             }
-            AstStatement::VlaRangeStatement =&gt; f.debug_struct(<span class="string">&quot;VlaRangeStatement&quot;</span>).finish(),
+            AstStatement::VlaRangeStatement =&gt; f.debug_struct(<span class="string">"VlaRangeStatement"</span>).finish(),
             AstStatement::Assignment(Assignment { left, right }) =&gt; {
-                f.debug_struct(<span class="string">&quot;Assignment&quot;</span>).field(<span class="string">&quot;left&quot;</span>, left).field(<span class="string">&quot;right&quot;</span>, right).finish()
+                f.debug_struct(<span class="string">"Assignment"</span>).field(<span class="string">"left"</span>, left).field(<span class="string">"right"</span>, right).finish()
             }
             AstStatement::OutputAssignment(Assignment { left, right }) =&gt; {
-                f.debug_struct(<span class="string">&quot;OutputAssignment&quot;</span>).field(<span class="string">&quot;left&quot;</span>, left).field(<span class="string">&quot;right&quot;</span>, right).finish()
+                f.debug_struct(<span class="string">"OutputAssignment"</span>).field(<span class="string">"left"</span>, left).field(<span class="string">"right"</span>, right).finish()
             }
             AstStatement::CallStatement(CallStatement { operator, parameters }) =&gt; f
-                .debug_struct(<span class="string">&quot;CallStatement&quot;</span>)
-                .field(<span class="string">&quot;operator&quot;</span>, operator)
-                .field(<span class="string">&quot;parameters&quot;</span>, parameters)
+                .debug_struct(<span class="string">"CallStatement"</span>)
+                .field(<span class="string">"operator"</span>, operator)
+                .field(<span class="string">"parameters"</span>, parameters)
                 .finish(),
             AstStatement::ControlStatement(
                 AstControlStatement::If(IfStatement { blocks, else_block, .. }),
                 ..,
             ) =&gt; {
-                f.debug_struct(<span class="string">&quot;IfStatement&quot;</span>).field(<span class="string">&quot;blocks&quot;</span>, blocks).field(<span class="string">&quot;else_block&quot;</span>, else_block).finish()
+                f.debug_struct(<span class="string">"IfStatement"</span>).field(<span class="string">"blocks"</span>, blocks).field(<span class="string">"else_block"</span>, else_block).finish()
             }
             AstStatement::ControlStatement(
                 AstControlStatement::ForLoop(ForLoopStatement { counter, start, end, by_step, body, .. }),
                 ..,
             ) =&gt; f
-                .debug_struct(<span class="string">&quot;ForLoopStatement&quot;</span>)
-                .field(<span class="string">&quot;counter&quot;</span>, counter)
-                .field(<span class="string">&quot;start&quot;</span>, start)
-                .field(<span class="string">&quot;end&quot;</span>, end)
-                .field(<span class="string">&quot;by_step&quot;</span>, by_step)
-                .field(<span class="string">&quot;body&quot;</span>, body)
+                .debug_struct(<span class="string">"ForLoopStatement"</span>)
+                .field(<span class="string">"counter"</span>, counter)
+                .field(<span class="string">"start"</span>, start)
+                .field(<span class="string">"end"</span>, end)
+                .field(<span class="string">"by_step"</span>, by_step)
+                .field(<span class="string">"body"</span>, body)
                 .finish(),
             AstStatement::ControlStatement(
                 AstControlStatement::WhileLoop(LoopStatement { condition, body, .. }),
                 ..,
             ) =&gt; f
-                .debug_struct(<span class="string">&quot;WhileLoopStatement&quot;</span>)
-                .field(<span class="string">&quot;condition&quot;</span>, condition)
-                .field(<span class="string">&quot;body&quot;</span>, body)
+                .debug_struct(<span class="string">"WhileLoopStatement"</span>)
+                .field(<span class="string">"condition"</span>, condition)
+                .field(<span class="string">"body"</span>, body)
                 .finish(),
             AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
                 condition,
                 body,
                 ..
             })) =&gt; f
-                .debug_struct(<span class="string">&quot;RepeatLoopStatement&quot;</span>)
-                .field(<span class="string">&quot;condition&quot;</span>, condition)
-                .field(<span class="string">&quot;body&quot;</span>, body)
+                .debug_struct(<span class="string">"RepeatLoopStatement"</span>)
+                .field(<span class="string">"condition"</span>, condition)
+                .field(<span class="string">"body"</span>, body)
                 .finish(),
             AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
                 selector,
@@ -2319,45 +2321,45 @@
                 else_block,
                 ..
             })) =&gt; f
-                .debug_struct(<span class="string">&quot;CaseStatement&quot;</span>)
-                .field(<span class="string">&quot;selector&quot;</span>, selector)
-                .field(<span class="string">&quot;case_blocks&quot;</span>, case_blocks)
-                .field(<span class="string">&quot;else_block&quot;</span>, else_block)
+                .debug_struct(<span class="string">"CaseStatement"</span>)
+                .field(<span class="string">"selector"</span>, selector)
+                .field(<span class="string">"case_blocks"</span>, case_blocks)
+                .field(<span class="string">"else_block"</span>, else_block)
                 .finish(),
             AstStatement::DirectAccess(DirectAccess { access, index }) =&gt; {
-                f.debug_struct(<span class="string">&quot;DirectAccess&quot;</span>).field(<span class="string">&quot;access&quot;</span>, access).field(<span class="string">&quot;index&quot;</span>, index).finish()
+                f.debug_struct(<span class="string">"DirectAccess"</span>).field(<span class="string">"access"</span>, access).field(<span class="string">"index"</span>, index).finish()
             }
             AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) =&gt; f
-                .debug_struct(<span class="string">&quot;HardwareAccess&quot;</span>)
-                .field(<span class="string">&quot;direction&quot;</span>, direction)
-                .field(<span class="string">&quot;access&quot;</span>, access)
-                .field(<span class="string">&quot;address&quot;</span>, address)
-                .field(<span class="string">&quot;location&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.location)
+                .debug_struct(<span class="string">"HardwareAccess"</span>)
+                .field(<span class="string">"direction"</span>, direction)
+                .field(<span class="string">"access"</span>, access)
+                .field(<span class="string">"address"</span>, address)
+                .field(<span class="string">"location"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.location)
                 .finish(),
             AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) =&gt; f
-                .debug_struct(<span class="string">&quot;MultipliedStatement&quot;</span>)
-                .field(<span class="string">&quot;multiplier&quot;</span>, multiplier)
-                .field(<span class="string">&quot;element&quot;</span>, element)
+                .debug_struct(<span class="string">"MultipliedStatement"</span>)
+                .field(<span class="string">"multiplier"</span>, multiplier)
+                .field(<span class="string">"element"</span>, element)
                 .finish(),
             AstStatement::CaseCondition(condition) =&gt; {
-                f.debug_struct(<span class="string">&quot;CaseCondition&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).finish()
+                f.debug_struct(<span class="string">"CaseCondition"</span>).field(<span class="string">"condition"</span>, condition).finish()
             }
             AstStatement::ReturnStatement(ReturnStatement { condition }) =&gt; {
-                f.debug_struct(<span class="string">&quot;ReturnStatement&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).finish()
+                f.debug_struct(<span class="string">"ReturnStatement"</span>).field(<span class="string">"condition"</span>, condition).finish()
             }
-            AstStatement::ContinueStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ContinueStatement&quot;</span>).finish(),
-            AstStatement::ExitStatement(..) =&gt; f.debug_struct(<span class="string">&quot;ExitStatement&quot;</span>).finish(),
+            AstStatement::ContinueStatement(..) =&gt; f.debug_struct(<span class="string">"ContinueStatement"</span>).finish(),
+            AstStatement::ExitStatement(..) =&gt; f.debug_struct(<span class="string">"ExitStatement"</span>).finish(),
             AstStatement::CastStatement(CastStatement { target, type_name }) =&gt; {
-                f.debug_struct(<span class="string">&quot;CastStatement&quot;</span>).field(<span class="string">&quot;type_name&quot;</span>, type_name).field(<span class="string">&quot;target&quot;</span>, target).finish()
+                f.debug_struct(<span class="string">"CastStatement"</span>).field(<span class="string">"type_name"</span>, type_name).field(<span class="string">"target"</span>, target).finish()
             }
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) =&gt; {
-                f.debug_struct(<span class="string">&quot;ReferenceExpr&quot;</span>).field(<span class="string">&quot;kind&quot;</span>, access).field(<span class="string">&quot;base&quot;</span>, base).finish()
+                f.debug_struct(<span class="string">"ReferenceExpr"</span>).field(<span class="string">"kind"</span>, access).field(<span class="string">"base"</span>, base).finish()
             }
             AstStatement::JumpStatement(JumpStatement { condition, target, .. }) =&gt; {
-                f.debug_struct(<span class="string">&quot;JumpStatement&quot;</span>).field(<span class="string">&quot;condition&quot;</span>, condition).field(<span class="string">&quot;target&quot;</span>, target).finish()
+                f.debug_struct(<span class="string">"JumpStatement"</span>).field(<span class="string">"condition"</span>, condition).field(<span class="string">"target"</span>, target).finish()
             }
             AstStatement::LabelStatement(LabelStatement { name, .. }) =&gt; {
-                f.debug_struct(<span class="string">&quot;LabelStatement&quot;</span>).field(<span class="string">&quot;name&quot;</span>, name).finish()
+                f.debug_struct(<span class="string">"LabelStatement"</span>).field(<span class="string">"name"</span>, name).finish()
             }
         }
     }
@@ -2544,7 +2546,7 @@
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
             AstStatement::Literal(kind, ..) =&gt; <span class="kw">match </span>kind {
                 AstLiteral::Integer(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
-                AstLiteral::Real(val) =&gt; val == <span class="string">&quot;0&quot; </span>|| val == <span class="string">&quot;0.0&quot;</span>,
+                AstLiteral::Real(val) =&gt; val == <span class="string">"0" </span>|| val == <span class="string">"0.0"</span>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             },
 
@@ -2611,22 +2613,22 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Operator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>symbol = <span class="kw">match </span><span class="self">self </span>{
-            Operator::Plus =&gt; <span class="string">&quot;+&quot;</span>,
-            Operator::Minus =&gt; <span class="string">&quot;-&quot;</span>,
-            Operator::Multiplication =&gt; <span class="string">&quot;*&quot;</span>,
-            Operator::Division =&gt; <span class="string">&quot;/&quot;</span>,
-            Operator::Equal =&gt; <span class="string">&quot;=&quot;</span>,
-            Operator::Modulo =&gt; <span class="string">&quot;MOD&quot;</span>,
-            Operator::Exponentiation =&gt; <span class="string">&quot;**&quot;</span>,
+            Operator::Plus =&gt; <span class="string">"+"</span>,
+            Operator::Minus =&gt; <span class="string">"-"</span>,
+            Operator::Multiplication =&gt; <span class="string">"*"</span>,
+            Operator::Division =&gt; <span class="string">"/"</span>,
+            Operator::Equal =&gt; <span class="string">"="</span>,
+            Operator::Modulo =&gt; <span class="string">"MOD"</span>,
+            Operator::Exponentiation =&gt; <span class="string">"**"</span>,
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
         };
         f.write_str(symbol)
     }
 }
 
-<span class="doccomment">/// enum_elements should be the statement between then enum&#39;s brackets ( )
+<span class="doccomment">/// enum_elements should be the statement between then enum's brackets ( )
 /// e.g. x : ( this, that, etc)
 </span><span class="kw">pub fn </span>get_enum_element_names(enum_elements: <span class="kw-2">&amp;</span>AstNode) -&gt; Vec&lt;String&gt; {
     flatten_expression_list(enum_elements)
@@ -2643,9 +2645,9 @@
         AstStatement::Assignment(Assignment { left, .. }, ..) =&gt; left
             .get_flat_reference_name()
             .map(|it| it.to_string())
-            .expect(<span class="string">&quot;left of assignment not a reference&quot;</span>),
+            .expect(<span class="string">"left of assignment not a reference"</span>),
         <span class="kw">_ </span>=&gt; {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;expected {:?} to be a Reference or Assignment&quot;</span>, enum_element);
+            <span class="macro">unreachable!</span>(<span class="string">"expected {:?} to be a Reference or Assignment"</span>, enum_element);
         }
     }
 }
@@ -2691,23 +2693,23 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>display_pou() {
-        <span class="macro">assert_eq!</span>(PouType::Program.to_string(), <span class="string">&quot;Program&quot;</span>);
-        <span class="macro">assert_eq!</span>(PouType::Function.to_string(), <span class="string">&quot;Function&quot;</span>);
-        <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">&quot;FunctionBlock&quot;</span>);
-        <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">&quot;Action&quot;</span>);
-        <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">&quot;Class&quot;</span>);
-        <span class="macro">assert_eq!</span>(PouType::Method { owner_class: <span class="string">&quot;...&quot;</span>.to_string() }.to_string(), <span class="string">&quot;Method&quot;</span>);
+        <span class="macro">assert_eq!</span>(PouType::Program.to_string(), <span class="string">"Program"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Function.to_string(), <span class="string">"Function"</span>);
+        <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">"FunctionBlock"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Method { owner_class: <span class="string">"..."</span>.to_string() }.to_string(), <span class="string">"Method"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>display_variable_block_type() {
-        <span class="macro">assert_eq!</span>(VariableBlockType::Local.to_string(), <span class="string">&quot;Local&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::Temp.to_string(), <span class="string">&quot;Temp&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), <span class="string">&quot;Input&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), <span class="string">&quot;Input&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::Output.to_string(), <span class="string">&quot;Output&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::Global.to_string(), <span class="string">&quot;Global&quot;</span>);
-        <span class="macro">assert_eq!</span>(VariableBlockType::InOut.to_string(), <span class="string">&quot;InOut&quot;</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Local.to_string(), <span class="string">"Local"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Temp.to_string(), <span class="string">"Temp"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), <span class="string">"Input"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), <span class="string">"Input"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Output.to_string(), <span class="string">"Output"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::Global.to_string(), <span class="string">"Global"</span>);
+        <span class="macro">assert_eq!</span>(VariableBlockType::InOut.to_string(), <span class="string">"InOut"</span>);
     }
 }
 

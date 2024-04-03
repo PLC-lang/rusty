@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/fbd.rs`."><title>fbd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/fbd.rs`."><title>fbd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../plc_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -946,14 +948,14 @@
 
 <span class="doccomment">/// Represent either a `localId` or `refLocalId`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeId = usize;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeIndex&lt;<span class="lifetime">&#39;xml</span>&gt; = IndexMap&lt;NodeId, Node&lt;<span class="lifetime">&#39;xml</span>&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeIndex&lt;<span class="lifetime">'xml</span>&gt; = IndexMap&lt;NodeId, Node&lt;<span class="lifetime">'xml</span>&gt;&gt;;
 
 <span class="attr">#[derive(Debug, Default)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">pub </span>nodes: NodeIndex&lt;<span class="lifetime">&#39;xml</span>&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
+    <span class="kw">pub </span>nodes: NodeIndex&lt;<span class="lifetime">'xml</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>desugar(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
@@ -964,14 +966,14 @@
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Node&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    Block(Block&lt;<span class="lifetime">&#39;xml</span>&gt;),
-    FunctionBlockVariable(FunctionBlockVariable&lt;<span class="lifetime">&#39;xml</span>&gt;),
-    Control(Control&lt;<span class="lifetime">&#39;xml</span>&gt;),
-    Connector(Connector&lt;<span class="lifetime">&#39;xml</span>&gt;),
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Node&lt;<span class="lifetime">'xml</span>&gt; {
+    Block(Block&lt;<span class="lifetime">'xml</span>&gt;),
+    FunctionBlockVariable(FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt;),
+    Control(Control&lt;<span class="lifetime">'xml</span>&gt;),
+    Connector(Connector&lt;<span class="lifetime">'xml</span>&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; PartialOrd <span class="kw">for </span>Node&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; PartialOrd <span class="kw">for </span>Node&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;std::cmp::Ordering&gt; {
         <span class="kw">let </span>left = <span class="self">self</span>.get_exec_id();
         <span class="kw">let </span>right = other.get_exec_id();
@@ -985,7 +987,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Node&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Node&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_exec_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NodeId&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Node::Block(val) =&gt; val.execution_order_id,
@@ -1020,7 +1022,7 @@
                 </span><span class="kw-2">&amp;</span>val.type_name
             }
             Node::Connector(val) =&gt; <span class="kw-2">&amp;</span>val.name,
-            <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>,
+            <span class="kw">_ </span>=&gt; <span class="string">""</span>,
         }
     }
 
@@ -1042,47 +1044,47 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockDiagram&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>nodes = IndexMap::new();
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
                 Event::Start(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                    <span class="string">b&quot;block&quot; </span>=&gt; {
+                    <span class="string">b"block" </span>=&gt; {
                         <span class="kw">let </span>node = Block::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                         nodes.insert(node.local_id, Node::Block(node));
                     }
-                    <span class="string">b&quot;jump&quot; </span>| <span class="string">b&quot;label&quot; </span>| <span class="string">b&quot;return&quot; </span>=&gt; {
+                    <span class="string">b"jump" </span>| <span class="string">b"label" </span>| <span class="string">b"return" </span>=&gt; {
                         <span class="kw">let </span>node = Control::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                         nodes.insert(node.local_id, Node::Control(node));
                     }
-                    <span class="string">b&quot;inVariable&quot; </span>| <span class="string">b&quot;outVariable&quot; </span>=&gt; {
+                    <span class="string">b"inVariable" </span>| <span class="string">b"outVariable" </span>=&gt; {
                         <span class="kw">let </span>node = FunctionBlockVariable::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                         nodes.insert(node.local_id, Node::FunctionBlockVariable(node));
                     }
-                    <span class="string">b&quot;continuation&quot; </span>| <span class="string">b&quot;connector&quot; </span>=&gt; {
+                    <span class="string">b"continuation" </span>| <span class="string">b"connector" </span>=&gt; {
                         <span class="kw">let </span>node = Connector::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                         nodes.insert(node.local_id, Node::Connector(node));
                     }
                     <span class="kw">_ </span>=&gt; {}
                 },
 
-                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;FBD&quot; </span>=&gt; {
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"FBD" </span>=&gt; {
                     <span class="kw">break</span>;
                 }
                 <span class="kw">_ </span>=&gt; {}
             }
         }
 
-        nodes.sort_by(|<span class="kw">_</span>, b, <span class="kw">_</span>, d| b.partial_cmp(d).unwrap()); <span class="comment">// This _shouldn&#39;t_ panic because our `partial_cmp` method covers all cases
+        nodes.sort_by(|<span class="kw">_</span>, b, <span class="kw">_</span>, d| b.partial_cmp(d).unwrap()); <span class="comment">// This _shouldn't_ panic because our `partial_cmp` method covers all cases
 
         </span><span class="prelude-val">Ok</span>(FunctionBlockDiagram { nodes })
     }
 }
 
 <span class="comment">// IndexMap&lt;NodeId, Node&gt; interface for connection-point (sink/source) desugaring
-</span><span class="kw">trait </span>ConnectionResolver&lt;<span class="lifetime">&#39;xml</span>&gt; {
+</span><span class="kw">trait </span>ConnectionResolver&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>desugar_connection_points(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
@@ -1096,7 +1098,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NodeId, Diagnostic&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; ConnectionResolver&lt;<span class="lifetime">&#39;xml</span>&gt; <span class="kw">for </span>NodeIndex&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; ConnectionResolver&lt;<span class="lifetime">'xml</span>&gt; <span class="kw">for </span>NodeIndex&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="doccomment">/// Updates all nodes in the index, which are connected via connection-points (sink/source) to be treated as
     /// if they are connected directly instead.
     ///
@@ -1110,7 +1112,7 @@
     ///        ┣━━&gt; OUT2
     ///        ┗━━&gt; OUT3
     /// ```
-    </span><span class="kw">fn </span>desugar_connection_points&lt;<span class="lifetime">&#39;b</span>&gt;(
+    </span><span class="kw">fn </span>desugar_connection_points&lt;<span class="lifetime">'b</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Vec&lt;Diagnostic&gt;&gt; {
@@ -1166,15 +1168,15 @@
                     kind: ConnectorKind::Source, name, ref_local_id, ..
                 })) =&gt; {
                     current = ref_local_id.ok_or_else(|| {
-                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Source &#39;{name}&#39; is not connected.&quot;</span>))
-                            .with_error_code(<span class="string">&quot;E084&quot;</span>)
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Source '{name}' is not connected."</span>))
+                            .with_error_code(<span class="string">"E084"</span>)
                             .with_location(source_location_factory.create_block_location(current, <span class="prelude-val">None</span>))
                     })<span class="question-mark">?
                 </span>}
                 <span class="prelude-val">Some</span>(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) =&gt; {
                     current = <span class="kw-2">*</span>source_connections.get(name.as_ref()).ok_or_else(|| {
-                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;Expected a corresponding source-connection mark for sink &#39;{name}&#39;, but could not find one.&quot;</span>))
-                            .with_error_code(<span class="string">&quot;E086&quot;</span>)
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected a corresponding source-connection mark for sink '{name}', but could not find one."</span>))
+                            .with_error_code(<span class="string">"E086"</span>)
                             .with_location(source_location_factory.create_block_location(current, <span class="prelude-val">None</span>))
                     })<span class="question-mark">?
                 </span>}
@@ -1185,16 +1187,16 @@
                 <span class="comment">// problem: recursive connections
                 </span><span class="kw">let </span><span class="kw-2">mut </span>msg = String::new();
                 <span class="kw">for </span>node <span class="kw">in </span>visited {
-                    msg.push_str(<span class="self">self</span>.get(<span class="kw-2">&amp;</span>node).expect(<span class="string">&quot;Node exists&quot;</span>).get_name());
-                    msg.push_str(<span class="string">&quot; -&gt; &quot;</span>)
+                    msg.push_str(<span class="self">self</span>.get(<span class="kw-2">&amp;</span>node).expect(<span class="string">"Node exists"</span>).get_name());
+                    msg.push_str(<span class="string">" -&gt; "</span>)
                 }
-                <span class="kw">let </span>node = <span class="self">self</span>.get(<span class="kw-2">&amp;</span>current).expect(<span class="string">&quot;Node exists&quot;</span>);
+                <span class="kw">let </span>node = <span class="self">self</span>.get(<span class="kw-2">&amp;</span>current).expect(<span class="string">"Node exists"</span>);
                 msg.push_str(node.get_name());
 
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
-                    <span class="string">&quot;Sink is connected to itself. Found the following recursion: {msg}&quot;
+                    <span class="string">"Sink is connected to itself. Found the following recursion: {msg}"
                 </span>))
-                .with_error_code(<span class="string">&quot;E085&quot;</span>)
+                .with_error_code(<span class="string">"E085"</span>)
                 .with_location(
                     source_location_factory.create_block_location(node.get_id(), node.get_exec_id()),
                 ));
@@ -1243,15 +1245,15 @@
     </span><span class="kw">fn </span>add_block() {
         <span class="kw">let </span>content = YFbd::new()
             .children(<span class="macro">vec!</span>[
-                <span class="kw-2">&amp;</span>SBlock::init(<span class="string">&quot;ADD&quot;</span>, <span class="number">1</span>, <span class="number">0</span>)
+                <span class="kw-2">&amp;</span>SBlock::init(<span class="string">"ADD"</span>, <span class="number">1</span>, <span class="number">0</span>)
                     .with_input(<span class="macro">vec!</span>[
-                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;a&quot;</span>).connect(<span class="number">1</span>),
-                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;b&quot;</span>).connect(<span class="number">2</span>),
+                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">"a"</span>).connect(<span class="number">1</span>),
+                        <span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">"b"</span>).connect(<span class="number">2</span>),
                     ])
-                    .with_output(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;c&quot;</span>)]),
-                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">2</span>).with_expression(<span class="string">&quot;a&quot;</span>),
-                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">3</span>).with_expression(<span class="string">&quot;b&quot;</span>),
-                <span class="kw-2">&amp;</span>SOutVariable::new().with_id(<span class="number">4</span>).with_expression(<span class="string">&quot;c&quot;</span>).with_execution_id(<span class="number">1</span>).connect(<span class="number">1</span>),
+                    .with_output(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">"c"</span>)]),
+                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">2</span>).with_expression(<span class="string">"a"</span>),
+                <span class="kw-2">&amp;</span>SInVariable::new().with_id(<span class="number">3</span>).with_expression(<span class="string">"b"</span>),
+                <span class="kw-2">&amp;</span>SOutVariable::new().with_id(<span class="number">4</span>).with_expression(<span class="string">"c"</span>).with_execution_id(<span class="number">1</span>).connect(<span class="number">1</span>),
             ])
             .serialize();
 
@@ -1262,9 +1264,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>model_with_no_source_sink_unchanged() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
 
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
@@ -1274,7 +1276,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1285,7 +1287,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                     }),
@@ -1302,9 +1304,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>source_to_sink_converted_to_connection() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1313,7 +1315,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1324,7 +1326,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">4</span>),
                     }),
@@ -1333,7 +1335,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1343,7 +1345,7 @@
                     <span class="number">4</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">4</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1361,9 +1363,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>two_sinks_for_single_source_converted_to_connections() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1372,7 +1374,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1383,7 +1385,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">4</span>),
                     }),
@@ -1392,7 +1394,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1402,7 +1404,7 @@
                     <span class="number">4</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">4</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1412,7 +1414,7 @@
                     <span class="number">5</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">5</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1424,7 +1426,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">6</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;c&quot;</span>.into(),
+                        expression: <span class="string">"c"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">2</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                     }),
@@ -1441,9 +1443,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>source_sink_chain_converted_to_connection() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1452,7 +1454,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1463,7 +1465,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">6</span>),
                     }),
@@ -1472,7 +1474,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1482,7 +1484,7 @@
                     <span class="number">4</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection2&quot;</span>.into(),
+                        name: <span class="string">"connection2"</span>.into(),
                         local_id: <span class="number">4</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1492,7 +1494,7 @@
                     <span class="number">5</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">5</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1502,7 +1504,7 @@
                     <span class="number">6</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection2&quot;</span>.into(),
+                        name: <span class="string">"connection2"</span>.into(),
                         local_id: <span class="number">6</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1520,9 +1522,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unassociated_source_remains_in_model() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1531,7 +1533,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1542,7 +1544,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1551,7 +1553,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1569,9 +1571,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unassociated_sink_removed_from_model_with_error() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1580,7 +1582,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1591,7 +1593,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">3</span>),
                     }),
@@ -1600,7 +1602,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1620,9 +1622,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>recursive_sink_source_connections_are_an_error() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1631,7 +1633,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1642,7 +1644,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">6</span>),
                     }),
@@ -1651,7 +1653,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">6</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1661,7 +1663,7 @@
                     <span class="number">4</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection2&quot;</span>.into(),
+                        name: <span class="string">"connection2"</span>.into(),
                         local_id: <span class="number">4</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1671,7 +1673,7 @@
                     <span class="number">5</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">5</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1681,7 +1683,7 @@
                     <span class="number">6</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection2&quot;</span>.into(),
+                        name: <span class="string">"connection2"</span>.into(),
                         local_id: <span class="number">6</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1700,9 +1702,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unconnected_source_has_no_effect() {
-        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1711,7 +1713,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1722,7 +1724,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Output,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">4</span>),
                     }),
@@ -1731,7 +1733,7 @@
                     <span class="number">3</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">3</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1741,7 +1743,7 @@
                     <span class="number">4</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">4</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1761,9 +1763,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>multiple_sink_are_ok_and_duplicate_sources_instances_are_reported() {
         <span class="comment">//TODO: split into two tests
-        </span><span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">&quot;&quot;</span>);
+        </span><span class="kw">let </span>source_location_factory = SourceLocationFactory::internal(<span class="string">""</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">&quot;TestProg&quot;</span>.into(), ..Default::default() };
+        <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
             nodes: [
                 (
@@ -1772,7 +1774,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">1</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1783,7 +1785,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">2</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;b&quot;</span>.into(),
+                        expression: <span class="string">"b"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">None</span>,
                     }),
@@ -1794,7 +1796,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">3</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;c&quot;</span>.into(),
+                        expression: <span class="string">"c"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">7</span>),
                     }),
@@ -1805,7 +1807,7 @@
                         kind: <span class="kw">crate</span>::model::variables::VariableKind::Input,
                         local_id: <span class="number">4</span>,
                         negated: <span class="bool-val">false</span>,
-                        expression: <span class="string">&quot;a&quot;</span>.into(),
+                        expression: <span class="string">"a"</span>.into(),
                         execution_order_id: <span class="prelude-val">None</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">8</span>),
                     }),
@@ -1814,7 +1816,7 @@
                     <span class="number">5</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">5</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1824,7 +1826,7 @@
                     <span class="number">6</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Source,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">6</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">2</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1834,7 +1836,7 @@
                     <span class="number">7</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">7</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                         formal_parameter: <span class="prelude-val">None</span>,
@@ -1844,7 +1846,7 @@
                     <span class="number">8</span>,
                     Node::Connector(Connector {
                         kind: <span class="kw">crate</span>::model::connector::ConnectorKind::Sink,
-                        name: <span class="string">&quot;connection1&quot;</span>.into(),
+                        name: <span class="string">"connection1"</span>.into(),
                         local_id: <span class="number">8</span>,
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">6</span>),
                         formal_parameter: <span class="prelude-val">None</span>,

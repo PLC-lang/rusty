@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/hardware_binding.rs`."><title>hardware_binding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/hardware_binding.rs`."><title>hardware_binding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -313,25 +315,25 @@
     }
 }
 
-<span class="kw">pub struct </span>HardwareConfiguration&lt;<span class="lifetime">&#39;idx</span>&gt; {
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index,
-    hardware_binding: Vec&lt;HardwareBinding&lt;<span class="lifetime">&#39;idx</span>&gt;&gt;,
+<span class="kw">pub struct </span>HardwareConfiguration&lt;<span class="lifetime">'idx</span>&gt; {
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+    hardware_binding: Vec&lt;HardwareBinding&lt;<span class="lifetime">'idx</span>&gt;&gt;,
 }
 
-<span class="kw">struct </span>WithContext&lt;<span class="lifetime">&#39;a</span>, T: SerializeWithContext&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Index,
-    element: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T,
+<span class="kw">struct </span>WithContext&lt;<span class="lifetime">'a</span>, T: SerializeWithContext&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Index,
+    element: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T,
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; WithContext&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; WithContext&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
     </span>T: SerializeWithContext,
 {
-    <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Index, element: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Index, element: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T) -&gt; <span class="self">Self </span>{
         WithContext { context, element }
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>WithContext&lt;<span class="lifetime">&#39;_</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; Serialize <span class="kw">for </span>WithContext&lt;<span class="lifetime">'_</span>, T&gt;
 <span class="kw">where
     </span>T: SerializeWithContext,
 {
@@ -343,28 +345,28 @@
     }
 }
 
-<span class="kw">impl </span>Serialize <span class="kw">for </span>HardwareConfiguration&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Serialize <span class="kw">for </span>HardwareConfiguration&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::Serializer,
     {
         <span class="kw">let </span>bindings: Vec&lt;WithContext&lt;HardwareBinding&gt;&gt; =
             <span class="self">self</span>.hardware_binding.iter().map(|it| WithContext::new(<span class="self">self</span>.index, it)).collect();
-        <span class="kw">let </span><span class="kw-2">mut </span>config = serializer.serialize_struct(<span class="string">&quot;Configuration&quot;</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-        config.serialize_field(<span class="string">&quot;HardwareConfiguration&quot;</span>, <span class="kw-2">&amp;</span>bindings)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>config = serializer.serialize_struct(<span class="string">"Configuration"</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+        config.serialize_field(<span class="string">"HardwareConfiguration"</span>, <span class="kw-2">&amp;</span>bindings)<span class="question-mark">?</span>;
         config.end()
     }
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>HardwareBinding&lt;<span class="lifetime">&#39;idx</span>&gt; {
-    qualifed_name: ExpressionPath&lt;<span class="lifetime">&#39;idx</span>&gt;,
+</span><span class="kw">pub struct </span>HardwareBinding&lt;<span class="lifetime">'idx</span>&gt; {
+    qualifed_name: ExpressionPath&lt;<span class="lifetime">'idx</span>&gt;,
     direction: HardwareAccessType,
     access_type: DirectAccessType,
     address: Vec&lt;String&gt;,
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;idx</span>&gt; HardwareBinding&lt;<span class="lifetime">&#39;idx</span>&gt; {
-    <span class="kw">fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; Vec&lt;ExpandedHardwareBinding&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'idx</span>&gt; HardwareBinding&lt;<span class="lifetime">'idx</span>&gt; {
+    <span class="kw">fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; Vec&lt;ExpandedHardwareBinding&gt; {
         <span class="kw">let </span>names = <span class="self">self</span>.qualifed_name.expand(index);
         names
             .iter()
@@ -388,7 +390,7 @@
     address: Vec&lt;String&gt;,
 }
 
-<span class="kw">impl </span>SerializeWithContext <span class="kw">for </span>HardwareBinding&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>SerializeWithContext <span class="kw">for </span>HardwareBinding&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>Index, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
         </span>S: serde::Serializer,
@@ -409,7 +411,7 @@
         </span>.find_instances()
         .filter(|(<span class="kw">_</span>, instance)| instance.has_hardware_binding())
         .map(|(name, instance)| {
-            <span class="kw">let </span>binding = instance.get_hardware_binding().expect(<span class="string">&quot;Instance should have a binding&quot;</span>);
+            <span class="kw">let </span>binding = instance.get_hardware_binding().expect(<span class="string">"Instance should have a binding"</span>);
             binding
                 .entries
                 .iter()
@@ -426,7 +428,7 @@
         .collect();
 
     conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
-        .map_err(|message| Diagnostic::new(message).with_error_code(<span class="string">&quot;E002&quot;</span>))
+        .map_err(|message| Diagnostic::new(message).with_error_code(<span class="string">"E002"</span>))
 }
 
 <span class="kw">pub fn </span>generate_hardware_configuration(
@@ -435,10 +437,10 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
     <span class="kw">match </span>format {
         ConfigFormat::JSON =&gt; serde_json::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
-            Diagnostic::new(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code(<span class="string">"E002"</span>).with_internal_error(e.into())
         }),
         ConfigFormat::TOML =&gt; toml::ser::to_string_pretty(<span class="kw-2">&amp;</span>config).map_err(|e| {
-            Diagnostic::new(e.to_string()).with_error_code(<span class="string">&quot;E002&quot;</span>).with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code(<span class="string">"E002"</span>).with_internal_error(e.into())
         }),
     }
 }
@@ -454,7 +456,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hardware_collected_gv() {
         <span class="kw">let </span>(<span class="kw">_</span>, index) = index(
-            <span class="string">&quot;
+            <span class="string">"
         VAR_GLOBAL
             a AT %I*: DWORD;
             b,c AT %QW2.5: WORD;
@@ -462,7 +464,7 @@
             x AT %Q* : INT;
             y AT %QW1 : INT;
             z AT %IW1.2 : INT;
-        END_VAR&quot;</span>,
+        END_VAR"</span>,
         );
         <span class="kw">let </span>config = collect_hardware_configuration(<span class="kw-2">&amp;</span>index).unwrap().hardware_binding;
         <span class="macro">insta::assert_debug_snapshot!</span>(config);
@@ -471,7 +473,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hardware_collected_program() {
         <span class="kw">let </span>(<span class="kw">_</span>, index) = index(
-            <span class="string">&quot;
+            <span class="string">"
         PROGRAM prg
         VAR
             a AT %I*: DWORD;
@@ -481,7 +483,7 @@
             y AT %QW1 : INT;
             z AT %IW1.2 : INT;
         END_VAR
-        END_PROGRAM&quot;</span>,
+        END_PROGRAM"</span>,
         );
         <span class="kw">let </span>config = collect_hardware_configuration(<span class="kw-2">&amp;</span>index).unwrap().hardware_binding;
         <span class="macro">insta::assert_debug_snapshot!</span>(config);
@@ -489,7 +491,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hardware_collected_fb() {
         <span class="kw">let </span>(<span class="kw">_</span>, index) = index(
-            <span class="string">&quot;
+            <span class="string">"
         FUNCTION_BLOCK fb
         VAR
             a AT %I*: DWORD;
@@ -503,7 +505,7 @@
         VAR_GLOBAL
             gFb : fb;
             aFb : ARRAY[0..2] OF fb;
-        END_VAR&quot;</span>,
+        END_VAR"</span>,
         );
         <span class="kw">let </span>config = collect_hardware_configuration(<span class="kw-2">&amp;</span>index).unwrap().hardware_binding;
         <span class="macro">insta::assert_debug_snapshot!</span>(config);
@@ -512,7 +514,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hardware_printed_fb_no_arrays() {
         <span class="kw">let </span>(<span class="kw">_</span>, index) = index(
-            <span class="string">&quot;
+            <span class="string">"
         FUNCTION_BLOCK fb
         VAR
             a AT %I*: DWORD;
@@ -527,7 +529,7 @@
             aFb : ARRAY[0..2] OF fb;
             aFb2 : ARRAY[0..2,1..2] OF fb;
             aFb3 : ARRAY[0..2] OF ARRAY[1..2] OF fb;
-        END_VAR&quot;</span>,
+        END_VAR"</span>,
         );
         <span class="kw">let </span>config = collect_hardware_configuration(<span class="kw-2">&amp;</span>index).unwrap();
         <span class="kw">let </span>res = generate_hardware_configuration(<span class="kw-2">&amp;</span>config, ConfigFormat::JSON).unwrap();
@@ -539,7 +541,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hardware_printed_fb() {
         <span class="kw">let </span>(<span class="kw">_</span>, index) = index(
-            <span class="string">&quot;
+            <span class="string">"
         FUNCTION_BLOCK fb
         VAR
             a AT %I*: DWORD;
@@ -557,7 +559,7 @@
             aFb : ARRAY[0..2] OF fb;
             aFb2 : ARRAY[0..2,1..2] OF fb;
             aFb3 : ARRAY[0..2] OF ARRAY[1..2] OF fb;
-        END_VAR&quot;</span>,
+        END_VAR"</span>,
         );
         <span class="kw">let </span>config = collect_hardware_configuration(<span class="kw-2">&amp;</span>index).unwrap();
         <span class="kw">let </span>res = generate_hardware_configuration(<span class="kw-2">&amp;</span>config, ConfigFormat::JSON).unwrap();

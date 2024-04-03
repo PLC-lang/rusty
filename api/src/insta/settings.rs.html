@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/settings.rs`."><title>settings.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/settings.rs`."><title>settings.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -598,33 +600,33 @@
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">use </span>serde::{de::value::Error <span class="kw">as </span>ValueError, Serialize};
 
 <span class="kw">use </span><span class="kw">crate</span>::content::Content;
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::content::ContentSerializer;
-<span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::filters::Filters;
-<span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::redaction::{dynamic_redaction, sorted_redaction, ContentPath, Redaction, Selector};
 
 <span class="macro">lazy_static::lazy_static! </span>{
     <span class="kw">static </span><span class="kw-2">ref </span>DEFAULT_SETTINGS: Arc&lt;ActualSettings&gt; = {
         Arc::new(ActualSettings {
             sort_maps: <span class="bool-val">false</span>,
-            snapshot_path: <span class="string">&quot;snapshots&quot;</span>.into(),
-            snapshot_suffix: <span class="string">&quot;&quot;</span>.into(),
+            snapshot_path: <span class="string">"snapshots"</span>.into(),
+            snapshot_suffix: <span class="string">""</span>.into(),
             input_file: <span class="prelude-val">None</span>,
             description: <span class="prelude-val">None</span>,
             info: <span class="prelude-val">None</span>,
             omit_expression: <span class="bool-val">false</span>,
             prepend_module_to_snapshot: <span class="bool-val">true</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
             </span>redactions: Redactions::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
             </span>filters: Filters::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
             </span>allow_empty_glob: <span class="bool-val">false</span>,
         })
     };
@@ -632,14 +634,14 @@
 <span class="macro">thread_local!</span>(<span class="kw">static </span>CURRENT_SETTINGS: RefCell&lt;Settings&gt; = RefCell::new(Settings::new()));
 
 <span class="doccomment">/// Represents stored redactions.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
 #[derive(Clone, Default)]
-</span><span class="kw">pub struct </span>Redactions(Vec&lt;(Selector&lt;<span class="lifetime">&#39;static</span>&gt;, Arc&lt;Redaction&gt;)&gt;);
+</span><span class="kw">pub struct </span>Redactions(Vec&lt;(Selector&lt;<span class="lifetime">'static</span>&gt;, Arc&lt;Redaction&gt;)&gt;);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, Redaction)&gt;&gt; <span class="kw">for </span>Redactions {
-    <span class="kw">fn </span>from(value: Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, Redaction)&gt;) -&gt; Redactions {
+<span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Redaction)&gt;&gt; <span class="kw">for </span>Redactions {
+    <span class="kw">fn </span>from(value: Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Redaction)&gt;) -&gt; Redactions {
         Redactions(
             value
                 .into_iter()
@@ -660,11 +662,11 @@
     <span class="kw">pub </span>info: <span class="prelude-ty">Option</span>&lt;Content&gt;,
     <span class="kw">pub </span>omit_expression: bool,
     <span class="kw">pub </span>prepend_module_to_snapshot: bool,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
     </span><span class="kw">pub </span>redactions: Redactions,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
     </span><span class="kw">pub </span>filters: Filters,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
     </span><span class="kw">pub </span>allow_empty_glob: bool,
 }
 
@@ -689,7 +691,7 @@
         <span class="self">self</span>.description = <span class="prelude-val">Some</span>(value.into());
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
     </span><span class="kw">pub fn </span>info&lt;S: Serialize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>S) {
         <span class="kw">let </span>serializer = ContentSerializer::&lt;ValueError&gt;::new();
         <span class="kw">let </span>content = Serialize::serialize(s, serializer).unwrap();
@@ -708,17 +710,17 @@
         <span class="self">self</span>.prepend_module_to_snapshot = value;
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
     </span><span class="kw">pub fn </span>redactions&lt;R: Into&lt;Redactions&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, r: R) {
         <span class="self">self</span>.redactions = r.into();
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
     </span><span class="kw">pub fn </span>filters&lt;F: Into&lt;Filters&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) {
         <span class="self">self</span>.filters = f.into();
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
     </span><span class="kw">pub fn </span>allow_empty_glob(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
         <span class="self">self</span>.allow_empty_glob = value;
     }
@@ -734,7 +736,7 @@
 /// For instance it can be useful to force ordering of maps when
 /// unordered structures are used through settings.
 ///
-/// Some of the settings can be changed but shouldn&#39;t as it will make it harder
+/// Some of the settings can be changed but shouldn't as it will make it harder
 /// for tools like cargo-insta or an editor integration to locate the snapshot
 /// files.
 ///
@@ -768,7 +770,7 @@
 <span class="kw">impl </span>Settings {
     <span class="doccomment">/// Returns the default settings.
     ///
-    /// It&#39;s recommended to use `clone_current` instead so that
+    /// It's recommended to use `clone_current` instead so that
     /// already applied modifications are not discarded.
     </span><span class="kw">pub fn </span>new() -&gt; Settings {
         Settings::default()
@@ -823,13 +825,13 @@
     /// fixtures should be conditional.
     ///
     /// The default value is `false`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
     </span><span class="kw">pub fn </span>set_allow_empty_glob(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
         <span class="self">self</span>._private_inner_mut().allow_empty_glob(value);
     }
 
     <span class="doccomment">/// Returns the current value for the empty glob setting.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
     </span><span class="kw">pub fn </span>allow_empty_glob(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.inner.allow_empty_glob
     }
@@ -837,8 +839,8 @@
     <span class="doccomment">/// Sets the snapshot suffix.
     ///
     /// The snapshot suffix is added to all snapshot names with an `@` sign
-    /// between.  For instance if the snapshot suffix is set to `&quot;foo&quot;` and
-    /// the snapshot would be named `&quot;snapshot&quot;` it turns into `&quot;snapshot@foo&quot;`.
+    /// between.  For instance if the snapshot suffix is set to `"foo"` and
+    /// the snapshot would be named `"snapshot"` it turns into `"snapshot@foo"`.
     /// This is useful to separate snapshots if you want to use test
     /// parameterization.
     </span><span class="kw">pub fn </span>set_snapshot_suffix&lt;I: Into&lt;String&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, suffix: I) {
@@ -847,7 +849,7 @@
 
     <span class="doccomment">/// Removes the snapshot suffix.
     </span><span class="kw">pub fn </span>remove_snapshot_suffix(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.set_snapshot_suffix(<span class="string">&quot;&quot;</span>);
+        <span class="self">self</span>.set_snapshot_suffix(<span class="string">""</span>);
     }
 
     <span class="doccomment">/// Returns the current snapshot suffix.
@@ -913,8 +915,8 @@
     /// can be persisted here.
     ///
     /// Alternatively you can use [`set_raw_info`](Self::set_raw_info) instead.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;serde&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"serde"</span>)))]
     </span><span class="kw">pub fn </span>set_info&lt;S: Serialize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>S) {
         <span class="self">self</span>._private_inner_mut().info(s);
     }
@@ -958,13 +960,13 @@
     ///
     /// Note that this only applies to snapshots that undergo serialization
     /// (eg: does not work for `assert_debug_snapshot!`.)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>add_redaction&lt;R: Into&lt;Redaction&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: <span class="kw-2">&amp;</span>str, replacement: R) {
         <span class="self">self</span>.add_redaction_impl(selector, replacement.into())
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
     </span><span class="kw">fn </span>add_redaction_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: <span class="kw-2">&amp;</span>str, replacement: Redaction) {
         <span class="self">self</span>._private_inner_mut().redactions.<span class="number">0</span>.push((
             Selector::parse(selector).unwrap().make_static(),
@@ -979,12 +981,12 @@
     /// supposed to call things like `assert_eq!`.
     ///
     /// This is a shortcut to `add_redaction(selector, dynamic_redaction(...))`;
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>add_dynamic_redaction&lt;I, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: <span class="kw-2">&amp;</span>str, func: F)
     <span class="kw">where
         </span>I: Into&lt;Content&gt;,
-        F: Fn(Content, ContentPath&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; I + Send + Sync + <span class="lifetime">&#39;static</span>,
+        F: Fn(Content, ContentPath&lt;<span class="lifetime">'_</span>&gt;) -&gt; I + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="self">self</span>.add_redaction(selector, dynamic_redaction(func));
     }
@@ -992,8 +994,8 @@
     <span class="doccomment">/// A special redaction that sorts a sequence or map.
     ///
     /// This is a shortcut to `add_redaction(selector, sorted_redaction())`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>sort_selector(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: <span class="kw-2">&amp;</span>str) {
         <span class="self">self</span>.add_redaction(selector, sorted_redaction());
     }
@@ -1001,22 +1003,22 @@
     <span class="doccomment">/// Replaces the currently set redactions.
     ///
     /// The default set is empty.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>set_redactions&lt;R: Into&lt;Redactions&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, redactions: R) {
         <span class="self">self</span>._private_inner_mut().redactions(redactions);
     }
 
     <span class="doccomment">/// Removes all redactions.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>clear_redactions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>._private_inner_mut().redactions.<span class="number">0</span>.clear();
     }
 
     <span class="doccomment">/// Iterate over the redactions.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;redactions&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_redactions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>Selector, <span class="kw-2">&amp;</span>Redaction)&gt; {
         <span class="self">self</span>.inner.redactions.<span class="number">0</span>.iter().map(|(a, b)| (a, <span class="kw-2">&amp;**</span>b))
     }
@@ -1037,11 +1039,11 @@
     /// # use insta::Settings;
     /// # async fn foo() {
     /// # let mut settings = Settings::new();
-    /// settings.add_filter(r&quot;\b[[:xdigit:]]{32}\b&quot;, &quot;[UID]&quot;);
+    /// settings.add_filter(r"\b[[:xdigit:]]{32}\b", "[UID]");
     /// # }
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;filters&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"filters"</span>)))]
     </span><span class="kw">pub fn </span>add_filter&lt;S: Into&lt;String&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, regex: <span class="kw-2">&amp;</span>str, replacement: S) {
         <span class="self">self</span>._private_inner_mut().filters.add(regex, replacement);
     }
@@ -1049,29 +1051,29 @@
     <span class="doccomment">/// Replaces the currently set filters.
     ///
     /// The default set is empty.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;filters&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"filters"</span>)))]
     </span><span class="kw">pub fn </span>set_filters&lt;F: Into&lt;Filters&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: F) {
         <span class="self">self</span>._private_inner_mut().filters(filters);
     }
 
     <span class="doccomment">/// Removes all filters.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;filters&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"filters"</span>)))]
     </span><span class="kw">pub fn </span>clear_filters(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>._private_inner_mut().filters.clear();
     }
 
     <span class="doccomment">/// Returns the current filters
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;filters&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;filters&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"filters"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Filters {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.filters
     }
 
     <span class="doccomment">/// Sets the snapshot path.
     ///
-    /// If not absolute it&#39;s relative to where the test is in.
+    /// If not absolute it's relative to where the test is in.
     ///
     /// Defaults to `snapshots`.
     </span><span class="kw">pub fn </span>set_snapshot_path&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) {
@@ -1172,7 +1174,7 @@
 }
 
 <span class="doccomment">/// Returned from [`bind_to_scope`](Settings::bind_to_scope)
-</span><span class="attr">#[must_use = <span class="string">&quot;The guard is immediately dropped so binding has no effect. Use `let _guard = ...` to bind it.&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"The guard is immediately dropped so binding has no effect. Use `let _guard = ...` to bind it."</span>]
 </span><span class="kw">pub struct </span>SettingsBindDropGuard(<span class="prelude-ty">Option</span>&lt;Arc&lt;ActualSettings&gt;&gt;);
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>SettingsBindDropGuard {

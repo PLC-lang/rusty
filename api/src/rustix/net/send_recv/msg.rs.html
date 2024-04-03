@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/send_recv/msg.rs`."><title>msg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/send_recv/msg.rs`."><title>msg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1038,7 +1040,7 @@
     <span class="comment">// Base Rules
     </span>(ScmRights(<span class="macro-nonterminal">$len</span>:expr)) =&gt; {
         <span class="macro-nonterminal">$crate::net::__cmsg_space</span>(
-            <span class="macro-nonterminal">$len </span>* ::core::mem::size_of::&lt;<span class="macro-nonterminal">$crate::fd::BorrowedFd</span>&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(),
+            <span class="macro-nonterminal">$len </span>* ::core::mem::size_of::&lt;<span class="macro-nonterminal">$crate::fd::BorrowedFd</span>&lt;<span class="lifetime">'static</span>&gt;&gt;(),
         )
     };
     (ScmCredentials(<span class="macro-nonterminal">$len</span>:expr)) =&gt; {
@@ -1059,14 +1061,14 @@
     }};
 }
 
-<span class="doccomment">/// Like `cmsg_space`, but doesn&#39;t add padding for `cmsghdr` alignment.
+<span class="doccomment">/// Like `cmsg_space`, but doesn't add padding for `cmsghdr` alignment.
 </span><span class="attr">#[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>cmsg_aligned_space {
     <span class="comment">// Base Rules
     </span>(ScmRights(<span class="macro-nonterminal">$len</span>:expr)) =&gt; {
         <span class="macro-nonterminal">$crate::net::__cmsg_aligned_space</span>(
-            <span class="macro-nonterminal">$len </span>* ::core::mem::size_of::&lt;<span class="macro-nonterminal">$crate::fd::BorrowedFd</span>&lt;<span class="lifetime">&#39;static</span>&gt;&gt;(),
+            <span class="macro-nonterminal">$len </span>* ::core::mem::size_of::&lt;<span class="macro-nonterminal">$crate::fd::BorrowedFd</span>&lt;<span class="lifetime">'static</span>&gt;&gt;(),
         )
     };
     (ScmCredentials(<span class="macro-nonterminal">$len</span>:expr)) =&gt; {
@@ -1109,17 +1111,17 @@
 <span class="doccomment">/// Ancillary message for [`sendmsg`], [`sendmsg_v4`], [`sendmsg_v6`],
 /// [`sendmsg_unix`], and [`sendmsg_any`].
 </span><span class="attr">#[non_exhaustive]
-</span><span class="kw">pub enum </span>SendAncillaryMessage&lt;<span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt; {
+</span><span class="kw">pub enum </span>SendAncillaryMessage&lt;<span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt; {
     <span class="doccomment">/// Send file descriptors.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;SCM_RIGHTS&quot;</span>)]
-    </span>ScmRights(<span class="kw-2">&amp;</span><span class="lifetime">&#39;slice </span>[BorrowedFd&lt;<span class="lifetime">&#39;fd</span>&gt;]),
+    </span><span class="attr">#[doc(alias = <span class="string">"SCM_RIGHTS"</span>)]
+    </span>ScmRights(<span class="kw-2">&amp;</span><span class="lifetime">'slice </span>[BorrowedFd&lt;<span class="lifetime">'fd</span>&gt;]),
     <span class="doccomment">/// Send process credentials.
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;SCM_CREDENTIAL&quot;</span>)]
+    #[doc(alias = <span class="string">"SCM_CREDENTIAL"</span>)]
     </span>ScmCredentials(UCred),
 }
 
-<span class="kw">impl </span>SendAncillaryMessage&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>SendAncillaryMessage&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Get the maximum size of an ancillary message.
     ///
     /// This can be helpful in determining the size of the buffer you allocate.
@@ -1134,13 +1136,13 @@
 
 <span class="doccomment">/// Ancillary message for [`recvmsg`].
 </span><span class="attr">#[non_exhaustive]
-</span><span class="kw">pub enum </span>RecvAncillaryMessage&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>RecvAncillaryMessage&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Received file descriptors.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;SCM_RIGHTS&quot;</span>)]
-    </span>ScmRights(AncillaryIter&lt;<span class="lifetime">&#39;a</span>, OwnedFd&gt;),
+    </span><span class="attr">#[doc(alias = <span class="string">"SCM_RIGHTS"</span>)]
+    </span>ScmRights(AncillaryIter&lt;<span class="lifetime">'a</span>, OwnedFd&gt;),
     <span class="doccomment">/// Received process credentials.
     </span><span class="attr">#[cfg(linux_kernel)]
-    #[doc(alias = <span class="string">&quot;SCM_CREDENTIALS&quot;</span>)]
+    #[doc(alias = <span class="string">"SCM_CREDENTIALS"</span>)]
     </span>ScmCredentials(UCred),
 }
 
@@ -1150,24 +1152,24 @@
 /// Use the [`push`] function to add messages to send.
 ///
 /// [`push`]: SendAncillaryBuffer::push
-</span><span class="kw">pub struct </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>, <span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt; {
+</span><span class="kw">pub struct </span>SendAncillaryBuffer&lt;<span class="lifetime">'buf</span>, <span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt; {
     <span class="doccomment">/// Raw byte buffer for messages.
-    </span>buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8],
+    </span>buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8],
 
     <span class="doccomment">/// The amount of the buffer that is used.
     </span>length: usize,
 
-    <span class="doccomment">/// Phantom data for lifetime of `&amp;&#39;slice [BorrowedFd&lt;&#39;fd&gt;]`.
-    </span>_phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;slice </span>[BorrowedFd&lt;<span class="lifetime">&#39;fd</span>&gt;]&gt;,
+    <span class="doccomment">/// Phantom data for lifetime of `&amp;'slice [BorrowedFd&lt;'fd&gt;]`.
+    </span>_phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'slice </span>[BorrowedFd&lt;<span class="lifetime">'fd</span>&gt;]&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]&gt; <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>from(buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]&gt; <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">'buf</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>from(buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(buffer)
     }
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Default <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffer: <span class="kw-2">&amp;mut </span>[],
@@ -1177,7 +1179,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>, <span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt; SendAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>, <span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>, <span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt; SendAncillaryBuffer&lt;<span class="lifetime">'buf</span>, <span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt; {
     <span class="doccomment">/// Create a new, empty `SendAncillaryBuffer` from a raw byte buffer.
     ///
     /// The buffer size may be computed with [`cmsg_space`], or it may be
@@ -1218,7 +1220,7 @@
     ///
     /// [`send`]: crate::net::send
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffer: align_for_cmsghdr(buffer),
             length: <span class="number">0</span>,
@@ -1252,7 +1254,7 @@
     <span class="doccomment">/// Add an ancillary message to the buffer.
     ///
     /// Returns `true` if the message was added successfully.
-    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: SendAncillaryMessage&lt;<span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt;) -&gt; bool {
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: SendAncillaryMessage&lt;<span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt;) -&gt; bool {
         <span class="kw">match </span>msg {
             SendAncillaryMessage::ScmRights(fds) =&gt; {
                 <span class="kw">let </span>fds_bytes =
@@ -1310,10 +1312,10 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt; Extend&lt;SendAncillaryMessage&lt;<span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt;&gt;
-    <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt; Extend&lt;SendAncillaryMessage&lt;<span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt;&gt;
+    <span class="kw">for </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt;
 {
-    <span class="kw">fn </span>extend&lt;T: IntoIterator&lt;Item = SendAncillaryMessage&lt;<span class="lifetime">&#39;slice</span>, <span class="lifetime">&#39;fd</span>&gt;&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T) {
+    <span class="kw">fn </span>extend&lt;T: IntoIterator&lt;Item = SendAncillaryMessage&lt;<span class="lifetime">'slice</span>, <span class="lifetime">'fd</span>&gt;&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T) {
         <span class="comment">// TODO: This could be optimized to add every message in one go.
         </span>iter.into_iter().all(|msg| <span class="self">self</span>.push(msg));
     }
@@ -1325,24 +1327,24 @@
 ///
 /// [`drain`]: RecvAncillaryBuffer::drain
 </span><span class="attr">#[derive(Default)]
-</span><span class="kw">pub struct </span>RecvAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>&gt; {
+</span><span class="kw">pub struct </span>RecvAncillaryBuffer&lt;<span class="lifetime">'buf</span>&gt; {
     <span class="doccomment">/// Raw byte buffer for messages.
-    </span>buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8],
+    </span>buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8],
 
-    <span class="doccomment">/// The portion of the buffer we&#39;ve read from already.
+    <span class="doccomment">/// The portion of the buffer we've read from already.
     </span>read: usize,
 
     <span class="doccomment">/// The amount of the buffer that is used.
     </span>length: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]&gt; <span class="kw">for </span>RecvAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>&gt; {
-    <span class="kw">fn </span>from(buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]&gt; <span class="kw">for </span>RecvAncillaryBuffer&lt;<span class="lifetime">'buf</span>&gt; {
+    <span class="kw">fn </span>from(buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(buffer)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; RecvAncillaryBuffer&lt;<span class="lifetime">&#39;buf</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; RecvAncillaryBuffer&lt;<span class="lifetime">'buf</span>&gt; {
     <span class="doccomment">/// Create a new, empty `RecvAncillaryBuffer` from a raw byte buffer.
     ///
     /// The buffer size may be computed with [`cmsg_space`], or it may be
@@ -1383,7 +1385,7 @@
     ///
     /// [`recv`]: crate::net::recv
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(buffer: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffer: align_for_cmsghdr(buffer),
             read: <span class="number">0</span>,
@@ -1425,7 +1427,7 @@
     }
 
     <span class="doccomment">/// Drain all messages from the buffer.
-    </span><span class="kw">pub fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; AncillaryDrain&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; AncillaryDrain&lt;<span class="lifetime">'_</span>&gt; {
         AncillaryDrain {
             messages: messages::Messages::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer[<span class="self">self</span>.read..][..<span class="self">self</span>.length]),
             read: <span class="kw-2">&amp;mut </span><span class="self">self</span>.read,
@@ -1434,7 +1436,7 @@
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>RecvAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>RecvAncillaryBuffer&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.clear();
     }
@@ -1444,8 +1446,8 @@
 /// boundary.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>align_for_cmsghdr(buffer: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
-    <span class="comment">// If the buffer is empty, we won&#39;t be writing anything into it, so it
-    // doesn&#39;t need to be aligned.
+    <span class="comment">// If the buffer is empty, we won't be writing anything into it, so it
+    // doesn't need to be aligned.
     </span><span class="kw">if </span>buffer.is_empty() {
         <span class="kw">return </span>buffer;
     }
@@ -1457,24 +1459,24 @@
 }
 
 <span class="doccomment">/// An iterator that drains messages from a [`RecvAncillaryBuffer`].
-</span><span class="kw">pub struct </span>AncillaryDrain&lt;<span class="lifetime">&#39;buf</span>&gt; {
+</span><span class="kw">pub struct </span>AncillaryDrain&lt;<span class="lifetime">'buf</span>&gt; {
     <span class="doccomment">/// Inner iterator over messages.
-    </span>messages: messages::Messages&lt;<span class="lifetime">&#39;buf</span>&gt;,
+    </span>messages: messages::Messages&lt;<span class="lifetime">'buf</span>&gt;,
 
-    <span class="doccomment">/// Increment the number of messages we&#39;ve read.
-    </span>read: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>usize,
+    <span class="doccomment">/// Increment the number of messages we've read.
+    </span>read: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>usize,
 
     <span class="doccomment">/// Decrement the total length.
-    </span>length: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>usize,
+    </span>length: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; AncillaryDrain&lt;<span class="lifetime">&#39;buf</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; AncillaryDrain&lt;<span class="lifetime">'buf</span>&gt; {
     <span class="doccomment">/// A closure that converts a message into a [`RecvAncillaryMessage`].
     </span><span class="kw">fn </span>cvt_msg(
         read: <span class="kw-2">&amp;mut </span>usize,
         length: <span class="kw-2">&amp;mut </span>usize,
         msg: <span class="kw-2">&amp;</span>c::cmsghdr,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;RecvAncillaryMessage&lt;<span class="lifetime">&#39;buf</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;RecvAncillaryMessage&lt;<span class="lifetime">'buf</span>&gt;&gt; {
         <span class="kw">unsafe </span>{
             <span class="comment">// Advance the `read` pointer.
             </span><span class="kw">let </span>msg_len = msg.cmsg_len <span class="kw">as </span>usize;
@@ -1486,7 +1488,7 @@
             <span class="kw">let </span>payload_len = msg.cmsg_len <span class="kw">as </span>usize - c::CMSG_LEN(<span class="number">0</span>) <span class="kw">as </span>usize;
 
             <span class="comment">// Get a mutable slice of the payload.
-            </span><span class="kw">let </span>payload: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8] = slice::from_raw_parts_mut(payload, payload_len);
+            </span><span class="kw">let </span>payload: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8] = slice::from_raw_parts_mut(payload, payload_len);
 
             <span class="comment">// Determine what type it is.
             </span><span class="kw">let </span>(level, msg_type) = (msg.cmsg_level, msg.cmsg_type);
@@ -1512,8 +1514,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; Iterator <span class="kw">for </span>AncillaryDrain&lt;<span class="lifetime">&#39;buf</span>&gt; {
-    <span class="kw">type </span>Item = RecvAncillaryMessage&lt;<span class="lifetime">&#39;buf</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; Iterator <span class="kw">for </span>AncillaryDrain&lt;<span class="lifetime">'buf</span>&gt; {
+    <span class="kw">type </span>Item = RecvAncillaryMessage&lt;<span class="lifetime">'buf</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>read = <span class="kw-2">&amp;mut </span><span class="self">self</span>.read;
@@ -1569,7 +1571,7 @@
     }
 }
 
-<span class="kw">impl </span>FusedIterator <span class="kw">for </span>AncillaryDrain&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">impl </span>FusedIterator <span class="kw">for </span>AncillaryDrain&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// `sendmsg(msghdr)`—Sends a message on a socket.
 ///
@@ -1594,8 +1596,8 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>sendmsg(
     socket: <span class="kw">impl </span>AsFd,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     backend::net::syscalls::sendmsg(socket.as_fd(), iov, control, flags)
@@ -1625,8 +1627,8 @@
 </span><span class="kw">pub fn </span>sendmsg_v4(
     socket: <span class="kw">impl </span>AsFd,
     addr: <span class="kw-2">&amp;</span>SocketAddrV4,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     backend::net::syscalls::sendmsg_v4(socket.as_fd(), addr, iov, control, flags)
@@ -1656,8 +1658,8 @@
 </span><span class="kw">pub fn </span>sendmsg_v6(
     socket: <span class="kw">impl </span>AsFd,
     addr: <span class="kw-2">&amp;</span>SocketAddrV6,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     backend::net::syscalls::sendmsg_v6(socket.as_fd(), addr, iov, control, flags)
@@ -1689,8 +1691,8 @@
 </span><span class="kw">pub fn </span>sendmsg_unix(
     socket: <span class="kw">impl </span>AsFd,
     addr: <span class="kw-2">&amp;</span><span class="kw">super</span>::SocketAddrUnix,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     backend::net::syscalls::sendmsg_unix(socket.as_fd(), addr, iov, control, flags)
@@ -1703,12 +1705,12 @@
 ///
 /// [Linux]: https://man7.org/linux/man-pages/man2/sendmsg.2.html
 </span><span class="attr">#[inline]
-#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">pub fn </span>sendmsg_xdp(
     socket: <span class="kw">impl </span>AsFd,
     addr: <span class="kw-2">&amp;</span><span class="kw">super</span>::SocketAddrXdp,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     backend::net::syscalls::sendmsg_xdp(socket.as_fd(), addr, iov, control, flags)
@@ -1738,8 +1740,8 @@
 </span><span class="kw">pub fn </span>sendmsg_any(
     socket: <span class="kw">impl </span>AsFd,
     addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SocketAddrAny&gt;,
-    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>SendAncillaryBuffer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     flags: SendFlags,
 ) -&gt; io::Result&lt;usize&gt; {
     <span class="kw">match </span>addr {
@@ -1754,7 +1756,7 @@
         </span><span class="prelude-val">Some</span>(SocketAddrAny::Unix(addr)) =&gt; {
             backend::net::syscalls::sendmsg_unix(socket.as_fd(), addr, iov, control, flags)
         }
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span><span class="prelude-val">Some</span>(SocketAddrAny::Xdp(addr)) =&gt; {
             backend::net::syscalls::sendmsg_xdp(socket.as_fd(), addr, iov, control, flags)
         }
@@ -1784,8 +1786,8 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>recvmsg(
     socket: <span class="kw">impl </span>AsFd,
-    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
-    control: <span class="kw-2">&amp;mut </span>RecvAncillaryBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
+    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
+    control: <span class="kw-2">&amp;mut </span>RecvAncillaryBuffer&lt;<span class="lifetime">'_</span>&gt;,
     flags: RecvFlags,
 ) -&gt; io::Result&lt;RecvMsgReturn&gt; {
     backend::net::syscalls::recvmsg(socket.as_fd(), iov, control, flags)
@@ -1804,21 +1806,21 @@
 }
 
 <span class="doccomment">/// An iterator over data in an ancillary buffer.
-</span><span class="kw">pub struct </span>AncillaryIter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="doccomment">/// The data we&#39;re iterating over.
-    </span>data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[u8],
+</span><span class="kw">pub struct </span>AncillaryIter&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="doccomment">/// The data we're iterating over.
+    </span>data: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[u8],
 
-    <span class="doccomment">/// The raw data we&#39;re removing.
+    <span class="doccomment">/// The raw data we're removing.
     </span>_marker: PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T&gt; AncillaryIter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T&gt; AncillaryIter&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="doccomment">/// Create a new iterator over data in an ancillary buffer.
     ///
     /// # Safety
     ///
     /// The buffer must contain valid ancillary data.
-    </span><span class="kw">unsafe fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">unsafe fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="macro">assert_eq!</span>(data.len() % size_of::&lt;T&gt;(), <span class="number">0</span>);
 
         <span class="self">Self </span>{
@@ -1828,13 +1830,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T&gt; Drop <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T&gt; Drop <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.for_each(drop);
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Iterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -1867,15 +1869,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; FusedIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.data.len() / size_of::&lt;T&gt;()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; DoubleEndedIterator <span class="kw">for </span>AncillaryIter&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="comment">// See if there is a next item.
         </span><span class="kw">if </span><span class="self">self</span>.data.len() &lt; size_of::&lt;T&gt;() {
@@ -1905,26 +1907,26 @@
     <span class="kw">use </span>core::ptr::NonNull;
 
     <span class="doccomment">/// An iterator over the messages in an ancillary buffer.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Messages&lt;<span class="lifetime">&#39;buf</span>&gt; {
-        <span class="doccomment">/// The message header we&#39;re using to iterate over the messages.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Messages&lt;<span class="lifetime">'buf</span>&gt; {
+        <span class="doccomment">/// The message header we're using to iterate over the messages.
         </span>msghdr: c::msghdr,
 
         <span class="doccomment">/// The current pointer to the next message header to return.
         ///
-        /// This has a lifetime of `&#39;buf`.
+        /// This has a lifetime of `'buf`.
         </span>header: <span class="prelude-ty">Option</span>&lt;NonNull&lt;c::cmsghdr&gt;&gt;,
 
         <span class="doccomment">/// Capture the original lifetime of the buffer.
-        </span>_buffer: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]&gt;,
+        </span>_buffer: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]&gt;,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;buf</span>&gt; Messages&lt;<span class="lifetime">&#39;buf</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'buf</span>&gt; Messages&lt;<span class="lifetime">'buf</span>&gt; {
         <span class="doccomment">/// Create a new iterator over messages from a byte buffer.
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(buf: <span class="kw-2">&amp;</span><span class="lifetime">'buf </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="self">Self </span>{
             <span class="kw">let </span>msghdr = {
                 <span class="kw">let </span><span class="kw-2">mut </span>h = msghdr::zero_msghdr();
                 h.msg_control = buf.as_mut_ptr().cast();
-                h.msg_controllen = buf.len().try_into().expect(<span class="string">&quot;buffer too large for msghdr&quot;</span>);
+                h.msg_controllen = buf.len().try_into().expect(<span class="string">"buffer too large for msghdr"</span>);
                 h
             };
 
@@ -1939,8 +1941,8 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Messages&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>c::cmsghdr;
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>Messages&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>c::cmsghdr;
 
         <span class="attr">#[inline]
         </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -1950,7 +1952,7 @@
             <span class="comment">// Get the next header.
             </span><span class="self">self</span>.header = NonNull::new(<span class="kw">unsafe </span>{ c::CMSG_NXTHDR(<span class="kw-2">&amp;</span><span class="self">self</span>.msghdr, header.as_ptr()) });
 
-            <span class="comment">// If the headers are equal, we&#39;re done.
+            <span class="comment">// If the headers are equal, we're done.
             </span><span class="kw">if </span><span class="prelude-val">Some</span>(header) == <span class="self">self</span>.header {
                 <span class="self">self</span>.header = <span class="prelude-val">None</span>;
             }
@@ -1972,6 +1974,6 @@
         }
     }
 
-    <span class="kw">impl </span>FusedIterator <span class="kw">for </span>Messages&lt;<span class="lifetime">&#39;_</span>&gt; {}
+    <span class="kw">impl </span>FusedIterator <span class="kw">for </span>Messages&lt;<span class="lifetime">'_</span>&gt; {}
 }
 </code></pre></div></section></main></body></html>

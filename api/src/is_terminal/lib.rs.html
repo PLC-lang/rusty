@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/is-terminal-0.4.12/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="is_terminal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/is-terminal-0.4.12/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="is_terminal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../is_terminal/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -384,9 +386,9 @@
 //!
 //! &gt; Is this a terminal?
 //!
-//! A &quot;terminal&quot;, also known as a &quot;tty&quot;, is an I/O device which may be
+//! A "terminal", also known as a "tty", is an I/O device which may be
 //! interactive and may support color and other special features. This crate
-//! doesn&#39;t provide any of those features; it just answers this one question.
+//! doesn't provide any of those features; it just answers this one question.
 //!
 //! On Unix-family platforms, this is effectively the same as the [`isatty`]
 //! function for testing whether a given stream is a terminal, though it
@@ -401,7 +403,7 @@
 //! use is_terminal::IsTerminal;
 //!
 //! if std::io::stdout().is_terminal() {
-//!     println!(&quot;stdout is a terminal&quot;)
+//!     println!("stdout is a terminal")
 //! }
 //! ```
 //!
@@ -411,18 +413,18 @@
     not(any(
         unix,
         windows,
-        target_os = <span class="string">&quot;wasi&quot;</span>,
-        target_os = <span class="string">&quot;hermit&quot;</span>,
-        target_os = <span class="string">&quot;unknown&quot;
+        target_os = <span class="string">"wasi"</span>,
+        target_os = <span class="string">"hermit"</span>,
+        target_os = <span class="string">"unknown"
     </span>)),
     no_std
 )]
 
-#[cfg(target_os = <span class="string">&quot;hermit&quot;</span>)]
+#[cfg(target_os = <span class="string">"hermit"</span>)]
 </span><span class="kw">use </span>std::os::hermit::io::AsFd;
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">use </span>std::os::unix::io::{AsFd, AsRawFd};
-<span class="attr">#[cfg(target_os = <span class="string">&quot;wasi&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"wasi"</span>)]
 </span><span class="kw">use </span>std::os::wasi::io::{AsFd, AsRawFd};
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">use </span>std::os::windows::io::{AsHandle, AsRawHandle, BorrowedHandle};
@@ -439,7 +441,7 @@
     /// use is_terminal::IsTerminal;
     ///
     /// if std::io::stdout().is_terminal() {
-    ///     println!(&quot;stdout is a terminal&quot;)
+    ///     println!("stdout is a terminal")
     /// }
     /// ```
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
@@ -455,24 +457,24 @@
 ///
 /// ```
 /// if is_terminal::is_terminal(&amp;std::io::stdout()) {
-///     println!(&quot;stdout is a terminal&quot;)
+///     println!("stdout is a terminal")
 /// }
 /// ```
 </span><span class="kw">pub fn </span>is_terminal&lt;T: IsTerminal&gt;(this: T) -&gt; bool {
     this.is_terminal()
 }
 
-<span class="attr">#[cfg(not(any(windows, target_os = <span class="string">&quot;unknown&quot;</span>)))]
+<span class="attr">#[cfg(not(any(windows, target_os = <span class="string">"unknown"</span>)))]
 </span><span class="kw">impl</span>&lt;Stream: AsFd&gt; IsTerminal <span class="kw">for </span>Stream {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="attr">#[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+        <span class="attr">#[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
         </span>{
             <span class="kw">let </span>fd = <span class="self">self</span>.as_fd();
             <span class="kw">unsafe </span>{ libc::isatty(fd.as_raw_fd()) != <span class="number">0 </span>}
         }
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;hermit&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"hermit"</span>)]
         </span>{
             <span class="kw">use </span>std::os::hermit::io::AsRawFd;
             hermit_abi::isatty(<span class="self">self</span>.as_fd().as_fd().as_raw_fd())
@@ -493,7 +495,7 @@
 // e74c667a53c6368579867a74494e6fb7a7f17d13.
 
 </span><span class="attr">#[cfg(windows)]
-</span><span class="kw">fn </span>handle_is_console(handle: BorrowedHandle&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+</span><span class="kw">fn </span>handle_is_console(handle: BorrowedHandle&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
     <span class="kw">use </span>windows_sys::Win32::System::Console::GetConsoleMode;
 
     <span class="kw">let </span>handle = handle.as_raw_handle();
@@ -506,7 +508,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
         <span class="kw">if </span>GetConsoleMode(handle <span class="kw">as </span>HANDLE, <span class="kw-2">&amp;mut </span>out) != <span class="number">0 </span>{
-            <span class="comment">// False positives aren&#39;t possible. If we got a console then we definitely have a console.
+            <span class="comment">// False positives aren't possible. If we got a console then we definitely have a console.
             </span><span class="kw">return </span><span class="bool-val">true</span>;
         }
 
@@ -564,17 +566,17 @@
     };
     <span class="kw">let </span>name = String::from_utf16_lossy(s);
     <span class="comment">// Get the file name only.
-    </span><span class="kw">let </span>name = name.rsplit(<span class="string">&#39;\\&#39;</span>).next().unwrap_or(<span class="kw-2">&amp;</span>name);
-    <span class="comment">// This checks whether &#39;pty&#39; exists in the file name, which indicates that
+    </span><span class="kw">let </span>name = name.rsplit(<span class="string">'\\'</span>).next().unwrap_or(<span class="kw-2">&amp;</span>name);
+    <span class="comment">// This checks whether 'pty' exists in the file name, which indicates that
     // a pseudo-terminal is attached. To mitigate against false positives
-    // (e.g., an actual file name that contains &#39;pty&#39;), we also require that
-    // the file name begins with either the strings &#39;msys-&#39; or &#39;cygwin-&#39;.)
-    </span><span class="kw">let </span>is_msys = name.starts_with(<span class="string">&quot;msys-&quot;</span>) || name.starts_with(<span class="string">&quot;cygwin-&quot;</span>);
-    <span class="kw">let </span>is_pty = name.contains(<span class="string">&quot;-pty&quot;</span>);
+    // (e.g., an actual file name that contains 'pty'), we also require that
+    // the file name begins with either the strings 'msys-' or 'cygwin-'.)
+    </span><span class="kw">let </span>is_msys = name.starts_with(<span class="string">"msys-"</span>) || name.starts_with(<span class="string">"cygwin-"</span>);
+    <span class="kw">let </span>is_pty = name.contains(<span class="string">"-pty"</span>);
     is_msys &amp;&amp; is_pty
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::io::Stdin {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -582,7 +584,7 @@
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::io::Stdout {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -590,7 +592,7 @@
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::io::Stderr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -598,39 +600,39 @@
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StdinLock&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StdinLock&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">false
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StdoutLock&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StdoutLock&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">false
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StderrLock&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IsTerminal <span class="kw">for </span>std::io::StderrLock&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">false
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IsTerminal <span class="kw">for </span>std::fs::File {
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IsTerminal <span class="kw">for </span>std::fs::File {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="bool-val">false
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::process::ChildStdin {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -638,7 +640,7 @@
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::process::ChildStdout {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -646,7 +648,7 @@
     </span>}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;unknown&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"unknown"</span>)]
 </span><span class="kw">impl </span>IsTerminal <span class="kw">for </span>std::process::ChildStderr {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>is_terminal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -656,7 +658,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="attr">#[cfg(not(target_os = <span class="string">&quot;unknown&quot;</span>))]
+    <span class="attr">#[cfg(not(target_os = <span class="string">"unknown"</span>))]
     </span><span class="kw">use </span><span class="kw">super</span>::IsTerminal;
 
     <span class="attr">#[test]
@@ -687,7 +689,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stdin() {
         <span class="macro">assert_eq!</span>(
             atty::is(atty::Stream::Stdin),
@@ -696,7 +698,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stdout() {
         <span class="macro">assert_eq!</span>(
             atty::is(atty::Stream::Stdout),
@@ -705,7 +707,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stderr() {
         <span class="macro">assert_eq!</span>(
             atty::is(atty::Stream::Stderr),
@@ -714,7 +716,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stdin_vs_libc() {
         <span class="kw">unsafe </span>{
             <span class="macro">assert_eq!</span>(
@@ -725,7 +727,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stdout_vs_libc() {
         <span class="kw">unsafe </span>{
             <span class="macro">assert_eq!</span>(
@@ -736,7 +738,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(any(unix, target_os = <span class="string">&quot;wasi&quot;</span>))]
+    #[cfg(any(unix, target_os = <span class="string">"wasi"</span>))]
     </span><span class="kw">fn </span>stderr_vs_libc() {
         <span class="kw">unsafe </span>{
             <span class="macro">assert_eq!</span>(
@@ -753,11 +755,11 @@
         <span class="kw">use </span>std::{fs::File, os::windows::io::AsRawHandle};
         <span class="kw">use </span>windows_sys::Win32::Foundation::MAX_PATH;
 
-        <span class="kw">let </span>dir = tempfile::tempdir().expect(<span class="string">&quot;Unable to create temporary directory&quot;</span>);
-        <span class="kw">let </span>file_path = dir.path().join(<span class="string">&quot;ten_chars_&quot;</span>.repeat(<span class="number">25</span>));
+        <span class="kw">let </span>dir = tempfile::tempdir().expect(<span class="string">"Unable to create temporary directory"</span>);
+        <span class="kw">let </span>file_path = dir.path().join(<span class="string">"ten_chars_"</span>.repeat(<span class="number">25</span>));
         <span class="comment">// Ensure that the path is longer than MAX_PATH.
         </span><span class="macro">assert!</span>(file_path.to_string_lossy().len() &gt; MAX_PATH <span class="kw">as </span>usize);
-        <span class="kw">let </span>file = File::create(file_path).expect(<span class="string">&quot;Unable to create file&quot;</span>);
+        <span class="kw">let </span>file = File::create(file_path).expect(<span class="string">"Unable to create file"</span>);
 
         <span class="macro">assert!</span>(!<span class="kw">unsafe </span>{ <span class="kw">crate</span>::msys_tty_on(file.as_raw_handle() <span class="kw">as </span>isize) });
     }

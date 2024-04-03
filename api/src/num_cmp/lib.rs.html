@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-cmp-0.1.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_cmp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-cmp-0.1.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_cmp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../num_cmp/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -718,7 +720,7 @@
 //!
 //! [issue-35118]: https://github.com/rust-lang/rust/issues/35118
 
-</span><span class="attr">#![cfg_attr(feature = <span class="string">&quot;i128&quot;</span>, feature(i128_type))]
+</span><span class="attr">#![cfg_attr(feature = <span class="string">"i128"</span>, feature(i128_type))]
 #![deny(missing_docs)]
 
 </span><span class="kw">use </span>std::cmp::Ordering;
@@ -729,7 +731,7 @@
 /// including `isize`, `usize` and also (when the `i128` feature is enabled) `i128` and `u128`.
 </span><span class="kw">pub trait </span>NumCmp&lt;Other: Copy&gt;: Copy {
     <span class="comment">// only used for testing
-    </span><span class="attr">#[cfg(test)] </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, other: Other) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    </span><span class="attr">#[cfg(test)] </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, other: Other) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
 
     <span class="doccomment">/// Same to `self.partial_cmp(&amp;other)`
     /// but can be used for different numeric types for `self` and `other`.
@@ -759,8 +761,8 @@
     ($(<span class="macro-nonterminal">$ty</span>:ty;)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$ty</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 1&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 1"
             </span>}
 
             <span class="attr">#[inline]
@@ -807,8 +809,8 @@
     ($(<span class="macro-nonterminal">$size</span>:ty =&gt; <span class="macro-nonterminal">$nonsize</span>:ty, <span class="macro-nonterminal">$other</span>:ty;)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$other</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$size </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$other</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 2, size vs other&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$other</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 2, size vs other"
             </span>}
 
             <span class="attr">#[inline]
@@ -849,8 +851,8 @@
 
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$size</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$other </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$size</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 2, nonsize vs size&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$size</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 2, nonsize vs size"
             </span>}
 
             <span class="attr">#[inline]
@@ -898,8 +900,8 @@
     ($(<span class="macro-nonterminal">$big</span>:ty, <span class="macro-nonterminal">$small</span>:ty;)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$small</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$big </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$small</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 3, big vs small&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$small</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 3, big vs small"
             </span>}
 
             <span class="attr">#[inline]
@@ -940,8 +942,8 @@
 
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$big</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$small </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$big</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 3, small vs big&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$big</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 3, small vs big"
             </span>}
 
             <span class="attr">#[inline]
@@ -989,8 +991,8 @@
     ($(<span class="macro-nonterminal">$unsigned</span>:ty, <span class="macro-nonterminal">$signed</span>:ty;)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$signed</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$unsigned </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$signed</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 4, unsigned vs signed&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$signed</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 4, unsigned vs signed"
             </span>}
 
             <span class="attr">#[inline]
@@ -1035,8 +1037,8 @@
 
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$unsigned</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$signed </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$unsigned</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 4, signed vs unsigned&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$unsigned</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 4, signed vs unsigned"
             </span>}
 
             <span class="attr">#[inline]
@@ -1130,8 +1132,8 @@
     ($(<span class="macro-nonterminal">$float</span>:ty, <span class="macro-nonterminal">$int</span>:ty, (<span class="macro-nonterminal">$lb</span>:expr) &lt;= <span class="kw">_ </span>&lt; (<span class="macro-nonterminal">$ub</span>:expr);)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$int</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$float </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$int</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 5, float vs int&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$int</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 5, float vs int"
             </span>}
 
             <span class="attr">#[inline]
@@ -1155,7 +1157,7 @@
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>num_ne(<span class="self">self</span>, other: <span class="macro-nonterminal">$int</span>) -&gt; bool {
-                <span class="comment">// we cannot blindly apply De Morgan&#39;s law; we need to catch NaN early on
+                <span class="comment">// we cannot blindly apply De Morgan's law; we need to catch NaN early on
                 </span>!(<span class="macro-nonterminal">$lb </span>&lt;= <span class="self">self </span>&amp;&amp; <span class="self">self </span>&lt; <span class="macro-nonterminal">$ub</span>) || <span class="macro">trunc_cmp!</span>(float <span class="self">self</span>, ne, int other;
                                                            (<span class="macro-nonterminal">$lb</span>) &lt;= (<span class="macro-nonterminal">$int</span>) &lt; (<span class="macro-nonterminal">$ub</span>))
             }
@@ -1187,8 +1189,8 @@
 
         <span class="kw">impl </span>NumCmp&lt;<span class="macro-nonterminal">$float</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$int </span>{
             <span class="attr">#[cfg(test)]
-            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$float</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-                <span class="string">&quot;strategy 5, int vs float&quot;
+            </span><span class="kw">fn </span>num_cmp_strategy(<span class="self">self</span>, _other: <span class="macro-nonterminal">$float</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+                <span class="string">"strategy 5, int vs float"
             </span>}
 
             <span class="attr">#[inline]
@@ -1212,7 +1214,7 @@
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>num_ne(<span class="self">self</span>, other: <span class="macro-nonterminal">$float</span>) -&gt; bool {
-                <span class="comment">// we cannot blindly apply De Morgan&#39;s law; we need to catch NaN early on
+                <span class="comment">// we cannot blindly apply De Morgan's law; we need to catch NaN early on
                 </span>!(<span class="macro-nonterminal">$lb </span>&lt;= other &amp;&amp; other &lt; <span class="macro-nonterminal">$ub</span>) || <span class="macro">trunc_cmp!</span>(int <span class="self">self</span>, ne, float other;
                                                              (<span class="macro-nonterminal">$lb</span>) &lt;= (<span class="macro-nonterminal">$int</span>) &lt; (<span class="macro-nonterminal">$ub</span>))
             }
@@ -1254,13 +1256,13 @@
     f32; f64;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)]
 </span><span class="macro">impl_for_equal_types! </span>{
     u128;
     i128;
 }
 
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
 </span><span class="macro">impl_for_size_types! </span>{
     usize =&gt; u32, u8;  isize =&gt; i32, u8;
     usize =&gt; u32, u16; isize =&gt; i32, u16;
@@ -1274,7 +1276,7 @@
     usize =&gt; u32, f64; isize =&gt; i32, f64;
 }
 
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
 </span><span class="macro">impl_for_size_types! </span>{
     usize =&gt; u64, u8;  isize =&gt; i64, u8;
     usize =&gt; u64, u16; isize =&gt; i64, u16;
@@ -1288,13 +1290,13 @@
     usize =&gt; u64, f64; isize =&gt; i64, f64;
 }
 
-<span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;32&quot;</span>, feature = <span class="string">&quot;i128&quot;</span>))]
+<span class="attr">#[cfg(all(target_pointer_width = <span class="string">"32"</span>, feature = <span class="string">"i128"</span>))]
 </span><span class="macro">impl_for_size_types! </span>{
     usize =&gt; u32, u128; isize =&gt; i32, u128;
     usize =&gt; u32, i128; isize =&gt; i32, i128;
 }
 
-<span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, feature = <span class="string">&quot;i128&quot;</span>))]
+<span class="attr">#[cfg(all(target_pointer_width = <span class="string">"64"</span>, feature = <span class="string">"i128"</span>))]
 </span><span class="macro">impl_for_size_types! </span>{
     usize =&gt; u64, u128; isize =&gt; i64, u128;
     usize =&gt; u64, i128; isize =&gt; i64, i128;
@@ -1326,12 +1328,12 @@
 
     <span class="comment">// f32, iM for 24 &gt;= M
     // f64, iM for 53 &gt;= M
-    // since iM&#39;s range [-2^(M-1),2^(M-1)) includes -2^(M-1), bounds do not change
+    // since iM's range [-2^(M-1),2^(M-1)) includes -2^(M-1), bounds do not change
     </span>f32, i8; f32, i16;
     f64, i8; f64, i16; f64, i32;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)]
 </span><span class="macro">impl_for_nonequal_types_with_casting! </span>{
     u128, u8; u128, u16; u128, u32; u128, u64;
     i128, u8; i128, u16; i128, u32; i128, u64;
@@ -1346,7 +1348,7 @@
     usize, isize;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)]
 </span><span class="macro">impl_for_nonequal_types_with_different_signedness! </span>{
     u128, i8;
     u128, i16;
@@ -1377,12 +1379,12 @@
     f64, i64, (-I64_BOUND_IN_F64) &lt;= <span class="kw">_ </span>&lt; (I64_BOUND_IN_F64);
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)] </span><span class="kw">const </span>U128_BOUND_IN_F32: f32 = std::f32::INFINITY;
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)] </span><span class="kw">const </span>U128_BOUND_IN_F64: f64 = <span class="number">340282366920938463463374607431768211456.0</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)] </span><span class="kw">const </span>I128_BOUND_IN_F32: f32 = <span class="number">170141183460469231731687303715884105728.0</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)] </span><span class="kw">const </span>I128_BOUND_IN_F64: f64 = <span class="number">170141183460469231731687303715884105728.0</span>;
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)] </span><span class="kw">const </span>U128_BOUND_IN_F32: f32 = std::f32::INFINITY;
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)] </span><span class="kw">const </span>U128_BOUND_IN_F64: f64 = <span class="number">340282366920938463463374607431768211456.0</span>;
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)] </span><span class="kw">const </span>I128_BOUND_IN_F32: f32 = <span class="number">170141183460469231731687303715884105728.0</span>;
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)] </span><span class="kw">const </span>I128_BOUND_IN_F64: f64 = <span class="number">170141183460469231731687303715884105728.0</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;i128&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"i128"</span>)]
 </span><span class="macro">impl_for_int_and_float_types_with_bounds_check! </span>{
     f32, u128, (<span class="number">0.0</span>) &lt;= <span class="kw">_ </span>&lt; (U128_BOUND_IN_F32);
     f64, u128, (<span class="number">0.0</span>) &lt;= <span class="kw">_ </span>&lt; (U128_BOUND_IN_F64);

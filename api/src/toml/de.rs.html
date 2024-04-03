@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.5.11/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.5.11/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../toml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2269,15 +2271,15 @@
 <span class="kw">use </span><span class="kw">crate</span>::tokens::{Error <span class="kw">as </span>TokenError, Span, Token, Tokenizer};
 
 <span class="doccomment">/// Type Alias for a TOML Table pair
-</span><span class="kw">type </span>TablePair&lt;<span class="lifetime">&#39;a</span>&gt; = ((Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;), Value&lt;<span class="lifetime">&#39;a</span>&gt;);
+</span><span class="kw">type </span>TablePair&lt;<span class="lifetime">'a</span>&gt; = ((Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;), Value&lt;<span class="lifetime">'a</span>&gt;);
 
 <span class="doccomment">/// Deserializes a byte slice into a type.
 ///
 /// This function will attempt to interpret `bytes` as UTF-8 data and then
 /// deserialize `T` from the TOML document provided.
-</span><span class="kw">pub fn </span>from_slice&lt;<span class="lifetime">&#39;de</span>, T&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
+</span><span class="kw">pub fn </span>from_slice&lt;<span class="lifetime">'de</span>, T&gt;(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
 <span class="kw">where
-    </span>T: de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>T: de::Deserialize&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">match </span>str::from_utf8(bytes) {
         <span class="prelude-val">Ok</span>(s) =&gt; from_str(s),
@@ -2306,19 +2308,19 @@
 ///     name: String,
 /// }
 ///
-/// let config: Config = toml::from_str(r#&quot;
-///     title = &#39;TOML Example&#39;
+/// let config: Config = toml::from_str(r#"
+///     title = 'TOML Example'
 ///
 ///     [owner]
-///     name = &#39;Lisa&#39;
-/// &quot;#).unwrap();
+///     name = 'Lisa'
+/// "#).unwrap();
 ///
-/// assert_eq!(config.title, &quot;TOML Example&quot;);
-/// assert_eq!(config.owner.name, &quot;Lisa&quot;);
+/// assert_eq!(config.title, "TOML Example");
+/// assert_eq!(config.owner.name, "Lisa");
 /// ```
-</span><span class="kw">pub fn </span>from_str&lt;<span class="lifetime">&#39;de</span>, T&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
+</span><span class="kw">pub fn </span>from_str&lt;<span class="lifetime">'de</span>, T&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
 <span class="kw">where
-    </span>T: de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>T: de::Deserialize&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>d = Deserializer::new(s);
     <span class="kw">let </span>ret = T::deserialize(<span class="kw-2">&amp;mut </span>d)<span class="question-mark">?</span>;
@@ -2386,9 +2388,9 @@
     <span class="doccomment">/// Wanted one sort of token, but found another.
     </span>Wanted {
         <span class="doccomment">/// Expected token type
-        </span>expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        </span>expected: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         <span class="doccomment">/// Actually found token type
-        </span>found: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        </span>found: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     },
 
     <span class="doccomment">/// A duplicate table definition was found.
@@ -2433,7 +2435,7 @@
         <span class="doccomment">/// The unexpected keys.
         </span>keys: Vec&lt;String&gt;,
         <span class="doccomment">/// Keys that may be specified.
-        </span>available: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        </span>available: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
     },
 
     <span class="doccomment">/// Unquoted string was found when quoted one was expected
@@ -2441,19 +2443,19 @@
 }
 
 <span class="doccomment">/// Deserialization implementation for TOML.
-</span><span class="kw">pub struct </span>Deserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Deserializer&lt;<span class="lifetime">'a</span>&gt; {
     require_newline_after_table: bool,
     allow_duplciate_after_longer_table: bool,
-    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    tokens: Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    tokens: Tokenizer&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>tables = <span class="self">self</span>.tables()<span class="question-mark">?</span>;
         <span class="kw">let </span>table_indices = build_table_indices(<span class="kw-2">&amp;</span>tables);
@@ -2475,9 +2477,9 @@
         res.map_err(|<span class="kw-2">mut </span>err| {
             <span class="comment">// Errors originating from this library (toml), have an offset
             // attached to them already. Other errors, like those originating
-            // from serde (like &quot;missing field&quot;) or from a custom deserializer,
+            // from serde (like "missing field") or from a custom deserializer,
             // do not have offsets on them. Here, we do a best guess at their
-            // location, by attributing them to the &quot;current table&quot; (the last
+            // location, by attributing them to the "current table" (the last
             // item in `tables`).
             </span>err.fix_offset(|| tables.last().map(|table| table.at));
             err.fix_linecol(|at| <span class="self">self</span>.to_linecol(at));
@@ -2488,12 +2490,12 @@
     <span class="comment">// Called when the type to deserialize is an enum, as opposed to a field in the type.
     </span><span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(value, name) = <span class="self">self</span>.string_or_table()<span class="question-mark">?</span>;
         <span class="kw">match </span>value.e {
@@ -2503,11 +2505,11 @@
                     <span class="prelude-val">Err</span>(Error::from_kind(
                         <span class="prelude-val">Some</span>(value.start),
                         ErrorKind::Wanted {
-                            expected: <span class="string">&quot;exactly 1 element&quot;</span>,
+                            expected: <span class="string">"exactly 1 element"</span>,
                             found: <span class="kw">if </span>values.is_empty() {
-                                <span class="string">&quot;zero elements&quot;
+                                <span class="string">"zero elements"
                             </span>} <span class="kw">else </span>{
-                                <span class="string">&quot;more than 1 element&quot;
+                                <span class="string">"more than 1 element"
                             </span>},
                         },
                     ))
@@ -2519,13 +2521,13 @@
                 }
             }
             E::DottedTable(<span class="kw">_</span>) =&gt; visitor.visit_enum(DottedTableDeserializer {
-                name: name.expect(<span class="string">&quot;Expected table header to be passed.&quot;</span>),
+                name: name.expect(<span class="string">"Expected table header to be passed."</span>),
                 value,
             }),
             e =&gt; <span class="prelude-val">Err</span>(Error::from_kind(
                 <span class="prelude-val">Some</span>(value.start),
                 ErrorKind::Wanted {
-                    expected: <span class="string">&quot;string or table&quot;</span>,
+                    expected: <span class="string">"string or table"</span>,
                     found: e.type_name(),
                 },
             )),
@@ -2534,12 +2536,12 @@
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span>name == spanned::NAME &amp;&amp; fields == [spanned::START, spanned::END, spanned::VALUE] {
             <span class="kw">let </span>start = <span class="number">0</span>;
@@ -2574,7 +2576,7 @@
 // The lookup is performed in the `SeqAccess` implementation of `MapVisitor`.
 // The lists are ordered, which we exploit in the search code by using
 // bisection.
-</span><span class="kw">fn </span>build_table_indices&lt;<span class="lifetime">&#39;de</span>&gt;(tables: <span class="kw-2">&amp;</span>[Table&lt;<span class="lifetime">&#39;de</span>&gt;]) -&gt; HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt; {
+</span><span class="kw">fn </span>build_table_indices&lt;<span class="lifetime">'de</span>&gt;(tables: <span class="kw-2">&amp;</span>[Table&lt;<span class="lifetime">'de</span>&gt;]) -&gt; HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>res = HashMap::new();
     <span class="kw">for </span>(i, table) <span class="kw">in </span>tables.iter().enumerate() {
         <span class="kw">let </span>header = table.header.iter().map(|v| v.<span class="number">1</span>.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -2598,7 +2600,7 @@
 // The lookup is performed in the `MapAccess` implementation of `MapVisitor`.
 // The lists are ordered, which we exploit in the search code by using
 // bisection.
-</span><span class="kw">fn </span>build_table_pindices&lt;<span class="lifetime">&#39;de</span>&gt;(tables: <span class="kw-2">&amp;</span>[Table&lt;<span class="lifetime">&#39;de</span>&gt;]) -&gt; HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt; {
+</span><span class="kw">fn </span>build_table_pindices&lt;<span class="lifetime">'de</span>&gt;(tables: <span class="kw-2">&amp;</span>[Table&lt;<span class="lifetime">'de</span>&gt;]) -&gt; HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>res = HashMap::new();
     <span class="kw">for </span>(i, table) <span class="kw">in </span>tables.iter().enumerate() {
         <span class="kw">let </span>header = table.header.iter().map(|v| v.<span class="number">1</span>.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -2611,40 +2613,40 @@
     res
 }
 
-<span class="kw">fn </span>headers_equal&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(hdr_a: <span class="kw-2">&amp;</span>[(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)], hdr_b: <span class="kw-2">&amp;</span>[(Span, Cow&lt;<span class="lifetime">&#39;b</span>, str&gt;)]) -&gt; bool {
+<span class="kw">fn </span>headers_equal&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(hdr_a: <span class="kw-2">&amp;</span>[(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)], hdr_b: <span class="kw-2">&amp;</span>[(Span, Cow&lt;<span class="lifetime">'b</span>, str&gt;)]) -&gt; bool {
     <span class="kw">if </span>hdr_a.len() != hdr_b.len() {
         <span class="kw">return </span><span class="bool-val">false</span>;
     }
     hdr_a.iter().zip(hdr_b.iter()).all(|(h1, h2)| h1.<span class="number">1 </span>== h2.<span class="number">1</span>)
 }
 
-<span class="kw">struct </span>Table&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">struct </span>Table&lt;<span class="lifetime">'a</span>&gt; {
     at: usize,
-    header: Vec&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)&gt;,
-    values: <span class="prelude-ty">Option</span>&lt;Vec&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;,
+    header: Vec&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)&gt;,
+    values: <span class="prelude-ty">Option</span>&lt;Vec&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;,
     array: bool,
 }
 
-<span class="kw">struct </span>MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; {
-    values: iter::Peekable&lt;vec::IntoIter&lt;TablePair&lt;<span class="lifetime">&#39;de</span>&gt;&gt;&gt;,
-    next_value: <span class="prelude-ty">Option</span>&lt;TablePair&lt;<span class="lifetime">&#39;de</span>&gt;&gt;,
+<span class="kw">struct </span>MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; {
+    values: iter::Peekable&lt;vec::IntoIter&lt;TablePair&lt;<span class="lifetime">'de</span>&gt;&gt;&gt;,
+    next_value: <span class="prelude-ty">Option</span>&lt;TablePair&lt;<span class="lifetime">'de</span>&gt;&gt;,
     depth: usize,
     cur: usize,
     cur_parent: usize,
     max: usize,
-    table_indices: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt;,
-    table_pindices: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">&#39;de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt;,
-    tables: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[Table&lt;<span class="lifetime">&#39;de</span>&gt;],
+    table_indices: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt;,
+    table_pindices: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>HashMap&lt;Vec&lt;Cow&lt;<span class="lifetime">'de</span>, str&gt;&gt;, Vec&lt;usize&gt;&gt;,
+    tables: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>[Table&lt;<span class="lifetime">'de</span>&gt;],
     array: bool,
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">'de</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, Error&gt;
     <span class="kw">where
-        </span>K: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.cur_parent == <span class="self">self</span>.max || <span class="self">self</span>.cur == <span class="self">self</span>.max {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -2685,7 +2687,7 @@
             };
             <span class="self">self</span>.cur = pos;
 
-            <span class="comment">// Test to see if we&#39;re duplicating our parent&#39;s table, and if so
+            <span class="comment">// Test to see if we're duplicating our parent's table, and if so
             // then this is an error in the toml format
             </span><span class="kw">if </span><span class="self">self</span>.cur_parent != pos {
                 <span class="kw">if </span>headers_equal(
@@ -2698,13 +2700,13 @@
                         .iter()
                         .map(|k| k.<span class="number">1</span>.to_owned())
                         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                        .join(<span class="string">&quot;.&quot;</span>);
+                        .join(<span class="string">"."</span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.de.error(at, ErrorKind::DuplicateTable(name)));
                 }
 
-                <span class="comment">// If we&#39;re here we know we should share the same prefix, and if
+                <span class="comment">// If we're here we know we should share the same prefix, and if
                 // the longer table was defined first then we want to narrow
-                // down our parent&#39;s length if possible to ensure that we catch
+                // down our parent's length if possible to ensure that we catch
                 // duplicate tables defined afterwards.
                 </span><span class="kw">if </span>!<span class="self">self</span>.de.allow_duplciate_after_longer_table {
                     <span class="kw">let </span>parent_len = <span class="self">self</span>.tables[<span class="self">self</span>.cur_parent].header.len();
@@ -2717,7 +2719,7 @@
 
             <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span><span class="self">self</span>.tables[pos];
 
-            <span class="comment">// If we&#39;re not yet at the appropriate depth for this table then we
+            <span class="comment">// If we're not yet at the appropriate depth for this table then we
             // just next the next portion of its header and then continue
             // decoding.
             </span><span class="kw">if </span><span class="self">self</span>.depth != table.header.len() {
@@ -2738,7 +2740,7 @@
             <span class="self">self</span>.values = table
                 .values
                 .take()
-                .expect(<span class="string">&quot;Unable to read table values&quot;</span>)
+                .expect(<span class="string">"Unable to read table values"</span>)
                 .into_iter()
                 .peekable();
         }
@@ -2746,7 +2748,7 @@
 
     <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((k, v)) = <span class="self">self</span>.next_value.take() {
             <span class="kw">match </span>seed.deserialize(ValueDeserializer::new(v)) {
@@ -2781,12 +2783,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::SeqAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_element_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, Error&gt;
     <span class="kw">where
-        </span>K: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="macro">assert!</span>(<span class="self">self</span>.next_value.is_none());
         <span class="macro">assert!</span>(<span class="self">self</span>.values.next().is_none());
@@ -2822,7 +2824,7 @@
             values: <span class="self">self</span>.tables[<span class="self">self</span>.cur_parent]
                 .values
                 .take()
-                .expect(<span class="string">&quot;Unable to read table values&quot;</span>)
+                .expect(<span class="string">"Unable to read table values"</span>)
                 .into_iter()
                 .peekable(),
             next_value: <span class="prelude-val">None</span>,
@@ -2841,12 +2843,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.array {
             visitor.visit_seq(<span class="self">self</span>)
@@ -2859,36 +2861,36 @@
     // as a present field.
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_some(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_newtype_struct(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span>name == spanned::NAME
             &amp;&amp; fields == [spanned::START, spanned::END, spanned::VALUE]
             &amp;&amp; !(<span class="self">self</span>.array &amp;&amp; <span class="self">self</span>.values.peek().is_some())
         {
-            <span class="comment">// TODO we can&#39;t actually emit spans here for the *entire* table/array
+            <span class="comment">// TODO we can't actually emit spans here for the *entire* table/array
             // due to the format that toml uses. Setting the start and end to 0 is
             // *detectable* (and no reasonable span would look like that),
             // it would be better to expose this in the API via proper
@@ -2910,21 +2912,21 @@
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.tables.len() != <span class="number">1 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::custom(
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.cur),
-                <span class="string">&quot;enum table must contain exactly one table&quot;</span>.into(),
+                <span class="string">"enum table must contain exactly one table"</span>.into(),
             ));
         }
         <span class="kw">let </span>table = <span class="kw-2">&amp;mut </span><span class="self">self</span>.tables[<span class="number">0</span>];
-        <span class="kw">let </span>values = table.values.take().expect(<span class="string">&quot;table has no values?&quot;</span>);
+        <span class="kw">let </span>values = table.values.take().expect(<span class="string">"table has no values?"</span>);
         <span class="kw">if </span>table.header.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.de.error(<span class="self">self</span>.cur, ErrorKind::EmptyTableKey));
         }
@@ -2946,24 +2948,24 @@
     }
 }
 
-<span class="kw">struct </span>StrDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">struct </span>StrDeserializer&lt;<span class="lifetime">'a</span>&gt; {
     span: <span class="prelude-ty">Option</span>&lt;Span&gt;,
-    key: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
+    key: Cow&lt;<span class="lifetime">'a</span>, str&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; StrDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>spanned(inner: (Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)) -&gt; StrDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; StrDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>spanned(inner: (Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)) -&gt; StrDeserializer&lt;<span class="lifetime">'a</span>&gt; {
         StrDeserializer {
             span: <span class="prelude-val">Some</span>(inner.<span class="number">0</span>),
             key: inner.<span class="number">1</span>,
         }
     }
-    <span class="kw">fn </span>new(key: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;) -&gt; StrDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>new(key: Cow&lt;<span class="lifetime">'a</span>, str&gt;) -&gt; StrDeserializer&lt;<span class="lifetime">'a</span>&gt; {
         StrDeserializer { span: <span class="prelude-val">None</span>, key }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">&#39;a</span>, Error&gt; <span class="kw">for </span>StrDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">'a</span>, Error&gt; <span class="kw">for </span>StrDeserializer&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Deserializer = <span class="self">Self</span>;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {
@@ -2971,12 +2973,12 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>StrDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>StrDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.key {
             Cow::Borrowed(s) =&gt; visitor.visit_borrowed_str(s),
@@ -2986,12 +2988,12 @@
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span>name == spanned::NAME &amp;&amp; fields == [spanned::START, spanned::END, spanned::VALUE] {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <span class="self">self</span>.span {
@@ -3013,13 +3015,13 @@
     }
 }
 
-<span class="kw">struct </span>ValueDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    value: Value&lt;<span class="lifetime">&#39;a</span>&gt;,
+<span class="kw">struct </span>ValueDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    value: Value&lt;<span class="lifetime">'a</span>&gt;,
     validate_struct_keys: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ValueDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(value: Value&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; ValueDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ValueDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(value: Value&lt;<span class="lifetime">'a</span>&gt;) -&gt; ValueDeserializer&lt;<span class="lifetime">'a</span>&gt; {
         ValueDeserializer {
             value,
             validate_struct_keys: <span class="bool-val">false</span>,
@@ -3032,12 +3034,12 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>ValueDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>ValueDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>start = <span class="self">self</span>.value.start;
         <span class="kw">let </span>res = <span class="kw">match </span><span class="self">self</span>.value.e {
@@ -3072,12 +3074,12 @@
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span>name == datetime::NAME &amp;&amp; fields == [datetime::FIELD] {
             <span class="kw">if let </span>E::Datetime(s) = <span class="self">self</span>.value.e {
@@ -3139,19 +3141,19 @@
     // as a present field.
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_some(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.value.e {
             E::String(val) =&gt; visitor.visit_enum(val.into_deserializer()),
@@ -3160,11 +3162,11 @@
                     <span class="prelude-val">Err</span>(Error::from_kind(
                         <span class="prelude-val">Some</span>(<span class="self">self</span>.value.start),
                         ErrorKind::Wanted {
-                            expected: <span class="string">&quot;exactly 1 element&quot;</span>,
+                            expected: <span class="string">"exactly 1 element"</span>,
                             found: <span class="kw">if </span>values.is_empty() {
-                                <span class="string">&quot;zero elements&quot;
+                                <span class="string">"zero elements"
                             </span>} <span class="kw">else </span>{
-                                <span class="string">&quot;more than 1 element&quot;
+                                <span class="string">"more than 1 element"
                             </span>},
                         },
                     ))
@@ -3178,7 +3180,7 @@
             e =&gt; <span class="prelude-val">Err</span>(Error::from_kind(
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.value.start),
                 ErrorKind::Wanted {
-                    expected: <span class="string">&quot;string or inline table&quot;</span>,
+                    expected: <span class="string">"string or inline table"</span>,
                     found: e.type_name(),
                 },
             )),
@@ -3187,11 +3189,11 @@
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_newtype_struct(<span class="self">self</span>)
     }
@@ -3203,15 +3205,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; {
-    <span class="kw">type </span>Deserializer = MapVisitor&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt; <span class="kw">for </span>MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; {
+    <span class="kw">type </span>Deserializer = MapVisitor&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt;;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Deserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Deserializer = <span class="self">Self</span>;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {
@@ -3219,30 +3221,30 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt; <span class="kw">for </span>Value&lt;<span class="lifetime">&#39;de</span>&gt; {
-    <span class="kw">type </span>Deserializer = ValueDeserializer&lt;<span class="lifetime">&#39;de</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt; <span class="kw">for </span>Value&lt;<span class="lifetime">'de</span>&gt; {
+    <span class="kw">type </span>Deserializer = ValueDeserializer&lt;<span class="lifetime">'de</span>&gt;;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {
         ValueDeserializer::new(<span class="self">self</span>)
     }
 }
 
-<span class="kw">struct </span>SpannedDeserializer&lt;<span class="lifetime">&#39;de</span>, T: de::IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt;&gt; {
-    phantom_data: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>()&gt;,
+<span class="kw">struct </span>SpannedDeserializer&lt;<span class="lifetime">'de</span>, T: de::IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt;&gt; {
+    phantom_data: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'de </span>()&gt;,
     start: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     end: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     value: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SpannedDeserializer&lt;<span class="lifetime">&#39;de</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, T&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SpannedDeserializer&lt;<span class="lifetime">'de</span>, T&gt;
 <span class="kw">where
-    </span>T: de::IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt;,
+    </span>T: de::IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt;,
 {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, Error&gt;
     <span class="kw">where
-        </span>K: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.start.is_some() {
             seed.deserialize(BorrowedStrDeserializer::new(spanned::START))
@@ -3260,7 +3262,7 @@
 
     <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(start) = <span class="self">self</span>.start.take() {
             seed.deserialize(start.into_deserializer())
@@ -3269,22 +3271,22 @@
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.value.take() {
             seed.deserialize(value.into_deserializer())
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;next_value_seed called before next_key_seed&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"next_value_seed called before next_key_seed"</span>)
         }
     }
 }
 
-<span class="kw">struct </span>DatetimeDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">struct </span>DatetimeDeserializer&lt;<span class="lifetime">'a</span>&gt; {
     visited: bool,
-    date: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    date: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DatetimeDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>DatetimeDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, Error&gt;
     <span class="kw">where
-        </span>K: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.visited {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -3295,7 +3297,7 @@
 
     <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         seed.deserialize(StrDeserializer::new(<span class="self">self</span>.date.into()))
     }
@@ -3303,12 +3305,12 @@
 
 <span class="kw">struct </span>DatetimeFieldDeserializer;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DatetimeFieldDeserializer {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>DatetimeFieldDeserializer {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_borrowed_str(datetime::FIELD)
     }
@@ -3320,18 +3322,18 @@
     }
 }
 
-<span class="kw">struct </span>DottedTableDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    name: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
-    value: Value&lt;<span class="lifetime">&#39;a</span>&gt;,
+<span class="kw">struct </span>DottedTableDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    name: Cow&lt;<span class="lifetime">'a</span>, str&gt;,
+    value: Value&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DottedTableDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>DottedTableDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>Variant = TableEnumDeserializer&lt;<span class="lifetime">&#39;de</span>&gt;;
+    <span class="kw">type </span>Variant = TableEnumDeserializer&lt;<span class="lifetime">'de</span>&gt;;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(name, value) = (<span class="self">self</span>.name, <span class="self">self</span>.value);
         seed.deserialize(StrDeserializer::new(name))
@@ -3339,17 +3341,17 @@
     }
 }
 
-<span class="kw">struct </span>InlineTableDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    values: vec::IntoIter&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    next_value: <span class="prelude-ty">Option</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+<span class="kw">struct </span>InlineTableDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    values: vec::IntoIter&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    next_value: <span class="prelude-ty">Option</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>InlineTableDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>InlineTableDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;, Error&gt;
     <span class="kw">where
-        </span>K: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(key, value) = <span class="kw">match </span><span class="self">self</span>.values.next() {
             <span class="prelude-val">Some</span>(pair) =&gt; pair,
@@ -3361,20 +3363,20 @@
 
     <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
-        <span class="kw">let </span>value = <span class="self">self</span>.next_value.take().expect(<span class="string">&quot;Unable to read table values&quot;</span>);
+        <span class="kw">let </span>value = <span class="self">self</span>.next_value.take().expect(<span class="string">"Unable to read table values"</span>);
         seed.deserialize(ValueDeserializer::new(value))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>InlineTableDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>InlineTableDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>Variant = TableEnumDeserializer&lt;<span class="lifetime">&#39;de</span>&gt;;
+    <span class="kw">type </span>Variant = TableEnumDeserializer&lt;<span class="lifetime">'de</span>&gt;;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(key, value) = <span class="kw">match </span><span class="self">self</span>.values.next() {
             <span class="prelude-val">Some</span>(pair) =&gt; pair,
@@ -3382,8 +3384,8 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::from_kind(
                     <span class="prelude-val">None</span>, <span class="comment">// FIXME: How do we get an offset here?
                     </span>ErrorKind::Wanted {
-                        expected: <span class="string">&quot;table with exactly 1 entry&quot;</span>,
-                        found: <span class="string">&quot;empty table&quot;</span>,
+                        expected: <span class="string">"table with exactly 1 entry"</span>,
+                        found: <span class="string">"empty table"</span>,
                     },
                 ));
             }
@@ -3395,11 +3397,11 @@
 }
 
 <span class="doccomment">/// Deserializes table values into enum variants.
-</span><span class="kw">struct </span>TableEnumDeserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    value: Value&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">struct </span>TableEnumDeserializer&lt;<span class="lifetime">'a</span>&gt; {
+    value: Value&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TableEnumDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TableEnumDeserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
@@ -3417,7 +3419,7 @@
             e =&gt; <span class="prelude-val">Err</span>(Error::from_kind(
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.value.start),
                 ErrorKind::Wanted {
-                    expected: <span class="string">&quot;table&quot;</span>,
+                    expected: <span class="string">"table"</span>,
                     found: e.type_name(),
                 },
             )),
@@ -3426,14 +3428,14 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>T: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: de::DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         seed.deserialize(ValueDeserializer::new(<span class="self">self</span>.value))
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.value.e {
             E::InlineTable(values) | E::DottedTable(values) =&gt; {
@@ -3481,7 +3483,7 @@
             e =&gt; <span class="prelude-val">Err</span>(Error::from_kind(
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.value.start),
                 ErrorKind::Wanted {
-                    expected: <span class="string">&quot;table&quot;</span>,
+                    expected: <span class="string">"table"</span>,
                     found: e.type_name(),
                 },
             )),
@@ -3490,25 +3492,25 @@
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: de::Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         de::Deserializer::deserialize_struct(
             ValueDeserializer::new(<span class="self">self</span>.value).with_struct_key_validation(),
-            <span class="string">&quot;&quot;</span>, <span class="comment">// TODO: this should be the variant name
+            <span class="string">""</span>, <span class="comment">// TODO: this should be the variant name
             </span>fields,
             visitor,
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Deserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Deserializer&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Creates a new deserializer which will be deserializing the string
     /// provided.
-    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Deserializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; Deserializer&lt;<span class="lifetime">'a</span>&gt; {
         Deserializer {
             tokens: Tokenizer::new(input),
             input,
@@ -3518,24 +3520,24 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    #[deprecated(since = <span class="string">&quot;0.5.11&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.5.11"</span>)]
     </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attr">#[doc(hidden)]
-    #[deprecated(since = <span class="string">&quot;0.5.11&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.5.11"</span>)]
     </span><span class="kw">pub fn </span>set_require_newline_after_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>, require: bool) {
         <span class="self">self</span>.require_newline_after_table = require;
     }
 
     <span class="attr">#[doc(hidden)]
-    #[deprecated(since = <span class="string">&quot;0.5.11&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.5.11"</span>)]
     </span><span class="kw">pub fn </span>set_allow_duplicate_after_longer_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>, allow: bool) {
         <span class="self">self</span>.allow_duplciate_after_longer_table = allow;
     }
 
-    <span class="kw">fn </span>tables(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Table&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, Error&gt; {
+    <span class="kw">fn </span>tables(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Table&lt;<span class="lifetime">'a</span>&gt;&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>tables = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>cur_table = Table {
             at: <span class="number">0</span>,
@@ -3582,7 +3584,7 @@
         <span class="prelude-val">Ok</span>(tables)
     }
 
-    <span class="kw">fn </span>line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Line&lt;<span class="lifetime">&#39;a</span>&gt;&gt;, Error&gt; {
+    <span class="kw">fn </span>line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Line&lt;<span class="lifetime">'a</span>&gt;&gt;, Error&gt; {
         <span class="kw">loop </span>{
             <span class="self">self</span>.eat_whitespace()<span class="question-mark">?</span>;
             <span class="kw">if </span><span class="self">self</span>.eat_comment()<span class="question-mark">? </span>{
@@ -3601,7 +3603,7 @@
         }
     }
 
-    <span class="kw">fn </span>table_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    <span class="kw">fn </span>table_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span>start = <span class="self">self</span>.tokens.current();
         <span class="self">self</span>.expect(Token::LeftBracket)<span class="question-mark">?</span>;
         <span class="kw">let </span>array = <span class="self">self</span>.eat(Token::LeftBracket)<span class="question-mark">?</span>;
@@ -3630,7 +3632,7 @@
         })
     }
 
-    <span class="kw">fn </span>key_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    <span class="kw">fn </span>key_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span>key = <span class="self">self</span>.dotted_key()<span class="question-mark">?</span>;
         <span class="self">self</span>.eat_whitespace()<span class="question-mark">?</span>;
         <span class="self">self</span>.expect(Token::Equals)<span class="question-mark">?</span>;
@@ -3645,7 +3647,7 @@
         <span class="prelude-val">Ok</span>(Line::KeyValue(key, value))
     }
 
-    <span class="kw">fn </span>value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    <span class="kw">fn </span>value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span>at = <span class="self">self</span>.tokens.current();
         <span class="kw">let </span>value = <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((Span { start, end }, Token::String { val, .. })) =&gt; Value {
@@ -3653,12 +3655,12 @@
                 start,
                 end,
             },
-            <span class="prelude-val">Some</span>((Span { start, end }, Token::Keylike(<span class="string">&quot;true&quot;</span>))) =&gt; Value {
+            <span class="prelude-val">Some</span>((Span { start, end }, Token::Keylike(<span class="string">"true"</span>))) =&gt; Value {
                 e: E::Boolean(<span class="bool-val">true</span>),
                 start,
                 end,
             },
-            <span class="prelude-val">Some</span>((Span { start, end }, Token::Keylike(<span class="string">&quot;false&quot;</span>))) =&gt; Value {
+            <span class="prelude-val">Some</span>((Span { start, end }, Token::Keylike(<span class="string">"false"</span>))) =&gt; Value {
                 e: E::Boolean(<span class="bool-val">false</span>),
                 start,
                 end,
@@ -3683,7 +3685,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(
                     at,
                     ErrorKind::Wanted {
-                        expected: <span class="string">&quot;a value&quot;</span>,
+                        expected: <span class="string">"a value"</span>,
                         found: token.<span class="number">1</span>.describe(),
                     },
                 ));
@@ -3693,22 +3695,22 @@
         <span class="prelude-val">Ok</span>(value)
     }
 
-    <span class="kw">fn </span>parse_keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize, span: Span, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
-        <span class="kw">if </span>key == <span class="string">&quot;inf&quot; </span>|| key == <span class="string">&quot;nan&quot; </span>{
+    <span class="kw">fn </span>parse_keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, at: usize, span: Span, key: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
+        <span class="kw">if </span>key == <span class="string">"inf" </span>|| key == <span class="string">"nan" </span>{
             <span class="kw">return </span><span class="self">self</span>.number_or_date(span, key);
         }
 
-        <span class="kw">let </span>first_char = key.chars().next().expect(<span class="string">&quot;key should not be empty here&quot;</span>);
+        <span class="kw">let </span>first_char = key.chars().next().expect(<span class="string">"key should not be empty here"</span>);
         <span class="kw">match </span>first_char {
-            <span class="string">&#39;-&#39; </span>| <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; <span class="self">self</span>.number_or_date(span, key),
+            <span class="string">'-' </span>| <span class="string">'0'</span>..=<span class="string">'9' </span>=&gt; <span class="self">self</span>.number_or_date(span, key),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.error(at, ErrorKind::UnquotedString)),
         }
     }
 
-    <span class="kw">fn </span>number_or_date(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: Span, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
-        <span class="kw">if </span>s.contains(<span class="string">&#39;T&#39;</span>)
-            || s.contains(<span class="string">&#39;t&#39;</span>)
-            || (s.len() &gt; <span class="number">1 </span>&amp;&amp; s[<span class="number">1</span>..].contains(<span class="string">&#39;-&#39;</span>) &amp;&amp; !s.contains(<span class="string">&quot;e-&quot;</span>) &amp;&amp; !s.contains(<span class="string">&quot;E-&quot;</span>))
+    <span class="kw">fn </span>number_or_date(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: Span, s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
+        <span class="kw">if </span>s.contains(<span class="string">'T'</span>)
+            || s.contains(<span class="string">'t'</span>)
+            || (s.len() &gt; <span class="number">1 </span>&amp;&amp; s[<span class="number">1</span>..].contains(<span class="string">'-'</span>) &amp;&amp; !s.contains(<span class="string">"e-"</span>) &amp;&amp; !s.contains(<span class="string">"E-"</span>))
         {
             <span class="self">self</span>.datetime(span, s, <span class="bool-val">false</span>)
                 .map(|(Span { start, end }, d)| Value {
@@ -3732,7 +3734,7 @@
     ///
     /// Used to deserialize enums. Unit enums may be represented as a string or a table, all other
     /// structures (tuple, newtype, struct) must be represented as a table.
-    </span><span class="kw">fn </span>string_or_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Value&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;), Error&gt; {
+    </span><span class="kw">fn </span>string_or_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Value&lt;<span class="lifetime">'a</span>&gt;, <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;), Error&gt; {
         <span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, Token::LeftBracket)) =&gt; {
                 <span class="kw">let </span>tables = <span class="self">self</span>.tables()<span class="question-mark">?</span>;
@@ -3740,11 +3742,11 @@
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::from_kind(
                         <span class="prelude-val">Some</span>(span.start),
                         ErrorKind::Wanted {
-                            expected: <span class="string">&quot;exactly 1 table&quot;</span>,
+                            expected: <span class="string">"exactly 1 table"</span>,
                             found: <span class="kw">if </span>tables.is_empty() {
-                                <span class="string">&quot;zero tables&quot;
+                                <span class="string">"zero tables"
                             </span>} <span class="kw">else </span>{
-                                <span class="string">&quot;more than 1 table&quot;
+                                <span class="string">"more than 1 table"
                             </span>},
                         },
                     ));
@@ -3753,11 +3755,11 @@
                 <span class="kw">let </span>table = tables
                     .into_iter()
                     .next()
-                    .expect(<span class="string">&quot;Expected exactly one table&quot;</span>);
+                    .expect(<span class="string">"Expected exactly one table"</span>);
                 <span class="kw">let </span>header = table
                     .header
                     .last()
-                    .expect(<span class="string">&quot;Expected at least one header value for table.&quot;</span>);
+                    .expect(<span class="string">"Expected at least one header value for table."</span>);
 
                 <span class="kw">let </span>start = table.at;
                 <span class="kw">let </span>end = table
@@ -3780,19 +3782,19 @@
         }
     }
 
-    <span class="kw">fn </span>number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, Span { start, end }: Span, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    <span class="kw">fn </span>number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, Span { start, end }: Span, s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span>to_integer = |f| Value {
             e: E::Integer(f),
             start,
             end,
         };
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">&quot;0x&quot;</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">"0x"</span>) {
             <span class="self">self</span>.integer(value, <span class="number">16</span>).map(to_integer)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">&quot;0o&quot;</span>) {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">"0o"</span>) {
             <span class="self">self</span>.integer(value, <span class="number">8</span>).map(to_integer)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">&quot;0b&quot;</span>) {
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(value) = s.strip_prefix(<span class="string">"0b"</span>) {
             <span class="self">self</span>.integer(value, <span class="number">2</span>).map(to_integer)
-        } <span class="kw">else if </span>s.contains(<span class="string">&#39;e&#39;</span>) || s.contains(<span class="string">&#39;E&#39;</span>) {
+        } <span class="kw">else if </span>s.contains(<span class="string">'e'</span>) || s.contains(<span class="string">'E'</span>) {
             <span class="self">self</span>.float(s, <span class="prelude-val">None</span>).map(|f| Value {
                 e: E::Float(f),
                 start,
@@ -3810,25 +3812,25 @@
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.error(at, ErrorKind::NumberInvalid)),
             }
-        } <span class="kw">else if </span>s == <span class="string">&quot;inf&quot; </span>{
+        } <span class="kw">else if </span>s == <span class="string">"inf" </span>{
             <span class="prelude-val">Ok</span>(Value {
                 e: E::Float(f64::INFINITY),
                 start,
                 end,
             })
-        } <span class="kw">else if </span>s == <span class="string">&quot;-inf&quot; </span>{
+        } <span class="kw">else if </span>s == <span class="string">"-inf" </span>{
             <span class="prelude-val">Ok</span>(Value {
                 e: E::Float(f64::NEG_INFINITY),
                 start,
                 end,
             })
-        } <span class="kw">else if </span>s == <span class="string">&quot;nan&quot; </span>{
+        } <span class="kw">else if </span>s == <span class="string">"nan" </span>{
             <span class="prelude-val">Ok</span>(Value {
                 e: E::Float(f64::NAN),
                 start,
                 end,
             })
-        } <span class="kw">else if </span>s == <span class="string">&quot;-nan&quot; </span>{
+        } <span class="kw">else if </span>s == <span class="string">"-nan" </span>{
             <span class="prelude-val">Ok</span>(Value {
                 e: E::Float(-f64::NAN),
                 start,
@@ -3839,7 +3841,7 @@
         }
     }
 
-    <span class="kw">fn </span>number_leading_plus(<span class="kw-2">&amp;mut </span><span class="self">self</span>, Span { start, .. }: Span) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    <span class="kw">fn </span>number_leading_plus(<span class="kw-2">&amp;mut </span><span class="self">self</span>, Span { start, .. }: Span) -&gt; <span class="prelude-ty">Result</span>&lt;Value&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span>start_token = <span class="self">self</span>.tokens.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((Span { end, .. }, Token::Keylike(s))) =&gt; <span class="self">self</span>.number(Span { start, end }, s),
@@ -3847,7 +3849,7 @@
         }
     }
 
-    <span class="kw">fn </span>integer(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;i64, Error&gt; {
+    <span class="kw">fn </span>integer(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;i64, Error&gt; {
         <span class="kw">let </span>allow_sign = radix == <span class="number">10</span>;
         <span class="kw">let </span>allow_leading_zeros = radix != <span class="number">10</span>;
         <span class="kw">let </span>(prefix, suffix) = <span class="self">self</span>.parse_integer(s, allow_sign, allow_leading_zeros, radix)<span class="question-mark">?</span>;
@@ -3855,17 +3857,17 @@
         <span class="kw">if </span>!suffix.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(start, ErrorKind::NumberInvalid));
         }
-        i64::from_str_radix(prefix.replace(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>).trim_start_matches(<span class="string">&#39;+&#39;</span>), radix)
+        i64::from_str_radix(prefix.replace(<span class="string">'_'</span>, <span class="string">""</span>).trim_start_matches(<span class="string">'+'</span>), radix)
             .map_err(|_e| <span class="self">self</span>.error(start, ErrorKind::NumberInvalid))
     }
 
     <span class="kw">fn </span>parse_integer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
         allow_sign: bool,
         allow_leading_zeros: bool,
         radix: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str), Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str), Error&gt; {
         <span class="kw">let </span>start = <span class="self">self</span>.tokens.substr_offset(s);
 
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
@@ -3874,20 +3876,20 @@
         <span class="kw">let </span><span class="kw-2">mut </span>end = s.len();
         <span class="kw">for </span>(i, c) <span class="kw">in </span>s.char_indices() {
             <span class="kw">let </span>at = i + start;
-            <span class="kw">if </span>i == <span class="number">0 </span>&amp;&amp; (c == <span class="string">&#39;+&#39; </span>|| c == <span class="string">&#39;-&#39;</span>) &amp;&amp; allow_sign {
+            <span class="kw">if </span>i == <span class="number">0 </span>&amp;&amp; (c == <span class="string">'+' </span>|| c == <span class="string">'-'</span>) &amp;&amp; allow_sign {
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">if </span>c == <span class="string">&#39;0&#39; </span>&amp;&amp; first {
+            <span class="kw">if </span>c == <span class="string">'0' </span>&amp;&amp; first {
                 first_zero = <span class="bool-val">true</span>;
             } <span class="kw">else if </span>c.is_digit(radix) {
                 <span class="kw">if </span>!first &amp;&amp; first_zero &amp;&amp; !allow_leading_zeros {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(at, ErrorKind::NumberInvalid));
                 }
                 underscore = <span class="bool-val">false</span>;
-            } <span class="kw">else if </span>c == <span class="string">&#39;_&#39; </span>&amp;&amp; first {
+            } <span class="kw">else if </span>c == <span class="string">'_' </span>&amp;&amp; first {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.error(at, ErrorKind::NumberInvalid));
-            } <span class="kw">else if </span>c == <span class="string">&#39;_&#39; </span>&amp;&amp; !underscore {
+            } <span class="kw">else if </span>c == <span class="string">'_' </span>&amp;&amp; !underscore {
                 underscore = <span class="bool-val">true</span>;
             } <span class="kw">else </span>{
                 end = i;
@@ -3901,7 +3903,7 @@
         <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>s[..end], <span class="kw-2">&amp;</span>s[end..]))
     }
 
-    <span class="kw">fn </span>float(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, after_decimal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;f64, Error&gt; {
+    <span class="kw">fn </span>float(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, after_decimal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;f64, Error&gt; {
         <span class="kw">let </span>(integral, <span class="kw-2">mut </span>suffix) = <span class="self">self</span>.parse_integer(s, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="number">10</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>start = <span class="self">self</span>.tokens.substr_offset(integral);
 
@@ -3916,7 +3918,7 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>exponent = <span class="prelude-val">None</span>;
-        <span class="kw">if </span>suffix.starts_with(<span class="string">&#39;e&#39;</span>) || suffix.starts_with(<span class="string">&#39;E&#39;</span>) {
+        <span class="kw">if </span>suffix.starts_with(<span class="string">'e'</span>) || suffix.starts_with(<span class="string">'E'</span>) {
             <span class="kw">let </span>(a, b) = <span class="kw">if </span>suffix.len() == <span class="number">1 </span>{
                 <span class="self">self</span>.eat(Token::Plus)<span class="question-mark">?</span>;
                 <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
@@ -3935,17 +3937,17 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>number = integral
-            .trim_start_matches(<span class="string">&#39;+&#39;</span>)
+            .trim_start_matches(<span class="string">'+'</span>)
             .chars()
-            .filter(|c| <span class="kw-2">*</span>c != <span class="string">&#39;_&#39;</span>)
+            .filter(|c| <span class="kw-2">*</span>c != <span class="string">'_'</span>)
             .collect::&lt;String&gt;();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(fraction) = fraction {
-            number.push(<span class="string">&#39;.&#39;</span>);
-            number.extend(fraction.chars().filter(|c| <span class="kw-2">*</span>c != <span class="string">&#39;_&#39;</span>));
+            number.push(<span class="string">'.'</span>);
+            number.extend(fraction.chars().filter(|c| <span class="kw-2">*</span>c != <span class="string">'_'</span>));
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(exponent) = exponent {
-            number.push(<span class="string">&#39;E&#39;</span>);
-            number.extend(exponent.chars().filter(|c| <span class="kw-2">*</span>c != <span class="string">&#39;_&#39;</span>));
+            number.push(<span class="string">'E'</span>);
+            number.extend(exponent.chars().filter(|c| <span class="kw-2">*</span>c != <span class="string">'_'</span>));
         }
         number
             .parse()
@@ -3962,14 +3964,14 @@
     <span class="kw">fn </span>datetime(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>span: Span,
-        date: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        date: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
         colon_eaten: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str), Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str), Error&gt; {
         <span class="kw">let </span>start = <span class="self">self</span>.tokens.substr_offset(date);
 
         <span class="comment">// Check for space separated date and time.
         </span><span class="kw">let </span><span class="kw-2">mut </span>lookahead = <span class="self">self</span>.tokens.clone();
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="kw">_</span>, Token::Whitespace(<span class="string">&quot; &quot;</span>)))) = lookahead.next() {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="kw">_</span>, Token::Whitespace(<span class="string">" "</span>)))) = lookahead.next() {
             <span class="comment">// Check if hour follows.
             </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="kw">_</span>, Token::Keylike(<span class="kw">_</span>)))) = lookahead.next() {
                 <span class="self">self</span>.next()<span class="question-mark">?</span>; <span class="comment">// skip space
@@ -4024,9 +4026,9 @@
         <span class="prelude-val">Ok</span>((span, <span class="kw-2">&amp;</span><span class="self">self</span>.tokens.input()[start..end]))
     }
 
-    <span class="comment">// TODO(#140): shouldn&#39;t buffer up this entire table in memory, it&#39;d be
+    <span class="comment">// TODO(#140): shouldn't buffer up this entire table in memory, it'd be
     // great to defer parsing everything until later.
-    </span><span class="kw">fn </span>inline_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Vec&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;), Error&gt; {
+    </span><span class="kw">fn </span>inline_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Vec&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = Vec::new();
         <span class="self">self</span>.eat_whitespace()<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <span class="self">self</span>.eat_spanned(Token::RightBrace)<span class="question-mark">? </span>{
@@ -4049,12 +4051,12 @@
         }
     }
 
-    <span class="comment">// TODO(#140): shouldn&#39;t buffer up this entire array in memory, it&#39;d be
+    <span class="comment">// TODO(#140): shouldn't buffer up this entire array in memory, it'd be
     // great to defer parsing everything until later.
-    </span><span class="kw">fn </span>array(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Vec&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;&gt;), Error&gt; {
+    </span><span class="kw">fn </span>array(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Vec&lt;Value&lt;<span class="lifetime">'a</span>&gt;&gt;), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ret = Vec::new();
 
-        <span class="kw">let </span>intermediate = |me: <span class="kw-2">&amp;mut </span>Deserializer&lt;<span class="lifetime">&#39;_</span>&gt;| {
+        <span class="kw">let </span>intermediate = |me: <span class="kw-2">&amp;mut </span>Deserializer&lt;<span class="lifetime">'_</span>&gt;| {
             <span class="kw">loop </span>{
                 me.eat_whitespace()<span class="question-mark">?</span>;
                 <span class="kw">if </span>!me.eat(Token::Newline)<span class="question-mark">? </span>&amp;&amp; !me.eat_comment()<span class="question-mark">? </span>{
@@ -4081,11 +4083,11 @@
         <span class="prelude-val">Ok</span>((span, ret))
     }
 
-    <span class="kw">fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;), Error&gt; {
+    <span class="kw">fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;), Error&gt; {
         <span class="self">self</span>.tokens.table_key().map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>dotted_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)&gt;, Error&gt; {
+    <span class="kw">fn </span>dotted_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[<span class="self">self</span>.table_key()<span class="question-mark">?</span>];
         <span class="self">self</span>.eat_whitespace()<span class="question-mark">?</span>;
         <span class="kw">while </span><span class="self">self</span>.eat(Token::Period)<span class="question-mark">? </span>{
@@ -4098,21 +4100,21 @@
 
     <span class="doccomment">/// Stores a value in the appropriate hierarchical structure positioned based on the dotted key.
     ///
-    /// Given the following definition: `multi.part.key = &quot;value&quot;`, `multi` and `part` are
-    /// intermediate parts which are mapped to the relevant fields in the deserialized type&#39;s data
+    /// Given the following definition: `multi.part.key = "value"`, `multi` and `part` are
+    /// intermediate parts which are mapped to the relevant fields in the deserialized type's data
     /// hierarchy.
     ///
     /// # Parameters
     ///
     /// * `key_parts`: Each segment of the dotted key, e.g. `part.one` maps to
-    ///                `vec![Cow::Borrowed(&quot;part&quot;), Cow::Borrowed(&quot;one&quot;)].`
+    ///                `vec![Cow::Borrowed("part"), Cow::Borrowed("one")].`
     /// * `value`: The parsed value.
     /// * `values`: The `Vec` to store the value in.
     </span><span class="kw">fn </span>add_dotted_key(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw-2">mut </span>key_parts: Vec&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)&gt;,
-        value: Value&lt;<span class="lifetime">&#39;a</span>&gt;,
-        values: <span class="kw-2">&amp;mut </span>Vec&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        <span class="kw-2">mut </span>key_parts: Vec&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)&gt;,
+        value: Value&lt;<span class="lifetime">'a</span>&gt;,
+        values: <span class="kw-2">&amp;mut </span>Vec&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>key = key_parts.remove(<span class="number">0</span>);
         <span class="kw">if </span>key_parts.is_empty() {
@@ -4171,33 +4173,33 @@
             .map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
+    <span class="kw">fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="self">self</span>.tokens.eat(expected).map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;, Error&gt; {
+    <span class="kw">fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;, Error&gt; {
         <span class="self">self</span>.tokens
             .eat_spanned(expected)
             .map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.tokens
             .expect(expected)
             .map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Span, Error&gt; {
+    <span class="kw">fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Span, Error&gt; {
         <span class="self">self</span>.tokens
             .expect_spanned(expected)
             .map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">'a</span>&gt;)&gt;, Error&gt; {
         <span class="self">self</span>.tokens.next().map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
-    <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+    <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">'a</span>&gt;)&gt;, Error&gt; {
         <span class="self">self</span>.tokens.peek().map_err(|e| <span class="self">self</span>.token_error(e))
     }
 
@@ -4242,7 +4244,7 @@
         <span class="comment">// Use split_terminator instead of lines so that if there is a `\r`,
         // it is included in the offset calculation. The `+1` values below
         // account for the `\n`.
-        </span><span class="kw">for </span>(i, line) <span class="kw">in </span><span class="self">self</span>.input.split_terminator(<span class="string">&#39;\n&#39;</span>).enumerate() {
+        </span><span class="kw">for </span>(i, line) <span class="kw">in </span><span class="self">self</span>.input.split_terminator(<span class="string">'\n'</span>).enumerate() {
             <span class="kw">if </span>cur + line.len() + <span class="number">1 </span>&gt; offset {
                 <span class="kw">return </span>(i, offset - cur);
             }
@@ -4320,81 +4322,81 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.kind {
-            ErrorKind::UnexpectedEof =&gt; <span class="string">&quot;unexpected eof encountered&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::UnexpectedEof =&gt; <span class="string">"unexpected eof encountered"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::InvalidCharInString(c) =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;invalid character in string: `{}`&quot;</span>,
+                <span class="string">"invalid character in string: `{}`"</span>,
                 c.escape_default().collect::&lt;String&gt;()
             )<span class="question-mark">?</span>,
             ErrorKind::InvalidEscape(c) =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;invalid escape character in string: `{}`&quot;</span>,
+                <span class="string">"invalid escape character in string: `{}`"</span>,
                 c.escape_default().collect::&lt;String&gt;()
             )<span class="question-mark">?</span>,
             ErrorKind::InvalidHexEscape(c) =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;invalid hex escape character in string: `{}`&quot;</span>,
+                <span class="string">"invalid hex escape character in string: `{}`"</span>,
                 c.escape_default().collect::&lt;String&gt;()
             )<span class="question-mark">?</span>,
-            ErrorKind::InvalidEscapeValue(c) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid escape value: `{}`&quot;</span>, c)<span class="question-mark">?</span>,
-            ErrorKind::NewlineInString =&gt; <span class="string">&quot;newline in string found&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::InvalidEscapeValue(c) =&gt; <span class="macro">write!</span>(f, <span class="string">"invalid escape value: `{}`"</span>, c)<span class="question-mark">?</span>,
+            ErrorKind::NewlineInString =&gt; <span class="string">"newline in string found"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::Unexpected(ch) =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;unexpected character found: `{}`&quot;</span>,
+                <span class="string">"unexpected character found: `{}`"</span>,
                 ch.escape_default().collect::&lt;String&gt;()
             )<span class="question-mark">?</span>,
-            ErrorKind::UnterminatedString =&gt; <span class="string">&quot;unterminated string&quot;</span>.fmt(f)<span class="question-mark">?</span>,
-            ErrorKind::NewlineInTableKey =&gt; <span class="string">&quot;found newline in table key&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::UnterminatedString =&gt; <span class="string">"unterminated string"</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::NewlineInTableKey =&gt; <span class="string">"found newline in table key"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::Wanted { expected, found } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;expected {}, found {}&quot;</span>, expected, found)<span class="question-mark">?
+                <span class="macro">write!</span>(f, <span class="string">"expected {}, found {}"</span>, expected, found)<span class="question-mark">?
             </span>}
-            ErrorKind::NumberInvalid =&gt; <span class="string">&quot;invalid number&quot;</span>.fmt(f)<span class="question-mark">?</span>,
-            ErrorKind::DateInvalid =&gt; <span class="string">&quot;invalid date&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::NumberInvalid =&gt; <span class="string">"invalid number"</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::DateInvalid =&gt; <span class="string">"invalid date"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::DuplicateTable(<span class="kw-2">ref </span>s) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;redefinition of table `{}`&quot;</span>, s)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"redefinition of table `{}`"</span>, s)<span class="question-mark">?</span>;
             }
-            ErrorKind::RedefineAsArray =&gt; <span class="string">&quot;table redefined as array&quot;</span>.fmt(f)<span class="question-mark">?</span>,
-            ErrorKind::EmptyTableKey =&gt; <span class="string">&quot;empty table key found&quot;</span>.fmt(f)<span class="question-mark">?</span>,
-            ErrorKind::MultilineStringKey =&gt; <span class="string">&quot;multiline strings are not allowed for key&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::RedefineAsArray =&gt; <span class="string">"table redefined as array"</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::EmptyTableKey =&gt; <span class="string">"empty table key found"</span>.fmt(f)<span class="question-mark">?</span>,
+            ErrorKind::MultilineStringKey =&gt; <span class="string">"multiline strings are not allowed for key"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::Custom =&gt; <span class="self">self</span>.inner.message.fmt(f)<span class="question-mark">?</span>,
-            ErrorKind::ExpectedTuple(l) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;expected table with length {}&quot;</span>, l)<span class="question-mark">?</span>,
+            ErrorKind::ExpectedTuple(l) =&gt; <span class="macro">write!</span>(f, <span class="string">"expected table with length {}"</span>, l)<span class="question-mark">?</span>,
             ErrorKind::ExpectedTupleIndex {
                 expected,
                 <span class="kw-2">ref </span>found,
-            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;expected table key `{}`, but was `{}`&quot;</span>, expected, found)<span class="question-mark">?</span>,
-            ErrorKind::ExpectedEmptyTable =&gt; <span class="string">&quot;expected empty table&quot;</span>.fmt(f)<span class="question-mark">?</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">"expected table key `{}`, but was `{}`"</span>, expected, found)<span class="question-mark">?</span>,
+            ErrorKind::ExpectedEmptyTable =&gt; <span class="string">"expected empty table"</span>.fmt(f)<span class="question-mark">?</span>,
             ErrorKind::DottedKeyInvalidType =&gt; {
-                <span class="string">&quot;dotted key attempted to extend non-table type&quot;</span>.fmt(f)<span class="question-mark">?
+                <span class="string">"dotted key attempted to extend non-table type"</span>.fmt(f)<span class="question-mark">?
             </span>}
             ErrorKind::UnexpectedKeys {
                 <span class="kw-2">ref </span>keys,
                 available,
             } =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;unexpected keys in table: `{:?}`, available keys: `{:?}`&quot;</span>,
+                <span class="string">"unexpected keys in table: `{:?}`, available keys: `{:?}`"</span>,
                 keys, available
             )<span class="question-mark">?</span>,
             ErrorKind::UnquotedString =&gt; <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;invalid TOML value, did you mean to use a quoted string?&quot;
+                <span class="string">"invalid TOML value, did you mean to use a quoted string?"
             </span>)<span class="question-mark">?</span>,
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.inner.key.is_empty() {
-            <span class="macro">write!</span>(f, <span class="string">&quot; for key `&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">" for key `"</span>)<span class="question-mark">?</span>;
             <span class="kw">for </span>(i, k) <span class="kw">in </span><span class="self">self</span>.inner.key.iter().enumerate() {
                 <span class="kw">if </span>i &gt; <span class="number">0 </span>{
-                    <span class="macro">write!</span>(f, <span class="string">&quot;.&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(f, <span class="string">"."</span>)<span class="question-mark">?</span>;
                 }
-                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, k)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"{}"</span>, k)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;`&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"`"</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = <span class="self">self</span>.inner.line {
-            <span class="macro">write!</span>(f, <span class="string">&quot; at line {} column {}&quot;</span>, line + <span class="number">1</span>, <span class="self">self</span>.inner.col + <span class="number">1</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">" at line {} column {}"</span>, line + <span class="number">1</span>, <span class="self">self</span>.inner.col + <span class="number">1</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -4409,24 +4411,24 @@
     }
 }
 
-<span class="kw">enum </span>Line&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">enum </span>Line&lt;<span class="lifetime">'a</span>&gt; {
     Table {
         at: usize,
-        header: Header&lt;<span class="lifetime">&#39;a</span>&gt;,
+        header: Header&lt;<span class="lifetime">'a</span>&gt;,
         array: bool,
     },
-    KeyValue(Vec&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)&gt;, Value&lt;<span class="lifetime">&#39;a</span>&gt;),
+    KeyValue(Vec&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)&gt;, Value&lt;<span class="lifetime">'a</span>&gt;),
 }
 
-<span class="kw">struct </span>Header&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">struct </span>Header&lt;<span class="lifetime">'a</span>&gt; {
     first: bool,
     array: bool,
     require_newline_after_table: bool,
-    tokens: Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    tokens: Tokenizer&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Header&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(tokens: Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt;, array: bool, require_newline_after_table: bool) -&gt; Header&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Header&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(tokens: Tokenizer&lt;<span class="lifetime">'a</span>&gt;, array: bool, require_newline_after_table: bool) -&gt; Header&lt;<span class="lifetime">'a</span>&gt; {
         Header {
             first: <span class="bool-val">true</span>,
             array,
@@ -4435,7 +4437,7 @@
         }
     }
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;)&gt;, TokenError&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;)&gt;, TokenError&gt; {
         <span class="self">self</span>.tokens.eat_whitespace()<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.first || <span class="self">self</span>.tokens.eat(Token::Period)<span class="question-mark">? </span>{
@@ -4458,35 +4460,35 @@
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>Value&lt;<span class="lifetime">&#39;a</span>&gt; {
-    e: E&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">struct </span>Value&lt;<span class="lifetime">'a</span>&gt; {
+    e: E&lt;<span class="lifetime">'a</span>&gt;,
     start: usize,
     end: usize,
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>E&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">enum </span>E&lt;<span class="lifetime">'a</span>&gt; {
     Integer(i64),
     Float(f64),
     Boolean(bool),
-    String(Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;),
-    Datetime(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
-    Array(Vec&lt;Value&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
-    InlineTable(Vec&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
-    DottedTable(Vec&lt;TablePair&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+    String(Cow&lt;<span class="lifetime">'a</span>, str&gt;),
+    Datetime(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
+    Array(Vec&lt;Value&lt;<span class="lifetime">'a</span>&gt;&gt;),
+    InlineTable(Vec&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;),
+    DottedTable(Vec&lt;TablePair&lt;<span class="lifetime">'a</span>&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; E&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>type_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; E&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>type_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            E::String(..) =&gt; <span class="string">&quot;string&quot;</span>,
-            E::Integer(..) =&gt; <span class="string">&quot;integer&quot;</span>,
-            E::Float(..) =&gt; <span class="string">&quot;float&quot;</span>,
-            E::Boolean(..) =&gt; <span class="string">&quot;boolean&quot;</span>,
-            E::Datetime(..) =&gt; <span class="string">&quot;datetime&quot;</span>,
-            E::Array(..) =&gt; <span class="string">&quot;array&quot;</span>,
-            E::InlineTable(..) =&gt; <span class="string">&quot;inline table&quot;</span>,
-            E::DottedTable(..) =&gt; <span class="string">&quot;dotted table&quot;</span>,
+            E::String(..) =&gt; <span class="string">"string"</span>,
+            E::Integer(..) =&gt; <span class="string">"integer"</span>,
+            E::Float(..) =&gt; <span class="string">"float"</span>,
+            E::Boolean(..) =&gt; <span class="string">"boolean"</span>,
+            E::Datetime(..) =&gt; <span class="string">"datetime"</span>,
+            E::Array(..) =&gt; <span class="string">"array"</span>,
+            E::InlineTable(..) =&gt; <span class="string">"inline table"</span>,
+            E::DottedTable(..) =&gt; <span class="string">"dotted table"</span>,
         }
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/indexmap-2.2.5/src/map/core/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/indexmap-2.2.5/src/map/core/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="indexmap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../indexmap/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -485,7 +487,7 @@
 <span class="kw">use </span>core::{fmt, mem};
 
 <span class="kw">impl</span>&lt;K, V&gt; IndexMapCore&lt;K, V&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hash: HashValue, key: K) -&gt; Entry&lt;<span class="lifetime">&#39;_</span>, K, V&gt;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hash: HashValue, key: K) -&gt; Entry&lt;<span class="lifetime">'_</span>, K, V&gt;
     <span class="kw">where
         </span>K: Eq,
     {
@@ -498,14 +500,14 @@
 
 <span class="doccomment">/// Entry for an existing key-value pair in an [`IndexMap`][crate::IndexMap]
 /// or a vacant location to insert one.
-</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">'a</span>, K, V&gt; {
     <span class="doccomment">/// Existing slot with equivalent key.
-    </span>Occupied(OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt;),
+    </span>Occupied(OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V&gt;),
     <span class="doccomment">/// Vacant slot (no equivalent key in the map).
-    </span>Vacant(VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt;),
+    </span>Vacant(VacantEntry&lt;<span class="lifetime">'a</span>, K, V&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Entry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V&gt; Entry&lt;<span class="lifetime">'a</span>, K, V&gt; {
     <span class="doccomment">/// Return the index where the key-value pair exists or will be inserted.
     </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
@@ -518,7 +520,7 @@
     /// reference to it. Otherwise a mutable reference to an already existent value is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self </span>{
             Entry::Occupied(entry) =&gt; entry.into_mut(),
             Entry::Vacant(entry) =&gt; entry.insert(default),
@@ -529,7 +531,7 @@
     /// reference to it. Otherwise a mutable reference to an already existent value is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>or_insert_with&lt;F&gt;(<span class="self">self</span>, call: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V
+    </span><span class="kw">pub fn </span>or_insert_with&lt;F&gt;(<span class="self">self</span>, call: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V
     <span class="kw">where
         </span>F: FnOnce() -&gt; V,
     {
@@ -539,12 +541,12 @@
         }
     }
 
-    <span class="doccomment">/// Inserts the result of the `call` function with a reference to the entry&#39;s key if it is
+    <span class="doccomment">/// Inserts the result of the `call` function with a reference to the entry's key if it is
     /// vacant, and returns a mutable reference to the new value. Otherwise a mutable reference to
     /// an already existent value is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>or_insert_with_key&lt;F&gt;(<span class="self">self</span>, call: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V
+    </span><span class="kw">pub fn </span>or_insert_with_key&lt;F&gt;(<span class="self">self</span>, call: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>K) -&gt; V,
     {
@@ -557,7 +559,7 @@
         }
     }
 
-    <span class="doccomment">/// Gets a reference to the entry&#39;s key, either within the map if occupied,
+    <span class="doccomment">/// Gets a reference to the entry's key, either within the map if occupied,
     /// or else the new key that was used to find the entry.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
@@ -581,7 +583,7 @@
     /// reference to it. Otherwise a mutable reference to an already existent value is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    </span><span class="kw">pub fn </span>or_default(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V
+    </span><span class="kw">pub fn </span>or_default(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V
     <span class="kw">where
         </span>V: Default,
     {
@@ -592,9 +594,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>tuple = f.debug_tuple(<span class="string">&quot;Entry&quot;</span>);
+<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">'_</span>, K, V&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>tuple = f.debug_tuple(<span class="string">"Entry"</span>);
         <span class="kw">match </span><span class="self">self </span>{
             Entry::Vacant(v) =&gt; tuple.field(v),
             Entry::Occupied(o) =&gt; tuple.field(o),
@@ -605,18 +607,18 @@
 
 <span class="doccomment">/// A view into an occupied entry in an [`IndexMap`][crate::IndexMap].
 /// It is part of the [`Entry`] enum.
-</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-    raw: RawTableEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt;,
+</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
+    raw: RawTableEntry&lt;<span class="lifetime">'a</span>, K, V&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V&gt; OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
     <span class="doccomment">/// Return the index of the key-value pair
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.raw.index()
     }
 
-    <span class="doccomment">/// Gets a reference to the entry&#39;s key in the map.
+    <span class="doccomment">/// Gets a reference to the entry's key in the map.
     ///
     /// Note that this is not the key that was used to find the entry. There may be an observable
     /// difference if the key type has any distinguishing features outside of `Hash` and `Eq`, like
@@ -625,12 +627,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.raw.bucket().key
     }
 
-    <span class="doccomment">/// Gets a reference to the entry&#39;s value in the map.
+    <span class="doccomment">/// Gets a reference to the entry's value in the map.
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
         <span class="kw-2">&amp;</span><span class="self">self</span>.raw.bucket().value
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the entry&#39;s value in the map.
+    <span class="doccomment">/// Gets a mutable reference to the entry's value in the map.
     ///
     /// If you need a reference which may outlive the destruction of the
     /// [`Entry`] value, see [`into_mut`][Self::into_mut].
@@ -638,13 +640,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw.bucket_mut().value
     }
 
-    <span class="doccomment">/// Converts into a mutable reference to the entry&#39;s value in the map,
+    <span class="doccomment">/// Converts into a mutable reference to the entry's value in the map,
     /// with a lifetime bound to the map itself.
-    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw.into_bucket().value
     }
 
-    <span class="doccomment">/// Sets the value of the entry to `value`, and returns the entry&#39;s old value.
+    <span class="doccomment">/// Sets the value of the entry to `value`, and returns the entry's old value.
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: V) -&gt; V {
         mem::replace(<span class="self">self</span>.get_mut(), value)
     }
@@ -652,11 +654,11 @@
     <span class="doccomment">/// Remove the key, value pair stored in the map for this entry, and return the value.
     ///
     /// **NOTE:** This is equivalent to [`.swap_remove()`][Self::swap_remove], replacing this
-    /// entry&#39;s position with the last element, and it is deprecated in favor of calling that
+    /// entry's position with the last element, and it is deprecated in favor of calling that
     /// explicitly. If you need to preserve the relative order of the keys in the map, use
     /// [`.shift_remove()`][Self::shift_remove] instead.
-    </span><span class="attr">#[deprecated(note = <span class="string">&quot;`remove` disrupts the map order -- \
-        use `swap_remove` or `shift_remove` for explicit behavior.&quot;</span>)]
+    </span><span class="attr">#[deprecated(note = <span class="string">"`remove` disrupts the map order -- \
+        use `swap_remove` or `shift_remove` for explicit behavior."</span>)]
     </span><span class="kw">pub fn </span>remove(<span class="self">self</span>) -&gt; V {
         <span class="self">self</span>.swap_remove()
     }
@@ -686,11 +688,11 @@
     <span class="doccomment">/// Remove and return the key, value pair stored in the map for this entry
     ///
     /// **NOTE:** This is equivalent to [`.swap_remove_entry()`][Self::swap_remove_entry],
-    /// replacing this entry&#39;s position with the last element, and it is deprecated in favor of
+    /// replacing this entry's position with the last element, and it is deprecated in favor of
     /// calling that explicitly. If you need to preserve the relative order of the keys in the map,
     /// use [`.shift_remove_entry()`][Self::shift_remove_entry] instead.
-    </span><span class="attr">#[deprecated(note = <span class="string">&quot;`remove_entry` disrupts the map order -- \
-        use `swap_remove_entry` or `shift_remove_entry` for explicit behavior.&quot;</span>)]
+    </span><span class="attr">#[deprecated(note = <span class="string">"`remove_entry` disrupts the map order -- \
+        use `swap_remove_entry` or `shift_remove_entry` for explicit behavior."</span>)]
     </span><span class="kw">pub fn </span>remove_entry(<span class="self">self</span>) -&gt; (K, V) {
         <span class="self">self</span>.swap_remove_entry()
     }
@@ -750,24 +752,24 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;OccupiedEntry&quot;</span>)
-            .field(<span class="string">&quot;key&quot;</span>, <span class="self">self</span>.key())
-            .field(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.get())
+<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">'_</span>, K, V&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"OccupiedEntry"</span>)
+            .field(<span class="string">"key"</span>, <span class="self">self</span>.key())
+            .field(<span class="string">"value"</span>, <span class="self">self</span>.get())
             .finish()
     }
 }
 
 <span class="doccomment">/// A view into a vacant entry in an [`IndexMap`][crate::IndexMap].
 /// It is part of the [`Entry`] enum.
-</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-    map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;,
+</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
+    map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;,
     hash: HashValue,
     key: K,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V&gt; VacantEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
     <span class="doccomment">/// Return the index where a key-value pair may be inserted.
     </span><span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.map.indices.len()
@@ -783,15 +785,15 @@
         <span class="self">self</span>.key
     }
 
-    <span class="doccomment">/// Inserts the entry&#39;s key and the given value into the map, and returns a mutable reference
+    <span class="doccomment">/// Inserts the entry's key and the given value into the map, and returns a mutable reference
     /// to the value.
-    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">let </span><span class="self">Self </span>{ map, hash, key } = <span class="self">self</span>;
         <span class="kw">let </span>i = map.insert_unique(hash, key, value);
         <span class="kw-2">&amp;mut </span>map.entries[i].value
     }
 
-    <span class="doccomment">/// Inserts the entry&#39;s key and the given value into the map at its ordered
+    <span class="doccomment">/// Inserts the entry's key and the given value into the map at its ordered
     /// position among sorted keys, and returns the new index and a mutable
     /// reference to the value.
     ///
@@ -800,7 +802,7 @@
     /// pair is inserted at that position regardless.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>insert_sorted(<span class="self">self</span>, value: V) -&gt; (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V)
+    </span><span class="kw">pub fn </span>insert_sorted(<span class="self">self</span>, value: V) -&gt; (usize, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V)
     <span class="kw">where
         </span>K: Ord,
     {
@@ -809,37 +811,37 @@
         (i, <span class="self">self</span>.shift_insert(i, value))
     }
 
-    <span class="doccomment">/// Inserts the entry&#39;s key and the given value into the map at the given index,
+    <span class="doccomment">/// Inserts the entry's key and the given value into the map at the given index,
     /// shifting others to the right, and returns a mutable reference to the value.
     ///
     /// ***Panics*** if `index` is out of bounds.
     ///
     /// Computes in **O(n)** time (average).
-    </span><span class="kw">pub fn </span>shift_insert(<span class="self">self</span>, index: usize, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>shift_insert(<span class="self">self</span>, index: usize, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">let </span><span class="self">Self </span>{ map, hash, key } = <span class="self">self</span>;
         map.shift_insert_unique(index, hash, key, value);
         <span class="kw-2">&amp;mut </span>map.entries[index].value
     }
 }
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, V&gt; fmt::Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_tuple(<span class="string">&quot;VacantEntry&quot;</span>).field(<span class="self">self</span>.key()).finish()
+<span class="kw">impl</span>&lt;K: fmt::Debug, V&gt; fmt::Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">'_</span>, K, V&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">"VacantEntry"</span>).field(<span class="self">self</span>.key()).finish()
     }
 }
 
 <span class="doccomment">/// A view into an occupied entry in an [`IndexMap`][crate::IndexMap] obtained by index.
 ///
 /// This `struct` is created from the [`get_index_entry`][crate::IndexMap::get_index_entry] method.
-</span><span class="kw">pub struct </span>IndexedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-    map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;,
+</span><span class="kw">pub struct </span>IndexedEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
+    map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;,
     <span class="comment">// We have a mutable reference to the map, which keeps the index
     // valid and pointing to the correct entry.
     </span>index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; IndexedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;, index: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V&gt; IndexedEntry&lt;<span class="lifetime">'a</span>, K, V&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>IndexMapCore&lt;K, V&gt;, index: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ map, index }
     }
 
@@ -849,17 +851,17 @@
         <span class="self">self</span>.index
     }
 
-    <span class="doccomment">/// Gets a reference to the entry&#39;s key in the map.
+    <span class="doccomment">/// Gets a reference to the entry's key in the map.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw-2">&amp;</span><span class="self">self</span>.map.entries[<span class="self">self</span>.index].key
     }
 
-    <span class="doccomment">/// Gets a reference to the entry&#39;s value in the map.
+    <span class="doccomment">/// Gets a reference to the entry's value in the map.
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
         <span class="kw-2">&amp;</span><span class="self">self</span>.map.entries[<span class="self">self</span>.index].value
     }
 
-    <span class="doccomment">/// Gets a mutable reference to the entry&#39;s value in the map.
+    <span class="doccomment">/// Gets a mutable reference to the entry's value in the map.
     ///
     /// If you need a reference which may outlive the destruction of the
     /// `IndexedEntry` value, see [`into_mut`][Self::into_mut].
@@ -867,14 +869,14 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.entries[<span class="self">self</span>.index].value
     }
 
-    <span class="doccomment">/// Sets the value of the entry to `value`, and returns the entry&#39;s old value.
+    <span class="doccomment">/// Sets the value of the entry to `value`, and returns the entry's old value.
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: V) -&gt; V {
         mem::replace(<span class="self">self</span>.get_mut(), value)
     }
 
-    <span class="doccomment">/// Converts into a mutable reference to the entry&#39;s value in the map,
+    <span class="doccomment">/// Converts into a mutable reference to the entry's value in the map,
     /// with a lifetime bound to the map itself.
-    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.map.entries[<span class="self">self</span>.index].value
     }
 
@@ -951,12 +953,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>IndexedEntry&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;IndexedEntry&quot;</span>)
-            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
-            .field(<span class="string">&quot;key&quot;</span>, <span class="self">self</span>.key())
-            .field(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.get())
+<span class="kw">impl</span>&lt;K: fmt::Debug, V: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>IndexedEntry&lt;<span class="lifetime">'_</span>, K, V&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"IndexedEntry"</span>)
+            .field(<span class="string">"index"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
+            .field(<span class="string">"key"</span>, <span class="self">self</span>.key())
+            .field(<span class="string">"value"</span>, <span class="self">self</span>.get())
             .finish()
     }
 }

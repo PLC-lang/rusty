@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/traits.rs`."><title>traits.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/traits.rs`."><title>traits.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1819,7 +1821,7 @@
 /// let mut s = System::new();
 /// s.refresh_disks_list();
 /// for disk in s.disks() {
-///     println!(&quot;{:?}: {:?}&quot;, disk.name(), disk.kind());
+///     println!("{:?}: {:?}", disk.name(), disk.kind());
 /// }
 /// ```
 </span><span class="kw">pub trait </span>DiskExt: Debug {
@@ -1831,7 +1833,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{:?}&quot;, disk.kind());
+    ///     println!("{:?}", disk.kind());
     /// }
     /// ```
     </span><span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DiskKind;
@@ -1844,7 +1846,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{:?}&quot;, disk.name());
+    ///     println!("{:?}", disk.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>OsStr;
@@ -1857,7 +1859,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{:?}&quot;, disk.file_system());
+    ///     println!("{:?}", disk.file_system());
     /// }
     /// ```
     </span><span class="kw">fn </span>file_system(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8];
@@ -1870,7 +1872,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{:?}&quot;, disk.mount_point());
+    ///     println!("{:?}", disk.mount_point());
     /// }
     /// ```
     </span><span class="kw">fn </span>mount_point(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path;
@@ -1883,7 +1885,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{}&quot;, disk.total_space());
+    ///     println!("{}", disk.total_space());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_space(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -1896,7 +1898,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{}&quot;, disk.available_space());
+    ///     println!("{}", disk.available_space());
     /// }
     /// ```
     </span><span class="kw">fn </span>available_space(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -1909,12 +1911,12 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{}&quot;, disk.is_removable());
+    ///     println!("{}", disk.is_removable());
     /// }
     /// ```
     </span><span class="kw">fn </span>is_removable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// Updates the disk&#39; information.
+    <span class="doccomment">/// Updates the disk' information.
     ///
     /// ```no_run
     /// use sysinfo::{DiskExt, System, SystemExt};
@@ -1950,8 +1952,8 @@
         <span class="self">self</span>.kill_with(Signal::Kill).unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="doccomment">/// Sends the given `signal` to the process. If the signal doesn&#39;t exist on this platform,
-    /// it&#39;ll do nothing and will return `None`. Otherwise it&#39;ll return if the signal was sent
+    <span class="doccomment">/// Sends the given `signal` to the process. If the signal doesn't exist on this platform,
+    /// it'll do nothing and will return `None`. Otherwise it'll return if the signal was sent
     /// successfully.
     ///
     /// If you just want to kill the process, use [`ProcessExt::kill`] directly.
@@ -1965,7 +1967,7 @@
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
     ///     if process.kill_with(Signal::Kill).is_none() {
-    ///         eprintln!(&quot;This signal isn&#39;t supported on this platform&quot;);
+    ///         eprintln!("This signal isn't supported on this platform");
     ///     }
     /// }
     /// ```
@@ -1975,19 +1977,19 @@
     ///
     /// **⚠️ Important ⚠️**
     ///
-    /// On **Linux**, there are two things to know about processes&#39; name:
+    /// On **Linux**, there are two things to know about processes' name:
     ///  1. It is limited to 15 characters.
     ///  2. It is not always the exe name.
     ///
     /// If you are looking for a specific process, unless you know what you are doing, in most
-    /// cases it&#39;s better to use [`ProcessExt::exe`] instead (which can be empty sometimes!).
+    /// cases it's better to use [`ProcessExt::exe`] instead (which can be empty sometimes!).
     ///
     /// ```no_run
     /// use sysinfo::{Pid, ProcessExt, System, SystemExt};
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.name());
+    ///     println!("{}", process.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
@@ -1999,7 +2001,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{:?}&quot;, process.cmd());
+    ///     println!("{:?}", process.cmd());
     /// }
     /// ```
     </span><span class="kw">fn </span>cmd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[String];
@@ -2011,7 +2013,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.exe().display());
+    ///     println!("{}", process.exe().display());
     /// }
     /// ```
     ///
@@ -2035,7 +2037,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.pid());
+    ///     println!("{}", process.pid());
     /// }
     /// ```
     </span><span class="kw">fn </span>pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pid;
@@ -2047,7 +2049,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{:?}&quot;, process.environ());
+    ///     println!("{:?}", process.environ());
     /// }
     /// ```
     </span><span class="kw">fn </span>environ(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[String];
@@ -2059,7 +2061,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.cwd().display());
+    ///     println!("{}", process.cwd().display());
     /// }
     /// ```
     </span><span class="kw">fn </span>cwd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path;
@@ -2071,7 +2073,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.root().display());
+    ///     println!("{}", process.root().display());
     /// }
     /// ```
     </span><span class="kw">fn </span>root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path;
@@ -2083,7 +2085,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{} bytes&quot;, process.memory());
+    ///     println!("{} bytes", process.memory());
     /// }
     /// ```
     </span><span class="kw">fn </span>memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -2095,7 +2097,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{} bytes&quot;, process.virtual_memory());
+    ///     println!("{} bytes", process.virtual_memory());
     /// }
     /// ```
     </span><span class="kw">fn </span>virtual_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -2107,7 +2109,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{:?}&quot;, process.parent());
+    ///     println!("{:?}", process.parent());
     /// }
     /// ```
     </span><span class="kw">fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pid&gt;;
@@ -2119,7 +2121,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{:?}&quot;, process.status());
+    ///     println!("{:?}", process.status());
     /// }
     /// ```
     </span><span class="kw">fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ProcessStatus;
@@ -2131,7 +2133,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;Started at {} seconds&quot;, process.start_time());
+    ///     println!("Started at {} seconds", process.start_time());
     /// }
     /// ```
     </span><span class="kw">fn </span>start_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -2143,7 +2145,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;Running since {} seconds&quot;, process.run_time());
+    ///     println!("Running since {} seconds", process.run_time());
     /// }
     /// ```
     </span><span class="kw">fn </span>run_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -2166,7 +2168,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}%&quot;, process.cpu_usage());
+    ///     println!("{}%", process.cpu_usage());
     /// }
     /// ```
     </span><span class="kw">fn </span>cpu_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32;
@@ -2181,11 +2183,11 @@
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
     ///     let disk_usage = process.disk_usage();
-    ///     println!(&quot;read bytes   : new/total =&gt; {}/{}&quot;,
+    ///     println!("read bytes   : new/total =&gt; {}/{}",
     ///         disk_usage.read_bytes,
     ///         disk_usage.total_read_bytes,
     ///     );
-    ///     println!(&quot;written bytes: new/total =&gt; {}/{}&quot;,
+    ///     println!("written bytes: new/total =&gt; {}/{}",
     ///         disk_usage.written_bytes,
     ///         disk_usage.total_written_bytes,
     ///     );
@@ -2193,7 +2195,7 @@
     /// ```
     </span><span class="kw">fn </span>disk_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DiskUsage;
 
-    <span class="doccomment">/// Returns the ID of the owner user of this process or `None` if this information couldn&#39;t
+    <span class="doccomment">/// Returns the ID of the owner user of this process or `None` if this information couldn't
     /// be retrieved. If you want to get the [`User`] from it, take a look at
     /// [`SystemExt::get_user_by_id`].
     ///
@@ -2203,13 +2205,13 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;User id for process 1337: {:?}&quot;, process.user_id());
+    ///     eprintln!("User id for process 1337: {:?}", process.user_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>user_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Uid&gt;;
 
     <span class="doccomment">/// Returns the user ID of the effective owner of this process or `None` if this information
-    /// couldn&#39;t be retrieved. If you want to get the [`User`] from it, take a look at
+    /// couldn't be retrieved. If you want to get the [`User`] from it, take a look at
     /// [`SystemExt::get_user_by_id`].
     ///
     /// If you run something with `sudo`, the real user ID of the launched process will be the ID of
@@ -2223,7 +2225,7 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;User id for process 1337: {:?}&quot;, process.effective_user_id());
+    ///     eprintln!("User id for process 1337: {:?}", process.effective_user_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>effective_user_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Uid&gt;;
@@ -2238,7 +2240,7 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;Group ID for process 1337: {:?}&quot;, process.group_id());
+    ///     eprintln!("Group ID for process 1337: {:?}", process.group_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>group_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gid&gt;;
@@ -2256,7 +2258,7 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;User id for process 1337: {:?}&quot;, process.effective_group_id());
+    ///     eprintln!("User id for process 1337: {:?}", process.effective_group_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>effective_group_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gid&gt;;
@@ -2269,14 +2271,14 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;Waiting for pid 1337&quot;);
+    ///     eprintln!("Waiting for pid 1337");
     ///     process.wait();
-    ///     eprintln!(&quot;Pid 1337 exited&quot;);
+    ///     eprintln!("Pid 1337 exited");
     /// }
     /// ```
     </span><span class="kw">fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-    <span class="doccomment">/// Returns the session ID for the current process or `None` if it couldn&#39;t be retrieved.
+    <span class="doccomment">/// Returns the session ID for the current process or `None` if it couldn't be retrieved.
     ///
     /// ⚠️ This information is computed every time this method is called.
     ///
@@ -2286,7 +2288,7 @@
     /// let mut s = System::new_all();
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     eprintln!(&quot;Session ID for process 1337: {:?}&quot;, process.session_id());
+    ///     eprintln!("Session ID for process 1337: {:?}", process.session_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>session_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pid&gt;;
@@ -2294,9 +2296,9 @@
 
 <span class="doccomment">/// Contains all the methods of the [`Cpu`][crate::Cpu] struct.
 </span><span class="kw">pub trait </span>CpuExt: Debug {
-    <span class="doccomment">/// Returns this CPU&#39;s usage.
+    <span class="doccomment">/// Returns this CPU's usage.
     ///
-    /// Note: You&#39;ll need to refresh it at least twice (diff between the first and the second is
+    /// Note: You'll need to refresh it at least twice (diff between the first and the second is
     /// how CPU usage is computed) at first if you want to have a non-zero value.
     ///
     /// ```no_run
@@ -2306,12 +2308,12 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}%&quot;, cpu.cpu_usage());
+    ///     println!("{}%", cpu.cpu_usage());
     /// }
     /// ```
     </span><span class="kw">fn </span>cpu_usage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32;
 
-    <span class="doccomment">/// Returns this CPU&#39;s name.
+    <span class="doccomment">/// Returns this CPU's name.
     ///
     /// ```no_run
     /// use sysinfo::{CpuExt, System, SystemExt, RefreshKind, CpuRefreshKind};
@@ -2320,12 +2322,12 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}&quot;, cpu.name());
+    ///     println!("{}", cpu.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
 
-    <span class="doccomment">/// Returns the CPU&#39;s vendor id.
+    <span class="doccomment">/// Returns the CPU's vendor id.
     ///
     /// ```no_run
     /// use sysinfo::{CpuExt, System, SystemExt, RefreshKind, CpuRefreshKind};
@@ -2334,12 +2336,12 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}&quot;, cpu.vendor_id());
+    ///     println!("{}", cpu.vendor_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>vendor_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
 
-    <span class="doccomment">/// Returns the CPU&#39;s brand.
+    <span class="doccomment">/// Returns the CPU's brand.
     ///
     /// ```no_run
     /// use sysinfo::{CpuExt, System, SystemExt, RefreshKind, CpuRefreshKind};
@@ -2348,12 +2350,12 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}&quot;, cpu.brand());
+    ///     println!("{}", cpu.brand());
     /// }
     /// ```
     </span><span class="kw">fn </span>brand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
 
-    <span class="doccomment">/// Returns the CPU&#39;s frequency.
+    <span class="doccomment">/// Returns the CPU's frequency.
     ///
     /// ```no_run
     /// use sysinfo::{CpuExt, System, SystemExt, RefreshKind, CpuRefreshKind};
@@ -2362,7 +2364,7 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}&quot;, cpu.frequency());
+    ///     println!("{}", cpu.frequency());
     /// }
     /// ```
     </span><span class="kw">fn </span>frequency(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -2377,9 +2379,9 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// if System::IS_SUPPORTED {
-    ///     println!(&quot;This OS is supported!&quot;);
+    ///     println!("This OS is supported!");
     /// } else {
-    ///     println!(&quot;This OS isn&#39;t supported (yet?).&quot;);
+    ///     println!("This OS isn't supported (yet?).");
     /// }
     /// ```
     </span><span class="kw">const </span>IS_SUPPORTED: bool;
@@ -2390,9 +2392,9 @@
     /// ```
     /// use sysinfo::{System, SystemExt};
     ///
-    /// println!(&quot;supported signals: {:?}&quot;, System::SUPPORTED_SIGNALS);
+    /// println!("supported signals: {:?}", System::SUPPORTED_SIGNALS);
     /// ```
-    </span><span class="kw">const </span>SUPPORTED_SIGNALS: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[Signal];
+    </span><span class="kw">const </span>SUPPORTED_SIGNALS: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[Signal];
 
     <span class="doccomment">/// This is the minimum interval time used internally by `sysinfo` to refresh the CPU time.
     ///
@@ -2400,12 +2402,12 @@
     ///
     /// Why is this constant even needed?
     ///
-    /// If refreshed too often, the CPU usage of processes will be `0` whereas on Linux it&#39;ll
+    /// If refreshed too often, the CPU usage of processes will be `0` whereas on Linux it'll
     /// always be the maximum value (`number of CPUs * 100`).
     </span><span class="kw">const </span>MINIMUM_CPU_UPDATE_INTERVAL: Duration;
 
     <span class="doccomment">/// Creates a new [`System`] instance with nothing loaded. If you want to
-    /// load components, network interfaces or the disks, you&#39;ll have to use the
+    /// load components, network interfaces or the disks, you'll have to use the
     /// `refresh_*_list` methods. [`SystemExt::refresh_networks_list`] for
     /// example.
     ///
@@ -2453,26 +2455,26 @@
     /// );
     ///
     /// assert!(system.disks().is_empty());
-    /// # if System::IS_SUPPORTED &amp;&amp; !cfg!(feature = &quot;apple-sandbox&quot;) {
+    /// # if System::IS_SUPPORTED &amp;&amp; !cfg!(feature = "apple-sandbox") {
     /// assert!(!system.processes().is_empty());
     /// # }
     ///
     /// // If you want the disks list afterwards, just call the corresponding
-    /// // &quot;refresh_disks_list&quot;:
+    /// // "refresh_disks_list":
     /// system.refresh_disks_list();
     /// let disks = system.disks();
     /// ```
     </span><span class="kw">fn </span>new_with_specifics(refreshes: RefreshKind) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Refreshes according to the given [`RefreshKind`]. It calls the corresponding
-    /// &quot;refresh_&quot; methods.
+    /// "refresh_" methods.
     ///
     /// ```
     /// use sysinfo::{ProcessRefreshKind, RefreshKind, System, SystemExt};
     ///
     /// let mut s = System::new_all();
     ///
-    /// // Let&#39;s just update networks and processes:
+    /// // Let's just update networks and processes:
     /// s.refresh_specifics(
     ///     RefreshKind::new().with_networks().with_processes(ProcessRefreshKind::everything()),
     /// );
@@ -2509,7 +2511,7 @@
 
     <span class="doccomment">/// Refreshes all system, processes, disks and network interfaces information.
     ///
-    /// Please note that it doesn&#39;t recompute disks list, components list, network interfaces
+    /// Please note that it doesn't recompute disks list, components list, network interfaces
     /// list nor users list.
     ///
     /// ```no_run
@@ -2525,7 +2527,7 @@
         <span class="self">self</span>.refresh_networks();
     }
 
-    <span class="doccomment">/// Refreshes system information (RAM, swap, CPU usage and components&#39; temperature).
+    <span class="doccomment">/// Refreshes system information (RAM, swap, CPU usage and components' temperature).
     ///
     /// If you want some more specific refreshes, you might be interested into looking at
     /// [`refresh_memory`], [`refresh_cpu`] and [`refresh_components`].
@@ -2578,7 +2580,7 @@
 
     <span class="doccomment">/// Refreshes CPUs specific information.
     ///
-    /// Please note that it doesn&#39;t recompute disks list, components list, network interfaces
+    /// Please note that it doesn't recompute disks list, components list, network interfaces
     /// list nor users list.
     ///
     /// ```no_run
@@ -2589,7 +2591,7 @@
     /// ```
     </span><span class="kw">fn </span>refresh_cpu_specifics(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refresh_kind: CpuRefreshKind);
 
-    <span class="doccomment">/// Refreshes components&#39; temperature.
+    <span class="doccomment">/// Refreshes components' temperature.
     ///
     /// ```no_run
     /// use sysinfo::{System, SystemExt};
@@ -2646,9 +2648,9 @@
     /// ```
     </span><span class="kw">fn </span>refresh_processes_specifics(<span class="kw-2">&amp;mut </span><span class="self">self</span>, refresh_kind: ProcessRefreshKind);
 
-    <span class="doccomment">/// Refreshes *only* the process corresponding to `pid`. Returns `false` if the process doesn&#39;t
-    /// exist (it will **NOT** be removed from the processes if it doesn&#39;t exist anymore). If it
-    /// isn&#39;t listed yet, it&#39;ll be added.
+    <span class="doccomment">/// Refreshes *only* the process corresponding to `pid`. Returns `false` if the process doesn't
+    /// exist (it will **NOT** be removed from the processes if it doesn't exist anymore). If it
+    /// isn't listed yet, it'll be added.
     ///
     /// It is the same as calling
     /// `sys.refresh_process_specifics(pid, ProcessRefreshKind::everything())`.
@@ -2663,9 +2665,9 @@
         <span class="self">self</span>.refresh_process_specifics(pid, ProcessRefreshKind::everything())
     }
 
-    <span class="doccomment">/// Refreshes *only* the process corresponding to `pid`. Returns `false` if the process doesn&#39;t
-    /// exist (it will **NOT** be removed from the processes if it doesn&#39;t exist anymore). If it
-    /// isn&#39;t listed yet, it&#39;ll be added.
+    <span class="doccomment">/// Refreshes *only* the process corresponding to `pid`. Returns `false` if the process doesn't
+    /// exist (it will **NOT** be removed from the processes if it doesn't exist anymore). If it
+    /// isn't listed yet, it'll be added.
     ///
     /// ```no_run
     /// use sysinfo::{Pid, ProcessRefreshKind, System, SystemExt};
@@ -2675,7 +2677,7 @@
     /// ```
     </span><span class="kw">fn </span>refresh_process_specifics(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pid: Pid, refresh_kind: ProcessRefreshKind) -&gt; bool;
 
-    <span class="doccomment">/// Refreshes the listed disks&#39; information.
+    <span class="doccomment">/// Refreshes the listed disks' information.
     ///
     /// ```no_run
     /// use sysinfo::{System, SystemExt};
@@ -2771,7 +2773,7 @@
     ///
     /// let s = System::new_all();
     /// for (pid, process) in s.processes() {
-    ///     println!(&quot;{} {}&quot;, pid, process.name());
+    ///     println!("{} {}", pid, process.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>processes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;Pid, Process&gt;;
@@ -2783,7 +2785,7 @@
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!(&quot;{}&quot;, process.name());
+    ///     println!("{}", process.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>process(<span class="kw-2">&amp;</span><span class="self">self</span>, pid: Pid) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Process&gt;;
@@ -2795,7 +2797,7 @@
     ///
     /// **⚠️ Important ⚠️**
     ///
-    /// On **Linux**, there are two things to know about processes&#39; name:
+    /// On **Linux**, there are two things to know about processes' name:
     ///  1. It is limited to 15 characters.
     ///  2. It is not always the exe name.
     ///
@@ -2803,15 +2805,15 @@
     /// use sysinfo::{ProcessExt, System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// for process in s.processes_by_name(&quot;htop&quot;) {
-    ///     println!(&quot;{} {}&quot;, process.pid(), process.name());
+    /// for process in s.processes_by_name("htop") {
+    ///     println!("{} {}", process.pid(), process.name());
     /// }
     /// ```
-    </span><span class="comment">// FIXME: replace the returned type with `impl Iterator&lt;Item = &amp;Process&gt;` when it&#39;s supported!
-    </span><span class="kw">fn </span>processes_by_name&lt;<span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;b</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
-    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Process&gt; + <span class="lifetime">&#39;b</span>&gt; {
+    </span><span class="comment">// FIXME: replace the returned type with `impl Iterator&lt;Item = &amp;Process&gt;` when it's supported!
+    </span><span class="kw">fn </span>processes_by_name&lt;<span class="lifetime">'a</span>: <span class="lifetime">'b</span>, <span class="lifetime">'b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Process&gt; + <span class="lifetime">'b</span>&gt; {
         Box::new(
             <span class="self">self</span>.processes()
                 .values()
@@ -2826,7 +2828,7 @@
     ///
     /// **⚠️ Important ⚠️**
     ///
-    /// On **Linux**, there are two things to know about processes&#39; name:
+    /// On **Linux**, there are two things to know about processes' name:
     ///  1. It is limited to 15 characters.
     ///  2. It is not always the exe name.
     ///
@@ -2834,15 +2836,15 @@
     /// use sysinfo::{ProcessExt, System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// for process in s.processes_by_exact_name(&quot;htop&quot;) {
-    ///     println!(&quot;{} {}&quot;, process.pid(), process.name());
+    /// for process in s.processes_by_exact_name("htop") {
+    ///     println!("{} {}", process.pid(), process.name());
     /// }
     /// ```
-    </span><span class="comment">// FIXME: replace the returned type with `impl Iterator&lt;Item = &amp;Process&gt;` when it&#39;s supported!
-    </span><span class="kw">fn </span>processes_by_exact_name&lt;<span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;b</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str,
-    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Process&gt; + <span class="lifetime">&#39;b</span>&gt; {
+    </span><span class="comment">// FIXME: replace the returned type with `impl Iterator&lt;Item = &amp;Process&gt;` when it's supported!
+    </span><span class="kw">fn </span>processes_by_exact_name&lt;<span class="lifetime">'a</span>: <span class="lifetime">'b</span>, <span class="lifetime">'b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Process&gt; + <span class="lifetime">'b</span>&gt; {
         Box::new(
             <span class="self">self</span>.processes()
                 .values()
@@ -2850,7 +2852,7 @@
         )
     }
 
-    <span class="doccomment">/// Returns &quot;global&quot; CPUs information (aka the addition of all the CPUs).
+    <span class="doccomment">/// Returns "global" CPUs information (aka the addition of all the CPUs).
     ///
     /// To have up-to-date information, you need to call [`SystemExt::refresh_cpu`] or
     /// [`SystemExt::refresh_specifics`] with `cpu` enabled.
@@ -2861,7 +2863,7 @@
     /// let s = System::new_with_specifics(
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
-    /// println!(&quot;{}%&quot;, s.global_cpu_info().cpu_usage());
+    /// println!("{}%", s.global_cpu_info().cpu_usage());
     /// ```
     </span><span class="kw">fn </span>global_cpu_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Cpu;
 
@@ -2877,12 +2879,12 @@
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!(&quot;{}%&quot;, cpu.cpu_usage());
+    ///     println!("{}%", cpu.cpu_usage());
     /// }
     /// ```
     </span><span class="kw">fn </span>cpus(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Cpu];
 
-    <span class="doccomment">/// Returns the number of physical cores on the CPU or `None` if it couldn&#39;t get it.
+    <span class="doccomment">/// Returns the number of physical cores on the CPU or `None` if it couldn't get it.
     ///
     /// In case there are multiple CPUs, it will combine the physical core count of all the CPUs.
     ///
@@ -2892,7 +2894,7 @@
     /// use sysinfo::{CpuExt, System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;{:?}&quot;, s.physical_core_count());
+    /// println!("{:?}", s.physical_core_count());
     /// ```
     </span><span class="kw">fn </span>physical_core_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
 
@@ -2902,39 +2904,39 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.total_memory());
+    /// println!("{} bytes", s.total_memory());
     /// ```
     </span><span class="kw">fn </span>total_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
     <span class="doccomment">/// Returns the amount of free RAM in bytes.
     ///
-    /// Generally, &quot;free&quot; memory refers to unallocated memory whereas &quot;available&quot; memory refers to
+    /// Generally, "free" memory refers to unallocated memory whereas "available" memory refers to
     /// memory that is available for (re)use.
     ///
-    /// Side note: Windows doesn&#39;t report &quot;free&quot; memory so this method returns the same value
+    /// Side note: Windows doesn't report "free" memory so this method returns the same value
     /// as [`get_available_memory`](#tymethod.available_memory).
     ///
     /// ```no_run
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.free_memory());
+    /// println!("{} bytes", s.free_memory());
     /// ```
     </span><span class="kw">fn </span>free_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
     <span class="doccomment">/// Returns the amount of available RAM in bytes.
     ///
-    /// Generally, &quot;free&quot; memory refers to unallocated memory whereas &quot;available&quot; memory refers to
+    /// Generally, "free" memory refers to unallocated memory whereas "available" memory refers to
     /// memory that is available for (re)use.
     ///
-    /// ⚠️ Windows and FreeBSD don&#39;t report &quot;available&quot; memory so [`SystemExt::free_memory`]
+    /// ⚠️ Windows and FreeBSD don't report "available" memory so [`SystemExt::free_memory`]
     /// returns the same value as this method.
     ///
     /// ```no_run
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.available_memory());
+    /// println!("{} bytes", s.available_memory());
     /// ```
     </span><span class="kw">fn </span>available_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -2944,7 +2946,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.used_memory());
+    /// println!("{} bytes", s.used_memory());
     /// ```
     </span><span class="kw">fn </span>used_memory(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -2954,7 +2956,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.total_swap());
+    /// println!("{} bytes", s.total_swap());
     /// ```
     </span><span class="kw">fn </span>total_swap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -2964,7 +2966,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.free_swap());
+    /// println!("{} bytes", s.free_swap());
     /// ```
     </span><span class="kw">fn </span>free_swap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -2974,7 +2976,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;{} bytes&quot;, s.used_swap());
+    /// println!("{} bytes", s.used_swap());
     /// ```
     </span><span class="kw">fn </span>used_swap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -2985,7 +2987,7 @@
     ///
     /// let s = System::new_all();
     /// for component in s.components() {
-    ///     println!(&quot;{}: {}°C&quot;, component.label(), component.temperature());
+    ///     println!("{}: {}°C", component.label(), component.temperature());
     /// }
     /// ```
     </span><span class="kw">fn </span>components(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Component];
@@ -3009,7 +3011,7 @@
     ///
     /// let mut s = System::new_all();
     /// for user in s.users() {
-    ///     println!(&quot;{} is in {} groups&quot;, user.name(), user.groups().len());
+    ///     println!("{} is in {} groups", user.name(), user.groups().len());
     /// }
     /// ```
     </span><span class="kw">fn </span>users(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[User];
@@ -3022,7 +3024,7 @@
     /// let mut s = System::new();
     /// s.refresh_disks_list();
     /// for disk in s.disks() {
-    ///     println!(&quot;{:?}&quot;, disk.name());
+    ///     println!("{:?}", disk.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>disks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Disk];
@@ -3059,7 +3061,7 @@
     /// let networks = s.networks();
     /// for (interface_name, data) in networks {
     ///     println!(
-    ///         &quot;[{}] in: {}, out: {}&quot;,
+    ///         "[{}] in: {}, out: {}",
     ///         interface_name,
     ///         data.received(),
     ///         data.transmitted(),
@@ -3085,7 +3087,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new_all();
-    /// println!(&quot;System running since {} seconds&quot;, s.uptime());
+    /// println!("System running since {} seconds", s.uptime());
     /// ```
     </span><span class="kw">fn </span>uptime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -3095,7 +3097,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;System booted at {} seconds&quot;, s.boot_time());
+    /// println!("System booted at {} seconds", s.boot_time());
     /// ```
     </span><span class="kw">fn </span>boot_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 
@@ -3107,7 +3109,7 @@
     /// let s = System::new_all();
     /// let load_avg = s.load_average();
     /// println!(
-    ///     &quot;one minute: {}%, five minutes: {}%, fifteen minutes: {}%&quot;,
+    ///     "one minute: {}%, five minutes: {}%, fifteen minutes: {}%",
     ///     load_avg.one,
     ///     load_avg.five,
     ///     load_avg.fifteen,
@@ -3123,11 +3125,11 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;OS: {:?}&quot;, s.name());
+    /// println!("OS: {:?}", s.name());
     /// ```
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
-    <span class="doccomment">/// Returns the system&#39;s kernel version.
+    <span class="doccomment">/// Returns the system's kernel version.
     ///
     /// **Important**: this information is computed every time this function is called.
     ///
@@ -3135,7 +3137,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;kernel version: {:?}&quot;, s.kernel_version());
+    /// println!("kernel version: {:?}", s.kernel_version());
     /// ```
     </span><span class="kw">fn </span>kernel_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
@@ -3147,11 +3149,11 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;OS version: {:?}&quot;, s.os_version());
+    /// println!("OS version: {:?}", s.os_version());
     /// ```
     </span><span class="kw">fn </span>os_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
-    <span class="doccomment">/// Returns the system long os version (e.g &quot;MacOS 11.2 BigSur&quot;).
+    <span class="doccomment">/// Returns the system long os version (e.g "MacOS 11.2 BigSur").
     ///
     /// **Important**: this information is computed every time this function is called.
     ///
@@ -3159,7 +3161,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;Long OS Version: {:?}&quot;, s.long_os_version());
+    /// println!("Long OS Version: {:?}", s.long_os_version());
     /// ```
     </span><span class="kw">fn </span>long_os_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
@@ -3176,7 +3178,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;Distribution ID: {:?}&quot;, s.distribution_id());
+    /// println!("Distribution ID: {:?}", s.distribution_id());
     /// ```
     </span><span class="kw">fn </span>distribution_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
 
@@ -3188,7 +3190,7 @@
     /// use sysinfo::{System, SystemExt};
     ///
     /// let s = System::new();
-    /// println!(&quot;Hostname: {:?}&quot;, s.host_name());
+    /// println!("Hostname: {:?}", s.host_name());
     /// ```
     </span><span class="kw">fn </span>host_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
@@ -3213,7 +3215,7 @@
     ///
     /// if let Some(process) = s.process(Pid::from(1337)) {
     ///     if let Some(user_id) = process.user_id() {
-    ///         eprintln!(&quot;User for process 1337: {:?}&quot;, s.get_user_by_id(user_id));
+    ///         eprintln!("User for process 1337: {:?}", s.get_user_by_id(user_id));
     ///     }
     /// }
     /// ```
@@ -3232,7 +3234,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {} B&quot;, network.received());
+    ///     println!("in: {} B", network.received());
     /// }
     /// ```
     </span><span class="kw">fn </span>received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3245,7 +3247,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {} B&quot;, network.total_received());
+    ///     println!("in: {} B", network.total_received());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3258,7 +3260,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {} B&quot;, network.transmitted());
+    ///     println!("out: {} B", network.transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3271,7 +3273,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {} B&quot;, network.total_transmitted());
+    ///     println!("out: {} B", network.total_transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3284,7 +3286,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {}&quot;, network.packets_received());
+    ///     println!("in: {}", network.packets_received());
     /// }
     /// ```
     </span><span class="kw">fn </span>packets_received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3297,7 +3299,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {}&quot;, network.total_packets_received());
+    ///     println!("in: {}", network.total_packets_received());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_packets_received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3310,7 +3312,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {}&quot;, network.packets_transmitted());
+    ///     println!("out: {}", network.packets_transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>packets_transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3323,7 +3325,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {}&quot;, network.total_packets_transmitted());
+    ///     println!("out: {}", network.total_packets_transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_packets_transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3336,7 +3338,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {}&quot;, network.errors_on_received());
+    ///     println!("in: {}", network.errors_on_received());
     /// }
     /// ```
     </span><span class="kw">fn </span>errors_on_received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3349,7 +3351,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {}&quot;, network.total_errors_on_received());
+    ///     println!("in: {}", network.total_errors_on_received());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_errors_on_received(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3362,7 +3364,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {}&quot;, network.errors_on_transmitted());
+    ///     println!("out: {}", network.errors_on_transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>errors_on_transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3375,7 +3377,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;out: {}&quot;, network.total_errors_on_transmitted());
+    ///     println!("out: {}", network.total_errors_on_transmitted());
     /// }
     /// ```
     </span><span class="kw">fn </span>total_errors_on_transmitted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
@@ -3388,7 +3390,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;MAC address: {}&quot;, network.mac_address());
+    ///     println!("MAC address: {}", network.mac_address());
     /// }
     /// ```
     </span><span class="kw">fn </span>mac_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MacAddr;
@@ -3404,7 +3406,7 @@
     /// let s = System::new_all();
     /// let networks = s.networks();
     /// for (interface_name, network) in networks {
-    ///     println!(&quot;in: {} B&quot;, network.received());
+    ///     println!("in: {} B", network.received());
     /// }
     /// ```
     </span><span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NetworksIter;
@@ -3420,7 +3422,7 @@
     /// ```
     </span><span class="kw">fn </span>refresh_networks_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 
-    <span class="doccomment">/// Refreshes the network interfaces&#39; content.
+    <span class="doccomment">/// Refreshes the network interfaces' content.
     ///
     /// ```no_run
     /// use sysinfo::{NetworksExt, System, SystemExt};
@@ -3441,7 +3443,7 @@
     ///
     /// let s = System::new_all();
     /// for component in s.components() {
-    ///     println!(&quot;{}°C&quot;, component.temperature());
+    ///     println!("{}°C", component.temperature());
     /// }
     /// ```
     ///
@@ -3460,7 +3462,7 @@
     ///
     /// let s = System::new_all();
     /// for component in s.components() {
-    ///     println!(&quot;{}°C&quot;, component.max());
+    ///     println!("{}°C", component.max());
     /// }
     /// ```
     ///
@@ -3477,7 +3479,7 @@
     ///
     /// let s = System::new_all();
     /// for component in s.components() {
-    ///     println!(&quot;{:?}°C&quot;, component.critical());
+    ///     println!("{:?}°C", component.critical());
     /// }
     /// ```
     ///
@@ -3493,7 +3495,7 @@
     ///
     /// let s = System::new_all();
     /// for component in s.components() {
-    ///     println!(&quot;{}&quot;, component.label());
+    ///     println!("{}", component.label());
     /// }
     /// ```
     ///
@@ -3505,10 +3507,10 @@
     ///
     /// | name | label | device_model | id_sensor | Computed label by `sysinfo` |
     /// |---------|--------|------------|----------|----------------------|
-    /// | ✓    | ✓    | ✓  | ✓ | `&quot;{name} {label} {device_model} temp{id}&quot;` |
-    /// | ✓    | ✓    | ✗  | ✓ | `&quot;{name} {label} {id}&quot;` |
-    /// | ✓    | ✗    | ✓  | ✓ | `&quot;{name} {device_model}&quot;` |
-    /// | ✓    | ✗    | ✗  | ✓ | `&quot;{name} temp{id}&quot;` |
+    /// | ✓    | ✓    | ✓  | ✓ | `"{name} {label} {device_model} temp{id}"` |
+    /// | ✓    | ✓    | ✗  | ✓ | `"{name} {label} {id}"` |
+    /// | ✓    | ✗    | ✓  | ✓ | `"{name} {device_model}"` |
+    /// | ✓    | ✗    | ✗  | ✓ | `"{name} temp{id}"` |
     </span><span class="kw">fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
 
     <span class="doccomment">/// Refreshes component.
@@ -3533,7 +3535,7 @@
 ///
 /// let mut s = System::new_all();
 /// for user in s.users() {
-///     println!(&quot;{} is in {} groups&quot;, user.name(), user.groups().len());
+///     println!("{} is in {} groups", user.name(), user.groups().len());
 /// }
 /// ```
 </span><span class="kw">pub trait </span>UserExt: Debug {
@@ -3544,24 +3546,24 @@
     ///
     /// let mut s = System::new_all();
     /// for user in s.users() {
-    ///     println!(&quot;{:?}&quot;, *user.id());
+    ///     println!("{:?}", *user.id());
     /// }
     /// ```
     </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Uid;
 
     <span class="doccomment">/// Return the group id of the user.
     ///
-    /// *NOTE* - On Windows, this value defaults to 0.  Windows doesn&#39;t have a `username` specific group assigned to the user.
+    /// *NOTE* - On Windows, this value defaults to 0.  Windows doesn't have a `username` specific group assigned to the user.
     /// They do however have unique [Security Identifiers](https://docs.microsoft.com/en-us/windows/win32/secauthz/security-identifiers)
     /// made up of various [Components](https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-components).
-    /// Pieces of the SID may be a candidate for this field, but it doesn&#39;t map well to a single group id.
+    /// Pieces of the SID may be a candidate for this field, but it doesn't map well to a single group id.
     ///
     /// ```no_run
     /// use sysinfo::{System, SystemExt, UserExt};
     ///
     /// let mut s = System::new_all();
     /// for user in s.users() {
-    ///     println!(&quot;{}&quot;, *user.group_id());
+    ///     println!("{}", *user.group_id());
     /// }
     /// ```
     </span><span class="kw">fn </span>group_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Gid;
@@ -3573,7 +3575,7 @@
     ///
     /// let mut s = System::new_all();
     /// for user in s.users() {
-    ///     println!(&quot;{}&quot;, user.name());
+    ///     println!("{}", user.name());
     /// }
     /// ```
     </span><span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str;
@@ -3585,7 +3587,7 @@
     ///
     /// let mut s = System::new_all();
     /// for user in s.users() {
-    ///     println!(&quot;{} is in {:?}&quot;, user.name(), user.groups());
+    ///     println!("{} is in {:?}", user.name(), user.groups());
     /// }
     /// ```
     </span><span class="kw">fn </span>groups(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[String];

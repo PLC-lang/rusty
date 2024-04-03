@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/help_template.rs`."><title>help_template.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/help_template.rs`."><title>help_template.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1196,7 +1198,7 @@
 <a href="#1196" id="1196">1196</a>
 <a href="#1197" id="1197">1197</a>
 <a href="#1198" id="1198">1198</a>
-</pre></div><pre class="rust"><code><span class="comment">// HACK: for rust 1.64 (1.68 doesn&#39;t need this since this is in lib.rs)
+</pre></div><pre class="rust"><code><span class="comment">// HACK: for rust 1.64 (1.68 doesn't need this since this is in lib.rs)
 //
 // Wanting consistency in our calls
 </span><span class="attr">#![allow(clippy::write_with_newline)]
@@ -1220,17 +1222,17 @@
 <span class="kw">use </span><span class="kw">crate</span>::util::FlatSet;
 
 <span class="doccomment">/// `clap` auto-generated help writer
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AutoHelp&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
-    template: HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AutoHelp&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
+    template: HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt;,
 }
 
 <span class="comment">// Public Functions
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; AutoHelp&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; AutoHelp&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
     <span class="doccomment">/// Create a new `HelpTemplate` instance.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;writer </span><span class="kw-2">mut </span>StyledStr,
-        cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command,
-        usage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Usage&lt;<span class="lifetime">&#39;cmd</span>&gt;,
+        writer: <span class="kw-2">&amp;</span><span class="lifetime">'writer </span><span class="kw-2">mut </span>StyledStr,
+        cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command,
+        usage: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Usage&lt;<span class="lifetime">'cmd</span>&gt;,
         use_long: bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -1260,42 +1262,42 @@
     }
 }
 
-<span class="kw">const </span>DEFAULT_TEMPLATE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;\
+<span class="kw">const </span>DEFAULT_TEMPLATE: <span class="kw-2">&amp;</span>str = <span class="string">"\
 {before-help}{about-with-newline}
 {usage-heading} {usage}
 
 {all-args}{after-help}\
-    &quot;</span>;
+    "</span>;
 
-<span class="kw">const </span>DEFAULT_NO_ARGS_TEMPLATE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;\
+<span class="kw">const </span>DEFAULT_NO_ARGS_TEMPLATE: <span class="kw-2">&amp;</span>str = <span class="string">"\
 {before-help}{about-with-newline}
 {usage-heading} {usage}{after-help}\
-    &quot;</span>;
+    "</span>;
 
 <span class="doccomment">/// `clap` HelpTemplate Writer.
 ///
 /// Wraps a writer stream providing different methods to generate help for `clap` objects.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
-    writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;writer </span><span class="kw-2">mut </span>StyledStr,
-    cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command,
-    styles: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Styles,
-    usage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Usage&lt;<span class="lifetime">&#39;cmd</span>&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
+    writer: <span class="kw-2">&amp;</span><span class="lifetime">'writer </span><span class="kw-2">mut </span>StyledStr,
+    cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command,
+    styles: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Styles,
+    usage: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Usage&lt;<span class="lifetime">'cmd</span>&gt;,
     next_line_help: bool,
     term_w: usize,
     use_long: bool,
 }
 
 <span class="comment">// Public Functions
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
     <span class="doccomment">/// Create a new `HelpTemplate` instance.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;writer </span><span class="kw-2">mut </span>StyledStr,
-        cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command,
-        usage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Usage&lt;<span class="lifetime">&#39;cmd</span>&gt;,
+        writer: <span class="kw-2">&amp;</span><span class="lifetime">'writer </span><span class="kw-2">mut </span>StyledStr,
+        cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command,
+        usage: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Usage&lt;<span class="lifetime">'cmd</span>&gt;,
         use_long: bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="macro">debug!</span>(
-            <span class="string">&quot;HelpTemplate::new cmd={}, use_long={}&quot;</span>,
+            <span class="string">"HelpTemplate::new cmd={}, use_long={}"</span>,
             cmd.get_name(),
             use_long
         );
@@ -1313,8 +1315,8 @@
         }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;unstable-v5&quot;</span>))]
-    </span><span class="kw">fn </span>term_w(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command) -&gt; usize {
+    <span class="attr">#[cfg(not(feature = <span class="string">"unstable-v5"</span>))]
+    </span><span class="kw">fn </span>term_w(cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command) -&gt; usize {
         <span class="kw">match </span>cmd.get_term_width() {
             <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; usize::MAX,
             <span class="prelude-val">Some</span>(w) =&gt; w,
@@ -1330,8 +1332,8 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unstable-v5&quot;</span>)]
-    </span><span class="kw">fn </span>term_w(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command) -&gt; usize {
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-v5"</span>)]
+    </span><span class="kw">fn </span>term_w(cmd: <span class="kw-2">&amp;</span><span class="lifetime">'cmd </span>Command) -&gt; usize {
         <span class="kw">let </span>term_w = <span class="kw">match </span>cmd.get_term_width() {
             <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; usize::MAX,
             <span class="prelude-val">Some</span>(w) =&gt; w,
@@ -1356,90 +1358,90 @@
     ///
     /// [`Command::help_template`]: Command::help_template()
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_templated_help(<span class="kw-2">&amp;mut </span><span class="self">self</span>, template: <span class="kw-2">&amp;</span>str) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_templated_help&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_templated_help"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>parts = template.split(<span class="string">&#39;{&#39;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>parts = template.split(<span class="string">'{'</span>);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = parts.next() {
             <span class="self">self</span>.writer.push_str(first);
         }
         <span class="kw">for </span>part <span class="kw">in </span>parts {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((tag, rest)) = part.split_once(<span class="string">&#39;}&#39;</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((tag, rest)) = part.split_once(<span class="string">'}'</span>) {
                 <span class="kw">match </span>tag {
-                    <span class="string">&quot;name&quot; </span>=&gt; {
+                    <span class="string">"name" </span>=&gt; {
                         <span class="self">self</span>.write_display_name();
                     }
-                    <span class="attr">#[cfg(not(feature = <span class="string">&quot;unstable-v5&quot;</span>))]
-                    </span><span class="string">&quot;bin&quot; </span>=&gt; {
+                    <span class="attr">#[cfg(not(feature = <span class="string">"unstable-v5"</span>))]
+                    </span><span class="string">"bin" </span>=&gt; {
                         <span class="self">self</span>.write_bin_name();
                     }
-                    <span class="string">&quot;version&quot; </span>=&gt; {
+                    <span class="string">"version" </span>=&gt; {
                         <span class="self">self</span>.write_version();
                     }
-                    <span class="string">&quot;author&quot; </span>=&gt; {
+                    <span class="string">"author" </span>=&gt; {
                         <span class="self">self</span>.write_author(<span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="string">&quot;author-with-newline&quot; </span>=&gt; {
+                    <span class="string">"author-with-newline" </span>=&gt; {
                         <span class="self">self</span>.write_author(<span class="bool-val">false</span>, <span class="bool-val">true</span>);
                     }
-                    <span class="string">&quot;author-section&quot; </span>=&gt; {
+                    <span class="string">"author-section" </span>=&gt; {
                         <span class="self">self</span>.write_author(<span class="bool-val">true</span>, <span class="bool-val">true</span>);
                     }
-                    <span class="string">&quot;about&quot; </span>=&gt; {
+                    <span class="string">"about" </span>=&gt; {
                         <span class="self">self</span>.write_about(<span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
-                    <span class="string">&quot;about-with-newline&quot; </span>=&gt; {
+                    <span class="string">"about-with-newline" </span>=&gt; {
                         <span class="self">self</span>.write_about(<span class="bool-val">false</span>, <span class="bool-val">true</span>);
                     }
-                    <span class="string">&quot;about-section&quot; </span>=&gt; {
+                    <span class="string">"about-section" </span>=&gt; {
                         <span class="self">self</span>.write_about(<span class="bool-val">true</span>, <span class="bool-val">true</span>);
                     }
-                    <span class="string">&quot;usage-heading&quot; </span>=&gt; {
+                    <span class="string">"usage-heading" </span>=&gt; {
                         <span class="kw">let _ </span>= <span class="macro">write!</span>(
                             <span class="self">self</span>.writer,
-                            <span class="string">&quot;{}Usage:{}&quot;</span>,
+                            <span class="string">"{}Usage:{}"</span>,
                             <span class="self">self</span>.styles.get_usage().render(),
                             <span class="self">self</span>.styles.get_usage().render_reset()
                         );
                     }
-                    <span class="string">&quot;usage&quot; </span>=&gt; {
+                    <span class="string">"usage" </span>=&gt; {
                         <span class="self">self</span>.writer.push_styled(
                             <span class="kw-2">&amp;</span><span class="self">self</span>.usage.create_usage_no_title(<span class="kw-2">&amp;</span>[]).unwrap_or_default(),
                         );
                     }
-                    <span class="string">&quot;all-args&quot; </span>=&gt; {
+                    <span class="string">"all-args" </span>=&gt; {
                         <span class="self">self</span>.write_all_args();
                     }
-                    <span class="string">&quot;options&quot; </span>=&gt; {
-                        <span class="comment">// Include even those with a heading as we don&#39;t have a good way of
+                    <span class="string">"options" </span>=&gt; {
+                        <span class="comment">// Include even those with a heading as we don't have a good way of
                         // handling help_heading in the template.
                         </span><span class="self">self</span>.write_args(
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_non_positionals().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                            <span class="string">&quot;options&quot;</span>,
+                            <span class="string">"options"</span>,
                             option_sort_key,
                         );
                     }
-                    <span class="string">&quot;positionals&quot; </span>=&gt; {
+                    <span class="string">"positionals" </span>=&gt; {
                         <span class="self">self</span>.write_args(
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_positionals().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                            <span class="string">&quot;positionals&quot;</span>,
+                            <span class="string">"positionals"</span>,
                             positional_sort_key,
                         );
                     }
-                    <span class="string">&quot;subcommands&quot; </span>=&gt; {
+                    <span class="string">"subcommands" </span>=&gt; {
                         <span class="self">self</span>.write_subcommands(<span class="self">self</span>.cmd);
                     }
-                    <span class="string">&quot;tab&quot; </span>=&gt; {
+                    <span class="string">"tab" </span>=&gt; {
                         <span class="self">self</span>.writer.push_str(TAB);
                     }
-                    <span class="string">&quot;after-help&quot; </span>=&gt; {
+                    <span class="string">"after-help" </span>=&gt; {
                         <span class="self">self</span>.write_after_help();
                     }
-                    <span class="string">&quot;before-help&quot; </span>=&gt; {
+                    <span class="string">"before-help" </span>=&gt; {
                         <span class="self">self</span>.write_before_help();
                     }
                     <span class="kw">_ </span>=&gt; {
-                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;{{{tag}}}&quot;</span>);
+                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">"{{{tag}}}"</span>);
                     }
                 }
                 <span class="self">self</span>.writer.push_str(rest);
@@ -1449,36 +1451,36 @@
 }
 
 <span class="doccomment">/// Basic template methods
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
     <span class="doccomment">/// Writes binary name of a Parser Object to the wrapped stream.
     </span><span class="kw">fn </span>write_display_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_display_name&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_display_name"</span>);
 
         <span class="kw">let </span>display_name = wrap(
             <span class="kw-2">&amp;</span><span class="self">self
                 </span>.cmd
                 .get_display_name()
                 .unwrap_or_else(|| <span class="self">self</span>.cmd.get_name())
-                .replace(<span class="string">&quot;{n}&quot;</span>, <span class="string">&quot;\n&quot;</span>),
+                .replace(<span class="string">"{n}"</span>, <span class="string">"\n"</span>),
             <span class="self">self</span>.term_w,
         );
         <span class="self">self</span>.writer.push_string(display_name);
     }
 
     <span class="doccomment">/// Writes binary name of a Parser Object to the wrapped stream.
-    </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;unstable-v5&quot;</span>))]
+    </span><span class="attr">#[cfg(not(feature = <span class="string">"unstable-v5"</span>))]
     </span><span class="kw">fn </span>write_bin_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_bin_name&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_bin_name"</span>);
 
         <span class="kw">let </span>bin_name = <span class="kw">if let </span><span class="prelude-val">Some</span>(bn) = <span class="self">self</span>.cmd.get_bin_name() {
-            <span class="kw">if </span>bn.contains(<span class="string">&#39; &#39;</span>) {
-                <span class="comment">// In case we&#39;re dealing with subcommands i.e. git mv is translated to git-mv
-                </span>bn.replace(<span class="string">&#39; &#39;</span>, <span class="string">&quot;-&quot;</span>)
+            <span class="kw">if </span>bn.contains(<span class="string">' '</span>) {
+                <span class="comment">// In case we're dealing with subcommands i.e. git mv is translated to git-mv
+                </span>bn.replace(<span class="string">' '</span>, <span class="string">"-"</span>)
             } <span class="kw">else </span>{
-                wrap(<span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_name().replace(<span class="string">&quot;{n}&quot;</span>, <span class="string">&quot;\n&quot;</span>), <span class="self">self</span>.term_w)
+                wrap(<span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_name().replace(<span class="string">"{n}"</span>, <span class="string">"\n"</span>), <span class="self">self</span>.term_w)
             }
         } <span class="kw">else </span>{
-            wrap(<span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_name().replace(<span class="string">&quot;{n}&quot;</span>, <span class="string">&quot;\n&quot;</span>), <span class="self">self</span>.term_w)
+            wrap(<span class="kw-2">&amp;</span><span class="self">self</span>.cmd.get_name().replace(<span class="string">"{n}"</span>, <span class="string">"\n"</span>), <span class="self">self</span>.term_w)
         };
         <span class="self">self</span>.writer.push_string(bin_name);
     }
@@ -1496,11 +1498,11 @@
     <span class="kw">fn </span>write_author(<span class="kw-2">&amp;mut </span><span class="self">self</span>, before_new_line: bool, after_new_line: bool) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(author) = <span class="self">self</span>.cmd.get_author() {
             <span class="kw">if </span>before_new_line {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             }
             <span class="self">self</span>.writer.push_string(wrap(author, <span class="self">self</span>.term_w));
             <span class="kw">if </span>after_new_line {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             }
         }
     }
@@ -1513,20 +1515,20 @@
         };
         <span class="kw">if let </span><span class="prelude-val">Some</span>(output) = about {
             <span class="kw">if </span>before_new_line {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             }
             <span class="kw">let </span><span class="kw-2">mut </span>output = output.clone();
             output.replace_newline_var();
             output.wrap(<span class="self">self</span>.term_w);
             <span class="self">self</span>.writer.push_styled(<span class="kw-2">&amp;</span>output);
             <span class="kw">if </span>after_new_line {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             }
         }
     }
 
     <span class="kw">fn </span>write_before_help(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_before_help&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_before_help"</span>);
         <span class="kw">let </span>before_help = <span class="kw">if </span><span class="self">self</span>.use_long {
             <span class="self">self</span>.cmd
                 .get_before_long_help()
@@ -1539,12 +1541,12 @@
             output.replace_newline_var();
             output.wrap(<span class="self">self</span>.term_w);
             <span class="self">self</span>.writer.push_styled(<span class="kw-2">&amp;</span>output);
-            <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+            <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
         }
     }
 
     <span class="kw">fn </span>write_after_help(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_after_help&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_after_help"</span>);
         <span class="kw">let </span>after_help = <span class="kw">if </span><span class="self">self</span>.use_long {
             <span class="self">self</span>.cmd
                 .get_after_long_help()
@@ -1553,7 +1555,7 @@
             <span class="self">self</span>.cmd.get_after_help()
         };
         <span class="kw">if let </span><span class="prelude-val">Some</span>(output) = after_help {
-            <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+            <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>output = output.clone();
             output.replace_newline_var();
             output.wrap(<span class="self">self</span>.term_w);
@@ -1563,11 +1565,11 @@
 }
 
 <span class="doccomment">/// Arg handling
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
     <span class="doccomment">/// Writes help for all arguments (options, flags, args, subcommands)
     /// including titles of a Parser Object to the wrapped stream.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_all_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_all_args&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_all_args"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span>header = <span class="kw-2">&amp;</span><span class="self">self</span>.styles.get_header();
 
@@ -1597,17 +1599,17 @@
 
         <span class="kw">if </span>subcmds &amp;&amp; !flatten {
             <span class="kw">if </span>!first {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
             }
             first = <span class="bool-val">false</span>;
-            <span class="kw">let </span>default_help_heading = Str::from(<span class="string">&quot;Commands&quot;</span>);
+            <span class="kw">let </span>default_help_heading = Str::from(<span class="string">"Commands"</span>);
             <span class="kw">let </span>help_heading = <span class="self">self
                 </span>.cmd
                 .get_subcommand_help_heading()
                 .unwrap_or(<span class="kw-2">&amp;</span>default_help_heading);
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}{help_heading}:{}\n&quot;</span>,
+                <span class="string">"{}{help_heading}:{}\n"</span>,
                 header.render(),
                 header.render_reset()
             );
@@ -1617,33 +1619,33 @@
 
         <span class="kw">if </span>!pos.is_empty() {
             <span class="kw">if </span>!first {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
             }
             first = <span class="bool-val">false</span>;
             <span class="comment">// Write positional args if any
-            </span><span class="kw">let </span>help_heading = <span class="string">&quot;Arguments&quot;</span>;
+            </span><span class="kw">let </span>help_heading = <span class="string">"Arguments"</span>;
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}{help_heading}:{}\n&quot;</span>,
+                <span class="string">"{}{help_heading}:{}\n"</span>,
                 header.render(),
                 header.render_reset()
             );
-            <span class="self">self</span>.write_args(<span class="kw-2">&amp;</span>pos, <span class="string">&quot;Arguments&quot;</span>, positional_sort_key);
+            <span class="self">self</span>.write_args(<span class="kw-2">&amp;</span>pos, <span class="string">"Arguments"</span>, positional_sort_key);
         }
 
         <span class="kw">if </span>!non_pos.is_empty() {
             <span class="kw">if </span>!first {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
             }
             first = <span class="bool-val">false</span>;
-            <span class="kw">let </span>help_heading = <span class="string">&quot;Options&quot;</span>;
+            <span class="kw">let </span>help_heading = <span class="string">"Options"</span>;
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}{help_heading}:{}\n&quot;</span>,
+                <span class="string">"{}{help_heading}:{}\n"</span>,
                 header.render(),
                 header.render_reset()
             );
-            <span class="self">self</span>.write_args(<span class="kw-2">&amp;</span>non_pos, <span class="string">&quot;Options&quot;</span>, option_sort_key);
+            <span class="self">self</span>.write_args(<span class="kw-2">&amp;</span>non_pos, <span class="string">"Options"</span>, option_sort_key);
         }
         <span class="kw">if </span>!custom_headings.is_empty() {
             <span class="kw">for </span>heading <span class="kw">in </span>custom_headings {
@@ -1661,12 +1663,12 @@
 
                 <span class="kw">if </span>!args.is_empty() {
                     <span class="kw">if </span>!first {
-                        <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+                        <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
                     }
                     first = <span class="bool-val">false</span>;
                     <span class="kw">let _ </span>= <span class="macro">write!</span>(
                         <span class="self">self</span>.writer,
-                        <span class="string">&quot;{}{heading}:{}\n&quot;</span>,
+                        <span class="string">"{}{heading}:{}\n"</span>,
                         header.render(),
                         header.render_reset()
                     );
@@ -1683,22 +1685,22 @@
 
     <span class="doccomment">/// Sorts arguments by length and display order and write their help to the wrapped stream.
     </span><span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>Arg], _category: <span class="kw-2">&amp;</span>str, sort_key: ArgSortKey) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_args {_category}&quot;</span>);
-        <span class="comment">// The shortest an arg can legally be is 2 (i.e. &#39;-x&#39;)
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_args {_category}"</span>);
+        <span class="comment">// The shortest an arg can legally be is 2 (i.e. '-x')
         </span><span class="kw">let </span><span class="kw-2">mut </span>longest = <span class="number">2</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>ord_v = Vec::new();
 
         <span class="comment">// Determine the longest
         </span><span class="kw">for </span><span class="kw-2">&amp;</span>arg <span class="kw">in </span>args.iter().filter(|arg| {
-            <span class="comment">// If it&#39;s NextLineHelp we don&#39;t care to compute how long it is because it may be
-            // NextLineHelp on purpose simply *because* it&#39;s so long and would throw off all other
+            <span class="comment">// If it's NextLineHelp we don't care to compute how long it is because it may be
+            // NextLineHelp on purpose simply *because* it's so long and would throw off all other
             // args alignment
             </span>should_show_arg(<span class="self">self</span>.use_long, arg)
         }) {
             <span class="kw">if </span>longest_filter(arg) {
                 longest = longest.max(display_width(<span class="kw-2">&amp;</span>arg.to_string()));
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;HelpTemplate::write_args: arg={:?} longest={}&quot;</span>,
+                    <span class="string">"HelpTemplate::write_args: arg={:?} longest={}"</span>,
                     arg.get_id(),
                     longest
                 );
@@ -1713,9 +1715,9 @@
 
         <span class="kw">for </span>(i, (<span class="kw">_</span>, arg)) <span class="kw">in </span>ord_v.iter().enumerate() {
             <span class="kw">if </span>i != <span class="number">0 </span>{
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
                 <span class="kw">if </span>next_line_help &amp;&amp; <span class="self">self</span>.use_long {
-                    <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                    <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
                 }
             }
             <span class="self">self</span>.write_arg(arg, next_line_help, longest);
@@ -1746,69 +1748,69 @@
         <span class="self">self</span>.help(<span class="prelude-val">Some</span>(arg), about, spec_vals, next_line_help, longest);
     }
 
-    <span class="doccomment">/// Writes argument&#39;s short command to the wrapped stream.
+    <span class="doccomment">/// Writes argument's short command to the wrapped stream.
     </span><span class="kw">fn </span>short(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::short&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::short"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span>literal = <span class="kw-2">&amp;</span><span class="self">self</span>.styles.get_literal();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = arg.get_short() {
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}-{s}{}&quot;</span>,
+                <span class="string">"{}-{s}{}"</span>,
                 literal.render(),
                 literal.render_reset()
             );
         } <span class="kw">else if </span>arg.get_long().is_some() {
-            <span class="self">self</span>.writer.push_str(<span class="string">&quot;    &quot;</span>);
+            <span class="self">self</span>.writer.push_str(<span class="string">"    "</span>);
         }
     }
 
-    <span class="doccomment">/// Writes argument&#39;s long command to the wrapped stream.
+    <span class="doccomment">/// Writes argument's long command to the wrapped stream.
     </span><span class="kw">fn </span>long(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::long&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::long"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span>literal = <span class="kw-2">&amp;</span><span class="self">self</span>.styles.get_literal();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(long) = arg.get_long() {
             <span class="kw">if </span>arg.get_short().is_some() {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;, &quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">", "</span>);
             }
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}--{long}{}&quot;</span>,
+                <span class="string">"{}--{long}{}"</span>,
                 literal.render(),
                 literal.render_reset()
             );
         }
     }
 
-    <span class="doccomment">/// Write alignment padding between arg&#39;s switches/values and its about message.
+    <span class="doccomment">/// Write alignment padding between arg's switches/values and its about message.
     </span><span class="kw">fn </span>align_to_about(<span class="kw-2">&amp;mut </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg, next_line_help: bool, longest: usize) {
         <span class="macro">debug!</span>(
-            <span class="string">&quot;HelpTemplate::align_to_about: arg={}, next_line_help={}, longest={}&quot;</span>,
+            <span class="string">"HelpTemplate::align_to_about: arg={}, next_line_help={}, longest={}"</span>,
             arg.get_id(),
             next_line_help,
             longest
         );
         <span class="kw">let </span>padding = <span class="kw">if </span><span class="self">self</span>.use_long || next_line_help {
-            <span class="comment">// long help prints messages on the next line so it doesn&#39;t need to align text
-            </span><span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::align_to_about: printing long help so skip alignment&quot;</span>);
+            <span class="comment">// long help prints messages on the next line so it doesn't need to align text
+            </span><span class="macro">debug!</span>(<span class="string">"HelpTemplate::align_to_about: printing long help so skip alignment"</span>);
             <span class="number">0
         </span>} <span class="kw">else if </span>!arg.is_positional() {
             <span class="kw">let </span>self_len = display_width(<span class="kw-2">&amp;</span>arg.to_string());
-            <span class="comment">// Since we&#39;re writing spaces from the tab point we first need to know if we
+            <span class="comment">// Since we're writing spaces from the tab point we first need to know if we
             // had a long and short, or just short
             </span><span class="kw">let </span>padding = <span class="kw">if </span>arg.get_long().is_some() {
                 <span class="comment">// Only account 4 after the val
                 </span>TAB_WIDTH
             } <span class="kw">else </span>{
-                <span class="comment">// Only account for &#39;, --&#39; + 4 after the val
+                <span class="comment">// Only account for ', --' + 4 after the val
                 </span>TAB_WIDTH + <span class="number">4
             </span>};
             <span class="kw">let </span>spcs = longest + padding - self_len;
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::align_to_about: positional=false arg_len={self_len}, spaces={spcs}&quot;
+                <span class="string">"HelpTemplate::align_to_about: positional=false arg_len={self_len}, spaces={spcs}"
             </span>);
 
             spcs
@@ -1817,7 +1819,7 @@
             <span class="kw">let </span>padding = TAB_WIDTH;
             <span class="kw">let </span>spcs = longest + padding - self_len;
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::align_to_about: positional=true arg_len={self_len}, spaces={spcs}&quot;</span>,
+                <span class="string">"HelpTemplate::align_to_about: positional=true arg_len={self_len}, spaces={spcs}"</span>,
             );
 
             spcs
@@ -1826,7 +1828,7 @@
         <span class="self">self</span>.write_padding(padding);
     }
 
-    <span class="doccomment">/// Writes argument&#39;s help to the wrapped stream.
+    <span class="doccomment">/// Writes argument's help to the wrapped stream.
     </span><span class="kw">fn </span>help(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         arg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Arg&gt;,
@@ -1835,14 +1837,14 @@
         next_line_help: bool,
         longest: usize,
     ) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::help&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::help"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span>literal = <span class="kw-2">&amp;</span><span class="self">self</span>.styles.get_literal();
 
         <span class="comment">// Is help on next line, if so then indent
         </span><span class="kw">if </span>next_line_help {
-            <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::help: Next Line...{next_line_help:?}&quot;</span>);
-            <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"HelpTemplate::help: Next Line...{next_line_help:?}"</span>);
+            <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             <span class="self">self</span>.writer.push_str(TAB);
             <span class="self">self</span>.writer.push_str(NEXT_LINE_INDENT);
         }
@@ -1854,7 +1856,7 @@
         </span>} <span class="kw">else </span>{
             longest + TAB_WIDTH * <span class="number">2 </span>+ <span class="number">4 </span><span class="comment">// See `fn short` for the 4
         </span>};
-        <span class="kw">let </span>trailing_indent = spaces; <span class="comment">// Don&#39;t indent any further than the first line is indented
+        <span class="kw">let </span>trailing_indent = spaces; <span class="comment">// Don't indent any further than the first line is indented
         </span><span class="kw">let </span>trailing_indent = <span class="self">self</span>.get_spaces(trailing_indent);
 
         <span class="kw">let </span><span class="kw-2">mut </span>help = about.clone();
@@ -1862,9 +1864,9 @@
         <span class="kw">if </span>!spec_vals.is_empty() {
             <span class="kw">if </span>!help.is_empty() {
                 <span class="kw">let </span>sep = <span class="kw">if </span><span class="self">self</span>.use_long &amp;&amp; arg.is_some() {
-                    <span class="string">&quot;\n\n&quot;
+                    <span class="string">"\n\n"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot; &quot;
+                    <span class="string">" "
                 </span>};
                 help.push_str(sep);
             }
@@ -1872,51 +1874,51 @@
         }
         <span class="kw">let </span>avail_chars = <span class="self">self</span>.term_w.saturating_sub(spaces);
         <span class="macro">debug!</span>(
-            <span class="string">&quot;HelpTemplate::help: help_width={}, spaces={}, avail={}&quot;</span>,
+            <span class="string">"HelpTemplate::help: help_width={}, spaces={}, avail={}"</span>,
             spaces,
             help.display_width(),
             avail_chars
         );
         help.wrap(avail_chars);
-        help.indent(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span>trailing_indent);
+        help.indent(<span class="string">""</span>, <span class="kw-2">&amp;</span>trailing_indent);
         <span class="kw">let </span>help_is_empty = help.is_empty();
         <span class="self">self</span>.writer.push_styled(<span class="kw-2">&amp;</span>help);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = arg {
             <span class="kw">if </span>!arg.is_hide_possible_values_set() &amp;&amp; <span class="self">self</span>.use_long_pv(arg) {
-                <span class="kw">const </span>DASH_SPACE: usize = <span class="string">&quot;- &quot;</span>.len();
+                <span class="kw">const </span>DASH_SPACE: usize = <span class="string">"- "</span>.len();
                 <span class="kw">let </span>possible_vals = arg.get_possible_values();
                 <span class="kw">if </span>!possible_vals.is_empty() {
-                    <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::help: Found possible vals...{possible_vals:?}&quot;</span>);
+                    <span class="macro">debug!</span>(<span class="string">"HelpTemplate::help: Found possible vals...{possible_vals:?}"</span>);
                     <span class="kw">let </span>longest = possible_vals
                         .iter()
                         .filter(|f| !f.is_hide_set())
                         .map(|f| display_width(f.get_name()))
                         .max()
-                        .expect(<span class="string">&quot;Only called with possible value&quot;</span>);
+                        .expect(<span class="string">"Only called with possible value"</span>);
 
                     <span class="kw">let </span>spaces = spaces + TAB_WIDTH - DASH_SPACE;
                     <span class="kw">let </span>trailing_indent = spaces + DASH_SPACE;
                     <span class="kw">let </span>trailing_indent = <span class="self">self</span>.get_spaces(trailing_indent);
 
                     <span class="kw">if </span>!help_is_empty {
-                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;\n\n{:spaces$}&quot;</span>, <span class="string">&quot;&quot;</span>);
+                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">"\n\n{:spaces$}"</span>, <span class="string">""</span>);
                     }
-                    <span class="self">self</span>.writer.push_str(<span class="string">&quot;Possible values:&quot;</span>);
+                    <span class="self">self</span>.writer.push_str(<span class="string">"Possible values:"</span>);
                     <span class="kw">for </span>pv <span class="kw">in </span>possible_vals.iter().filter(|pv| !pv.is_hide_set()) {
                         <span class="kw">let </span>name = pv.get_name();
 
                         <span class="kw">let </span><span class="kw-2">mut </span>descr = StyledStr::new();
                         <span class="kw">let _ </span>= <span class="macro">write!</span>(
                             <span class="kw-2">&amp;mut </span>descr,
-                            <span class="string">&quot;{}{name}{}&quot;</span>,
+                            <span class="string">"{}{name}{}"</span>,
                             literal.render(),
                             literal.render_reset()
                         );
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(help) = pv.get_help() {
-                            <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::help: Possible Value help&quot;</span>);
+                            <span class="macro">debug!</span>(<span class="string">"HelpTemplate::help: Possible Value help"</span>);
                             <span class="comment">// To align help messages
                             </span><span class="kw">let </span>padding = longest - display_width(name);
-                            <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>descr, <span class="string">&quot;: {:padding$}&quot;</span>, <span class="string">&quot;&quot;</span>);
+                            <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>descr, <span class="string">": {:padding$}"</span>, <span class="string">""</span>);
                             descr.push_styled(help);
                         }
 
@@ -1927,9 +1929,9 @@
                         };
                         descr.replace_newline_var();
                         descr.wrap(avail_chars);
-                        descr.indent(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span>trailing_indent);
+                        descr.indent(<span class="string">""</span>, <span class="kw-2">&amp;</span>trailing_indent);
 
-                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;\n{:spaces$}- &quot;</span>, <span class="string">&quot;&quot;</span>,);
+                        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">"\n{:spaces$}- "</span>, <span class="string">""</span>,);
                         <span class="self">self</span>.writer.push_styled(<span class="kw-2">&amp;</span>descr);
                     }
                 }
@@ -1967,18 +1969,18 @@
     }
 
     <span class="kw">fn </span>spec_vals(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Arg) -&gt; String {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::spec_vals: a={a}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::spec_vals: a={a}"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>spec_vals = Vec::new();
-        <span class="attr">#[cfg(feature = <span class="string">&quot;env&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"env"</span>)]
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>env) = a.env {
             <span class="kw">if </span>!a.is_hide_env_set() {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;HelpTemplate::spec_vals: Found environment variable...[{:?}:{:?}]&quot;</span>,
+                    <span class="string">"HelpTemplate::spec_vals: Found environment variable...[{:?}:{:?}]"</span>,
                     env.<span class="number">0</span>, env.<span class="number">1
                 </span>);
                 <span class="kw">let </span>env_val = <span class="kw">if </span>!a.is_hide_env_values_set() {
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;={}&quot;</span>,
+                        <span class="string">"={}"</span>,
                         env.<span class="number">1
                             </span>.as_ref()
                             .map(|s| s.to_string_lossy())
@@ -1987,13 +1989,13 @@
                 } <span class="kw">else </span>{
                     Default::default()
                 };
-                <span class="kw">let </span>env_info = <span class="macro">format!</span>(<span class="string">&quot;[env: {}{}]&quot;</span>, env.<span class="number">0</span>.to_string_lossy(), env_val);
+                <span class="kw">let </span>env_info = <span class="macro">format!</span>(<span class="string">"[env: {}{}]"</span>, env.<span class="number">0</span>.to_string_lossy(), env_val);
                 spec_vals.push(env_info);
             }
         }
         <span class="kw">if </span>a.is_takes_value_set() &amp;&amp; !a.is_hide_default_value_set() &amp;&amp; !a.default_vals.is_empty() {
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::spec_vals: Found default value...[{:?}]&quot;</span>,
+                <span class="string">"HelpTemplate::spec_vals: Found default value...[{:?}]"</span>,
                 a.default_vals
             );
 
@@ -2003,15 +2005,15 @@
                 .map(|pvs| pvs.to_string_lossy())
                 .map(|pvs| {
                     <span class="kw">if </span>pvs.contains(char::is_whitespace) {
-                        Cow::from(<span class="macro">format!</span>(<span class="string">&quot;{pvs:?}&quot;</span>))
+                        Cow::from(<span class="macro">format!</span>(<span class="string">"{pvs:?}"</span>))
                     } <span class="kw">else </span>{
                         pvs
                     }
                 })
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                .join(<span class="string">&quot; &quot;</span>);
+                .join(<span class="string">" "</span>);
 
-            spec_vals.push(<span class="macro">format!</span>(<span class="string">&quot;[default: {pvs}]&quot;</span>));
+            spec_vals.push(<span class="macro">format!</span>(<span class="string">"[default: {pvs}]"</span>));
         }
 
         <span class="kw">let </span>als = a
@@ -2020,10 +2022,10 @@
             .filter(|<span class="kw-2">&amp;</span>als| als.<span class="number">1</span>) <span class="comment">// visible
             </span>.map(|als| als.<span class="number">0</span>.as_str()) <span class="comment">// name
             </span>.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-            .join(<span class="string">&quot;, &quot;</span>);
+            .join(<span class="string">", "</span>);
         <span class="kw">if </span>!als.is_empty() {
-            <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::spec_vals: Found aliases...{:?}&quot;</span>, a.aliases);
-            spec_vals.push(<span class="macro">format!</span>(<span class="string">&quot;[aliases: {als}]&quot;</span>));
+            <span class="macro">debug!</span>(<span class="string">"HelpTemplate::spec_vals: Found aliases...{:?}"</span>, a.aliases);
+            spec_vals.push(<span class="macro">format!</span>(<span class="string">"[aliases: {als}]"</span>));
         }
 
         <span class="kw">let </span>als = a
@@ -2032,40 +2034,40 @@
             .filter(|<span class="kw-2">&amp;</span>als| als.<span class="number">1</span>) <span class="comment">// visible
             </span>.map(|<span class="kw-2">&amp;</span>als| als.<span class="number">0</span>.to_string()) <span class="comment">// name
             </span>.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-            .join(<span class="string">&quot;, &quot;</span>);
+            .join(<span class="string">", "</span>);
         <span class="kw">if </span>!als.is_empty() {
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::spec_vals: Found short aliases...{:?}&quot;</span>,
+                <span class="string">"HelpTemplate::spec_vals: Found short aliases...{:?}"</span>,
                 a.short_aliases
             );
-            spec_vals.push(<span class="macro">format!</span>(<span class="string">&quot;[short aliases: {als}]&quot;</span>));
+            spec_vals.push(<span class="macro">format!</span>(<span class="string">"[short aliases: {als}]"</span>));
         }
 
         <span class="kw">if </span>!a.is_hide_possible_values_set() &amp;&amp; !<span class="self">self</span>.use_long_pv(a) {
             <span class="kw">let </span>possible_vals = a.get_possible_values();
             <span class="kw">if </span>!possible_vals.is_empty() {
-                <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::spec_vals: Found possible vals...{possible_vals:?}&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"HelpTemplate::spec_vals: Found possible vals...{possible_vals:?}"</span>);
 
                 <span class="kw">let </span>pvs = possible_vals
                     .iter()
                     .filter_map(PossibleValue::get_visible_quoted_name)
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                    .join(<span class="string">&quot;, &quot;</span>);
+                    .join(<span class="string">", "</span>);
 
-                spec_vals.push(<span class="macro">format!</span>(<span class="string">&quot;[possible values: {pvs}]&quot;</span>));
+                spec_vals.push(<span class="macro">format!</span>(<span class="string">"[possible values: {pvs}]"</span>));
             }
         }
-        <span class="kw">let </span>connector = <span class="kw">if </span><span class="self">self</span>.use_long { <span class="string">&quot;\n&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot; &quot; </span>};
+        <span class="kw">let </span>connector = <span class="kw">if </span><span class="self">self</span>.use_long { <span class="string">"\n" </span>} <span class="kw">else </span>{ <span class="string">" " </span>};
         spec_vals.join(connector)
     }
 
     <span class="kw">fn </span>get_spaces(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; String {
-        <span class="string">&quot; &quot;</span>.repeat(n)
+        <span class="string">" "</span>.repeat(n)
     }
 
     <span class="kw">fn </span>write_padding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amount: usize) {
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
-        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;{:amount$}&quot;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">"{:amount$}"</span>, <span class="string">""</span>);
     }
 
     <span class="kw">fn </span>use_long_pv(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span>Arg) -&gt; bool {
@@ -2078,11 +2080,11 @@
 }
 
 <span class="doccomment">/// Subcommand handling
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; HelpTemplate&lt;<span class="lifetime">&#39;cmd</span>, <span class="lifetime">&#39;writer</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; HelpTemplate&lt;<span class="lifetime">'cmd</span>, <span class="lifetime">'writer</span>&gt; {
     <span class="doccomment">/// Writes help for subcommands of a Parser Object to the wrapped stream.
     </span><span class="kw">fn </span>write_flat_subcommands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command, first: <span class="kw-2">&amp;mut </span>bool) {
         <span class="macro">debug!</span>(
-            <span class="string">&quot;HelpTemplate::write_flat_subcommands, cmd={}, first={}&quot;</span>,
+            <span class="string">"HelpTemplate::write_flat_subcommands, cmd={}, first={}"</span>,
             cmd.get_name(),
             <span class="kw-2">*</span>first
         );
@@ -2103,7 +2105,7 @@
         ord_v.sort_by(|a, b| (a.<span class="number">0</span>, <span class="kw-2">&amp;</span>a.<span class="number">1</span>).cmp(<span class="kw-2">&amp;</span>(b.<span class="number">0</span>, <span class="kw-2">&amp;</span>b.<span class="number">1</span>)));
         <span class="kw">for </span>(<span class="kw">_</span>, <span class="kw">_</span>, subcommand) <span class="kw">in </span>ord_v {
             <span class="kw">if </span>!<span class="kw-2">*</span>first {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n\n"</span>);
             }
             <span class="kw-2">*</span>first = <span class="bool-val">false</span>;
 
@@ -2115,12 +2117,12 @@
 
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 <span class="self">self</span>.writer,
-                <span class="string">&quot;{}{heading}:{}\n&quot;</span>,
+                <span class="string">"{}{heading}:{}\n"</span>,
                 header.render(),
                 header.render_reset()
             );
             <span class="kw">if </span>!about.is_empty() {
-                <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">&quot;{about}\n&quot;</span>,);
+                <span class="kw">let _ </span>= <span class="macro">write!</span>(<span class="self">self</span>.writer, <span class="string">"{about}\n"</span>,);
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>sub_help = HelpTemplate {
@@ -2145,11 +2147,11 @@
 
     <span class="doccomment">/// Writes help for subcommands of a Parser Object to the wrapped stream.
     </span><span class="kw">fn </span>write_subcommands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_subcommands&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_subcommands"</span>);
         <span class="kw">use </span>std::fmt::Write <span class="kw">as _</span>;
         <span class="kw">let </span>literal = <span class="kw-2">&amp;</span><span class="self">self</span>.styles.get_literal();
 
-        <span class="comment">// The shortest an arg can legally be is 2 (i.e. &#39;-x&#39;)
+        <span class="comment">// The shortest an arg can legally be is 2 (i.e. '-x')
         </span><span class="kw">let </span><span class="kw-2">mut </span>longest = <span class="number">2</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>ord_v = Vec::new();
         <span class="kw">for </span>subcommand <span class="kw">in </span>cmd
@@ -2160,14 +2162,14 @@
             <span class="kw">let </span>name = subcommand.get_name();
             <span class="kw">let _ </span>= <span class="macro">write!</span>(
                 styled,
-                <span class="string">&quot;{}{name}{}&quot;</span>,
+                <span class="string">"{}{name}{}"</span>,
                 literal.render(),
                 literal.render_reset()
             );
             <span class="kw">if let </span><span class="prelude-val">Some</span>(short) = subcommand.get_short_flag() {
                 <span class="kw">let _ </span>= <span class="macro">write!</span>(
                     styled,
-                    <span class="string">&quot;, {}-{short}{}&quot;</span>,
+                    <span class="string">", {}-{short}{}"</span>,
                     literal.render(),
                     literal.render_reset()
                 );
@@ -2175,7 +2177,7 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(long) = subcommand.get_long_flag() {
                 <span class="kw">let _ </span>= <span class="macro">write!</span>(
                     styled,
-                    <span class="string">&quot;, {}--{long}{}&quot;</span>,
+                    <span class="string">", {}--{long}{}"</span>,
                     literal.render(),
                     literal.render_reset()
                 );
@@ -2185,22 +2187,22 @@
         }
         ord_v.sort_by(|a, b| (a.<span class="number">0</span>, <span class="kw-2">&amp;</span>a.<span class="number">1</span>).cmp(<span class="kw-2">&amp;</span>(b.<span class="number">0</span>, <span class="kw-2">&amp;</span>b.<span class="number">1</span>)));
 
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_subcommands longest = {longest}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_subcommands longest = {longest}"</span>);
 
         <span class="kw">let </span>next_line_help = <span class="self">self</span>.will_subcommands_wrap(cmd.get_subcommands(), longest);
 
         <span class="kw">for </span>(i, (<span class="kw">_</span>, sc_str, sc)) <span class="kw">in </span>ord_v.into_iter().enumerate() {
             <span class="kw">if </span><span class="number">0 </span>&lt; i {
-                <span class="self">self</span>.writer.push_str(<span class="string">&quot;\n&quot;</span>);
+                <span class="self">self</span>.writer.push_str(<span class="string">"\n"</span>);
             }
             <span class="self">self</span>.write_subcommand(sc_str, sc, next_line_help, longest);
         }
     }
 
     <span class="doccomment">/// Will use next line help on writing subcommands.
-    </span><span class="kw">fn </span>will_subcommands_wrap&lt;<span class="lifetime">&#39;a</span>&gt;(
+    </span><span class="kw">fn </span>will_subcommands_wrap&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Command&gt;,
+        subcommands: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Command&gt;,
         longest: usize,
     ) -&gt; bool {
         subcommands
@@ -2219,7 +2221,7 @@
         next_line_help: bool,
         longest: usize,
     ) {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::write_subcommand&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::write_subcommand"</span>);
 
         <span class="kw">let </span>spec_vals = <span class="kw-2">&amp;</span><span class="self">self</span>.sc_spec_vals(cmd);
 
@@ -2233,29 +2235,29 @@
     }
 
     <span class="kw">fn </span>sc_spec_vals(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Command) -&gt; String {
-        <span class="macro">debug!</span>(<span class="string">&quot;HelpTemplate::sc_spec_vals: a={}&quot;</span>, a.get_name());
+        <span class="macro">debug!</span>(<span class="string">"HelpTemplate::sc_spec_vals: a={}"</span>, a.get_name());
         <span class="kw">let </span><span class="kw-2">mut </span>spec_vals = <span class="macro">vec!</span>[];
 
         <span class="kw">let </span><span class="kw-2">mut </span>short_als = a
             .get_visible_short_flag_aliases()
-            .map(|a| <span class="macro">format!</span>(<span class="string">&quot;-{a}&quot;</span>))
+            .map(|a| <span class="macro">format!</span>(<span class="string">"-{a}"</span>))
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">let </span>als = a.get_visible_aliases().map(|s| s.to_string());
         short_als.extend(als);
-        <span class="kw">let </span>all_als = short_als.join(<span class="string">&quot;, &quot;</span>);
+        <span class="kw">let </span>all_als = short_als.join(<span class="string">", "</span>);
         <span class="kw">if </span>!all_als.is_empty() {
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::spec_vals: Found aliases...{:?}&quot;</span>,
+                <span class="string">"HelpTemplate::spec_vals: Found aliases...{:?}"</span>,
                 a.get_all_aliases().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
             );
             <span class="macro">debug!</span>(
-                <span class="string">&quot;HelpTemplate::spec_vals: Found short flag aliases...{:?}&quot;</span>,
+                <span class="string">"HelpTemplate::spec_vals: Found short flag aliases...{:?}"</span>,
                 a.get_all_short_flag_aliases().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
             );
-            spec_vals.push(<span class="macro">format!</span>(<span class="string">&quot;[aliases: {all_als}]&quot;</span>));
+            spec_vals.push(<span class="macro">format!</span>(<span class="string">"[aliases: {all_als}]"</span>));
         }
 
-        spec_vals.join(<span class="string">&quot; &quot;</span>)
+        spec_vals.join(<span class="string">" "</span>)
     }
 
     <span class="kw">fn </span>subcommand_next_line_help(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span>Command, spec_vals: <span class="kw-2">&amp;</span>str, longest: usize) -&gt; bool {
@@ -2286,7 +2288,7 @@
     }
 }
 
-<span class="kw">const </span>NEXT_LINE_INDENT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;        &quot;</span>;
+<span class="kw">const </span>NEXT_LINE_INDENT: <span class="kw-2">&amp;</span>str = <span class="string">"        "</span>;
 
 <span class="kw">type </span>ArgSortKey = <span class="kw">fn</span>(arg: <span class="kw-2">&amp;</span>Arg) -&gt; (usize, String);
 
@@ -2305,12 +2307,12 @@
 
     </span><span class="kw">let </span>key = <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = arg.get_short() {
         <span class="kw">let </span><span class="kw-2">mut </span>s = x.to_ascii_lowercase().to_string();
-        s.push(<span class="kw">if </span>x.is_ascii_lowercase() { <span class="string">&#39;0&#39; </span>} <span class="kw">else </span>{ <span class="string">&#39;1&#39; </span>});
+        s.push(<span class="kw">if </span>x.is_ascii_lowercase() { <span class="string">'0' </span>} <span class="kw">else </span>{ <span class="string">'1' </span>});
         s
     } <span class="kw">else if let </span><span class="prelude-val">Some</span>(x) = arg.get_long() {
         x.to_string()
     } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="string">&#39;{&#39;</span>.to_string();
+        <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="string">'{'</span>.to_string();
         s.push_str(arg.get_id().as_str());
         s
     };
@@ -2318,16 +2320,16 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dimensions() -&gt; (<span class="prelude-ty">Option</span>&lt;usize&gt;, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;wrap_help&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"wrap_help"</span>))]
     </span><span class="kw">return </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"wrap_help"</span>)]
     </span>terminal_size::terminal_size()
         .map(|(w, h)| (<span class="prelude-val">Some</span>(w.<span class="number">0</span>.into()), <span class="prelude-val">Some</span>(h.<span class="number">0</span>.into())))
-        .unwrap_or_else(|| (parse_env(<span class="string">&quot;COLUMNS&quot;</span>), parse_env(<span class="string">&quot;LINES&quot;</span>)))
+        .unwrap_or_else(|| (parse_env(<span class="string">"COLUMNS"</span>), parse_env(<span class="string">"LINES"</span>)))
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"wrap_help"</span>)]
 </span><span class="kw">fn </span>parse_env(var: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="macro">some!</span>(<span class="macro">some!</span>(std::env::var_os(var)).to_str())
         .parse::&lt;usize&gt;()
@@ -2336,7 +2338,7 @@
 
 <span class="kw">fn </span>should_show_arg(use_long: bool, arg: <span class="kw-2">&amp;</span>Arg) -&gt; bool {
     <span class="macro">debug!</span>(
-        <span class="string">&quot;should_show_arg: use_long={:?}, arg={}&quot;</span>,
+        <span class="string">"should_show_arg: use_long={:?}, arg={}"</span>,
         use_long,
         arg.get_id()
     );
@@ -2359,21 +2361,21 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+    #[cfg(feature = <span class="string">"wrap_help"</span>)]
     </span><span class="kw">fn </span>wrap_help_last_word() {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>help = String::from(<span class="string">&quot;foo bar baz&quot;</span>);
-        <span class="macro">assert_eq!</span>(wrap(<span class="kw-2">&amp;</span>help, <span class="number">5</span>), <span class="string">&quot;foo\nbar\nbaz&quot;</span>);
+        <span class="kw">let </span>help = String::from(<span class="string">"foo bar baz"</span>);
+        <span class="macro">assert_eq!</span>(wrap(<span class="kw-2">&amp;</span>help, <span class="number">5</span>), <span class="string">"foo\nbar\nbaz"</span>);
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_handles_non_ascii() {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="comment">// Popular Danish tongue-twister, the name of a fruit dessert.
-        </span><span class="kw">let </span>text = <span class="string">&quot;rødgrød med fløde&quot;</span>;
+        </span><span class="kw">let </span>text = <span class="string">"rødgrød med fløde"</span>;
         <span class="macro">assert_eq!</span>(display_width(text), <span class="number">17</span>);
         <span class="comment">// Note that the string width is smaller than the string
         // length. This is due to the precomposed non-ASCII letters:
@@ -2381,11 +2383,11 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    #[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">fn </span>display_width_handles_emojis() {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-        <span class="kw">let </span>text = <span class="string">&quot;😂&quot;</span>;
+        <span class="kw">let </span>text = <span class="string">"😂"</span>;
         <span class="comment">// There is a single `char`...
         </span><span class="macro">assert_eq!</span>(text.chars().count(), <span class="number">1</span>);
         <span class="comment">// but it is double-width:

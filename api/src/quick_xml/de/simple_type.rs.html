@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/de/simple_type.rs`."><title>simple_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/de/simple_type.rs`."><title>simple_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../quick_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1353,7 +1355,7 @@
     (<span class="macro-nonterminal">$method</span>:ident, <span class="macro-nonterminal">$visit</span>:ident) =&gt; {
         <span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
         <span class="kw">where
-            </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+            </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
         {
             visitor.<span class="macro-nonterminal">$visit</span>(<span class="self">self</span>.content.as_str().parse()<span class="question-mark">?</span>)
         }
@@ -1361,7 +1363,7 @@
     (<span class="macro-nonterminal">$method</span>:ident =&gt; <span class="macro-nonterminal">$visit</span>:ident) =&gt; {
         <span class="kw">fn </span><span class="macro-nonterminal">$method</span>&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
         <span class="kw">where
-            </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+            </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
         {
             <span class="kw">let </span>string = <span class="self">self</span>.decode()<span class="question-mark">?</span>;
             visitor.<span class="macro-nonterminal">$visit</span>(string.as_str().parse()<span class="question-mark">?</span>)
@@ -1378,7 +1380,7 @@
         </span>=&gt; <span class="macro-nonterminal">$message</span>:literal
     ) =&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">fn </span><span class="macro-nonterminal">$deserialize</span>&lt;V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;&gt;(
+        </span><span class="kw">fn </span><span class="macro-nonterminal">$deserialize</span>&lt;V: Visitor&lt;<span class="lifetime">'de</span>&gt;&gt;(
             <span class="self">self</span>,
             $($(<span class="kw">_</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>,)<span class="kw-2">*</span>)<span class="question-mark">?
             </span><span class="macro-nonterminal">_visitor</span>: V
@@ -1394,20 +1396,20 @@
 /// is a deserializer input, and conceptually contains only part of owned data.
 ///
 /// # Lifetimes
-/// - `&#39;de` -- lifetime of the data that deserializer borrow from the parsed input
-/// - `&#39;a` -- lifetime of the data that owned by a deserializer
-</span><span class="kw">enum </span>Content&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+/// - `'de` -- lifetime of the data that deserializer borrow from the parsed input
+/// - `'a` -- lifetime of the data that owned by a deserializer
+</span><span class="kw">enum </span>Content&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// An input borrowed from the parsed data
-    </span>Input(<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str),
+    </span>Input(<span class="kw-2">&amp;</span><span class="lifetime">'de </span>str),
     <span class="doccomment">/// An input borrowed from the buffer owned by another deserializer
-    </span>Slice(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    </span>Slice(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
     <span class="doccomment">/// An input taken from an external deserializer, owned by that deserializer.
     /// Only part of this data, located after offset represented by `usize`, used
-    /// to deserialize data, the other is a garbage that can&#39;t be dropped because
+    /// to deserialize data, the other is a garbage that can't be dropped because
     /// we do not want to make reallocations if they will not required.
     </span>Owned(String, usize),
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; Content&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; Content&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Returns string representation of the content
     </span><span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
@@ -1428,7 +1430,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_all&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
             Content::Input(s) =&gt; visitor.visit_borrowed_str(s),
@@ -1448,7 +1450,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_item&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self </span>{
             Content::Input(s) =&gt; visitor.visit_borrowed_str(s),
@@ -1480,35 +1482,35 @@
 ///
 /// [item]: https://www.w3.org/TR/xmlschema11-1/#std-item_type_definition
 /// [simple type]: https://www.w3.org/TR/xmlschema11-1/#Simple_Type_Definition
-</span><span class="kw">struct </span>AtomicDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>AtomicDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Content of the attribute value, text content or CDATA content
-    </span>content: Content&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt;,
+    </span>content: Content&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt;,
     <span class="doccomment">/// If `true`, `content` in an escaped form and should be unescaped before use
     </span>escaped: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>AtomicDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>AtomicDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = DeError;
 
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="doccomment">/// According to the &lt;https://www.w3.org/TR/xmlschema11-2/#boolean&gt;,
-    /// valid boolean representations are only `&quot;true&quot;`, `&quot;false&quot;`, `&quot;1&quot;`,
-    /// and `&quot;0&quot;`. But this method also handles following:
+    /// valid boolean representations are only `"true"`, `"false"`, `"1"`,
+    /// and `"0"`. But this method also handles following:
     ///
     /// |`bool` |XML content
     /// |-------|-------------------------------------------------------------
-    /// |`true` |`&quot;True&quot;`,  `&quot;TRUE&quot;`,  `&quot;t&quot;`, `&quot;Yes&quot;`, `&quot;YES&quot;`, `&quot;yes&quot;`, `&quot;y&quot;`
-    /// |`false`|`&quot;False&quot;`, `&quot;FALSE&quot;`, `&quot;f&quot;`, `&quot;No&quot;`,  `&quot;NO&quot;`,  `&quot;no&quot;`,  `&quot;n&quot;`
+    /// |`true` |`"True"`,  `"TRUE"`,  `"t"`, `"Yes"`, `"YES"`, `"yes"`, `"y"`
+    /// |`false`|`"False"`, `"FALSE"`, `"f"`, `"No"`,  `"NO"`,  `"no"`,  `"n"`
     </span><span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         str2bool(<span class="self">self</span>.content.as_str(), visitor)
     }
@@ -1534,7 +1536,7 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
@@ -1551,7 +1553,7 @@
     /// - [`Visitor::visit_string`] if data owned by this deserializer
     </span><span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.escaped {
             <span class="kw">match </span>unescape(<span class="self">self</span>.content.as_str())<span class="question-mark">? </span>{
@@ -1565,7 +1567,7 @@
 
     <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
@@ -1574,7 +1576,7 @@
     /// otherwise calls [`Visitor::visit_some`] with itself
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.content.as_str().is_empty() {
             visitor.visit_none()
@@ -1585,7 +1587,7 @@
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_unit()
     }
@@ -1593,34 +1595,34 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_unit`]
     </span><span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_unit(visitor)
     }
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_newtype_struct(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_enum(<span class="self">self</span>)
     }
@@ -1628,34 +1630,34 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_unit()
     }
 
-    <span class="macro">unsupported!</span>(deserialize_bytes        =&gt; <span class="string">&quot;byte arrays are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_byte_buf     =&gt; <span class="string">&quot;byte arrays are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_seq          =&gt; <span class="string">&quot;sequences are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_tuple(usize) =&gt; <span class="string">&quot;tuples are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_tuple_struct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, usize) =&gt; <span class="string">&quot;tuples are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_map          =&gt; <span class="string">&quot;maps are not supported as `xs:list` items&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_struct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str]) =&gt; <span class="string">&quot;structures are not supported as `xs:list` items&quot;</span>);
+    <span class="macro">unsupported!</span>(deserialize_bytes        =&gt; <span class="string">"byte arrays are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_byte_buf     =&gt; <span class="string">"byte arrays are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_seq          =&gt; <span class="string">"sequences are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_tuple(usize) =&gt; <span class="string">"tuples are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_tuple_struct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, usize) =&gt; <span class="string">"tuples are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_map          =&gt; <span class="string">"maps are not supported as `xs:list` items"</span>);
+    <span class="macro">unsupported!</span>(deserialize_struct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str]) =&gt; <span class="string">"structures are not supported as `xs:list` items"</span>);
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>AtomicDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>AtomicDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = DeError;
     <span class="kw">type </span>Variant = AtomicUnitOnly;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), DeError&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>name = seed.deserialize(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((name, AtomicUnitOnly))
@@ -1668,7 +1670,7 @@
 /// Attempt to deserialize newtype, tuple or struct variant will return a
 /// [`DeError::Unsupported`] error.
 </span><span class="kw">pub struct </span>AtomicUnitOnly;
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>AtomicUnitOnly {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>AtomicUnitOnly {
     <span class="kw">type </span>Error = DeError;
 
     <span class="attr">#[inline]
@@ -1678,32 +1680,32 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, _seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, DeError&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum newtype variants are not supported as `xs:list` items&quot;</span>.into(),
+            <span class="string">"enum newtype variants are not supported as `xs:list` items"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum tuple variants are not supported as `xs:list` items&quot;</span>.into(),
+            <span class="string">"enum tuple variants are not supported as `xs:list` items"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         _visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum struct variants are not supported as `xs:list` items&quot;</span>.into(),
+            <span class="string">"enum struct variants are not supported as `xs:list` items"</span>.into(),
         ))
     }
 }
@@ -1713,21 +1715,21 @@
 </span><span class="doccomment">/// Iterator over string sub-slices delimited by one or several spaces.
 /// Contains decoded value of the `simpleType`.
 /// Iteration ends when list contains `None`.
-</span><span class="kw">struct </span>ListIter&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>ListIter&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// If `Some`, contains unconsumed data of the list
-    </span>content: <span class="prelude-ty">Option</span>&lt;Content&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span>content: <span class="prelude-ty">Option</span>&lt;Content&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt;&gt;,
     <span class="doccomment">/// If `true`, `content` in escaped form and should be unescaped before use
     </span>escaped: bool,
 }
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>ListIter&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; SeqAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>ListIter&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = DeError;
 
     <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;, DeError&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>content) = <span class="self">self</span>.content.take() {
-            <span class="kw">const </span>DELIMITER: u8 = <span class="string">b&#39; &#39;</span>;
+            <span class="kw">const </span>DELIMITER: u8 = <span class="string">b' '</span>;
 
             <span class="kw">loop </span>{
                 <span class="kw">let </span>string = content.as_str();
@@ -1809,18 +1811,18 @@
 /// `deserialize_any()` returns the whole string that deserializer contains.
 ///
 /// Escaping the value is actually not always necessary, for instance when
-/// converting to a float, we don&#39;t expect any escapable character anyway.
+/// converting to a float, we don't expect any escapable character anyway.
 /// In that cases deserializer skips unescaping step.
 ///
 /// Used for deserialize values from:
-/// - attribute values (`&lt;... ...=&quot;value&quot; ...&gt;`)
+/// - attribute values (`&lt;... ...="value" ...&gt;`)
 /// - mixed text / CDATA content (`&lt;...&gt;text&lt;![CDATA[cdata]]&gt;&lt;/...&gt;`)
 ///
 /// [simple types]: https://www.w3.org/TR/xmlschema11-1/#Simple_Type_Definition
-</span><span class="kw">pub struct </span>SimpleTypeDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>SimpleTypeDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// - In case of attribute contains escaped attribute value
     /// - In case of text contains unescaped text value
-    </span>content: CowRef&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, [u8]&gt;,
+    </span>content: CowRef&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, [u8]&gt;,
     <span class="doccomment">/// If `true`, `content` in escaped form and should be unescaped before use
     </span>escaped: bool,
     <span class="doccomment">/// Decoder used to deserialize string data, numeric and boolean data.
@@ -1828,9 +1830,9 @@
     </span>decoder: Decoder,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; SimpleTypeDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; SimpleTypeDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Creates a deserializer from a value, that possible borrowed from input
-    </span><span class="kw">pub fn </span>from_text_content(value: Text&lt;<span class="lifetime">&#39;de</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_text_content(value: Text&lt;<span class="lifetime">'de</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>content = <span class="kw">match </span>value.text {
             Cow::Borrowed(slice) =&gt; CowRef::Input(slice.as_bytes()),
             Cow::Owned(content) =&gt; CowRef::Owned(content.into_bytes()),
@@ -1841,7 +1843,7 @@
     <span class="doccomment">/// Creates a deserializer from a part of value at specified range
     </span><span class="attr">#[allow(clippy::ptr_arg)]
     </span><span class="kw">pub fn </span>from_part(
-        value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cow&lt;<span class="lifetime">&#39;de</span>, [u8]&gt;,
+        value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cow&lt;<span class="lifetime">'de</span>, [u8]&gt;,
         range: Range&lt;usize&gt;,
         escaped: bool,
         decoder: Decoder,
@@ -1855,7 +1857,7 @@
 
     <span class="doccomment">/// Constructor for tests
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>new(content: CowRef&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, [u8]&gt;, escaped: bool, decoder: Decoder) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>new(content: CowRef&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>, [u8]&gt;, escaped: bool, decoder: Decoder) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             content,
             escaped,
@@ -1866,7 +1868,7 @@
     <span class="doccomment">/// Decodes raw bytes using the encoding specified.
     /// The method will borrow if has the UTF-8 compatible representation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>decode&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Content&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;b</span>&gt;, DeError&gt; {
+    </span><span class="kw">fn </span>decode&lt;<span class="lifetime">'b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Content&lt;<span class="lifetime">'de</span>, <span class="lifetime">'b</span>&gt;, DeError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.content {
             CowRef::Input(content) =&gt; <span class="kw">match </span><span class="self">self</span>.decoder.decode(content)<span class="question-mark">? </span>{
                 Cow::Borrowed(content) =&gt; Content::Input(content),
@@ -1884,20 +1886,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SimpleTypeDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SimpleTypeDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = DeError;
 
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         deserialize_bool(<span class="kw-2">&amp;</span><span class="self">self</span>.content, <span class="self">self</span>.decoder, visitor)
     }
@@ -1923,14 +1925,14 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>content = <span class="self">self</span>.decode()<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.escaped {
@@ -1946,7 +1948,7 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
@@ -1954,24 +1956,24 @@
     <span class="doccomment">/// Returns [`DeError::Unsupported`]
     </span><span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;binary data content is not supported by XML format&quot;</span>.into(),
+            <span class="string">"binary data content is not supported by XML format"</span>.into(),
         ))
     }
 
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_bytes`]
     </span><span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_bytes(visitor)
     }
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.content.is_empty() {
             visitor.visit_none()
@@ -1982,7 +1984,7 @@
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_unit()
     }
@@ -1990,29 +1992,29 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_unit`]
     </span><span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_unit(visitor)
     }
 
     <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_newtype_struct(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_seq(ListIter {
             content: <span class="prelude-val">Some</span>(<span class="self">self</span>.decode()<span class="question-mark">?</span>),
@@ -2023,7 +2025,7 @@
     <span class="doccomment">/// Representation of tuples the same as [sequences][Self::deserialize_seq].
     </span><span class="kw">fn </span>deserialize_tuple&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_seq(visitor)
     }
@@ -2031,28 +2033,28 @@
     <span class="doccomment">/// Representation of named tuples the same as [unnamed tuples][Self::deserialize_tuple].
     </span><span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_tuple(len, visitor)
     }
 
-    <span class="macro">unsupported!</span>(deserialize_map =&gt; <span class="string">&quot;maps are not supported for XSD `simpleType`s&quot;</span>);
-    <span class="macro">unsupported!</span>(deserialize_struct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str])
-                 =&gt; <span class="string">&quot;structures are not supported for XSD `simpleType`s&quot;</span>);
+    <span class="macro">unsupported!</span>(deserialize_map =&gt; <span class="string">"maps are not supported for XSD `simpleType`s"</span>);
+    <span class="macro">unsupported!</span>(deserialize_struct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str])
+                 =&gt; <span class="string">"structures are not supported for XSD `simpleType`s"</span>);
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_enum(<span class="self">self</span>)
     }
@@ -2060,26 +2062,26 @@
     <span class="doccomment">/// Forwards deserialization to the [`Self::deserialize_str`]
     </span><span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_unit()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SimpleTypeDeserializer&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SimpleTypeDeserializer&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Error = DeError;
     <span class="kw">type </span>Variant = SimpleTypeUnitOnly;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), DeError&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>name = seed.deserialize(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((name, SimpleTypeUnitOnly))
@@ -2092,7 +2094,7 @@
 /// Attempt to deserialize newtype, tuple or struct variant will return a
 /// [`DeError::Unsupported`] error.
 </span><span class="kw">pub struct </span>SimpleTypeUnitOnly;
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SimpleTypeUnitOnly {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SimpleTypeUnitOnly {
     <span class="kw">type </span>Error = DeError;
 
     <span class="attr">#[inline]
@@ -2102,32 +2104,32 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, _seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, DeError&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum newtype variants are not supported for XSD `simpleType`s&quot;</span>.into(),
+            <span class="string">"enum newtype variants are not supported for XSD `simpleType`s"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum tuple variants are not supported for XSD `simpleType`s&quot;</span>.into(),
+            <span class="string">"enum tuple variants are not supported for XSD `simpleType`s"</span>.into(),
         ))
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         _visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, DeError&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(DeError::Unsupported(
-            <span class="string">&quot;enum struct variants are not supported for XSD `simpleType`s&quot;</span>.into(),
+            <span class="string">"enum struct variants are not supported for XSD `simpleType`s"</span>.into(),
         ))
     }
 }
@@ -2196,7 +2198,7 @@
                 <span class="kw">match </span>err {
                     DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                     <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
-                        <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                        <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                         <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                         <span class="macro-nonterminal">$reason</span>,
                         err
@@ -2213,7 +2215,7 @@
     </span><span class="kw">struct </span>Newtype(String);
 
     <span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq)]
-    </span><span class="kw">struct </span>BorrowedNewtype&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str);
+    </span><span class="kw">struct </span>BorrowedNewtype&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str);
 
     <span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq)]
     </span><span class="kw">struct </span>Struct {
@@ -2309,7 +2311,7 @@
                     <span class="kw">match </span>err {
                         DeError::<span class="macro-nonterminal">$kind</span>(e) =&gt; <span class="macro">assert_eq!</span>(e, <span class="macro-nonterminal">$reason</span>),
                         <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;Expected `{}({})`, found `{:?}`&quot;</span>,
+                            <span class="string">"Expected `{}({})`, found `{:?}`"</span>,
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$kind</span>),
                             <span class="macro-nonterminal">$reason</span>,
                             err
@@ -2319,91 +2321,91 @@
             };
         }
 
-        <span class="macro">deserialized_to!</span>(false_: bool = <span class="string">&quot;false&quot; </span>=&gt; <span class="bool-val">false</span>);
-        <span class="macro">deserialized_to!</span>(true_: bool  = <span class="string">&quot;true&quot; </span>=&gt; <span class="bool-val">true</span>);
+        <span class="macro">deserialized_to!</span>(false_: bool = <span class="string">"false" </span>=&gt; <span class="bool-val">false</span>);
+        <span class="macro">deserialized_to!</span>(true_: bool  = <span class="string">"true" </span>=&gt; <span class="bool-val">true</span>);
 
-        <span class="macro">deserialized_to!</span>(i8_:  i8  = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">deserialized_to!</span>(i16_: i16 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">deserialized_to!</span>(i32_: i32 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">deserialized_to!</span>(i64_: i64 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">deserialized_to!</span>(i8_:  i8  = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">deserialized_to!</span>(i16_: i16 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">deserialized_to!</span>(i32_: i32 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">deserialized_to!</span>(i64_: i64 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
 
-        <span class="macro">deserialized_to!</span>(u8_:  u8  = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">deserialized_to!</span>(u16_: u16 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">deserialized_to!</span>(u32_: u32 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">deserialized_to!</span>(u64_: u64 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
+        <span class="macro">deserialized_to!</span>(u8_:  u8  = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">deserialized_to!</span>(u16_: u16 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">deserialized_to!</span>(u32_: u32 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">deserialized_to!</span>(u64_: u64 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">deserialized_to!</span>(i128_: i128 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-            <span class="macro">deserialized_to!</span>(u128_: u128 = <span class="string">&quot;2&quot; </span>=&gt; <span class="number">2</span>);
+            <span class="macro">deserialized_to!</span>(i128_: i128 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+            <span class="macro">deserialized_to!</span>(u128_: u128 = <span class="string">"2" </span>=&gt; <span class="number">2</span>);
         }
 
-        <span class="macro">deserialized_to!</span>(f32_: f32 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
-        <span class="macro">deserialized_to!</span>(f64_: f64 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">deserialized_to!</span>(f32_: f32 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">deserialized_to!</span>(f64_: f64 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
 
-        <span class="macro">deserialized_to!</span>(char_unescaped: char = <span class="string">&quot;h&quot; </span>=&gt; <span class="string">&#39;h&#39;</span>);
-        <span class="macro">deserialized_to!</span>(char_escaped: char = <span class="string">&quot;&amp;lt;&quot; </span>=&gt; <span class="string">&#39;&lt;&#39;</span>);
+        <span class="macro">deserialized_to!</span>(char_unescaped: char = <span class="string">"h" </span>=&gt; <span class="string">'h'</span>);
+        <span class="macro">deserialized_to!</span>(char_escaped: char = <span class="string">"&amp;lt;" </span>=&gt; <span class="string">'&lt;'</span>);
 
-        <span class="macro">deserialized_to!</span>(string: String = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot; </span>=&gt; <span class="string">&quot;&lt;escaped string&quot;</span>);
+        <span class="macro">deserialized_to!</span>(string: String = <span class="string">"&amp;lt;escaped&amp;#32;string" </span>=&gt; <span class="string">"&lt;escaped string"</span>);
         <span class="comment">// Serializer will escape space. Because borrowing has meaning only for deserializer,
         // no need to test roundtrip here, it is already tested with non-borrowing version
-        </span><span class="macro">deserialized_to_only!</span>(borrowed_str: <span class="kw-2">&amp;</span>str = <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">err!</span>(escaped_str: <span class="kw-2">&amp;</span>str = <span class="string">&quot;escaped&amp;#32;string&quot;
-                </span>=&gt; Custom(<span class="string">&quot;invalid type: string \&quot;escaped string\&quot;, expected a borrowed string&quot;</span>));
+        </span><span class="macro">deserialized_to_only!</span>(borrowed_str: <span class="kw-2">&amp;</span>str = <span class="string">"non-escaped string" </span>=&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">err!</span>(escaped_str: <span class="kw-2">&amp;</span>str = <span class="string">"escaped&amp;#32;string"
+                </span>=&gt; Custom(<span class="string">"invalid type: string \"escaped string\", expected a borrowed string"</span>));
 
-        <span class="macro">err!</span>(byte_buf: ByteBuf = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;byte arrays are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(borrowed_bytes: Bytes = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;byte arrays are not supported as `xs:list` items&quot;</span>));
+        <span class="macro">err!</span>(byte_buf: ByteBuf = <span class="string">"&amp;lt;escaped&amp;#32;string"
+                </span>=&gt; Unsupported(<span class="string">"byte arrays are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(borrowed_bytes: Bytes = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"byte arrays are not supported as `xs:list` items"</span>));
 
-        <span class="macro">deserialized_to!</span>(option_none: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">None</span>);
-        <span class="macro">deserialized_to!</span>(option_some: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">&quot;non-escaped-string&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;non-escaped-string&quot;</span>));
+        <span class="macro">deserialized_to!</span>(option_none: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">"" </span>=&gt; <span class="prelude-val">None</span>);
+        <span class="macro">deserialized_to!</span>(option_some: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">"non-escaped-string" </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">"non-escaped-string"</span>));
 
-        <span class="macro">deserialized_to_only!</span>(unit: () = <span class="string">&quot;&lt;root&gt;anything&lt;/root&gt;&quot; </span>=&gt; ());
-        <span class="macro">deserialized_to_only!</span>(unit_struct: Unit = <span class="string">&quot;&lt;root&gt;anything&lt;/root&gt;&quot; </span>=&gt; Unit);
+        <span class="macro">deserialized_to_only!</span>(unit: () = <span class="string">"&lt;root&gt;anything&lt;/root&gt;" </span>=&gt; ());
+        <span class="macro">deserialized_to_only!</span>(unit_struct: Unit = <span class="string">"&lt;root&gt;anything&lt;/root&gt;" </span>=&gt; Unit);
 
-        <span class="macro">deserialized_to!</span>(newtype_owned: Newtype = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot; </span>=&gt; Newtype(<span class="string">&quot;&lt;escaped string&quot;</span>.into()));
+        <span class="macro">deserialized_to!</span>(newtype_owned: Newtype = <span class="string">"&amp;lt;escaped&amp;#32;string" </span>=&gt; Newtype(<span class="string">"&lt;escaped string"</span>.into()));
         <span class="comment">// Serializer will escape space. Because borrowing has meaning only for deserializer,
         // no need to test roundtrip here, it is already tested with non-borrowing version
-        </span><span class="macro">deserialized_to_only!</span>(newtype_borrowed: BorrowedNewtype = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; BorrowedNewtype(<span class="string">&quot;non-escaped string&quot;</span>));
+        </span><span class="macro">deserialized_to_only!</span>(newtype_borrowed: BorrowedNewtype = <span class="string">"non-escaped string"
+                </span>=&gt; BorrowedNewtype(<span class="string">"non-escaped string"</span>));
 
-        <span class="macro">err!</span>(seq: Vec&lt;()&gt; = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;sequences are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(tuple: ((), ()) = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;tuples are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(tuple_struct: ((), ()) = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;tuples are not supported as `xs:list` items&quot;</span>));
+        <span class="macro">err!</span>(seq: Vec&lt;()&gt; = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"sequences are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(tuple: ((), ()) = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"tuples are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(tuple_struct: ((), ()) = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"tuples are not supported as `xs:list` items"</span>));
 
-        <span class="macro">err!</span>(map: HashMap&lt;(), ()&gt; = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;maps are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(struct_: Struct = <span class="string">&quot;non-escaped string&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;structures are not supported as `xs:list` items&quot;</span>));
+        <span class="macro">err!</span>(map: HashMap&lt;(), ()&gt; = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"maps are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(struct_: Struct = <span class="string">"non-escaped string"
+                </span>=&gt; Unsupported(<span class="string">"structures are not supported as `xs:list` items"</span>));
 
-        <span class="macro">deserialized_to!</span>(enum_unit: Enum = <span class="string">&quot;Unit&quot; </span>=&gt; Enum::Unit);
-        <span class="macro">err!</span>(enum_newtype: Enum = <span class="string">&quot;Newtype&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;enum newtype variants are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(enum_tuple: Enum = <span class="string">&quot;Tuple&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;enum tuple variants are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(enum_struct: Enum = <span class="string">&quot;Struct&quot;
-                </span>=&gt; Unsupported(<span class="string">&quot;enum struct variants are not supported as `xs:list` items&quot;</span>));
-        <span class="macro">err!</span>(enum_other: Enum = <span class="string">&quot;any data&quot;
-                </span>=&gt; Custom(<span class="string">&quot;unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`&quot;</span>));
+        <span class="macro">deserialized_to!</span>(enum_unit: Enum = <span class="string">"Unit" </span>=&gt; Enum::Unit);
+        <span class="macro">err!</span>(enum_newtype: Enum = <span class="string">"Newtype"
+                </span>=&gt; Unsupported(<span class="string">"enum newtype variants are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(enum_tuple: Enum = <span class="string">"Tuple"
+                </span>=&gt; Unsupported(<span class="string">"enum tuple variants are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(enum_struct: Enum = <span class="string">"Struct"
+                </span>=&gt; Unsupported(<span class="string">"enum struct variants are not supported as `xs:list` items"</span>));
+        <span class="macro">err!</span>(enum_other: Enum = <span class="string">"any data"
+                </span>=&gt; Custom(<span class="string">"unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`"</span>));
 
-        <span class="macro">deserialized_to_only!</span>(identifier: Id = <span class="string">&quot;Field&quot; </span>=&gt; Id::Field);
-        <span class="macro">deserialized_to_only!</span>(ignored_any: Any = <span class="string">&quot;any data&quot; </span>=&gt; Any(IgnoredAny));
+        <span class="macro">deserialized_to_only!</span>(identifier: Id = <span class="string">"Field" </span>=&gt; Id::Field);
+        <span class="macro">deserialized_to_only!</span>(ignored_any: Any = <span class="string">"any data" </span>=&gt; Any(IgnoredAny));
 
         <span class="doccomment">/// Checks that deserialization from an owned content is working
         </span><span class="attr">#[test]
-        #[cfg(feature = <span class="string">&quot;encoding&quot;</span>)]
+        #[cfg(feature = <span class="string">"encoding"</span>)]
         </span><span class="kw">fn </span>owned_data() {
             <span class="kw">let </span>de = AtomicDeserializer {
-                content: Content::Owned(<span class="string">&quot;string slice&quot;</span>.into(), <span class="number">7</span>),
+                content: Content::Owned(<span class="string">"string slice"</span>.into(), <span class="number">7</span>),
                 escaped: <span class="bool-val">true</span>,
             };
-            <span class="macro">assert_eq!</span>(de.content.as_str(), <span class="string">&quot;slice&quot;</span>);
+            <span class="macro">assert_eq!</span>(de.content.as_str(), <span class="string">"slice"</span>);
 
             <span class="kw">let </span>data: String = Deserialize::deserialize(de).unwrap();
-            <span class="macro">assert_eq!</span>(data, <span class="string">&quot;slice&quot;</span>);
+            <span class="macro">assert_eq!</span>(data, <span class="string">"slice"</span>);
         }
 
         <span class="doccomment">/// Checks that deserialization from a content borrowed from some
@@ -2411,13 +2413,13 @@
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>borrowed_from_deserializer() {
             <span class="kw">let </span>de = AtomicDeserializer {
-                content: Content::Slice(<span class="string">&quot;string slice&quot;</span>),
+                content: Content::Slice(<span class="string">"string slice"</span>),
                 escaped: <span class="bool-val">true</span>,
             };
-            <span class="macro">assert_eq!</span>(de.content.as_str(), <span class="string">&quot;string slice&quot;</span>);
+            <span class="macro">assert_eq!</span>(de.content.as_str(), <span class="string">"string slice"</span>);
 
             <span class="kw">let </span>data: String = Deserialize::deserialize(de).unwrap();
-            <span class="macro">assert_eq!</span>(data, <span class="string">&quot;string slice&quot;</span>);
+            <span class="macro">assert_eq!</span>(data, <span class="string">"string slice"</span>);
         }
     }
 
@@ -2429,7 +2431,7 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>empty() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;&quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">""</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
@@ -2440,7 +2442,7 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>only_spaces() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;  &quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"  "</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
@@ -2451,11 +2453,11 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>one_item() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;abc&quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"abc"</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;abc&quot;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"abc"</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
         }
@@ -2463,12 +2465,12 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>two_items() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;abc def&quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"abc def"</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;abc&quot;</span>));
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;def&quot;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"abc"</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"def"</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
         }
@@ -2476,11 +2478,11 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>leading_spaces() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;  def&quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"  def"</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;def&quot;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"def"</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
         }
@@ -2488,11 +2490,11 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>trailing_spaces() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;abc  &quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"abc  "</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;abc&quot;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"abc"</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">None</span>);
         }
@@ -2500,16 +2502,16 @@
         <span class="attr">#[test]
         </span><span class="kw">fn </span>mixed_types() {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = ListIter {
-                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">&quot;string 1.23 42 true false h Unit&quot;</span>)),
+                content: <span class="prelude-val">Some</span>(Content::Input(<span class="string">"string 1.23 42 true false h Unit"</span>)),
                 escaped: <span class="bool-val">true</span>,
             };
 
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&quot;string&quot;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;<span class="kw-2">&amp;</span>str&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">"string"</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;f32&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="number">1.23</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;u32&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="number">42</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;bool&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;bool&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="bool-val">false</span>));
-            <span class="macro">assert_eq!</span>(seq.next_element::&lt;char&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">&#39;h&#39;</span>));
+            <span class="macro">assert_eq!</span>(seq.next_element::&lt;char&gt;().unwrap(), <span class="prelude-val">Some</span>(<span class="string">'h'</span>));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;Enum&gt;().unwrap(), <span class="prelude-val">Some</span>(Enum::Unit));
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;()&gt;().unwrap(), <span class="prelude-val">None</span>);
             <span class="macro">assert_eq!</span>(seq.next_element::&lt;()&gt;().unwrap(), <span class="prelude-val">None</span>);
@@ -2520,72 +2522,72 @@
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>pretty_assertions::assert_eq;
 
-        <span class="macro">simple!</span>(utf8, i8_:  i8  = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">simple!</span>(utf8, i16_: i16 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">simple!</span>(utf8, i32_: i32 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">simple!</span>(utf8, i64_: i64 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">simple!</span>(utf8, i8_:  i8  = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">simple!</span>(utf8, i16_: i16 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">simple!</span>(utf8, i32_: i32 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">simple!</span>(utf8, i64_: i64 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
 
-        <span class="macro">simple!</span>(utf8, u8_:  u8  = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">simple!</span>(utf8, u16_: u16 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">simple!</span>(utf8, u32_: u32 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">simple!</span>(utf8, u64_: u64 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
+        <span class="macro">simple!</span>(utf8, u8_:  u8  = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">simple!</span>(utf8, u16_: u16 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">simple!</span>(utf8, u32_: u32 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">simple!</span>(utf8, u64_: u64 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">simple!</span>(utf8, i128_: i128 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-            <span class="macro">simple!</span>(utf8, u128_: u128 = <span class="string">&quot;2&quot; </span>=&gt; <span class="number">2</span>);
+            <span class="macro">simple!</span>(utf8, i128_: i128 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+            <span class="macro">simple!</span>(utf8, u128_: u128 = <span class="string">"2" </span>=&gt; <span class="number">2</span>);
         }
 
-        <span class="macro">simple!</span>(utf8, f32_: f32 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
-        <span class="macro">simple!</span>(utf8, f64_: f64 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">simple!</span>(utf8, f32_: f32 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">simple!</span>(utf8, f64_: f64 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
 
-        <span class="macro">simple!</span>(utf8, false_: bool = <span class="string">&quot;false&quot; </span>=&gt; <span class="bool-val">false</span>);
-        <span class="macro">simple!</span>(utf8, true_: bool  = <span class="string">&quot;true&quot; </span>=&gt; <span class="bool-val">true</span>);
-        <span class="macro">simple!</span>(utf8, char_unescaped: char = <span class="string">&quot;h&quot; </span>=&gt; <span class="string">&#39;h&#39;</span>);
-        <span class="macro">simple!</span>(utf8, char_escaped: char = <span class="string">&quot;&amp;lt;&quot; </span>=&gt; <span class="string">&#39;&lt;&#39;</span>);
+        <span class="macro">simple!</span>(utf8, false_: bool = <span class="string">"false" </span>=&gt; <span class="bool-val">false</span>);
+        <span class="macro">simple!</span>(utf8, true_: bool  = <span class="string">"true" </span>=&gt; <span class="bool-val">true</span>);
+        <span class="macro">simple!</span>(utf8, char_unescaped: char = <span class="string">"h" </span>=&gt; <span class="string">'h'</span>);
+        <span class="macro">simple!</span>(utf8, char_escaped: char = <span class="string">"&amp;lt;" </span>=&gt; <span class="string">'&lt;'</span>);
 
-        <span class="macro">simple!</span>(utf8, string: String = <span class="string">&quot;&amp;lt;escaped string&quot; </span>=&gt; <span class="string">&quot;&lt;escaped string&quot;</span>);
-        <span class="macro">err!</span>(utf8, byte_buf: ByteBuf = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;binary data content is not supported by XML format&quot;</span>));
+        <span class="macro">simple!</span>(utf8, string: String = <span class="string">"&amp;lt;escaped string" </span>=&gt; <span class="string">"&lt;escaped string"</span>);
+        <span class="macro">err!</span>(utf8, byte_buf: ByteBuf = <span class="string">"&amp;lt;escaped&amp;#32;string"
+             </span>=&gt; Unsupported(<span class="string">"binary data content is not supported by XML format"</span>));
 
-        <span class="macro">simple!</span>(utf8, borrowed_str: <span class="kw-2">&amp;</span>str = <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="string">&quot;non-escaped string&quot;</span>);
-        <span class="macro">err!</span>(utf8, borrowed_bytes: Bytes = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;binary data content is not supported by XML format&quot;</span>));
+        <span class="macro">simple!</span>(utf8, borrowed_str: <span class="kw-2">&amp;</span>str = <span class="string">"non-escaped string" </span>=&gt; <span class="string">"non-escaped string"</span>);
+        <span class="macro">err!</span>(utf8, borrowed_bytes: Bytes = <span class="string">"&amp;lt;escaped&amp;#32;string"
+             </span>=&gt; Unsupported(<span class="string">"binary data content is not supported by XML format"</span>));
 
-        <span class="macro">simple!</span>(utf8, option_none: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">None</span>);
-        <span class="macro">simple!</span>(utf8, option_some: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">&quot;non-escaped string&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;non-escaped string&quot;</span>));
+        <span class="macro">simple!</span>(utf8, option_none: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">"" </span>=&gt; <span class="prelude-val">None</span>);
+        <span class="macro">simple!</span>(utf8, option_some: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; = <span class="string">"non-escaped string" </span>=&gt; <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>));
 
-        <span class="macro">simple_only!</span>(utf8, unit: () = <span class="string">&quot;any data&quot; </span>=&gt; ());
-        <span class="macro">simple_only!</span>(utf8, unit_struct: Unit = <span class="string">&quot;any data&quot; </span>=&gt; Unit);
+        <span class="macro">simple_only!</span>(utf8, unit: () = <span class="string">"any data" </span>=&gt; ());
+        <span class="macro">simple_only!</span>(utf8, unit_struct: Unit = <span class="string">"any data" </span>=&gt; Unit);
 
         <span class="comment">// Serializer will not escape space because this is unnecessary.
         // Because borrowing has meaning only for deserializer, no need to test
         // roundtrip here, it is already tested for strings where compatible list
         // of escaped characters is used
-        </span><span class="macro">simple_only!</span>(utf8, newtype_owned: Newtype = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot;
-            </span>=&gt; Newtype(<span class="string">&quot;&lt;escaped string&quot;</span>.into()));
-        <span class="macro">simple_only!</span>(utf8, newtype_borrowed: BorrowedNewtype = <span class="string">&quot;non-escaped string&quot;
-            </span>=&gt; BorrowedNewtype(<span class="string">&quot;non-escaped string&quot;</span>));
+        </span><span class="macro">simple_only!</span>(utf8, newtype_owned: Newtype = <span class="string">"&amp;lt;escaped&amp;#32;string"
+            </span>=&gt; Newtype(<span class="string">"&lt;escaped string"</span>.into()));
+        <span class="macro">simple_only!</span>(utf8, newtype_borrowed: BorrowedNewtype = <span class="string">"non-escaped string"
+            </span>=&gt; BorrowedNewtype(<span class="string">"non-escaped string"</span>));
 
-        <span class="macro">err!</span>(utf8, map: HashMap&lt;(), ()&gt; = <span class="string">&quot;any data&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;maps are not supported for XSD `simpleType`s&quot;</span>));
-        <span class="macro">err!</span>(utf8, struct_: Struct = <span class="string">&quot;any data&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;structures are not supported for XSD `simpleType`s&quot;</span>));
+        <span class="macro">err!</span>(utf8, map: HashMap&lt;(), ()&gt; = <span class="string">"any data"
+             </span>=&gt; Unsupported(<span class="string">"maps are not supported for XSD `simpleType`s"</span>));
+        <span class="macro">err!</span>(utf8, struct_: Struct = <span class="string">"any data"
+             </span>=&gt; Unsupported(<span class="string">"structures are not supported for XSD `simpleType`s"</span>));
 
-        <span class="macro">simple!</span>(utf8, enum_unit: Enum = <span class="string">&quot;Unit&quot; </span>=&gt; Enum::Unit);
-        <span class="macro">err!</span>(utf8, enum_newtype: Enum = <span class="string">&quot;Newtype&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;enum newtype variants are not supported for XSD `simpleType`s&quot;</span>));
-        <span class="macro">err!</span>(utf8, enum_tuple: Enum = <span class="string">&quot;Tuple&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;enum tuple variants are not supported for XSD `simpleType`s&quot;</span>));
-        <span class="macro">err!</span>(utf8, enum_struct: Enum = <span class="string">&quot;Struct&quot;
-             </span>=&gt; Unsupported(<span class="string">&quot;enum struct variants are not supported for XSD `simpleType`s&quot;</span>));
-        <span class="macro">err!</span>(utf8, enum_other: Enum = <span class="string">&quot;any data&quot;
-             </span>=&gt; Custom(<span class="string">&quot;unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`&quot;</span>));
+        <span class="macro">simple!</span>(utf8, enum_unit: Enum = <span class="string">"Unit" </span>=&gt; Enum::Unit);
+        <span class="macro">err!</span>(utf8, enum_newtype: Enum = <span class="string">"Newtype"
+             </span>=&gt; Unsupported(<span class="string">"enum newtype variants are not supported for XSD `simpleType`s"</span>));
+        <span class="macro">err!</span>(utf8, enum_tuple: Enum = <span class="string">"Tuple"
+             </span>=&gt; Unsupported(<span class="string">"enum tuple variants are not supported for XSD `simpleType`s"</span>));
+        <span class="macro">err!</span>(utf8, enum_struct: Enum = <span class="string">"Struct"
+             </span>=&gt; Unsupported(<span class="string">"enum struct variants are not supported for XSD `simpleType`s"</span>));
+        <span class="macro">err!</span>(utf8, enum_other: Enum = <span class="string">"any data"
+             </span>=&gt; Custom(<span class="string">"unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`"</span>));
 
-        <span class="macro">simple_only!</span>(utf8, identifier: Id = <span class="string">&quot;Field&quot; </span>=&gt; Id::Field);
-        <span class="macro">simple_only!</span>(utf8, ignored_any: Any = <span class="string">&quot;any data&quot; </span>=&gt; Any(IgnoredAny));
+        <span class="macro">simple_only!</span>(utf8, identifier: Id = <span class="string">"Field" </span>=&gt; Id::Field);
+        <span class="macro">simple_only!</span>(utf8, ignored_any: Any = <span class="string">"any data" </span>=&gt; Any(IgnoredAny));
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;encoding&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"encoding"</span>)]
     </span><span class="kw">mod </span>utf16 {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>pretty_assertions::assert_eq;
@@ -2610,62 +2612,62 @@
             };
         }
 
-        <span class="macro">utf16!</span>(i8_:  i8  = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">utf16!</span>(i16_: i16 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">utf16!</span>(i32_: i32 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-        <span class="macro">utf16!</span>(i64_: i64 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">utf16!</span>(i8_:  i8  = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">utf16!</span>(i16_: i16 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">utf16!</span>(i32_: i32 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+        <span class="macro">utf16!</span>(i64_: i64 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
 
-        <span class="macro">utf16!</span>(u8_:  u8  = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">utf16!</span>(u16_: u16 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">utf16!</span>(u32_: u32 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
-        <span class="macro">utf16!</span>(u64_: u64 = <span class="string">&quot;3&quot; </span>=&gt; <span class="number">3</span>);
+        <span class="macro">utf16!</span>(u8_:  u8  = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">utf16!</span>(u16_: u16 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">utf16!</span>(u32_: u32 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
+        <span class="macro">utf16!</span>(u64_: u64 = <span class="string">"3" </span>=&gt; <span class="number">3</span>);
 
         <span class="macro">serde_if_integer128! </span>{
-            <span class="macro">utf16!</span>(i128_: i128 = <span class="string">&quot;-2&quot; </span>=&gt; -<span class="number">2</span>);
-            <span class="macro">utf16!</span>(u128_: u128 = <span class="string">&quot;2&quot; </span>=&gt; <span class="number">2</span>);
+            <span class="macro">utf16!</span>(i128_: i128 = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
+            <span class="macro">utf16!</span>(u128_: u128 = <span class="string">"2" </span>=&gt; <span class="number">2</span>);
         }
 
-        <span class="macro">utf16!</span>(f32_: f32 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
-        <span class="macro">utf16!</span>(f64_: f64 = <span class="string">&quot;1.23&quot; </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">utf16!</span>(f32_: f32 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
+        <span class="macro">utf16!</span>(f64_: f64 = <span class="string">"1.23" </span>=&gt; <span class="number">1.23</span>);
 
-        <span class="macro">utf16!</span>(false_: bool = <span class="string">&quot;false&quot; </span>=&gt; <span class="bool-val">false</span>);
-        <span class="macro">utf16!</span>(true_: bool  = <span class="string">&quot;true&quot; </span>=&gt; <span class="bool-val">true</span>);
-        <span class="macro">utf16!</span>(char_unescaped: char = <span class="string">&quot;h&quot; </span>=&gt; <span class="string">&#39;h&#39;</span>);
-        <span class="macro">utf16!</span>(char_escaped: char = <span class="string">&quot;&amp;lt;&quot; </span>=&gt; <span class="string">&#39;&lt;&#39;</span>);
+        <span class="macro">utf16!</span>(false_: bool = <span class="string">"false" </span>=&gt; <span class="bool-val">false</span>);
+        <span class="macro">utf16!</span>(true_: bool  = <span class="string">"true" </span>=&gt; <span class="bool-val">true</span>);
+        <span class="macro">utf16!</span>(char_unescaped: char = <span class="string">"h" </span>=&gt; <span class="string">'h'</span>);
+        <span class="macro">utf16!</span>(char_escaped: char = <span class="string">"&amp;lt;" </span>=&gt; <span class="string">'&lt;'</span>);
 
-        <span class="macro">utf16!</span>(string: String = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot; </span>=&gt; <span class="string">&quot;&lt;escaped string&quot;</span>);
-        <span class="macro">unsupported!</span>(borrowed_bytes: Bytes = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot;
-                     </span>=&gt; <span class="string">&quot;binary data content is not supported by XML format&quot;</span>);
+        <span class="macro">utf16!</span>(string: String = <span class="string">"&amp;lt;escaped&amp;#32;string" </span>=&gt; <span class="string">"&lt;escaped string"</span>);
+        <span class="macro">unsupported!</span>(borrowed_bytes: Bytes = <span class="string">"&amp;lt;escaped&amp;#32;string"
+                     </span>=&gt; <span class="string">"binary data content is not supported by XML format"</span>);
 
-        <span class="macro">utf16!</span>(option_none: <span class="prelude-ty">Option</span>&lt;()&gt; = <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">None</span>);
-        <span class="macro">utf16!</span>(option_some: <span class="prelude-ty">Option</span>&lt;()&gt; = <span class="string">&quot;any data&quot; </span>=&gt; <span class="prelude-val">Some</span>(()));
+        <span class="macro">utf16!</span>(option_none: <span class="prelude-ty">Option</span>&lt;()&gt; = <span class="string">"" </span>=&gt; <span class="prelude-val">None</span>);
+        <span class="macro">utf16!</span>(option_some: <span class="prelude-ty">Option</span>&lt;()&gt; = <span class="string">"any data" </span>=&gt; <span class="prelude-val">Some</span>(()));
 
-        <span class="macro">utf16!</span>(unit: () = <span class="string">&quot;any data&quot; </span>=&gt; ());
-        <span class="macro">utf16!</span>(unit_struct: Unit = <span class="string">&quot;any data&quot; </span>=&gt; Unit);
+        <span class="macro">utf16!</span>(unit: () = <span class="string">"any data" </span>=&gt; ());
+        <span class="macro">utf16!</span>(unit_struct: Unit = <span class="string">"any data" </span>=&gt; Unit);
 
-        <span class="macro">utf16!</span>(newtype_owned: Newtype = <span class="string">&quot;&amp;lt;escaped&amp;#32;string&quot; </span>=&gt; Newtype(<span class="string">&quot;&lt;escaped string&quot;</span>.into()));
+        <span class="macro">utf16!</span>(newtype_owned: Newtype = <span class="string">"&amp;lt;escaped&amp;#32;string" </span>=&gt; Newtype(<span class="string">"&lt;escaped string"</span>.into()));
 
         <span class="comment">// UTF-16 data never borrow because data was decoded not in-place
-        </span><span class="macro">err!</span>(utf16, newtype_borrowed: BorrowedNewtype = to_utf16(<span class="string">&quot;non-escaped string&quot;</span>)
-             =&gt; Custom(<span class="string">&quot;invalid type: string \&quot;non-escaped string\&quot;, expected a borrowed string&quot;</span>));
+        </span><span class="macro">err!</span>(utf16, newtype_borrowed: BorrowedNewtype = to_utf16(<span class="string">"non-escaped string"</span>)
+             =&gt; Custom(<span class="string">"invalid type: string \"non-escaped string\", expected a borrowed string"</span>));
 
-        <span class="macro">unsupported!</span>(map: HashMap&lt;(), ()&gt; = <span class="string">&quot;any data&quot;
-                     </span>=&gt; <span class="string">&quot;maps are not supported for XSD `simpleType`s&quot;</span>);
-        <span class="macro">unsupported!</span>(struct_: Struct = <span class="string">&quot;any data&quot;
-                     </span>=&gt; <span class="string">&quot;structures are not supported for XSD `simpleType`s&quot;</span>);
+        <span class="macro">unsupported!</span>(map: HashMap&lt;(), ()&gt; = <span class="string">"any data"
+                     </span>=&gt; <span class="string">"maps are not supported for XSD `simpleType`s"</span>);
+        <span class="macro">unsupported!</span>(struct_: Struct = <span class="string">"any data"
+                     </span>=&gt; <span class="string">"structures are not supported for XSD `simpleType`s"</span>);
 
-        <span class="macro">utf16!</span>(enum_unit: Enum = <span class="string">&quot;Unit&quot; </span>=&gt; Enum::Unit);
-        <span class="macro">unsupported!</span>(enum_newtype: Enum = <span class="string">&quot;Newtype&quot;
-                     </span>=&gt; <span class="string">&quot;enum newtype variants are not supported for XSD `simpleType`s&quot;</span>);
-        <span class="macro">unsupported!</span>(enum_tuple: Enum = <span class="string">&quot;Tuple&quot;
-                     </span>=&gt; <span class="string">&quot;enum tuple variants are not supported for XSD `simpleType`s&quot;</span>);
-        <span class="macro">unsupported!</span>(enum_struct: Enum = <span class="string">&quot;Struct&quot;
-                     </span>=&gt; <span class="string">&quot;enum struct variants are not supported for XSD `simpleType`s&quot;</span>);
-        <span class="macro">err!</span>(utf16, enum_other: Enum = to_utf16(<span class="string">&quot;any data&quot;</span>)
-             =&gt; Custom(<span class="string">&quot;unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`&quot;</span>));
+        <span class="macro">utf16!</span>(enum_unit: Enum = <span class="string">"Unit" </span>=&gt; Enum::Unit);
+        <span class="macro">unsupported!</span>(enum_newtype: Enum = <span class="string">"Newtype"
+                     </span>=&gt; <span class="string">"enum newtype variants are not supported for XSD `simpleType`s"</span>);
+        <span class="macro">unsupported!</span>(enum_tuple: Enum = <span class="string">"Tuple"
+                     </span>=&gt; <span class="string">"enum tuple variants are not supported for XSD `simpleType`s"</span>);
+        <span class="macro">unsupported!</span>(enum_struct: Enum = <span class="string">"Struct"
+                     </span>=&gt; <span class="string">"enum struct variants are not supported for XSD `simpleType`s"</span>);
+        <span class="macro">err!</span>(utf16, enum_other: Enum = to_utf16(<span class="string">"any data"</span>)
+             =&gt; Custom(<span class="string">"unknown variant `any data`, expected one of `Unit`, `Newtype`, `Tuple`, `Struct`"</span>));
 
-        <span class="macro">utf16!</span>(identifier: Id = <span class="string">&quot;Field&quot; </span>=&gt; Id::Field);
-        <span class="macro">utf16!</span>(ignored_any: Any = <span class="string">&quot;any data&quot; </span>=&gt; Any(IgnoredAny));
+        <span class="macro">utf16!</span>(identifier: Id = <span class="string">"Field" </span>=&gt; Id::Field);
+        <span class="macro">utf16!</span>(ignored_any: Any = <span class="string">"any data" </span>=&gt; Any(IgnoredAny));
     }
 }
 </code></pre></div></section></main></body></html>

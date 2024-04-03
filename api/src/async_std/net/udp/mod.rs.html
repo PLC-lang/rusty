@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/net/udp/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="async_std"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/net/udp/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../async_std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -601,7 +603,7 @@
 /// After creating a `UdpSocket` by [`bind`]ing it to a socket address, data can be [sent to] and
 /// [received from] any other socket address.
 ///
-/// As stated in the User Datagram Protocol&#39;s specification in [IETF RFC 768], UDP is an unordered,
+/// As stated in the User Datagram Protocol's specification in [IETF RFC 768], UDP is an unordered,
 /// unreliable protocol. Refer to [`TcpListener`] and [`TcpStream`] for async TCP primitives.
 ///
 /// This type is an async version of [`std::net::UdpSocket`].
@@ -622,7 +624,7 @@
 /// #
 /// use async_std::net::UdpSocket;
 ///
-/// let socket = UdpSocket::bind(&quot;127.0.0.1:8080&quot;).await?;
+/// let socket = UdpSocket::bind("127.0.0.1:8080").await?;
 /// let mut buf = vec![0u8; 1024];
 ///
 /// loop {
@@ -652,7 +654,7 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -672,7 +674,7 @@
         <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <span class="string">&quot;could not resolve to any addresses&quot;</span>,
+                <span class="string">"could not resolve to any addresses"</span>,
             )
         }))
     }
@@ -689,8 +691,8 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket1 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
-    /// let socket2 = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket1 = UdpSocket::bind("127.0.0.1:0").await?;
+    /// let socket2 = UdpSocket::bind("127.0.0.1:0").await?;
     /// socket1.connect(socket2.local_addr()?).await?;
     /// let addr = socket1.peer_addr()?;
     /// #
@@ -700,7 +702,7 @@
         <span class="self">self</span>.watcher
             .get_ref()
             .peer_addr()
-            .context(|| String::from(<span class="string">&quot;could not get peer address&quot;</span>))
+            .context(|| String::from(<span class="string">"could not get peer address"</span>))
     }
 
     <span class="doccomment">/// Returns the local address that this listener is bound to.
@@ -715,7 +717,7 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     /// let addr = socket.local_addr()?;
     /// #
     /// # Ok(()) }) }
@@ -724,7 +726,7 @@
         <span class="self">self</span>.watcher
             .get_ref()
             .local_addr()
-            .context(|| String::from(<span class="string">&quot;could not get local address&quot;</span>))
+            .context(|| String::from(<span class="string">"could not get local address"</span>))
     }
 
     <span class="doccomment">/// Sends data on the socket to the given address.
@@ -738,18 +740,18 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// const THE_MERCHANT_OF_VENICE: &amp;[u8] = b&quot;
+    /// const THE_MERCHANT_OF_VENICE: &amp;[u8] = b"
     ///     If you prick us, do we not bleed?
     ///     If you tickle us, do we not laugh?
     ///     If you poison us, do we not die?
     ///     And if you wrong us, shall we not revenge?
-    /// &quot;;
+    /// ";
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     ///
-    /// let addr = &quot;127.0.0.1:7878&quot;;
+    /// let addr = "127.0.0.1:7878";
     /// let sent = socket.send_to(THE_MERCHANT_OF_VENICE, &amp;addr).await?;
-    /// println!(&quot;Sent {} bytes to {}&quot;, sent, addr);
+    /// println!("Sent {} bytes to {}", sent, addr);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -759,7 +761,7 @@
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    <span class="string">&quot;no addresses to send data to&quot;</span>,
+                    <span class="string">"no addresses to send data to"</span>,
                 ));
             }
         };
@@ -767,7 +769,7 @@
         <span class="self">self</span>.watcher
             .send_to(buf, addr)
             .<span class="kw">await
-            </span>.context(|| <span class="macro">format!</span>(<span class="string">&quot;could not send packet to {}&quot;</span>, addr))
+            </span>.context(|| <span class="macro">format!</span>(<span class="string">"could not send packet to {}"</span>, addr))
     }
 
     <span class="doccomment">/// Receives data from the socket.
@@ -781,11 +783,11 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     ///
     /// let mut buf = vec![0; 1024];
     /// let (n, peer) = socket.recv_from(&amp;mut buf).await?;
-    /// println!(&quot;Received {} bytes from {}&quot;, n, peer);
+    /// println!("Received {} bytes from {}", n, peer);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -804,11 +806,11 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     ///
     /// let mut buf = vec![0; 1024];
     /// let (n, peer) = socket.peek_from(&amp;mut buf).await?;
-    /// println!(&quot;Peeked {} bytes from {}&quot;, n, peer);
+    /// println!("Peeked {} bytes from {}", n, peer);
     /// #
     /// # Ok (()) }) }
     /// ```
@@ -833,8 +835,8 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
-    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
+    /// socket.connect("127.0.0.1:8080").await?;
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -843,7 +845,7 @@
         <span class="kw">let </span>addrs = addrs
             .to_socket_addrs()
             .<span class="kw">await
-            </span>.context(|| String::from(<span class="string">&quot;could not resolve addresses&quot;</span>))<span class="question-mark">?</span>;
+            </span>.context(|| String::from(<span class="string">"could not resolve addresses"</span>))<span class="question-mark">?</span>;
 
         <span class="kw">for </span>addr <span class="kw">in </span>addrs {
             <span class="comment">// TODO(stjepang): connect on the blocking pool
@@ -856,7 +858,7 @@
         <span class="prelude-val">Err</span>(last_err.unwrap_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <span class="string">&quot;could not resolve to any addresses&quot;</span>,
+                <span class="string">"could not resolve to any addresses"</span>,
             )
         }))
     }
@@ -875,11 +877,11 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:34254&quot;).await?;
-    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
-    /// let bytes = socket.send(b&quot;Hi there!&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:34254").await?;
+    /// socket.connect("127.0.0.1:8080").await?;
+    /// let bytes = socket.send(b"Hi there!").await?;
     ///
-    /// println!(&quot;Sent {} bytes&quot;, bytes);
+    /// println!("Sent {} bytes", bytes);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -898,12 +900,12 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
-    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
+    /// socket.connect("127.0.0.1:8080").await?;
     ///
     /// let mut buf = vec![0; 1024];
     /// let n = socket.recv(&amp;mut buf).await?;
-    /// println!(&quot;Received {} bytes&quot;, n);
+    /// println!("Received {} bytes", n);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -922,12 +924,12 @@
     /// #
     /// use async_std::net::UdpSocket;
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
-    /// socket.connect(&quot;127.0.0.1:8080&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
+    /// socket.connect("127.0.0.1:8080").await?;
     ///
     /// let mut buf = vec![0; 1024];
     /// let n = socket.peek(&amp;mut buf).await?;
-    /// println!(&quot;Peeked {} bytes&quot;, n);
+    /// println!("Peeked {} bytes", n);
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -983,7 +985,7 @@
     <span class="doccomment">/// Sets the value of the `IP_MULTICAST_TTL` option for this socket.
     ///
     /// Indicates the time-to-live value of outgoing multicast packets for this socket. The default
-    /// value is 1 which means that multicast packets don&#39;t leave the local network unless
+    /// value is 1 which means that multicast packets don't leave the local network unless
     /// explicitly requested.
     ///
     /// # Note
@@ -1034,7 +1036,7 @@
     ///
     /// This method specifies a new multicast group for this socket to join. The address must be
     /// a valid multicast address, and `interface` is the address of the local interface with which
-    /// the system should join the multicast group. If it&#39;s equal to `INADDR_ANY` then an
+    /// the system should join the multicast group. If it's equal to `INADDR_ANY` then an
     /// appropriate interface is chosen by the system.
     ///
     /// # Examples
@@ -1049,7 +1051,7 @@
     /// let interface = Ipv4Addr::new(0, 0, 0, 0);
     /// let mdns_addr = Ipv4Addr::new(224, 0, 0, 123);
     ///
-    /// let socket = UdpSocket::bind(&quot;127.0.0.1:0&quot;).await?;
+    /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     /// socket.join_multicast_v4(mdns_addr, interface)?;
     /// #
     /// # Ok(()) }) }
@@ -1116,7 +1118,7 @@
     <span class="doccomment">/// Converts a `std::net::UdpSocket` into its asynchronous equivalent.
     </span><span class="kw">fn </span>from(socket: std::net::UdpSocket) -&gt; UdpSocket {
         UdpSocket {
-            watcher: Async::new(socket).expect(<span class="string">&quot;UdpSocket is known to be good&quot;</span>),
+            watcher: Async::new(socket).expect(<span class="string">"UdpSocket is known to be good"</span>),
         }
     }
 }

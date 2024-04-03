@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/stream.rs`."><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_lite/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="futures_lite"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/stream.rs`."><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../futures_lite/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3192,13 +3194,13 @@
 //! # });
 //! ```
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">extern crate </span>alloc;
 
 <span class="attr">#[doc(no_inline)]
 </span><span class="kw">pub use </span>futures_core::stream::Stream;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::boxed::Box;
 
 <span class="kw">use </span>core::fmt;
@@ -3208,7 +3210,7 @@
 <span class="kw">use </span>core::pin::Pin;
 <span class="kw">use </span>core::task::{Context, Poll};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">use </span>fastrand::Rng;
 
 <span class="kw">use </span>pin_project_lite::pin_project;
@@ -3229,7 +3231,7 @@
 /// assert_eq!(iter.next(), Some(7));
 /// assert_eq!(iter.next(), None);
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub fn </span>block_on&lt;S: Stream + Unpin&gt;(stream: S) -&gt; BlockOn&lt;S&gt; {
     BlockOn(stream)
 }
@@ -3238,7 +3240,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BlockOn&lt;S&gt;(S);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;S: Stream + Unpin&gt; Iterator <span class="kw">for </span>BlockOn&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
@@ -3332,7 +3334,7 @@
 
 <span class="doccomment">/// Stream for the [`empty()`] function.
 </span><span class="attr">#[derive(Clone, Debug)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>Empty&lt;T&gt; {
     _marker: PhantomData&lt;T&gt;,
 }
@@ -3342,7 +3344,7 @@
 <span class="kw">impl</span>&lt;T&gt; Stream <span class="kw">for </span>Empty&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         Poll::Ready(<span class="prelude-val">None</span>)
     }
 
@@ -3374,7 +3376,7 @@
 
 <span class="doccomment">/// Stream for the [`iter()`] function.
 </span><span class="attr">#[derive(Clone, Debug)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>Iter&lt;I&gt; {
     iter: I,
 }
@@ -3384,7 +3386,7 @@
 <span class="kw">impl</span>&lt;I: Iterator&gt; Stream <span class="kw">for </span>Iter&lt;I&gt; {
     <span class="kw">type </span>Item = I::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         Poll::Ready(<span class="self">self</span>.iter.next())
     }
 
@@ -3414,7 +3416,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`once()`] function.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Once&lt;T&gt; {
         value: <span class="prelude-ty">Option</span>&lt;T&gt;,
     }
@@ -3423,7 +3425,7 @@
 <span class="kw">impl</span>&lt;T&gt; Stream <span class="kw">for </span>Once&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         Poll::Ready(<span class="self">self</span>.project().value.take())
     }
 
@@ -3457,7 +3459,7 @@
 
 <span class="doccomment">/// Stream for the [`pending()`] function.
 </span><span class="attr">#[derive(Clone, Debug)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>Pending&lt;T&gt; {
     _marker: PhantomData&lt;T&gt;,
 }
@@ -3467,7 +3469,7 @@
 <span class="kw">impl</span>&lt;T&gt; Stream <span class="kw">for </span>Pending&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         Poll::Pending
     }
 
@@ -3485,7 +3487,7 @@
 /// use std::task::{Context, Poll};
 ///
 /// # spin_on::spin_on(async {
-/// fn f(_: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;Option&lt;i32&gt;&gt; {
+/// fn f(_: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Option&lt;i32&gt;&gt; {
 ///     Poll::Ready(Some(7))
 /// }
 ///
@@ -3494,14 +3496,14 @@
 /// ```
 </span><span class="kw">pub fn </span>poll_fn&lt;T, F&gt;(f: F) -&gt; PollFn&lt;F&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
+    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
 {
     PollFn { f }
 }
 
 <span class="doccomment">/// Stream for the [`poll_fn()`] function.
 </span><span class="attr">#[derive(Clone)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>PollFn&lt;F&gt; {
     f: F,
 }
@@ -3509,18 +3511,18 @@
 <span class="kw">impl</span>&lt;F&gt; Unpin <span class="kw">for </span>PollFn&lt;F&gt; {}
 
 <span class="kw">impl</span>&lt;F&gt; fmt::Debug <span class="kw">for </span>PollFn&lt;F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;PollFn&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"PollFn"</span>).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T, F&gt; Stream <span class="kw">for </span>PollFn&lt;F&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
+    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;,
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         (<span class="kw-2">&amp;mut </span><span class="self">self</span>.f)(cx)
     }
 }
@@ -3545,7 +3547,7 @@
 
 <span class="doccomment">/// Stream for the [`repeat()`] function.
 </span><span class="attr">#[derive(Clone, Debug)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>Repeat&lt;T&gt; {
     item: T,
 }
@@ -3555,7 +3557,7 @@
 <span class="kw">impl</span>&lt;T: Clone&gt; Stream <span class="kw">for </span>Repeat&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Some</span>(<span class="self">self</span>.item.clone()))
     }
 
@@ -3587,7 +3589,7 @@
 
 <span class="doccomment">/// Stream for the [`repeat_with()`] function.
 </span><span class="attr">#[derive(Clone, Debug)]
-#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 </span><span class="kw">pub struct </span>RepeatWith&lt;F&gt; {
     f: F,
 }
@@ -3600,7 +3602,7 @@
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>item = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.f)();
         Poll::Ready(<span class="prelude-val">Some</span>(item))
     }
@@ -3646,7 +3648,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`unfold()`] function.
     </span><span class="attr">#[derive(Clone)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Unfold&lt;T, F, Fut&gt; {
         f: F,
         state: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -3660,10 +3662,10 @@
     </span>T: fmt::Debug,
     Fut: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Unfold&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
-            .field(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.fut)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Unfold"</span>)
+            .field(<span class="string">"state"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
+            .field(<span class="string">"fut"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.fut)
             .finish()
     }
 }
@@ -3675,7 +3677,7 @@
 {
     <span class="kw">type </span>Item = Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = this.state.take() {
@@ -3686,7 +3688,7 @@
             .fut
             .as_mut()
             .as_pin_mut()
-            .expect(<span class="string">&quot;`Unfold` must not be polled after it returned `Poll::Ready(None)`&quot;</span>)
+            .expect(<span class="string">"`Unfold` must not be polled after it returned `Poll::Ready(None)`"</span>)
             .poll(cx));
         this.fut.set(<span class="prelude-val">None</span>);
 
@@ -3735,7 +3737,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`try_unfold()`] function.
     </span><span class="attr">#[derive(Clone)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>TryUnfold&lt;T, F, Fut&gt; {
         f: F,
         state: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -3749,10 +3751,10 @@
     </span>T: fmt::Debug,
     Fut: fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;TryUnfold&quot;</span>)
-            .field(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
-            .field(<span class="string">&quot;fut&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.fut)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"TryUnfold"</span>)
+            .field(<span class="string">"state"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
+            .field(<span class="string">"fut"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.fut)
             .finish()
     }
 }
@@ -3764,7 +3766,7 @@
 {
     <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Item, E&gt;;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = this.state.take() {
@@ -3816,7 +3818,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`once_future()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>OnceFuture&lt;F&gt; {
         <span class="attr">#[pin]
         </span>future: <span class="prelude-ty">Option</span>&lt;F&gt;,
@@ -3826,7 +3828,7 @@
 <span class="kw">impl</span>&lt;F: Future&gt; Stream <span class="kw">for </span>OnceFuture&lt;F&gt; {
     <span class="kw">type </span>Item = F::Output;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">match </span>this.future.as_mut().as_pin_mut().map(|f| f.poll(cx)) {
@@ -3843,7 +3845,7 @@
 <span class="doccomment">/// Extension trait for [`Stream`].
 </span><span class="kw">pub trait </span>StreamExt: Stream {
     <span class="doccomment">/// A convenience for calling [`Stream::poll_next()`] on `!`[`Unpin`] types.
-    </span><span class="kw">fn </span>poll_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt;
+    </span><span class="kw">fn </span>poll_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -3869,7 +3871,7 @@
     /// assert_eq!(s.next().await, None);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; NextFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; NextFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -3889,15 +3891,15 @@
     /// use futures_lite::stream::{self, StreamExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut s = stream::iter(vec![Ok(1), Ok(2), Err(&quot;error&quot;)]);
+    /// let mut s = stream::iter(vec![Ok(1), Ok(2), Err("error")]);
     ///
     /// assert_eq!(s.try_next().await, Ok(Some(1)));
     /// assert_eq!(s.try_next().await, Ok(Some(2)));
-    /// assert_eq!(s.try_next().await, Err(&quot;error&quot;));
+    /// assert_eq!(s.try_next().await, Err("error"));
     /// assert_eq!(s.try_next().await, Ok(None));
     /// # });
     /// ```
-    </span><span class="kw">fn </span>try_next&lt;T, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; TryNextFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>try_next&lt;T, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; TryNextFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Unpin,
     {
@@ -3962,14 +3964,14 @@
     /// use futures_lite::stream::{self, StreamExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let words = stream::iter(vec![&quot;one&quot;, &quot;two&quot;]);
+    /// let words = stream::iter(vec!["one", "two"]);
     ///
     /// let s: String = words
     ///     .flat_map(|s| stream::iter(s.chars()))
     ///     .collect()
     ///     .await;
     ///
-    /// assert_eq!(s, &quot;onetwo&quot;);
+    /// assert_eq!(s, "onetwo");
     /// # });
     /// ```
     </span><span class="kw">fn </span>flat_map&lt;U, F&gt;(<span class="self">self</span>, f: F) -&gt; FlatMap&lt;<span class="self">Self</span>, U, F&gt;
@@ -4078,7 +4080,7 @@
     /// use futures_lite::stream::{self, StreamExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let s = stream::iter(vec![&quot;1&quot;, &quot;lol&quot;, &quot;3&quot;, &quot;NaN&quot;, &quot;5&quot;]);
+    /// let s = stream::iter(vec!["1", "lol", "3", "NaN", "5"]);
     /// let mut s = s.filter_map(|a| a.parse::&lt;u32&gt;().ok());
     ///
     /// assert_eq!(s.next().await, Some(1));
@@ -4218,7 +4220,7 @@
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
     {
-        <span class="macro">assert!</span>(step &gt; <span class="number">0</span>, <span class="string">&quot;`step` must be greater than zero&quot;</span>);
+        <span class="macro">assert!</span>(step &gt; <span class="number">0</span>, <span class="string">"`step` must be greater than zero"</span>);
         StepBy {
             stream: <span class="self">self</span>,
             step,
@@ -4272,10 +4274,10 @@
     /// assert_eq!(s.next().await, None);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; + Sized,
-        T: Clone + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; + Sized,
+        T: Clone + <span class="lifetime">'a</span>,
     {
         Cloned { stream: <span class="self">self </span>}
     }
@@ -4296,10 +4298,10 @@
     /// assert_eq!(s.next().await, None);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; + Sized,
-        T: Copy + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; + Sized,
+        T: Copy + <span class="lifetime">'a</span>,
     {
         Copied { stream: <span class="self">self </span>}
     }
@@ -4431,15 +4433,15 @@
     ///     if (acc + v) % 2 == 1 {
     ///         Ok(acc + v)
     ///     } else {
-    ///         Err(&quot;fail&quot;)
+    ///         Err("fail")
     ///     }
     /// })
     /// .await;
     ///
-    /// assert_eq!(sum, Err(&quot;fail&quot;));
+    /// assert_eq!(sum, Err("fail"));
     /// # })
     /// ```
-    </span><span class="kw">fn </span>try_fold&lt;T, E, F, B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, init: B, f: F) -&gt; TryFoldFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F, B&gt;
+    </span><span class="kw">fn </span>try_fold&lt;T, E, F, B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, init: B, f: F) -&gt; TryFoldFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F, B&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Unpin + Sized,
         F: FnMut(B, T) -&gt; <span class="prelude-ty">Result</span>&lt;B, E&gt;,
@@ -4544,12 +4546,12 @@
     /// use futures_lite::stream::{self, StreamExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let s = stream::iter(vec![&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]);
+    /// let s = stream::iter(vec!['a', 'b', 'c']);
     /// let mut s = s.enumerate();
     ///
-    /// assert_eq!(s.next().await, Some((0, &#39;a&#39;)));
-    /// assert_eq!(s.next().await, Some((1, &#39;b&#39;)));
-    /// assert_eq!(s.next().await, Some((2, &#39;c&#39;)));
+    /// assert_eq!(s.next().await, Some((0, 'a')));
+    /// assert_eq!(s.next().await, Some((1, 'b')));
+    /// assert_eq!(s.next().await, Some((2, 'c')));
     /// assert_eq!(s.next().await, None);
     /// # });
     /// ```
@@ -4571,9 +4573,9 @@
     /// let s = stream::iter(vec![1, 2, 3, 4, 5]);
     ///
     /// let sum = s
-    ///    .inspect(|x| println!(&quot;about to filter {}&quot;, x))
+    ///    .inspect(|x| println!("about to filter {}", x))
     ///    .filter(|x| x % 2 == 0)
-    ///    .inspect(|x| println!(&quot;made it through filter: {}&quot;, x))
+    ///    .inspect(|x| println!("made it through filter: {}", x))
     ///    .fold(0, |sum, i| sum + i)
     ///    .await;
     /// # });
@@ -4603,7 +4605,7 @@
     /// assert_eq!(s.nth(2).await, None);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>nth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) -&gt; NthFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>nth(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: usize) -&gt; NthFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -4649,7 +4651,7 @@
     /// assert_eq!(s.next().await, Some(13));
     /// # });
     /// ```
-    </span><span class="kw">fn </span>find&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; FindFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    </span><span class="kw">fn </span>find&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; FindFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         P: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
@@ -4668,13 +4670,13 @@
     /// use futures_lite::stream::{self, StreamExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let mut s = stream::iter(vec![&quot;lol&quot;, &quot;NaN&quot;, &quot;2&quot;, &quot;5&quot;]);
+    /// let mut s = stream::iter(vec!["lol", "NaN", "2", "5"]);
     /// let number = s.find_map(|s| s.parse().ok()).await;
     ///
     /// assert_eq!(number, Some(2));
     /// # });
     /// ```
-    </span><span class="kw">fn </span>find_map&lt;F, B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; FindMapFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
+    </span><span class="kw">fn </span>find_map&lt;F, B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; FindMapFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
@@ -4697,7 +4699,7 @@
     /// assert_eq!(s.position(|x| x == 9).await, None);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>position&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; PositionFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    </span><span class="kw">fn </span>position&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; PositionFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         P: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -4729,7 +4731,7 @@
     /// assert!(s.all(|x| x % 2 == 0).await);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>all&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; AllFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    </span><span class="kw">fn </span>all&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; AllFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         P: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -4760,7 +4762,7 @@
     /// assert!(!s.any(|x| x % 2 == 0).await);
     /// # });
     /// ```
-    </span><span class="kw">fn </span>any&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; AnyFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    </span><span class="kw">fn </span>any&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate: P) -&gt; AnyFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         P: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -4780,7 +4782,7 @@
     ///
     /// # spin_on::spin_on(async {
     /// let mut s = stream::iter(vec![1, 2, 3]);
-    /// s.for_each(|s| println!(&quot;{}&quot;, s)).await;
+    /// s.for_each(|s| println!("{}", s)).await;
     /// # });
     /// ```
     </span><span class="kw">fn </span>for_each&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; ForEachFuture&lt;<span class="self">Self</span>, F&gt;
@@ -4808,16 +4810,16 @@
     ///             v.push(n);
     ///             Ok(())
     ///         } else {
-    ///             Err(&quot;too big&quot;)
+    ///             Err("too big")
     ///         }
     ///     })
     ///     .await;
     ///
     /// assert_eq!(v, &amp;[0, 1]);
-    /// assert_eq!(res, Err(&quot;too big&quot;));
+    /// assert_eq!(res, Err("too big"));
     /// # });
     /// ```
-    </span><span class="kw">fn </span>try_for_each&lt;F, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; TryForEachFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
+    </span><span class="kw">fn </span>try_for_each&lt;F, E&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; TryForEachFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;,
@@ -4927,7 +4929,7 @@
     /// let res = once(1).race(once(2)).next().await;
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;race&quot;</span>))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, feature = <span class="string">"race"</span>))]
     </span><span class="kw">fn </span>race&lt;S&gt;(<span class="self">self</span>, other: S) -&gt; Race&lt;<span class="self">Self</span>, S&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -4940,7 +4942,7 @@
         }
     }
 
-    <span class="doccomment">/// Boxes the stream and changes its type to `dyn Stream + Send + &#39;a`.
+    <span class="doccomment">/// Boxes the stream and changes its type to `dyn Stream + Send + 'a`.
     ///
     /// # Examples
     ///
@@ -4956,15 +4958,15 @@
     /// let streams = vec![a.boxed(), b.boxed()];
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="self">Self</span>::Item&gt; + Send + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="self">Self</span>::Item&gt; + Send + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Send + Sized + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Send + Sized + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Boxes the stream and changes its type to `dyn Stream + &#39;a`.
+    <span class="doccomment">/// Boxes the stream and changes its type to `dyn Stream + 'a`.
     ///
     /// # Examples
     ///
@@ -4980,10 +4982,10 @@
     /// let streams = vec![a.boxed_local(), b.boxed_local()];
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed_local&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="self">Self</span>::Item&gt; + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed_local&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = <span class="self">Self</span>::Item&gt; + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }
@@ -4991,7 +4993,7 @@
 
 <span class="kw">impl</span>&lt;S: Stream + <span class="question-mark">?</span>Sized&gt; StreamExt <span class="kw">for </span>S {}
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Stream&lt;Item = T&gt; + Send + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Stream&lt;Item = T&gt; + Send + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -5002,10 +5004,10 @@
 /// let s1: stream::Boxed&lt;i32&gt; = stream::once(7).boxed();
 /// let s2: stream::Boxed&lt;i32&gt; = Box::pin(stream::once(7));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>Boxed&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + Send + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>Boxed&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + Send + <span class="lifetime">'static</span>&gt;&gt;;
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Stream&lt;Item = T&gt; + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Stream&lt;Item = T&gt; + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -5016,42 +5018,42 @@
 /// let s1: stream::BoxedLocal&lt;i32&gt; = stream::once(7).boxed_local();
 /// let s2: stream::BoxedLocal&lt;i32&gt; = Box::pin(stream::once(7));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>BoxedLocal&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>BoxedLocal&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = T&gt; + <span class="lifetime">'static</span>&gt;&gt;;
 
 <span class="doccomment">/// Future for the [`StreamExt::next()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>NextFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>NextFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>NextFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>NextFuture&lt;<span class="lifetime">'_</span>, S&gt; {}
 
-<span class="kw">impl</span>&lt;S: Stream + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>NextFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {
+<span class="kw">impl</span>&lt;S: Stream + Unpin + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>NextFuture&lt;<span class="lifetime">'_</span>, S&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;S::Item&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="self">self</span>.stream.poll_next(cx)
     }
 }
 
 <span class="doccomment">/// Future for the [`StreamExt::try_next()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>TryNextFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>TryNextFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>TryNextFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>TryNextFuture&lt;<span class="lifetime">'_</span>, S&gt; {}
 
-<span class="kw">impl</span>&lt;T, E, S&gt; Future <span class="kw">for </span>TryNextFuture&lt;<span class="lifetime">&#39;_</span>, S&gt;
+<span class="kw">impl</span>&lt;T, E, S&gt; Future <span class="kw">for </span>TryNextFuture&lt;<span class="lifetime">'_</span>, S&gt;
 <span class="kw">where
     </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Unpin + <span class="question-mark">?</span>Sized,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>res = <span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx));
         Poll::Ready(res.transpose())
     }
@@ -5060,7 +5062,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::count()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>CountFuture&lt;S: <span class="question-mark">?</span>Sized&gt; {
         count: usize,
         <span class="attr">#[pin]
@@ -5071,7 +5073,7 @@
 <span class="kw">impl</span>&lt;S: Stream + <span class="question-mark">?</span>Sized&gt; Future <span class="kw">for </span>CountFuture&lt;S&gt; {
     <span class="kw">type </span>Output = usize;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().stream.poll_next(cx)) {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="self">self</span>.count),
@@ -5084,7 +5086,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::collect()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>CollectFuture&lt;S, C&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5099,7 +5101,7 @@
 {
     <span class="kw">type </span>Output = C;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;C&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;C&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut().project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5113,7 +5115,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::try_collect()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>TryCollectFuture&lt;S, C&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5128,7 +5130,7 @@
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;C, E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)<span class="question-mark">?</span>) {
@@ -5142,7 +5144,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::partition()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>PartitionFuture&lt;S, P, B&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5159,7 +5161,7 @@
 {
     <span class="kw">type </span>Output = (B, B);
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5180,7 +5182,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::fold()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>FoldFuture&lt;S, F, T&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5196,7 +5198,7 @@
 {
     <span class="kw">type </span>Output = T;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5213,23 +5215,23 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::try_fold()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>TryFoldFuture&lt;<span class="lifetime">&#39;a</span>, S, F, B&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>TryFoldFuture&lt;<span class="lifetime">'a</span>, S, F, B&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     f: F,
     acc: <span class="prelude-ty">Option</span>&lt;B&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, F, B&gt; Unpin <span class="kw">for </span>TryFoldFuture&lt;<span class="lifetime">&#39;a</span>, S, F, B&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, F, B&gt; Unpin <span class="kw">for </span>TryFoldFuture&lt;<span class="lifetime">'a</span>, S, F, B&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, E, S, F, B&gt; Future <span class="kw">for </span>TryFoldFuture&lt;<span class="lifetime">&#39;a</span>, S, F, B&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, E, S, F, B&gt; Future <span class="kw">for </span>TryFoldFuture&lt;<span class="lifetime">'a</span>, S, F, B&gt;
 <span class="kw">where
     </span>S: Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Unpin,
     F: FnMut(B, T) -&gt; <span class="prelude-ty">Result</span>&lt;B, E&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;B, E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(e)),
@@ -5251,7 +5253,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::scan()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Scan&lt;S, St, F&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5266,7 +5268,7 @@
 {
     <span class="kw">type </span>Item = B;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;B&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;B&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         this.stream.as_mut().poll_next(cx).map(|item| {
             item.and_then(|item| {
@@ -5280,7 +5282,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::fuse()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Fuse&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5291,7 +5293,7 @@
 <span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>Fuse&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.done {
@@ -5309,7 +5311,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::map()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Map&lt;S, F&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5324,7 +5326,7 @@
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>next = <span class="macro">ready!</span>(this.stream.poll_next(cx));
         Poll::Ready(next.map(this.f))
@@ -5338,7 +5340,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::flat_map()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>FlatMap&lt;S, U, F&gt; {
         <span class="attr">#[pin]
         </span>stream: Map&lt;S, F&gt;,
@@ -5355,7 +5357,7 @@
 {
     <span class="kw">type </span>Item = U::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = this.inner_stream.as_mut().as_pin_mut() {
@@ -5376,7 +5378,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::flatten()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Flatten&lt;S: Stream&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5392,7 +5394,7 @@
 {
     <span class="kw">type </span>Item = U::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(inner) = this.inner_stream.as_mut().as_pin_mut() {
@@ -5413,7 +5415,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::then()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Then&lt;S, F, Fut&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5431,7 +5433,7 @@
 {
     <span class="kw">type </span>Item = Fut::Output;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">loop </span>{
@@ -5459,7 +5461,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::filter()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Filter&lt;S, P&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5474,7 +5476,7 @@
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5488,7 +5490,7 @@
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
         <span class="kw">let </span>(<span class="kw">_</span>, hi) = <span class="self">self</span>.stream.size_hint();
 
-        <span class="comment">// If the filter matches all of the elements, it will match the stream&#39;s upper bound.
+        <span class="comment">// If the filter matches all of the elements, it will match the stream's upper bound.
         // If the filter matches none of the elements, there will be zero returned values.
         </span>(<span class="number">0</span>, hi)
     }
@@ -5520,7 +5522,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`or()`] function and the [`StreamExt::or()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Or&lt;S1, S2&gt; {
         <span class="attr">#[pin]
         </span>stream1: S1,
@@ -5536,7 +5538,7 @@
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if let </span>Poll::Ready(<span class="prelude-val">Some</span>(t)) = this.stream1.as_mut().poll_next(cx) {
@@ -5561,7 +5563,7 @@
 /// let res = stream::race(once(1), once(2)).next().await;
 /// # })
 /// ```
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;race&quot;</span>))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, feature = <span class="string">"race"</span>))]
 </span><span class="kw">pub fn </span>race&lt;T, S1, S2&gt;(stream1: S1, stream2: S2) -&gt; Race&lt;S1, S2&gt;
 <span class="kw">where
     </span>S1: Stream&lt;Item = T&gt;,
@@ -5592,7 +5594,7 @@
 /// let res = stream::race_with_seed(once(1), once(2), SEED).next().await;
 /// # })
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">pub fn </span>race_with_seed&lt;T, S1, S2&gt;(stream1: S1, stream2: S2, seed: u64) -&gt; Race&lt;S1, S2&gt;
 <span class="kw">where
     </span>S1: Stream&lt;Item = T&gt;,
@@ -5605,11 +5607,11 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`race()`] function and the [`StreamExt::race()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Race&lt;S1, S2&gt; {
         <span class="attr">#[pin]
         </span>stream1: S1,
@@ -5619,7 +5621,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">impl</span>&lt;T, S1, S2&gt; Stream <span class="kw">for </span>Race&lt;S1, S2&gt;
 <span class="kw">where
     </span>S1: Stream&lt;Item = T&gt;,
@@ -5627,7 +5629,7 @@
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.rng.bool() {
@@ -5652,7 +5654,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::filter_map()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>FilterMap&lt;S, F&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5667,7 +5669,7 @@
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5685,7 +5687,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::take()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Take&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5696,7 +5698,7 @@
 <span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>Take&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;S::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span><span class="kw-2">*</span>this.n == <span class="number">0 </span>{
@@ -5715,7 +5717,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::take_while()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>TakeWhile&lt;S, P&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5730,7 +5732,7 @@
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">match </span><span class="macro">ready!</span>(this.stream.poll_next(cx)) {
@@ -5749,7 +5751,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::skip()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Skip&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5760,7 +5762,7 @@
 <span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>Skip&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5777,7 +5779,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::skip_while()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>SkipWhile&lt;S, P&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5792,7 +5794,7 @@
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5814,7 +5816,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::step_by()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>StepBy&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5826,7 +5828,7 @@
 <span class="kw">impl</span>&lt;S: Stream&gt; Stream <span class="kw">for </span>StepBy&lt;S&gt; {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -5847,7 +5849,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::chain()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Chain&lt;S, U&gt; {
         <span class="attr">#[pin]
         </span>first: Fuse&lt;S&gt;,
@@ -5859,7 +5861,7 @@
 <span class="kw">impl</span>&lt;S: Stream, U: Stream&lt;Item = S::Item&gt;&gt; Stream <span class="kw">for </span>Chain&lt;S, U&gt; {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>!this.first.done {
@@ -5887,21 +5889,21 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::cloned()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Cloned&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, T: <span class="lifetime">&#39;a</span>&gt; Stream <span class="kw">for </span>Cloned&lt;S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, T: <span class="lifetime">'a</span>&gt; Stream <span class="kw">for </span>Cloned&lt;S&gt;
 <span class="kw">where
-    </span>S: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
+    </span>S: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
     T: Clone,
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>next = <span class="macro">ready!</span>(this.stream.poll_next(cx));
         Poll::Ready(next.cloned())
@@ -5911,21 +5913,21 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::copied()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Copied&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, T: <span class="lifetime">&#39;a</span>&gt; Stream <span class="kw">for </span>Copied&lt;S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, T: <span class="lifetime">'a</span>&gt; Stream <span class="kw">for </span>Copied&lt;S&gt;
 <span class="kw">where
-    </span>S: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
+    </span>S: Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
     T: Copy,
 {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>next = <span class="macro">ready!</span>(this.stream.poll_next(cx));
         Poll::Ready(next.copied())
@@ -5935,7 +5937,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::cycle()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Cycle&lt;S&gt; {
         orig: S,
         <span class="attr">#[pin]
@@ -5949,7 +5951,7 @@
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.as_mut().project().stream.as_mut().poll_next(cx)) {
             <span class="prelude-val">Some</span>(item) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(item)),
             <span class="prelude-val">None </span>=&gt; {
@@ -5964,7 +5966,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::enumerate()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Enumerate&lt;S&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -5978,7 +5980,7 @@
 {
     <span class="kw">type </span>Item = (usize, S::Item);
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">match </span><span class="macro">ready!</span>(this.stream.poll_next(cx)) {
@@ -5995,7 +5997,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::inspect()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Inspect&lt;S, F&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -6010,7 +6012,7 @@
 {
     <span class="kw">type </span>Item = S::Item;
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>next = <span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx));
         <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="kw-2">&amp;</span>next {
@@ -6022,21 +6024,21 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::nth()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>NthFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>NthFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     n: usize,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>NthFuture&lt;<span class="lifetime">&#39;_</span>, S&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>NthFuture&lt;<span class="lifetime">'_</span>, S&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S&gt; Future <span class="kw">for </span>NthFuture&lt;<span class="lifetime">&#39;a</span>, S&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S&gt; Future <span class="kw">for </span>NthFuture&lt;<span class="lifetime">'a</span>, S&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;S::Item&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) =&gt; <span class="kw">match </span><span class="self">self</span>.n {
@@ -6052,7 +6054,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::last()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>LastFuture&lt;S: Stream&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -6063,7 +6065,7 @@
 <span class="kw">impl</span>&lt;S: Stream&gt; Future <span class="kw">for </span>LastFuture&lt;S&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;S::Item&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -6076,22 +6078,22 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::find()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>FindFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>FindFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     predicate: P,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>FindFuture&lt;<span class="lifetime">&#39;_</span>, S, P&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>FindFuture&lt;<span class="lifetime">'_</span>, S, P&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, P&gt; Future <span class="kw">for </span>FindFuture&lt;<span class="lifetime">&#39;a</span>, S, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, P&gt; Future <span class="kw">for </span>FindFuture&lt;<span class="lifetime">'a</span>, S, P&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     P: FnMut(<span class="kw-2">&amp;</span>S::Item) -&gt; bool,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;S::Item&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) <span class="kw">if </span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>.predicate)(<span class="kw-2">&amp;</span>v) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(v)),
@@ -6104,22 +6106,22 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::find_map()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>FindMapFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, F&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>FindMapFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, F&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     f: F,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, F&gt; Unpin <span class="kw">for </span>FindMapFuture&lt;<span class="lifetime">&#39;_</span>, S, F&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, F&gt; Unpin <span class="kw">for </span>FindMapFuture&lt;<span class="lifetime">'_</span>, S, F&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, B, F&gt; Future <span class="kw">for </span>FindMapFuture&lt;<span class="lifetime">&#39;a</span>, S, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, B, F&gt; Future <span class="kw">for </span>FindMapFuture&lt;<span class="lifetime">'a</span>, S, F&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     F: FnMut(S::Item) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;B&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) =&gt; {
@@ -6135,23 +6137,23 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::position()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>PositionFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>PositionFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     predicate: P,
     index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>PositionFuture&lt;<span class="lifetime">&#39;a</span>, S, P&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>PositionFuture&lt;<span class="lifetime">'a</span>, S, P&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, P&gt; Future <span class="kw">for </span>PositionFuture&lt;<span class="lifetime">&#39;a</span>, S, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, P&gt; Future <span class="kw">for </span>PositionFuture&lt;<span class="lifetime">'a</span>, S, P&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     P: FnMut(S::Item) -&gt; bool,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;usize&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) =&gt; {
@@ -6169,22 +6171,22 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::all()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>AllFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>AllFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     predicate: P,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>AllFuture&lt;<span class="lifetime">&#39;_</span>, S, P&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>AllFuture&lt;<span class="lifetime">'_</span>, S, P&gt; {}
 
-<span class="kw">impl</span>&lt;S, P&gt; Future <span class="kw">for </span>AllFuture&lt;<span class="lifetime">&#39;_</span>, S, P&gt;
+<span class="kw">impl</span>&lt;S, P&gt; Future <span class="kw">for </span>AllFuture&lt;<span class="lifetime">'_</span>, S, P&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     P: FnMut(S::Item) -&gt; bool,
 {
     <span class="kw">type </span>Output = bool;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) =&gt; {
@@ -6200,22 +6202,22 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::any()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>AnyFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>AnyFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, P&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     predicate: P,
 }
 
-<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>AnyFuture&lt;<span class="lifetime">&#39;_</span>, S, P&gt; {}
+<span class="kw">impl</span>&lt;S: Unpin + <span class="question-mark">?</span>Sized, P&gt; Unpin <span class="kw">for </span>AnyFuture&lt;<span class="lifetime">'_</span>, S, P&gt; {}
 
-<span class="kw">impl</span>&lt;S, P&gt; Future <span class="kw">for </span>AnyFuture&lt;<span class="lifetime">&#39;_</span>, S, P&gt;
+<span class="kw">impl</span>&lt;S, P&gt; Future <span class="kw">for </span>AnyFuture&lt;<span class="lifetime">'_</span>, S, P&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     P: FnMut(S::Item) -&gt; bool,
 {
     <span class="kw">type </span>Output = bool;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">Some</span>(v) =&gt; {
@@ -6232,7 +6234,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::for_each()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>ForEachFuture&lt;S, F&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -6247,7 +6249,7 @@
 {
     <span class="kw">type </span>Output = ();
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(this.stream.as_mut().poll_next(cx)) {
@@ -6260,22 +6262,22 @@
 
 <span class="doccomment">/// Future for the [`StreamExt::try_for_each()`] method.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-</span><span class="kw">pub struct </span>TryForEachFuture&lt;<span class="lifetime">&#39;a</span>, S: <span class="question-mark">?</span>Sized, F&gt; {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+</span><span class="kw">pub struct </span>TryForEachFuture&lt;<span class="lifetime">'a</span>, S: <span class="question-mark">?</span>Sized, F&gt; {
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>S,
     f: F,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: Unpin + <span class="question-mark">?</span>Sized, F&gt; Unpin <span class="kw">for </span>TryForEachFuture&lt;<span class="lifetime">&#39;a</span>, S, F&gt; {}
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S: Unpin + <span class="question-mark">?</span>Sized, F&gt; Unpin <span class="kw">for </span>TryForEachFuture&lt;<span class="lifetime">'a</span>, S, F&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S, F, E&gt; Future <span class="kw">for </span>TryForEachFuture&lt;<span class="lifetime">&#39;a</span>, S, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, S, F, E&gt; Future <span class="kw">for </span>TryForEachFuture&lt;<span class="lifetime">'a</span>, S, F&gt;
 <span class="kw">where
     </span>S: Stream + Unpin + <span class="question-mark">?</span>Sized,
     F: FnMut(S::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="macro">ready!</span>(<span class="self">self</span>.stream.poll_next(cx)) {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(())),
@@ -6288,7 +6290,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Stream for the [`StreamExt::zip()`] method.
     </span><span class="attr">#[derive(Clone, Debug)]
-    #[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+    #[must_use = <span class="string">"streams do nothing unless polled"</span>]
     </span><span class="kw">pub struct </span>Zip&lt;A: Stream, B&gt; {
         item_slot: <span class="prelude-ty">Option</span>&lt;A::Item&gt;,
         <span class="attr">#[pin]
@@ -6301,7 +6303,7 @@
 <span class="kw">impl</span>&lt;A: Stream, B: Stream&gt; Stream <span class="kw">for </span>Zip&lt;A, B&gt; {
     <span class="kw">type </span>Item = (A::Item, B::Item);
 
-    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.item_slot.is_none() {
@@ -6321,7 +6323,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`StreamExt::unzip()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>UnzipFuture&lt;S, FromA, FromB&gt; {
         <span class="attr">#[pin]
         </span>stream: S,
@@ -6337,7 +6339,7 @@
 {
     <span class="kw">type </span>Output = (FromA, FromB);
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
         <span class="kw">loop </span>{

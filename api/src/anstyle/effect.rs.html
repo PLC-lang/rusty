@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.6/src/effect.rs`."><title>effect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.6/src/effect.rs`."><title>effect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../anstyle/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -556,7 +558,7 @@
     }
 
     <span class="attr">#[inline]
-    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    #[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>write_to(<span class="self">self</span>, write: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>std::io::Write) -&gt; std::io::Result&lt;()&gt; {
         <span class="kw">for </span>index <span class="kw">in </span><span class="self">self</span>.index_iter() {
             write.write_all(METADATA[index].escape.as_bytes())<span class="question-mark">?</span>;
@@ -569,21 +571,21 @@
 ///
 /// ```rust
 /// let effects = anstyle::Effects::new();
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects()&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects()");
 ///
 /// let effects = anstyle::Effects::BOLD | anstyle::Effects::UNDERLINE;
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects(BOLD | UNDERLINE)&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects(BOLD | UNDERLINE)");
 /// ```
 </span><span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>Effects {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;Effects(&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"Effects("</span>)<span class="question-mark">?</span>;
         <span class="kw">for </span>(i, index) <span class="kw">in </span><span class="self">self</span>.index_iter().enumerate() {
             <span class="kw">if </span>i != <span class="number">0 </span>{
-                <span class="macro">write!</span>(f, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, METADATA[index].name)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, METADATA[index].name)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">")"</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -592,7 +594,7 @@
 ///
 /// ```rust
 /// let effects = anstyle::Effects::BOLD | anstyle::Effects::UNDERLINE;
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects(BOLD | UNDERLINE)&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects(BOLD | UNDERLINE)");
 /// ```
 </span><span class="kw">impl </span>core::ops::BitOr <span class="kw">for </span>Effects {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
@@ -608,7 +610,7 @@
 /// ```rust
 /// let mut effects = anstyle::Effects::BOLD;
 /// effects |= anstyle::Effects::UNDERLINE;
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects(BOLD | UNDERLINE)&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects(BOLD | UNDERLINE)");
 /// ```
 </span><span class="kw">impl </span>core::ops::BitOrAssign <span class="kw">for </span>Effects {
     <span class="attr">#[inline]
@@ -621,7 +623,7 @@
 ///
 /// ```rust
 /// let effects = (anstyle::Effects::BOLD | anstyle::Effects::UNDERLINE) - anstyle::Effects::BOLD;
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects(UNDERLINE)&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects(UNDERLINE)");
 /// ```
 </span><span class="kw">impl </span>core::ops::Sub <span class="kw">for </span>Effects {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
@@ -637,7 +639,7 @@
 /// ```rust
 /// let mut effects = anstyle::Effects::BOLD | anstyle::Effects::UNDERLINE;
 /// effects -= anstyle::Effects::BOLD;
-/// assert_eq!(format!(&quot;{:?}&quot;, effects), &quot;Effects(UNDERLINE)&quot;);
+/// assert_eq!(format!("{:?}", effects), "Effects(UNDERLINE)");
 /// ```
 </span><span class="kw">impl </span>core::ops::SubAssign <span class="kw">for </span>Effects {
     <span class="attr">#[inline]
@@ -647,58 +649,58 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Metadata {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) escape: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) escape: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>METADATA: [Metadata; <span class="number">12</span>] = [
     Metadata {
-        name: <span class="string">&quot;BOLD&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;1&quot;</span>),
+        name: <span class="string">"BOLD"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"1"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;DIMMED&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;2&quot;</span>),
+        name: <span class="string">"DIMMED"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"2"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;ITALIC&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;3&quot;</span>),
+        name: <span class="string">"ITALIC"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"3"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;UNDERLINE&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;4&quot;</span>),
+        name: <span class="string">"UNDERLINE"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"4"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;DOUBLE_UNDERLINE&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;21&quot;</span>),
+        name: <span class="string">"DOUBLE_UNDERLINE"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"21"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;CURLY_UNDERLINE&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;4:3&quot;</span>),
+        name: <span class="string">"CURLY_UNDERLINE"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"4:3"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;DOTTED_UNDERLINE&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;4:4&quot;</span>),
+        name: <span class="string">"DOTTED_UNDERLINE"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"4:4"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;DASHED_UNDERLINE&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;4:5&quot;</span>),
+        name: <span class="string">"DASHED_UNDERLINE"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"4:5"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;BLINK&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;5&quot;</span>),
+        name: <span class="string">"BLINK"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"5"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;INVERT&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;7&quot;</span>),
+        name: <span class="string">"INVERT"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"7"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;HIDDEN&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;8&quot;</span>),
+        name: <span class="string">"HIDDEN"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"8"</span>),
     },
     Metadata {
-        name: <span class="string">&quot;STRIKETHROUGH&quot;</span>,
-        escape: <span class="macro">escape!</span>(<span class="string">&quot;9&quot;</span>),
+        name: <span class="string">"STRIKETHROUGH"</span>,
+        escape: <span class="macro">escape!</span>(<span class="string">"9"</span>),
     },
 ];
 
@@ -707,10 +709,10 @@
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>EffectsDisplay {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="kw">for </span>index <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.index_iter() {
             <span class="kw">let </span>escape = METADATA[index].escape;
-            <span class="macro">write!</span>(f, <span class="string">&quot;{escape}&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{escape}"</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -765,7 +767,7 @@
 }
 
 <span class="attr">#[cfg(test)]
-#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -780,8 +782,8 @@
     </span><span class="kw">fn </span>no_align() {
         <span class="attr">#[track_caller]
         </span><span class="kw">fn </span>assert_no_align(d: <span class="kw">impl </span>core::fmt::Display) {
-            <span class="kw">let </span>expected = <span class="macro">format!</span>(<span class="string">&quot;{d}&quot;</span>);
-            <span class="kw">let </span>actual = <span class="macro">format!</span>(<span class="string">&quot;{d:&lt;10}&quot;</span>);
+            <span class="kw">let </span>expected = <span class="macro">format!</span>(<span class="string">"{d}"</span>);
+            <span class="kw">let </span>actual = <span class="macro">format!</span>(<span class="string">"{d:&lt;10}"</span>);
             <span class="macro">assert_eq!</span>(expected, actual);
         }
 

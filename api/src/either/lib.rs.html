@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/either-1.10.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="either" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/either-1.10.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="either" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../either/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1521,23 +1523,23 @@
 //!
 //! **Crate features:**
 //!
-//! * `&quot;use_std&quot;`
+//! * `"use_std"`
 //! Enabled by default. Disable to make the library `#![no_std]`.
 //!
-//! * `&quot;serde&quot;`
+//! * `"serde"`
 //! Disabled by default. Enable to `#[derive(Serialize, Deserialize)]` for `Either`
 //!
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/either/1/&quot;</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/either/1/"</span>)]
 #![no_std]
 
-#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="kw">extern crate </span>std;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">pub mod </span>serde_untagged;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">pub mod </span>serde_untagged_optional;
 
 <span class="kw">use </span>core::convert::{AsMut, AsRef};
@@ -1547,9 +1549,9 @@
 <span class="kw">use </span>core::ops::DerefMut;
 <span class="kw">use </span>core::pin::Pin;
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="kw">use </span>std::error::Error;
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead, Read, Seek, SeekFrom, Write};
 
 <span class="kw">pub use </span><span class="kw">crate</span>::Either::{Left, Right};
@@ -1560,7 +1562,7 @@
 /// The `Either` type is symmetric and treats its variants the same way, without
 /// preference.
 /// (For representing success or error, use the regular `Result` enum instead.)
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"serde"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 </span><span class="kw">pub enum </span>Either&lt;L, R&gt; {
     <span class="doccomment">/// A value of type `L`.
@@ -1572,7 +1574,7 @@
 <span class="doccomment">/// Evaluate the provided expression for both [`Either::Left`] and [`Either::Right`].
 ///
 /// This macro is useful in cases where both sides of [`Either`] can be interacted with
-/// in the same way even though the don&#39;t share the same type.
+/// in the same way even though the don't share the same type.
 ///
 /// Syntax: `either::for_both!(` *expression* `,` *pattern* `=&gt;` *expression* `)`
 ///
@@ -1581,13 +1583,13 @@
 /// ```
 /// use either::Either;
 ///
-/// fn length(owned_or_borrowed: Either&lt;String, &amp;&#39;static str&gt;) -&gt; usize {
+/// fn length(owned_or_borrowed: Either&lt;String, &amp;'static str&gt;) -&gt; usize {
 ///     either::for_both!(owned_or_borrowed, s =&gt; s.len())
 /// }
 ///
 /// fn main() {
-///     let borrowed = Either::Right(&quot;Hello world!&quot;);
-///     let owned = Either::Left(&quot;Hello world!&quot;.to_owned());
+///     let borrowed = Either::Right("Hello world!");
+///     let owned = Either::Left("Hello world!".to_owned());
 ///
 ///     assert_eq!(length(borrowed), 12);
 ///     assert_eq!(length(owned), 12);
@@ -1622,7 +1624,7 @@
 ///
 /// fn main() {
 ///     assert_eq!(twice(Left(2)), Left(4));
-///     assert_eq!(twice(Right(&quot;ups&quot;)), Right(&quot;ups&quot;));
+///     assert_eq!(twice(Right("ups")), Right("ups"));
 /// }
 /// ```
 </span><span class="attr">#[macro_export]
@@ -1681,7 +1683,7 @@
     /// ```
     /// use either::*;
     ///
-    /// let values = [Left(1), Right(&quot;the right value&quot;)];
+    /// let values = [Left(1), Right("the right value")];
     /// assert_eq!(values[0].is_left(), true);
     /// assert_eq!(values[1].is_left(), false);
     /// ```
@@ -1697,7 +1699,7 @@
     /// ```
     /// use either::*;
     ///
-    /// let values = [Left(1), Right(&quot;the right value&quot;)];
+    /// let values = [Left(1), Right("the right value")];
     /// assert_eq!(values[0].is_right(), false);
     /// assert_eq!(values[1].is_right(), true);
     /// ```
@@ -1710,8 +1712,8 @@
     /// ```
     /// use either::*;
     ///
-    /// let left: Either&lt;_, ()&gt; = Left(&quot;some value&quot;);
-    /// assert_eq!(left.left(),  Some(&quot;some value&quot;));
+    /// let left: Either&lt;_, ()&gt; = Left("some value");
+    /// assert_eq!(left.left(),  Some("some value"));
     ///
     /// let right: Either&lt;(), _&gt; = Right(321);
     /// assert_eq!(right.left(), None);
@@ -1728,7 +1730,7 @@
     /// ```
     /// use either::*;
     ///
-    /// let left: Either&lt;_, ()&gt; = Left(&quot;some value&quot;);
+    /// let left: Either&lt;_, ()&gt; = Left("some value");
     /// assert_eq!(left.right(),  None);
     ///
     /// let right: Either&lt;(), _&gt; = Right(321);
@@ -1746,11 +1748,11 @@
     /// ```
     /// use either::*;
     ///
-    /// let left: Either&lt;_, ()&gt; = Left(&quot;some value&quot;);
-    /// assert_eq!(left.as_ref(), Left(&amp;&quot;some value&quot;));
+    /// let left: Either&lt;_, ()&gt; = Left("some value");
+    /// assert_eq!(left.as_ref(), Left(&amp;"some value"));
     ///
-    /// let right: Either&lt;(), _&gt; = Right(&quot;some value&quot;);
-    /// assert_eq!(right.as_ref(), Right(&amp;&quot;some value&quot;));
+    /// let right: Either&lt;(), _&gt; = Right("some value");
+    /// assert_eq!(right.as_ref(), Right(&amp;"some value"));
     /// ```
     </span><span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Either&lt;<span class="kw-2">&amp;</span>L, <span class="kw-2">&amp;</span>R&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
@@ -1800,11 +1802,11 @@
     <span class="doccomment">/// Convert `Pin&lt;&amp;mut Either&lt;L, R&gt;&gt;` to `Either&lt;Pin&lt;&amp;mut L&gt;, Pin&lt;&amp;mut R&gt;&gt;`,
     /// pinned projections of the inner variants.
     </span><span class="kw">pub fn </span>as_pin_mut(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Either&lt;Pin&lt;<span class="kw-2">&amp;mut </span>L&gt;, Pin&lt;<span class="kw-2">&amp;mut </span>R&gt;&gt; {
-        <span class="comment">// SAFETY: `get_unchecked_mut` is fine because we don&#39;t move anything.
+        <span class="comment">// SAFETY: `get_unchecked_mut` is fine because we don't move anything.
         // We can use `new_unchecked` because the `inner` parts are guaranteed
         // to be pinned, as they come from `self` which is pinned, and we never
         // offer an unpinned `&amp;mut L` or `&amp;mut R` through `Pin&lt;&amp;mut Self&gt;`. We
-        // also don&#39;t have an implementation of `Drop`, nor manual `Unpin`.
+        // also don't have an implementation of `Drop`, nor manual `Unpin`.
         </span><span class="kw">unsafe </span>{
             <span class="kw">match </span><span class="kw-2">*</span>Pin::get_unchecked_mut(<span class="self">self</span>) {
                 Left(<span class="kw-2">ref mut </span>inner) =&gt; Left(Pin::new_unchecked(inner)),
@@ -1821,8 +1823,8 @@
     /// let left: Either&lt;_, ()&gt; = Left(123);
     /// assert_eq!(left.flip(), Right(123));
     ///
-    /// let right: Either&lt;(), _&gt; = Right(&quot;some value&quot;);
-    /// assert_eq!(right.flip(), Left(&quot;some value&quot;));
+    /// let right: Either&lt;(), _&gt; = Right("some value");
+    /// assert_eq!(right.flip(), Left("some value"));
     /// ```
     </span><span class="kw">pub fn </span>flip(<span class="self">self</span>) -&gt; Either&lt;R, L&gt; {
         <span class="kw">match </span><span class="self">self </span>{
@@ -1886,11 +1888,11 @@
     /// let f = |s: String| s.len();
     /// let g = |u: u8| u.to_string();
     ///
-    /// let left: Either&lt;String, u8&gt; = Left(&quot;loopy&quot;.into());
+    /// let left: Either&lt;String, u8&gt; = Left("loopy".into());
     /// assert_eq!(left.map_either(f, g), Left(5));
     ///
     /// let right: Either&lt;String, u8&gt; = Right(42);
-    /// assert_eq!(right.map_either(f, g), Right(&quot;42&quot;.into()));
+    /// assert_eq!(right.map_either(f, g), Right("42".into()));
     /// ```
     </span><span class="kw">pub fn </span>map_either&lt;F, G, M, S&gt;(<span class="self">self</span>, f: F, g: G) -&gt; Either&lt;M, S&gt;
     <span class="kw">where
@@ -1915,11 +1917,11 @@
     /// let mut f = |sum: &amp;mut usize, s: String| { *sum += s.len(); s.to_uppercase() };
     /// let mut g = |sum: &amp;mut usize, u: usize| { *sum += u; u.to_string() };
     ///
-    /// let left: Either&lt;String, usize&gt; = Left(&quot;loopy&quot;.into());
-    /// assert_eq!(left.map_either_with(&amp;mut sum, &amp;mut f, &amp;mut g), Left(&quot;LOOPY&quot;.into()));
+    /// let left: Either&lt;String, usize&gt; = Left("loopy".into());
+    /// assert_eq!(left.map_either_with(&amp;mut sum, &amp;mut f, &amp;mut g), Left("LOOPY".into()));
     ///
     /// let right: Either&lt;String, usize&gt; = Right(42);
-    /// assert_eq!(right.map_either_with(&amp;mut sum, &amp;mut f, &amp;mut g), Right(&quot;42&quot;.into()));
+    /// assert_eq!(right.map_either_with(&amp;mut sum, &amp;mut f, &amp;mut g), Right("42".into()));
     ///
     /// assert_eq!(sum, 47);
     /// ```
@@ -2072,8 +2074,8 @@
     /// ```
     </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Either&lt;&lt;<span class="kw-2">&amp;</span>L <span class="kw">as </span>IntoIterator&gt;::IntoIter, &lt;<span class="kw-2">&amp;</span>R <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
     <span class="kw">where
-        for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>L: IntoIterator,
-        <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>R: IntoIterator&lt;Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>L <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
+        for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>L: IntoIterator,
+        <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>R: IntoIterator&lt;Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>L <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
     {
         <span class="macro">map_either!</span>(<span class="self">self</span>, inner =&gt; inner.into_iter())
     }
@@ -2103,8 +2105,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     ) -&gt; Either&lt;&lt;<span class="kw-2">&amp;mut </span>L <span class="kw">as </span>IntoIterator&gt;::IntoIter, &lt;<span class="kw-2">&amp;mut </span>R <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
     <span class="kw">where
-        for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>L: IntoIterator,
-        <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R: IntoIterator&lt;Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>L <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
+        for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>L: IntoIterator,
+        <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R: IntoIterator&lt;Item = &lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>L <span class="kw">as </span>IntoIterator&gt;::Item&gt;,
     {
         <span class="macro">map_either!</span>(<span class="self">self</span>, inner =&gt; inner.into_iter())
     }
@@ -2116,15 +2118,15 @@
     ///
     /// ```
     /// use either::*;
-    /// let left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left(&amp;[&quot;hello&quot;]);
-    /// assert_eq!(left.factor_into_iter().next(), Some(Left(&amp;&quot;hello&quot;)));
+    /// let left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left(&amp;["hello"]);
+    /// assert_eq!(left.factor_into_iter().next(), Some(Left(&amp;"hello")));
 
     /// let right: Either&lt;&amp;[&amp;str], _&gt; = Right(vec![0, 1]);
     /// assert_eq!(right.factor_into_iter().collect::&lt;Vec&lt;_&gt;&gt;(), vec![Right(0), Right(1)]);
     ///
     /// ```
     </span><span class="comment">// TODO(MSRV): doc(alias) was stabilized in Rust 1.48
-    // #[doc(alias = &quot;transpose&quot;)]
+    // #[doc(alias = "transpose")]
     </span><span class="kw">pub fn </span>factor_into_iter(<span class="self">self</span>) -&gt; IterEither&lt;L::IntoIter, R::IntoIter&gt;
     <span class="kw">where
         </span>L: IntoIterator,
@@ -2140,8 +2142,8 @@
     ///
     /// ```
     /// use either::*;
-    /// let left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left([&quot;hello&quot;]);
-    /// assert_eq!(left.factor_iter().next(), Some(Left(&amp;&quot;hello&quot;)));
+    /// let left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left(["hello"]);
+    /// assert_eq!(left.factor_iter().next(), Some(Left(&amp;"hello")));
 
     /// let right: Either&lt;[&amp;str; 2], _&gt; = Right(vec![0, 1]);
     /// assert_eq!(right.factor_iter().collect::&lt;Vec&lt;_&gt;&gt;(), vec![Right(&amp;0), Right(&amp;1)]);
@@ -2151,8 +2153,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; IterEither&lt;&lt;<span class="kw-2">&amp;</span>L <span class="kw">as </span>IntoIterator&gt;::IntoIter, &lt;<span class="kw-2">&amp;</span>R <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
     <span class="kw">where
-        for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>L: IntoIterator,
-        <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>R: IntoIterator,
+        for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>L: IntoIterator,
+        <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>R: IntoIterator,
     {
         IterEither::new(<span class="macro">map_either!</span>(<span class="self">self</span>, inner =&gt; inner.into_iter()))
     }
@@ -2164,9 +2166,9 @@
     ///
     /// ```
     /// use either::*;
-    /// let mut left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left([&quot;hello&quot;]);
-    /// left.factor_iter_mut().for_each(|x| *x.unwrap_left() = &quot;goodbye&quot;);
-    /// assert_eq!(left, Left([&quot;goodbye&quot;]));
+    /// let mut left: Either&lt;_, Vec&lt;u8&gt;&gt; = Left(["hello"]);
+    /// left.factor_iter_mut().for_each(|x| *x.unwrap_left() = "goodbye");
+    /// assert_eq!(left, Left(["goodbye"]));
 
     /// let mut right: Either&lt;[&amp;str; 2], _&gt; = Right(vec![0, 1, 2]);
     /// right.factor_iter_mut().for_each(|x| if let Right(r) = x { *r = -*r; });
@@ -2177,8 +2179,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     ) -&gt; IterEither&lt;&lt;<span class="kw-2">&amp;mut </span>L <span class="kw">as </span>IntoIterator&gt;::IntoIter, &lt;<span class="kw-2">&amp;mut </span>R <span class="kw">as </span>IntoIterator&gt;::IntoIter&gt;
     <span class="kw">where
-        for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>L: IntoIterator,
-        <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R: IntoIterator,
+        for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>L: IntoIterator,
+        <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R: IntoIterator,
     {
         IterEither::new(<span class="macro">map_either!</span>(<span class="self">self</span>, inner =&gt; inner.into_iter()))
     }
@@ -2193,11 +2195,11 @@
     ///
     /// ```
     /// # use either::*;
-    /// let left: Either&lt;&amp;str, &amp;str&gt; = Left(&quot;left&quot;);
-    /// assert_eq!(left.left_or(&quot;foo&quot;), &quot;left&quot;);
+    /// let left: Either&lt;&amp;str, &amp;str&gt; = Left("left");
+    /// assert_eq!(left.left_or("foo"), "left");
     ///
-    /// let right: Either&lt;&amp;str, &amp;str&gt; = Right(&quot;right&quot;);
-    /// assert_eq!(right.left_or(&quot;left&quot;), &quot;left&quot;);
+    /// let right: Either&lt;&amp;str, &amp;str&gt; = Right("right");
+    /// assert_eq!(right.left_or("left"), "left");
     /// ```
     </span><span class="kw">pub fn </span>left_or(<span class="self">self</span>, other: L) -&gt; L {
         <span class="kw">match </span><span class="self">self </span>{
@@ -2212,8 +2214,8 @@
     ///
     /// ```
     /// # use either::*;
-    /// let left: Either&lt;String, u32&gt; = Left(&quot;left&quot;.to_string());
-    /// assert_eq!(left.left_or_default(), &quot;left&quot;);
+    /// let left: Either&lt;String, u32&gt; = Left("left".to_string());
+    /// assert_eq!(left.left_or_default(), "left");
     ///
     /// let right: Either&lt;String, u32&gt; = Right(42);
     /// assert_eq!(right.left_or_default(), String::default());
@@ -2234,11 +2236,11 @@
     ///
     /// ```
     /// # use either::*;
-    /// let left: Either&lt;String, u32&gt; = Left(&quot;3&quot;.to_string());
-    /// assert_eq!(left.left_or_else(|_| unreachable!()), &quot;3&quot;);
+    /// let left: Either&lt;String, u32&gt; = Left("3".to_string());
+    /// assert_eq!(left.left_or_else(|_| unreachable!()), "3");
     ///
     /// let right: Either&lt;String, u32&gt; = Right(3);
-    /// assert_eq!(right.left_or_else(|x| x.to_string()), &quot;3&quot;);
+    /// assert_eq!(right.left_or_else(|x| x.to_string()), "3");
     /// ```
     </span><span class="kw">pub fn </span>left_or_else&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; L
     <span class="kw">where
@@ -2260,11 +2262,11 @@
     ///
     /// ```
     /// # use either::*;
-    /// let right: Either&lt;&amp;str, &amp;str&gt; = Right(&quot;right&quot;);
-    /// assert_eq!(right.right_or(&quot;foo&quot;), &quot;right&quot;);
+    /// let right: Either&lt;&amp;str, &amp;str&gt; = Right("right");
+    /// assert_eq!(right.right_or("foo"), "right");
     ///
-    /// let left: Either&lt;&amp;str, &amp;str&gt; = Left(&quot;left&quot;);
-    /// assert_eq!(left.right_or(&quot;right&quot;), &quot;right&quot;);
+    /// let left: Either&lt;&amp;str, &amp;str&gt; = Left("left");
+    /// assert_eq!(left.right_or("right"), "right");
     /// ```
     </span><span class="kw">pub fn </span>right_or(<span class="self">self</span>, other: R) -&gt; R {
         <span class="kw">match </span><span class="self">self </span>{
@@ -2279,7 +2281,7 @@
     ///
     /// ```
     /// # use either::*;
-    /// let left: Either&lt;String, u32&gt; = Left(&quot;left&quot;.to_string());
+    /// let left: Either&lt;String, u32&gt; = Left("left".to_string());
     /// assert_eq!(left.right_or_default(), u32::default());
     ///
     /// let right: Either&lt;String, u32&gt; = Right(42);
@@ -2301,7 +2303,7 @@
     ///
     /// ```
     /// # use either::*;
-    /// let left: Either&lt;String, u32&gt; = Left(&quot;3&quot;.to_string());
+    /// let left: Either&lt;String, u32&gt; = Left("3".to_string());
     /// assert_eq!(left.right_or_else(|x| x.parse().unwrap()), 3);
     ///
     /// let right: Either&lt;String, u32&gt; = Right(3);
@@ -2343,7 +2345,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             Either::Left(l) =&gt; l,
             Either::Right(r) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;called `Either::unwrap_left()` on a `Right` value: {:?}&quot;</span>, r)
+                <span class="macro">panic!</span>(<span class="string">"called `Either::unwrap_left()` on a `Right` value: {:?}"</span>, r)
             }
         }
     }
@@ -2373,7 +2375,7 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             Either::Right(r) =&gt; r,
-            Either::Left(l) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;called `Either::unwrap_right()` on a `Left` value: {:?}&quot;</span>, l),
+            Either::Left(l) =&gt; <span class="macro">panic!</span>(<span class="string">"called `Either::unwrap_right()` on a `Left` value: {:?}"</span>, l),
         }
     }
 
@@ -2384,7 +2386,7 @@
     /// ```
     /// # use either::*;
     /// let left: Either&lt;_, ()&gt; = Left(3);
-    /// assert_eq!(left.expect_left(&quot;value was Right&quot;), 3);
+    /// assert_eq!(left.expect_left("value was Right"), 3);
     /// ```
     ///
     /// # Panics
@@ -2394,7 +2396,7 @@
     /// ```should_panic
     /// # use either::*;
     /// let right: Either&lt;(), _&gt; = Right(3);
-    /// right.expect_left(&quot;value was Right&quot;);
+    /// right.expect_left("value was Right");
     /// ```
     </span><span class="kw">pub fn </span>expect_left(<span class="self">self</span>, msg: <span class="kw-2">&amp;</span>str) -&gt; L
     <span class="kw">where
@@ -2402,7 +2404,7 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             Either::Left(l) =&gt; l,
-            Either::Right(r) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, msg, r),
+            Either::Right(r) =&gt; <span class="macro">panic!</span>(<span class="string">"{}: {:?}"</span>, msg, r),
         }
     }
 
@@ -2413,7 +2415,7 @@
     /// ```
     /// # use either::*;
     /// let right: Either&lt;(), _&gt; = Right(3);
-    /// assert_eq!(right.expect_right(&quot;value was Left&quot;), 3);
+    /// assert_eq!(right.expect_right("value was Left"), 3);
     /// ```
     ///
     /// # Panics
@@ -2423,7 +2425,7 @@
     /// ```should_panic
     /// # use either::*;
     /// let left: Either&lt;_, ()&gt; = Left(3);
-    /// left.expect_right(&quot;value was Right&quot;);
+    /// left.expect_right("value was Right");
     /// ```
     </span><span class="kw">pub fn </span>expect_right(<span class="self">self</span>, msg: <span class="kw-2">&amp;</span>str) -&gt; R
     <span class="kw">where
@@ -2431,7 +2433,7 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             Either::Right(r) =&gt; r,
-            Either::Left(l) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}: {:?}&quot;</span>, msg, l),
+            Either::Left(l) =&gt; <span class="macro">panic!</span>(<span class="string">"{}: {:?}"</span>, msg, l),
         }
     }
 
@@ -2471,7 +2473,7 @@
     /// assert_eq!(right.factor_none(), Some(Right(String::new())));
     /// ```
     </span><span class="comment">// TODO(MSRV): doc(alias) was stabilized in Rust 1.48
-    // #[doc(alias = &quot;transpose&quot;)]
+    // #[doc(alias = "transpose")]
     </span><span class="kw">pub fn </span>factor_none(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Either&lt;L, R&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Left(l) =&gt; l.map(Either::Left),
@@ -2494,7 +2496,7 @@
     /// assert_eq!(right.factor_err(), Ok(Right(String::new())));
     /// ```
     </span><span class="comment">// TODO(MSRV): doc(alias) was stabilized in Rust 1.48
-    // #[doc(alias = &quot;transpose&quot;)]
+    // #[doc(alias = "transpose")]
     </span><span class="kw">pub fn </span>factor_err(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Either&lt;L, R&gt;, E&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Left(l) =&gt; l.map(Either::Left),
@@ -2517,7 +2519,7 @@
     /// assert_eq!(right.factor_ok(), Err(Right(String::new())));
     /// ```
     </span><span class="comment">// TODO(MSRV): doc(alias) was stabilized in Rust 1.48
-    // #[doc(alias = &quot;transpose&quot;)]
+    // #[doc(alias = "transpose")]
     </span><span class="kw">pub fn </span>factor_ok(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, Either&lt;L, R&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Left(l) =&gt; l.map_err(Either::Left),
@@ -2637,16 +2639,16 @@
 
     <span class="kw">fn </span>poll(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>core::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>core::task::Context&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; core::task::Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">for_both!</span>(<span class="self">self</span>.as_pin_mut(), inner =&gt; inner.poll(cx))
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="doccomment">/// `Either&lt;L, R&gt;` implements `Read` if both `L` and `R` do.
 ///
-/// Requires crate feature `&quot;use_std&quot;`
+/// Requires crate feature `"use_std"`
 </span><span class="kw">impl</span>&lt;L, R&gt; Read <span class="kw">for </span>Either&lt;L, R&gt;
 <span class="kw">where
     </span>L: Read,
@@ -2669,10 +2671,10 @@
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="doccomment">/// `Either&lt;L, R&gt;` implements `Seek` if both `L` and `R` do.
 ///
-/// Requires crate feature `&quot;use_std&quot;`
+/// Requires crate feature `"use_std"`
 </span><span class="kw">impl</span>&lt;L, R&gt; Seek <span class="kw">for </span>Either&lt;L, R&gt;
 <span class="kw">where
     </span>L: Seek,
@@ -2683,8 +2685,8 @@
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
-</span><span class="doccomment">/// Requires crate feature `&quot;use_std&quot;`
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
+</span><span class="doccomment">/// Requires crate feature `"use_std"`
 </span><span class="kw">impl</span>&lt;L, R&gt; BufRead <span class="kw">for </span>Either&lt;L, R&gt;
 <span class="kw">where
     </span>L: BufRead,
@@ -2707,10 +2709,10 @@
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="doccomment">/// `Either&lt;L, R&gt;` implements `Write` if both `L` and `R` do.
 ///
-/// Requires crate feature `&quot;use_std&quot;`
+/// Requires crate feature `"use_std"`
 </span><span class="kw">impl</span>&lt;L, R&gt; Write <span class="kw">for </span>Either&lt;L, R&gt;
 <span class="kw">where
     </span>L: Write,
@@ -2724,7 +2726,7 @@
         <span class="macro">for_both!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref mut </span>inner =&gt; inner.write_all(buf))
     }
 
-    <span class="kw">fn </span>write_fmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fmt: fmt::Arguments&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write_fmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fmt: fmt::Arguments&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="macro">for_both!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref mut </span>inner =&gt; inner.write_fmt(fmt))
     }
 
@@ -2768,18 +2770,18 @@
 <span class="macro">impl_specific_ref_and_mut!</span>(str,);
 <span class="macro">impl_specific_ref_and_mut!</span>(
     ::std::path::Path,
-    cfg(feature = <span class="string">&quot;use_std&quot;</span>),
-    doc = <span class="string">&quot;Requires crate feature `use_std`.&quot;
+    cfg(feature = <span class="string">"use_std"</span>),
+    doc = <span class="string">"Requires crate feature `use_std`."
 </span>);
 <span class="macro">impl_specific_ref_and_mut!</span>(
     ::std::ffi::OsStr,
-    cfg(feature = <span class="string">&quot;use_std&quot;</span>),
-    doc = <span class="string">&quot;Requires crate feature `use_std`.&quot;
+    cfg(feature = <span class="string">"use_std"</span>),
+    doc = <span class="string">"Requires crate feature `use_std`."
 </span>);
 <span class="macro">impl_specific_ref_and_mut!</span>(
     ::std::ffi::CStr,
-    cfg(feature = <span class="string">&quot;use_std&quot;</span>),
-    doc = <span class="string">&quot;Requires crate feature `use_std`.&quot;
+    cfg(feature = <span class="string">"use_std"</span>),
+    doc = <span class="string">"Requires crate feature `use_std`."
 </span>);
 
 <span class="kw">impl</span>&lt;L, R, Target&gt; AsRef&lt;[Target]&gt; <span class="kw">for </span>Either&lt;L, R&gt;
@@ -2834,16 +2836,16 @@
     }
 }
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;use_std&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"use_std"</span>))]
 </span><span class="doccomment">/// `Either` implements `Error` if *both* `L` and `R` implement it.
 ///
-/// Requires crate feature `&quot;use_std&quot;`
+/// Requires crate feature `"use_std"`
 </span><span class="kw">impl</span>&lt;L, R&gt; Error <span class="kw">for </span>Either&lt;L, R&gt;
 <span class="kw">where
     </span>L: Error,
     R: Error,
 {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">'static</span>)&gt; {
         <span class="macro">for_both!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref </span>inner =&gt; inner.source())
     }
 
@@ -2863,7 +2865,7 @@
     </span>L: fmt::Display,
     R: fmt::Display,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">for_both!</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">ref </span>inner =&gt; inner.fmt(f))
     }
 }
@@ -2891,10 +2893,10 @@
     }
     <span class="macro">assert_eq!</span>(a(), Right(<span class="number">1337</span>));
 
-    <span class="kw">fn </span>b() -&gt; Either&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-        Right(<span class="macro">try_right!</span>(Left(<span class="string">&quot;foo bar&quot;</span>)))
+    <span class="kw">fn </span>b() -&gt; Either&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+        Right(<span class="macro">try_right!</span>(Left(<span class="string">"foo bar"</span>)))
     }
-    <span class="macro">assert_eq!</span>(b(), Left(String::from(<span class="string">&quot;foo bar&quot;</span>)));
+    <span class="macro">assert_eq!</span>(b(), Left(String::from(<span class="string">"foo bar"</span>)));
 }
 
 <span class="attr">#[test]
@@ -2902,7 +2904,7 @@
     <span class="kw">use </span>std::string::String;
 
     <span class="kw">fn </span>is_str(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str) {}
-    <span class="kw">let </span>value: Either&lt;String, <span class="kw-2">&amp;</span>str&gt; = Left(String::from(<span class="string">&quot;test&quot;</span>));
+    <span class="kw">let </span>value: Either&lt;String, <span class="kw-2">&amp;</span>str&gt; = Left(String::from(<span class="string">"test"</span>));
     is_str(<span class="kw-2">&amp;*</span>value);
 }
 
@@ -2929,7 +2931,7 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>reader = <span class="kw">if </span>use_empty {
-        <span class="comment">// Empty didn&#39;t impl Seek until Rust 1.51
+        <span class="comment">// Empty didn't impl Seek until Rust 1.51
         </span>Left(io::Cursor::new([]))
     } <span class="kw">else </span>{
         Right(io::Cursor::new(<span class="kw-2">&amp;</span>mockdata[..]))
@@ -2979,11 +2981,11 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>error() {
-    <span class="kw">let </span>invalid_utf8 = <span class="string">b&quot;\xff&quot;</span>;
+    <span class="kw">let </span>invalid_utf8 = <span class="string">b"\xff"</span>;
     <span class="attr">#[allow(invalid_from_utf8)]
     </span><span class="kw">let </span>res = <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = ::std::str::from_utf8(invalid_utf8) {
         <span class="prelude-val">Err</span>(Left(error))
-    } <span class="kw">else if let </span><span class="prelude-val">Err</span>(error) = <span class="string">&quot;x&quot;</span>.parse::&lt;i32&gt;() {
+    } <span class="kw">else if let </span><span class="prelude-val">Err</span>(error) = <span class="string">"x"</span>.parse::&lt;i32&gt;() {
         <span class="prelude-val">Err</span>(Right(error))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(())
@@ -3007,7 +3009,7 @@
     }};
 }
 
-<span class="comment">// This &quot;unused&quot; method is here to ensure that compilation doesn&#39;t fail on given types.
+<span class="comment">// This "unused" method is here to ensure that compilation doesn't fail on given types.
 </span><span class="kw">fn </span>_unsized_ref_propagation() {
     <span class="macro">check_t!</span>(str);
 
@@ -3023,8 +3025,8 @@
     }
 }
 
-<span class="comment">// This &quot;unused&quot; method is here to ensure that compilation doesn&#39;t fail on given types.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;use_std&quot;</span>)]
+<span class="comment">// This "unused" method is here to ensure that compilation doesn't fail on given types.
+</span><span class="attr">#[cfg(feature = <span class="string">"use_std"</span>)]
 </span><span class="kw">fn </span>_unsized_std_propagation() {
     <span class="macro">check_t!</span>(::std::path::Path);
     <span class="macro">check_t!</span>(::std::ffi::OsStr);

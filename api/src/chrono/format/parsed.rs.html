@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/format/parsed.rs`."><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/format/parsed.rs`."><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1905,13 +1907,13 @@
 ///
 /// ```python
 /// &gt;&gt;&gt; import time
-/// &gt;&gt;&gt; time.strptime(&#39;Wed, 31 Dec 2014 04:26:40 +0000&#39;,
-///                   &#39;%a, %d %b %Y %H:%M:%S +0000&#39;)
+/// &gt;&gt;&gt; time.strptime('Wed, 31 Dec 2014 04:26:40 +0000',
+///                   '%a, %d %b %Y %H:%M:%S +0000')
 /// time.struct_time(tm_year=2014, tm_mon=12, tm_mday=31,
 ///                  tm_hour=4, tm_min=26, tm_sec=40,
 ///                  tm_wday=2, tm_yday=365, tm_isdst=-1)
-/// &gt;&gt;&gt; time.strptime(&#39;Thu, 31 Dec 2014 04:26:40 +0000&#39;,
-///                   &#39;%a, %d %b %Y %H:%M:%S +0000&#39;)
+/// &gt;&gt;&gt; time.strptime('Thu, 31 Dec 2014 04:26:40 +0000',
+///                   '%a, %d %b %Y %H:%M:%S +0000')
 /// time.struct_time(tm_year=2014, tm_mon=12, tm_mday=31,
 ///                  tm_hour=4, tm_min=26, tm_sec=40,
 ///                  tm_wday=3, tm_yday=365, tm_isdst=-1)
@@ -1921,10 +1923,10 @@
 ///
 /// # Example
 ///
-/// Let&#39;s see how `Parsed` correctly detects the second RFC 2822 string from before is inconsistent.
+/// Let's see how `Parsed` correctly detects the second RFC 2822 string from before is inconsistent.
 ///
-</span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;alloc&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;alloc&quot;</span>, doc = <span class="string">&quot;```rust&quot;</span>)]
+</span><span class="attr">#[cfg_attr(not(feature = <span class="string">"alloc"</span>), doc = <span class="string">"```ignore"</span>)]
+#[cfg_attr(feature = <span class="string">"alloc"</span>, doc = <span class="string">"```rust"</span>)]
 </span><span class="doccomment">/// use chrono::format::{ParseErrorKind, Parsed};
 /// use chrono::Weekday;
 ///
@@ -1938,7 +1940,7 @@
 /// parsed.set_second(40)?;
 /// parsed.set_offset(0)?;
 /// let dt = parsed.to_datetime()?;
-/// assert_eq!(dt.to_rfc2822(), &quot;Wed, 31 Dec 2014 04:26:40 +0000&quot;);
+/// assert_eq!(dt.to_rfc2822(), "Wed, 31 Dec 2014 04:26:40 +0000");
 ///
 /// let mut parsed = Parsed::new();
 /// parsed.set_weekday(Weekday::Thu)?; // changed to the wrong day
@@ -1958,27 +1960,27 @@
 /// # Ok::&lt;(), chrono::ParseError&gt;(())
 /// ```
 ///
-/// The same using chrono&#39;s build-in parser for RFC 2822 (the [RFC2822 formatting item]) and
+/// The same using chrono's build-in parser for RFC 2822 (the [RFC2822 formatting item]) and
 /// [`format::parse()`] showing how to inspect a field on failure.
 ///
 /// [RFC2822 formatting item]: crate::format::Fixed::RFC2822
 /// [`format::parse()`]: crate::format::parse()
 ///
-</span><span class="attr">#[cfg_attr(not(feature = <span class="string">&quot;alloc&quot;</span>), doc = <span class="string">&quot;```ignore&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;alloc&quot;</span>, doc = <span class="string">&quot;```rust&quot;</span>)]
+</span><span class="attr">#[cfg_attr(not(feature = <span class="string">"alloc"</span>), doc = <span class="string">"```ignore"</span>)]
+#[cfg_attr(feature = <span class="string">"alloc"</span>, doc = <span class="string">"```rust"</span>)]
 </span><span class="doccomment">/// use chrono::format::{parse, Fixed, Item, Parsed};
 /// use chrono::Weekday;
 ///
 /// let rfc_2822 = [Item::Fixed(Fixed::RFC2822)];
 ///
 /// let mut parsed = Parsed::new();
-/// parse(&amp;mut parsed, &quot;Wed, 31 Dec 2014 04:26:40 +0000&quot;, rfc_2822.iter())?;
+/// parse(&amp;mut parsed, "Wed, 31 Dec 2014 04:26:40 +0000", rfc_2822.iter())?;
 /// let dt = parsed.to_datetime()?;
 ///
-/// assert_eq!(dt.to_rfc2822(), &quot;Wed, 31 Dec 2014 04:26:40 +0000&quot;);
+/// assert_eq!(dt.to_rfc2822(), "Wed, 31 Dec 2014 04:26:40 +0000");
 ///
 /// let mut parsed = Parsed::new();
-/// parse(&amp;mut parsed, &quot;Thu, 31 Dec 2014 04:26:40 +0000&quot;, rfc_2822.iter())?;
+/// parse(&amp;mut parsed, "Thu, 31 Dec 2014 04:26:40 +0000", rfc_2822.iter())?;
 /// let result = parsed.to_datetime();
 ///
 /// assert!(result.is_err());
@@ -2035,7 +2037,7 @@
     </span>_dummy: (),
 }
 
-<span class="doccomment">/// Checks if `old` is either empty or has the same value as `new` (i.e. &quot;consistent&quot;),
+<span class="doccomment">/// Checks if `old` is either empty or has the same value as `new` (i.e. "consistent"),
 /// and if it is empty, set `old` to `new` as well.
 </span><span class="attr">#[inline]
 </span><span class="kw">fn </span>set_if_consistent&lt;T: PartialEq&gt;(old: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;T&gt;, new: T) -&gt; ParseResult&lt;()&gt; {
@@ -2204,7 +2206,7 @@
     }
 
     <span class="doccomment">/// Set the [`week_from_mon`](Parsed::week_from_mon) week number field to the given value.
-    /// Set the &#39;week number starting with Monday&#39; field to the given value.
+    /// Set the 'week number starting with Monday' field to the given value.
     ///
     /// Week 1 starts at the first Monday of January.
     ///
@@ -2439,7 +2441,7 @@
         ) -&gt; ParseResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
             <span class="kw">match </span>(y, q, r) {
                 <span class="comment">// if there is no further information, simply return the given full year.
-                // this is a common case, so let&#39;s avoid division here.
+                // this is a common case, so let's avoid division here.
                 </span>(y, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(y),
 
                 <span class="comment">// if there is a full year *and* also quotient and/or modulo,
@@ -2684,7 +2686,7 @@
             <span class="kw">if </span>parsed.second == <span class="prelude-val">Some</span>(<span class="number">60</span>) {
                 <span class="comment">// `datetime.second()` cannot be 60, so this is the only case for a leap second.
                 </span><span class="kw">match </span>datetime.second() {
-                    <span class="comment">// it&#39;s okay, just do not try to overwrite the existing field.
+                    <span class="comment">// it's okay, just do not try to overwrite the existing field.
                     </span><span class="number">59 </span>=&gt; {}
                     <span class="comment">// `datetime` is known to be off by one second.
                     </span><span class="number">0 </span>=&gt; {

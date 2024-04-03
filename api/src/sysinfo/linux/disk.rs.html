@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/disk.rs`."><title>disk.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/disk.rs`."><title>disk.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -312,7 +314,7 @@
     };
 }
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/disk.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/disk.md"</span>)]
 #[derive(PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Disk {
     type_: DiskKind,
@@ -421,71 +423,71 @@
     </span><span class="kw">let </span>device_name_path = device_name.to_str().unwrap_or_default();
     <span class="kw">let </span>real_path = fs::canonicalize(device_name).unwrap_or_else(|<span class="kw">_</span>| PathBuf::from(device_name));
     <span class="kw">let </span><span class="kw-2">mut </span>real_path = real_path.to_str().unwrap_or_default();
-    <span class="kw">if </span>device_name_path.starts_with(<span class="string">&quot;/dev/mapper/&quot;</span>) {
+    <span class="kw">if </span>device_name_path.starts_with(<span class="string">"/dev/mapper/"</span>) {
         <span class="comment">// Recursively solve, for example /dev/dm-0
         </span><span class="kw">if </span>real_path != device_name_path {
             <span class="kw">return </span>find_type_for_device_name(OsStr::new(<span class="kw-2">&amp;</span>real_path));
         }
-    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">&quot;/dev/sd&quot;</span>) || device_name_path.starts_with(<span class="string">&quot;/dev/vd&quot;</span>) {
-        <span class="comment">// Turn &quot;sda1&quot; into &quot;sda&quot; or &quot;vda1&quot; into &quot;vda&quot;
-        </span>real_path = real_path.trim_start_matches(<span class="string">&quot;/dev/&quot;</span>);
-        real_path = real_path.trim_end_matches(|c| c &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;9&#39;</span>);
-    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">&quot;/dev/nvme&quot;</span>) {
-        <span class="comment">// Turn &quot;nvme0n1p1&quot; into &quot;nvme0n1&quot;
-        </span>real_path = <span class="kw">match </span>real_path.find(<span class="string">&#39;p&#39;</span>) {
-            <span class="prelude-val">Some</span>(idx) =&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">&quot;/dev/&quot;</span>.len()..idx],
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">&quot;/dev/&quot;</span>.len()..],
+    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">"/dev/sd"</span>) || device_name_path.starts_with(<span class="string">"/dev/vd"</span>) {
+        <span class="comment">// Turn "sda1" into "sda" or "vda1" into "vda"
+        </span>real_path = real_path.trim_start_matches(<span class="string">"/dev/"</span>);
+        real_path = real_path.trim_end_matches(|c| c &gt;= <span class="string">'0' </span>&amp;&amp; c &lt;= <span class="string">'9'</span>);
+    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">"/dev/nvme"</span>) {
+        <span class="comment">// Turn "nvme0n1p1" into "nvme0n1"
+        </span>real_path = <span class="kw">match </span>real_path.find(<span class="string">'p'</span>) {
+            <span class="prelude-val">Some</span>(idx) =&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">"/dev/"</span>.len()..idx],
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">"/dev/"</span>.len()..],
         };
-    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">&quot;/dev/root&quot;</span>) {
+    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">"/dev/root"</span>) {
         <span class="comment">// Recursively solve, for example /dev/mmcblk0p1
         </span><span class="kw">if </span>real_path != device_name_path {
             <span class="kw">return </span>find_type_for_device_name(OsStr::new(<span class="kw-2">&amp;</span>real_path));
         }
-    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">&quot;/dev/mmcblk&quot;</span>) {
-        <span class="comment">// Turn &quot;mmcblk0p1&quot; into &quot;mmcblk0&quot;
-        </span>real_path = <span class="kw">match </span>real_path.find(<span class="string">&#39;p&#39;</span>) {
-            <span class="prelude-val">Some</span>(idx) =&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">&quot;/dev/&quot;</span>.len()..idx],
-            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">&quot;/dev/&quot;</span>.len()..],
+    } <span class="kw">else if </span>device_name_path.starts_with(<span class="string">"/dev/mmcblk"</span>) {
+        <span class="comment">// Turn "mmcblk0p1" into "mmcblk0"
+        </span>real_path = <span class="kw">match </span>real_path.find(<span class="string">'p'</span>) {
+            <span class="prelude-val">Some</span>(idx) =&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">"/dev/"</span>.len()..idx],
+            <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>real_path[<span class="string">"/dev/"</span>.len()..],
         };
     } <span class="kw">else </span>{
         <span class="comment">// Default case: remove /dev/ and expects the name presents under /sys/block/
         // For example, /dev/dm-0 to dm-0
-        </span>real_path = real_path.trim_start_matches(<span class="string">&quot;/dev/&quot;</span>);
+        </span>real_path = real_path.trim_start_matches(<span class="string">"/dev/"</span>);
     }
 
     <span class="kw">let </span>trimmed: <span class="kw-2">&amp;</span>OsStr = OsStrExt::from_bytes(real_path.as_bytes());
 
-    <span class="kw">let </span>path = Path::new(<span class="string">&quot;/sys/block/&quot;</span>)
+    <span class="kw">let </span>path = Path::new(<span class="string">"/sys/block/"</span>)
         .to_owned()
         .join(trimmed)
-        .join(<span class="string">&quot;queue/rotational&quot;</span>);
-    <span class="comment">// Normally, this file only contains &#39;0&#39; or &#39;1&#39; but just in case, we get 8 bytes...
+        .join(<span class="string">"queue/rotational"</span>);
+    <span class="comment">// Normally, this file only contains '0' or '1' but just in case, we get 8 bytes...
     </span><span class="kw">match </span>get_all_data(path, <span class="number">8</span>)
         .unwrap_or_default()
         .trim()
         .parse()
         .ok()
     {
-        <span class="comment">// The disk is marked as rotational so it&#39;s a HDD.
+        <span class="comment">// The disk is marked as rotational so it's a HDD.
         </span><span class="prelude-val">Some</span>(<span class="number">1</span>) =&gt; DiskKind::HDD,
-        <span class="comment">// The disk is marked as non-rotational so it&#39;s very likely a SSD.
+        <span class="comment">// The disk is marked as non-rotational so it's very likely a SSD.
         </span><span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; DiskKind::SSD,
-        <span class="comment">// Normally it shouldn&#39;t happen but welcome to the wonderful world of IT! :D
+        <span class="comment">// Normally it shouldn't happen but welcome to the wonderful world of IT! :D
         </span><span class="prelude-val">Some</span>(x) =&gt; DiskKind::Unknown(x),
-        <span class="comment">// The information isn&#39;t available...
+        <span class="comment">// The information isn't available...
         </span><span class="prelude-val">None </span>=&gt; DiskKind::Unknown(-<span class="number">1</span>),
     }
 }
 
 <span class="kw">fn </span>get_all_disks_inner(content: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;Disk&gt; {
     <span class="comment">// The goal of this array is to list all removable devices (the ones whose name starts with
-    // &quot;usb-&quot;). Then we check if
-    </span><span class="kw">let </span>removable_entries = <span class="kw">match </span>fs::read_dir(<span class="string">&quot;/dev/disk/by-id/&quot;</span>) {
+    // "usb-"). Then we check if
+    </span><span class="kw">let </span>removable_entries = <span class="kw">match </span>fs::read_dir(<span class="string">"/dev/disk/by-id/"</span>) {
         <span class="prelude-val">Ok</span>(r) =&gt; r
             .filter_map(|res| <span class="prelude-val">Some</span>(res.ok()<span class="question-mark">?</span>.path()))
             .filter_map(|e| {
                 <span class="kw">if </span>e.file_name()
-                    .and_then(|x| <span class="prelude-val">Some</span>(x.to_str()<span class="question-mark">?</span>.starts_with(<span class="string">&quot;usb-&quot;</span>)))
+                    .and_then(|x| <span class="prelude-val">Some</span>(x.to_str()<span class="question-mark">?</span>.starts_with(<span class="string">"usb-"</span>)))
                     .unwrap_or_default()
                 {
                     e.canonicalize().ok()
@@ -505,41 +507,41 @@
             // http://man7.org/linux/man-pages/man5/fstab.5.html
             // fs_spec&lt;tab&gt;fs_file&lt;tab&gt;fs_vfstype&lt;tab&gt;other fields
             </span><span class="kw">let </span><span class="kw-2">mut </span>fields = line.split_whitespace();
-            <span class="kw">let </span>fs_spec = fields.next().unwrap_or(<span class="string">&quot;&quot;</span>);
+            <span class="kw">let </span>fs_spec = fields.next().unwrap_or(<span class="string">""</span>);
             <span class="kw">let </span>fs_file = fields
                 .next()
-                .unwrap_or(<span class="string">&quot;&quot;</span>)
-                .replace(<span class="string">&quot;\\134&quot;</span>, <span class="string">&quot;\\&quot;</span>)
-                .replace(<span class="string">&quot;\\040&quot;</span>, <span class="string">&quot; &quot;</span>)
-                .replace(<span class="string">&quot;\\011&quot;</span>, <span class="string">&quot;\t&quot;</span>)
-                .replace(<span class="string">&quot;\\012&quot;</span>, <span class="string">&quot;\n&quot;</span>);
-            <span class="kw">let </span>fs_vfstype = fields.next().unwrap_or(<span class="string">&quot;&quot;</span>);
+                .unwrap_or(<span class="string">""</span>)
+                .replace(<span class="string">"\\134"</span>, <span class="string">"\\"</span>)
+                .replace(<span class="string">"\\040"</span>, <span class="string">" "</span>)
+                .replace(<span class="string">"\\011"</span>, <span class="string">"\t"</span>)
+                .replace(<span class="string">"\\012"</span>, <span class="string">"\n"</span>);
+            <span class="kw">let </span>fs_vfstype = fields.next().unwrap_or(<span class="string">""</span>);
             (fs_spec, fs_file, fs_vfstype)
         })
         .filter(|(fs_spec, fs_file, fs_vfstype)| {
-            <span class="comment">// Check if fs_vfstype is one of our &#39;ignored&#39; file systems.
+            <span class="comment">// Check if fs_vfstype is one of our 'ignored' file systems.
             </span><span class="kw">let </span>filtered = <span class="macro">matches!</span>(
                 <span class="kw-2">*</span>fs_vfstype,
-                <span class="string">&quot;rootfs&quot; </span>| <span class="comment">// https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt
-                </span><span class="string">&quot;sysfs&quot; </span>| <span class="comment">// pseudo file system for kernel objects
-                </span><span class="string">&quot;proc&quot; </span>|  <span class="comment">// another pseudo file system
-                </span><span class="string">&quot;tmpfs&quot; </span>|
-                <span class="string">&quot;devtmpfs&quot; </span>|
-                <span class="string">&quot;cgroup&quot; </span>|
-                <span class="string">&quot;cgroup2&quot; </span>|
-                <span class="string">&quot;pstore&quot; </span>| <span class="comment">// https://www.kernel.org/doc/Documentation/ABI/testing/pstore
-                </span><span class="string">&quot;squashfs&quot; </span>| <span class="comment">// squashfs is a compressed read-only file system (for snaps)
-                </span><span class="string">&quot;rpc_pipefs&quot; </span>| <span class="comment">// The pipefs pseudo file system service
-                </span><span class="string">&quot;iso9660&quot; </span>| <span class="comment">// optical media
-                </span><span class="string">&quot;nfs4&quot; </span>| <span class="comment">// calling statvfs on a mounted NFS may hang
-                </span><span class="string">&quot;nfs&quot; </span><span class="comment">// nfs2 or nfs3
+                <span class="string">"rootfs" </span>| <span class="comment">// https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+                </span><span class="string">"sysfs" </span>| <span class="comment">// pseudo file system for kernel objects
+                </span><span class="string">"proc" </span>|  <span class="comment">// another pseudo file system
+                </span><span class="string">"tmpfs" </span>|
+                <span class="string">"devtmpfs" </span>|
+                <span class="string">"cgroup" </span>|
+                <span class="string">"cgroup2" </span>|
+                <span class="string">"pstore" </span>| <span class="comment">// https://www.kernel.org/doc/Documentation/ABI/testing/pstore
+                </span><span class="string">"squashfs" </span>| <span class="comment">// squashfs is a compressed read-only file system (for snaps)
+                </span><span class="string">"rpc_pipefs" </span>| <span class="comment">// The pipefs pseudo file system service
+                </span><span class="string">"iso9660" </span>| <span class="comment">// optical media
+                </span><span class="string">"nfs4" </span>| <span class="comment">// calling statvfs on a mounted NFS may hang
+                </span><span class="string">"nfs" </span><span class="comment">// nfs2 or nfs3
             </span>);
 
             !(filtered ||
-               fs_file.starts_with(<span class="string">&quot;/sys&quot;</span>) || <span class="comment">// check if fs_file is an &#39;ignored&#39; mount point
-               </span>fs_file.starts_with(<span class="string">&quot;/proc&quot;</span>) ||
-               (fs_file.starts_with(<span class="string">&quot;/run&quot;</span>) &amp;&amp; !fs_file.starts_with(<span class="string">&quot;/run/media&quot;</span>)) ||
-               fs_spec.starts_with(<span class="string">&quot;sunrpc&quot;</span>))
+               fs_file.starts_with(<span class="string">"/sys"</span>) || <span class="comment">// check if fs_file is an 'ignored' mount point
+               </span>fs_file.starts_with(<span class="string">"/proc"</span>) ||
+               (fs_file.starts_with(<span class="string">"/run"</span>) &amp;&amp; !fs_file.starts_with(<span class="string">"/run/media"</span>)) ||
+               fs_spec.starts_with(<span class="string">"sunrpc"</span>))
         })
         .filter_map(|(fs_spec, fs_file, fs_vfstype)| {
             new_disk(
@@ -553,13 +555,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_all_disks() -&gt; Vec&lt;Disk&gt; {
-    get_all_disks_inner(<span class="kw-2">&amp;</span>get_all_data(<span class="string">&quot;/proc/mounts&quot;</span>, <span class="number">16_385</span>).unwrap_or_default())
+    get_all_disks_inner(<span class="kw-2">&amp;</span>get_all_data(<span class="string">"/proc/mounts"</span>, <span class="number">16_385</span>).unwrap_or_default())
 }
 
 <span class="comment">// #[test]
 // fn check_all_disks() {
 //     let disks = get_all_disks_inner(
-//         r#&quot;tmpfs /proc tmpfs rw,seclabel,relatime 0 0
+//         r#"tmpfs /proc tmpfs rw,seclabel,relatime 0 0
 // proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0
 // systemd-1 /proc/sys/fs/binfmt_misc autofs rw,relatime,fd=29,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=17771 0 0
 // tmpfs /sys tmpfs rw,seclabel,relatime 0 0
@@ -575,16 +577,16 @@
 // devpts /dev/pts devpts rw,seclabel,relatime,gid=5,mode=620,ptmxmode=666 0 0
 // tmpfs /sys/fs/selinux tmpfs rw,seclabel,relatime 0 0
 // /dev/vda2 /proc/filesystems xfs rw,seclabel,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota 0 0
-// &quot;#,
+// "#,
 //     );
 //     assert_eq!(disks.len(), 1);
 //     assert_eq!(
 //         disks[0],
 //         Disk {
 //             type_: DiskType::Unknown(-1),
-//             name: OsString::from(&quot;devpts&quot;),
+//             name: OsString::from("devpts"),
 //             file_system: vec![100, 101, 118, 112, 116, 115],
-//             mount_point: PathBuf::from(&quot;/dev/pts&quot;),
+//             mount_point: PathBuf::from("/dev/pts"),
 //             total_space: 0,
 //             available_space: 0,
 //         }

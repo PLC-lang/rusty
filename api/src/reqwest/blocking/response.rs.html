@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/response.rs`."><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/response.rs`."><title>response.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -433,12 +435,12 @@
 <span class="kw">use </span>bytes::Bytes;
 <span class="kw">use </span>http;
 <span class="kw">use </span>hyper::header::HeaderMap;
-<span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
 </span><span class="kw">use </span>serde::de::DeserializeOwned;
 
 <span class="kw">use </span><span class="kw">super</span>::client::KeepCoreThreadAlive;
 <span class="kw">use </span><span class="kw">super</span>::wait;
-<span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"cookies"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::cookie;
 <span class="kw">use crate</span>::{async_impl, StatusCode, Url, Version};
 
@@ -477,15 +479,15 @@
     /// Checking for general status class:
     ///
     /// ```rust
-    /// # #[cfg(feature = &quot;json&quot;)]
+    /// # #[cfg(feature = "json")]
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let resp = reqwest::blocking::get(&quot;http://httpbin.org/get&quot;)?;
+    /// let resp = reqwest::blocking::get("http://httpbin.org/get")?;
     /// if resp.status().is_success() {
-    ///     println!(&quot;success!&quot;);
+    ///     println!("success!");
     /// } else if resp.status().is_server_error() {
-    ///     println!(&quot;server error!&quot;);
+    ///     println!("server error!");
     /// } else {
-    ///     println!(&quot;Something else happened. Status: {:?}&quot;, resp.status());
+    ///     println!("Something else happened. Status: {:?}", resp.status());
     /// }
     /// # Ok(())
     /// # }
@@ -499,16 +501,16 @@
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = Client::new();
     ///
-    /// let resp = client.post(&quot;http://httpbin.org/post&quot;)
-    ///     .body(&quot;possibly too large&quot;)
+    /// let resp = client.post("http://httpbin.org/post")
+    ///     .body("possibly too large")
     ///     .send()?;
     ///
     /// match resp.status() {
-    ///     StatusCode::OK =&gt; println!(&quot;success!&quot;),
+    ///     StatusCode::OK =&gt; println!("success!"),
     ///     StatusCode::PAYLOAD_TOO_LARGE =&gt; {
-    ///         println!(&quot;Request payload is too large!&quot;);
+    ///         println!("Request payload is too large!");
     ///     }
-    ///     s =&gt; println!(&quot;Received response status: {:?}&quot;, s),
+    ///     s =&gt; println!("Received response status: {:?}", s),
     /// };
     /// # Ok(())
     /// # }
@@ -531,12 +533,12 @@
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = Client::new();
     ///
-    /// let mut resp = client.get(&quot;http://httpbin.org/cache&quot;).send()?;
+    /// let mut resp = client.get("http://httpbin.org/cache").send()?;
     /// if resp.status().is_success() {
     ///     if let Some(etag) = resp.headers().get(ETAG) {
-    ///         std::fs::write(&quot;etag&quot;, etag.as_bytes());
+    ///         std::fs::write("etag", etag.as_bytes());
     ///     }
-    ///     let mut file = std::fs::File::create(&quot;file&quot;)?;
+    ///     let mut file = std::fs::File::create("file")?;
     ///     resp.copy_to(&amp;mut file)?;
     /// }
     /// # Ok(())
@@ -555,14 +557,14 @@
 
     <span class="doccomment">/// Retrieve the cookies contained in the response.
     ///
-    /// Note that invalid &#39;Set-Cookie&#39; headers will be ignored.
+    /// Note that invalid 'Set-Cookie' headers will be ignored.
     ///
     /// # Optional
     ///
     /// This requires the optional `cookies` feature to be enabled.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;cookies&quot;</span>)))]
-    </span><span class="kw">pub fn </span>cookies&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = cookie::Cookie&lt;<span class="lifetime">&#39;a</span>&gt;&gt; + <span class="lifetime">&#39;a </span>{
+    </span><span class="attr">#[cfg(feature = <span class="string">"cookies"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"cookies"</span>)))]
+    </span><span class="kw">pub fn </span>cookies&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = cookie::Cookie&lt;<span class="lifetime">'a</span>&gt;&gt; + <span class="lifetime">'a </span>{
         cookie::extract_response_cookies(<span class="self">self</span>.headers()).filter_map(Result::ok)
     }
 
@@ -578,8 +580,8 @@
     ///
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let resp = reqwest::blocking::get(&quot;http://httpbin.org/redirect/1&quot;)?;
-    /// assert_eq!(resp.url().as_str(), &quot;http://httpbin.org/get&quot;);
+    /// let resp = reqwest::blocking::get("http://httpbin.org/redirect/1")?;
+    /// assert_eq!(resp.url().as_str(), "http://httpbin.org/get");
     /// # Ok(())
     /// # }
     /// ```
@@ -594,8 +596,8 @@
     ///
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let resp = reqwest::blocking::get(&quot;http://httpbin.org/redirect/1&quot;)?;
-    /// println!(&quot;httpbin.org address: {:?}&quot;, resp.remote_addr());
+    /// let resp = reqwest::blocking::get("http://httpbin.org/redirect/1")?;
+    /// println!("httpbin.org address: {:?}", resp.remote_addr());
     /// # Ok(())
     /// # }
     /// ```
@@ -617,7 +619,7 @@
     ///
     /// Reasons it may not be known:
     ///
-    /// - The server didn&#39;t send a `content-length` header.
+    /// - The server didn't send a `content-length` header.
     /// - The response is gzipped and automatically decoded (thus changing
     ///   the actual decoded length).
     </span><span class="kw">pub fn </span>content_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
@@ -646,7 +648,7 @@
     /// }
     ///
     /// # fn run() -&gt; Result&lt;(), Error&gt; {
-    /// let json: Ip = reqwest::blocking::get(&quot;http://httpbin.org/ip&quot;)?.json()?;
+    /// let json: Ip = reqwest::blocking::get("http://httpbin.org/ip")?.json()?;
     /// # Ok(())
     /// # }
     /// #
@@ -660,8 +662,8 @@
     /// details please see [`serde_json::from_reader`].
     ///
     /// [`serde_json::from_reader`]: https://docs.serde.rs/serde_json/fn.from_reader.html
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
     </span><span class="kw">pub fn </span>json&lt;T: DeserializeOwned&gt;(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;T&gt; {
         wait::timeout(<span class="self">self</span>.inner.json(), <span class="self">self</span>.timeout).map_err(|e| <span class="kw">match </span>e {
             wait::Waited::TimedOut(e) =&gt; <span class="kw">crate</span>::error::decode(e),
@@ -675,9 +677,9 @@
     ///
     /// ```
     /// # fn run() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-    /// let bytes = reqwest::blocking::get(&quot;http://httpbin.org/ip&quot;)?.bytes()?;
+    /// let bytes = reqwest::blocking::get("http://httpbin.org/ip")?.bytes()?;
     ///
-    /// println!(&quot;bytes: {:?}&quot;, bytes);
+    /// println!("bytes: {:?}", bytes);
     /// # Ok(())
     /// # }
     /// ```
@@ -700,12 +702,12 @@
     /// ```rust
     /// # extern crate reqwest;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let content = reqwest::blocking::get(&quot;http://httpbin.org/range/26&quot;)?.text()?;
+    /// let content = reqwest::blocking::get("http://httpbin.org/range/26")?.text()?;
     /// # Ok(())
     /// # }
     /// ```
     </span><span class="kw">pub fn </span>text(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Result&lt;String&gt; {
-        <span class="self">self</span>.text_with_charset(<span class="string">&quot;utf-8&quot;</span>)
+        <span class="self">self</span>.text_with_charset(<span class="string">"utf-8"</span>)
     }
 
     <span class="doccomment">/// Get the response text given a specific encoding.
@@ -723,8 +725,8 @@
     /// ```rust
     /// # extern crate reqwest;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let content = reqwest::blocking::get(&quot;http://httpbin.org/range/26&quot;)?
-    ///     .text_with_charset(&quot;utf-8&quot;)?;
+    /// let content = reqwest::blocking::get("http://httpbin.org/range/26")?
+    ///     .text_with_charset("utf-8")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -750,10 +752,10 @@
     ///
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let mut resp = reqwest::blocking::get(&quot;http://httpbin.org/range/5&quot;)?;
+    /// let mut resp = reqwest::blocking::get("http://httpbin.org/range/5")?;
     /// let mut buf: Vec&lt;u8&gt; = vec![];
     /// resp.copy_to(&amp;mut buf)?;
-    /// assert_eq!(b&quot;abcde&quot;, buf.as_slice());
+    /// assert_eq!(b"abcde", buf.as_slice());
     /// # Ok(())
     /// # }
     /// ```
@@ -771,7 +773,7 @@
     /// ```rust,no_run
     /// # extern crate reqwest;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let res = reqwest::blocking::get(&quot;http://httpbin.org/status/400&quot;)?
+    /// let res = reqwest::blocking::get("http://httpbin.org/status/400")?
     ///     .error_for_status();
     /// if let Err(err) = res {
     ///     assert_eq!(err.status(), Some(reqwest::StatusCode::BAD_REQUEST));
@@ -802,7 +804,7 @@
     /// ```rust,no_run
     /// # extern crate reqwest;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let res = reqwest::blocking::get(&quot;http://httpbin.org/status/400&quot;)?;
+    /// let res = reqwest::blocking::get("http://httpbin.org/status/400")?;
     /// let res = res.error_for_status_ref();
     /// if let Err(err) = res {
     ///     assert_eq!(err.status(), Some(reqwest::StatusCode::BAD_REQUEST));
@@ -826,7 +828,7 @@
 
             <span class="self">self</span>.body = <span class="prelude-val">Some</span>(Box::pin(body));
         }
-        <span class="self">self</span>.body.as_mut().expect(<span class="string">&quot;body was init&quot;</span>).as_mut()
+        <span class="self">self</span>.body.as_mut().expect(<span class="string">"body was init"</span>).as_mut()
     }
 }
 

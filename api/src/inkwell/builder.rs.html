@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2999,15 +3001,15 @@
 <span class="kw">use </span>std::marker::PhantomData;
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Builder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>Builder&lt;<span class="lifetime">'ctx</span>&gt; {
     builder: LLVMBuilderRef,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>()&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>()&gt;,
 }
 
 <span class="attr">#[allow(unused)] </span><span class="comment">// only used in documentation
 </span><span class="kw">use </span><span class="kw">crate</span>::context::Context;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Builder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Builder&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub unsafe fn </span>new(builder: LLVMBuilderRef) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(!builder.is_null());
 
@@ -3034,19 +3036,19 @@
     ///
     /// // A simple function which returns its argument:
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let arg_types = [i32_type.into()];
     /// let fn_type = i32_type.fn_type(&amp;arg_types, false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_arg = fn_value.get_first_param().unwrap();
     ///
     /// builder.position_at_end(entry);
     /// builder.build_return(Some(&amp;i32_arg));
     /// ```
-    </span><span class="kw">pub fn </span>build_return(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_return(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             value.map_or_else(
                 || LLVMBuildRetVoid(<span class="self">self</span>.builder),
@@ -3067,20 +3069,20 @@
     ///
     /// // This builds a simple function which returns a struct (tuple) of two ints.
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let i32_three = i32_type.const_int(3, false);
     /// let i32_seven = i32_type.const_int(7, false);
     /// let struct_type = context.struct_type(&amp;[i32_type.into(), i32_type.into()], false);
     /// let fn_type = struct_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry);
     /// builder.build_aggregate_return(&amp;[i32_three.into(), i32_seven.into()]);
     /// ```
-    </span><span class="kw">pub fn </span>build_aggregate_return(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_aggregate_return(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildAggregateRet(<span class="self">self</span>.builder, args.as_mut_ptr(), args.len() <span class="kw">as </span>u32) };
 
@@ -3100,18 +3102,18 @@
     ///
     /// // A simple function which calls itself:
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let fn_type = i32_type.fn_type(&amp;[i32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_arg = fn_value.get_first_param().unwrap();
-    /// let md_string = context.metadata_string(&quot;a metadata&quot;);
+    /// let md_string = context.metadata_string("a metadata");
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let ret_val = builder.build_call(fn_value, &amp;[i32_arg.into(), md_string.into()], &quot;call&quot;)
+    /// let ret_val = builder.build_call(fn_value, &amp;[i32_arg.into(), md_string.into()], "call")
     ///     .try_as_basic_value()
     ///     .left()
     ///     .unwrap();
@@ -3119,15 +3121,15 @@
     /// builder.build_return(Some(&amp;ret_val));
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
-    </span><span class="kw">pub fn </span>build_call&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: F, args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], name: <span class="kw-2">&amp;</span>str) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt;
+    </span><span class="kw">pub fn </span>build_call&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: F, args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;], name: <span class="kw-2">&amp;</span>str) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt;
     <span class="kw">where
-        </span>F: Into&lt;CallableValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
+        </span>F: Into&lt;CallableValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
     {
         <span class="kw">let </span>callable_value = function.into();
         <span class="kw">let </span>fn_val_ref = callable_value.as_value_ref();
 
-        <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything
-        </span><span class="kw">let </span>name = <span class="kw">if </span>callable_value.returns_void() { <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ name };
+        <span class="comment">// LLVM gets upset when void return calls are named because they don't return anything
+        </span><span class="kw">let </span>name = <span class="kw">if </span>callable_value.returns_void() { <span class="string">"" </span>} <span class="kw">else </span>{ name };
 
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = args.iter().map(|val| val.as_value_ref()).collect();
@@ -3149,10 +3151,10 @@
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_direct_call(function, args, name)
     }
 
@@ -3166,18 +3168,18 @@
     ///
     /// // A simple function which calls itself:
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let fn_type = i32_type.fn_type(&amp;[i32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_arg = fn_value.get_first_param().unwrap();
-    /// let md_string = context.metadata_string(&quot;a metadata&quot;);
+    /// let md_string = context.metadata_string("a metadata");
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let ret_val = builder.build_call(fn_value, &amp;[i32_arg.into(), md_string.into()], &quot;call&quot;)
+    /// let ret_val = builder.build_call(fn_value, &amp;[i32_arg.into(), md_string.into()], "call")
     ///     .try_as_basic_value()
     ///     .left()
     ///     .unwrap();
@@ -3187,10 +3189,10 @@
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_direct_call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_call_help(function.get_type(), function.as_value_ref(), args, name)
     }
 
@@ -3204,19 +3206,19 @@
     ///
     /// // A simple function which calls itself:
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let fn_type = i32_type.fn_type(&amp;[i32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_arg = fn_value.get_first_param().unwrap();
-    /// let md_string = context.metadata_string(&quot;a metadata&quot;);
+    /// let md_string = context.metadata_string("a metadata");
     ///
     /// builder.position_at_end(entry);
     ///
     /// let function_pointer = fn_value.as_global_value().as_pointer_value();
-    /// let ret_val = builder.build_indirect_call(fn_value.get_type(), function_pointer, &amp;[i32_arg.into(), md_string.into()], &quot;call&quot;)
+    /// let ret_val = builder.build_indirect_call(fn_value.get_type(), function_pointer, &amp;[i32_arg.into(), md_string.into()], "call")
     ///     .try_as_basic_value()
     ///     .left()
     ///     .unwrap();
@@ -3227,25 +3229,25 @@
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_indirect_call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_type: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        function_pointer: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        function_type: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
+        function_pointer: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_call_help(function_type, function_pointer.as_value_ref(), args, name)
     }
 
     <span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">fn </span>build_call_help(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_type: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        function_type: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
         fn_val_ref: LLVMValueRef,
-        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        args: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-        <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
+        <span class="comment">// LLVM gets upset when void return calls are named because they don't return anything
         </span><span class="kw">let </span>name = <span class="kw">match </span>function_type.get_return_type() {
-            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&quot;</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="string">""</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; name,
         };
 
@@ -3289,15 +3291,15 @@
     /// use inkwell::module::Linkage;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// let f32_type = context.f32_type();
     /// let fn_type = f32_type.fn_type(&amp;[], false);
     ///
     /// // we will pretend this function can throw an exception
-    /// let function = module.add_function(&quot;bomb&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("bomb", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -3305,15 +3307,15 @@
     ///
     /// builder.build_return(Some(&amp;pi));
     ///
-    /// let function2 = module.add_function(&quot;wrapper&quot;, fn_type, None);
-    /// let basic_block2 = context.append_basic_block(function2, &quot;entry&quot;);
+    /// let function2 = module.add_function("wrapper", fn_type, None);
+    /// let basic_block2 = context.append_basic_block(function2, "entry");
     ///
     /// builder.position_at_end(basic_block2);
     ///
-    /// let then_block = context.append_basic_block(function2, &quot;then_block&quot;);
-    /// let catch_block = context.append_basic_block(function2, &quot;catch_block&quot;);
+    /// let then_block = context.append_basic_block(function2, "then_block");
+    /// let catch_block = context.append_basic_block(function2, "catch_block");
     ///
-    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, &quot;get_pi&quot;);
+    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, "get_pi");
     ///
     /// {
     ///     builder.position_at_end(then_block);
@@ -3329,7 +3331,7 @@
     ///
     ///     // the personality function used by C++
     ///     let personality_function = {
-    ///         let name = &quot;__gxx_personality_v0&quot;;
+    ///         let name = "__gxx_personality_v0";
     ///         let linkage = Some(Linkage::External);
     ///
     ///         module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
@@ -3341,7 +3343,7 @@
     ///     let exception_type = context.struct_type(&amp;[i8_ptr_type.into(), i32_type.into()], false);
     ///
     ///     let null = i8_ptr_type.const_zero();
-    ///     let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, &quot;res&quot;);
+    ///     let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, "res");
     ///
     ///     // we handle the exception by returning a default value
     ///     builder.build_return(Some(&amp;f32_type.const_zero()));
@@ -3351,19 +3353,19 @@
     </span><span class="kw">pub fn </span>build_invoke&lt;F&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         function: F,
-        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        catch_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        catch_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt;
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt;
     <span class="kw">where
-        </span>F: Into&lt;CallableValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;,
+        </span>F: Into&lt;CallableValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;,
     {
-        <span class="kw">let </span>callable_value: CallableValue&lt;<span class="lifetime">&#39;ctx</span>&gt; = function.into();
+        <span class="kw">let </span>callable_value: CallableValue&lt;<span class="lifetime">'ctx</span>&gt; = function.into();
         <span class="kw">let </span>fn_val_ref = callable_value.as_value_ref();
 
-        <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything
-        </span><span class="kw">let </span>name = <span class="kw">if </span>callable_value.returns_void() { <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ name };
+        <span class="comment">// LLVM gets upset when void return calls are named because they don't return anything
+        </span><span class="kw">let </span>name = <span class="kw">if </span>callable_value.returns_void() { <span class="string">"" </span>} <span class="kw">else </span>{ name };
 
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = args.iter().map(|val| val.as_value_ref()).collect();
@@ -3404,15 +3406,15 @@
     /// use inkwell::module::Linkage;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// let f32_type = context.f32_type();
     /// let fn_type = f32_type.fn_type(&amp;[], false);
     ///
     /// // we will pretend this function can throw an exception
-    /// let function = module.add_function(&quot;bomb&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("bomb", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -3420,15 +3422,15 @@
     ///
     /// builder.build_return(Some(&amp;pi));
     ///
-    /// let function2 = module.add_function(&quot;wrapper&quot;, fn_type, None);
-    /// let basic_block2 = context.append_basic_block(function2, &quot;entry&quot;);
+    /// let function2 = module.add_function("wrapper", fn_type, None);
+    /// let basic_block2 = context.append_basic_block(function2, "entry");
     ///
     /// builder.position_at_end(basic_block2);
     ///
-    /// let then_block = context.append_basic_block(function2, &quot;then_block&quot;);
-    /// let catch_block = context.append_basic_block(function2, &quot;catch_block&quot;);
+    /// let then_block = context.append_basic_block(function2, "then_block");
+    /// let catch_block = context.append_basic_block(function2, "catch_block");
     ///
-    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, &quot;get_pi&quot;);
+    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, "get_pi");
     ///
     /// {
     ///     builder.position_at_end(then_block);
@@ -3444,7 +3446,7 @@
     ///
     ///     // the personality function used by C++
     ///     let personality_function = {
-    ///         let name = &quot;__gxx_personality_v0&quot;;
+    ///         let name = "__gxx_personality_v0";
     ///         let linkage = Some(Linkage::External);
     ///
     ///         module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
@@ -3456,7 +3458,7 @@
     ///     let exception_type = context.struct_type(&amp;[i8_ptr_type.into(), i32_type.into()], false);
     ///
     ///     let null = i8_ptr_type.const_zero();
-    ///     let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, &quot;res&quot;);
+    ///     let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, "res");
     ///
     ///     // we handle the exception by returning a default value
     ///     builder.build_return(Some(&amp;f32_type.const_zero()));
@@ -3465,24 +3467,24 @@
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_invoke(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        catch_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        catch_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_direct_invoke(function, args, then_block, catch_block, name)
     }
 
     <span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_direct_invoke(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        catch_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        catch_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_invoke_help(
             function.get_type(),
             function.as_value_ref(),
@@ -3496,13 +3498,13 @@
     <span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_indirect_invoke(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_type: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        function_pointer: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        catch_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        function_type: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
+        function_pointer: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        catch_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.build_invoke_help(
             function_type,
             function_pointer.as_value_ref(),
@@ -3516,17 +3518,17 @@
     <span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
     </span><span class="kw">fn </span>build_invoke_help(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        fn_ty: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        fn_ty: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
         fn_val_ref: LLVMValueRef,
-        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        catch_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        args: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        catch_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; CallSiteValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; CallSiteValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>fn_ty_ref = fn_ty.as_type_ref();
 
-        <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything
-        </span><span class="kw">let </span>name = <span class="kw">if </span>fn_ty.get_return_type().is_none() { <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ name };
+        <span class="comment">// LLVM gets upset when void return calls are named because they don't return anything
+        </span><span class="kw">let </span>name = <span class="kw">if </span>fn_ty.get_return_type().is_none() { <span class="string">"" </span>} <span class="kw">else </span>{ name };
 
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = args.iter().map(|val| val.as_value_ref()).collect();
@@ -3566,7 +3568,7 @@
     /// use inkwell::module::Linkage;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// // type of an exception in C++
@@ -3576,14 +3578,14 @@
     ///
     /// // the personality function used by C++
     /// let personality_function = {
-    ///     let name = &quot;__gxx_personality_v0&quot;;
+    ///     let name = "__gxx_personality_v0";
     ///     let linkage = Some(Linkage::External);
     ///
     ///     module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
     /// };
     ///
     /// // make the cleanup landing pad
-    /// let res = builder.build_landing_pad( exception_type, personality_function, &amp;[], true, &quot;res&quot;);
+    /// let res = builder.build_landing_pad( exception_type, personality_function, &amp;[], true, "res");
     /// ```
     ///
     /// * **catch all**: An implementation of the C++ `catch(...)`, which catches all exceptions.
@@ -3595,7 +3597,7 @@
     /// use inkwell::module::Linkage;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// // type of an exception in C++
@@ -3605,7 +3607,7 @@
     ///
     /// // the personality function used by C++
     /// let personality_function = {
-    ///     let name = &quot;__gxx_personality_v0&quot;;
+    ///     let name = "__gxx_personality_v0";
     ///     let linkage = Some(Linkage::External);
     ///
     ///     module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
@@ -3615,10 +3617,10 @@
     /// let null = i8_ptr_type.const_zero();
     ///
     /// // make the catch all landing pad
-    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, &quot;res&quot;);
+    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[null.into()], false, "res");
     /// ```
     ///
-    /// * **catch a type of exception**: Catch a specific type of exception. The example uses C++&#39;s type info.
+    /// * **catch a type of exception**: Catch a specific type of exception. The example uses C++'s type info.
     ///
     /// ```no_run
     /// use inkwell::context::Context;
@@ -3627,7 +3629,7 @@
     /// use inkwell::values::BasicValue;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// // type of an exception in C++
@@ -3637,19 +3639,19 @@
     ///
     /// // the personality function used by C++
     /// let personality_function = {
-    ///     let name = &quot;__gxx_personality_v0&quot;;
+    ///     let name = "__gxx_personality_v0";
     ///     let linkage = Some(Linkage::External);
     ///
     ///     module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
     /// };
     ///
     /// // link in the C++ type info for the `int` type
-    /// let type_info_int = module.add_global(i8_ptr_type, Some(AddressSpace::default()), &quot;_ZTIi&quot;);
+    /// let type_info_int = module.add_global(i8_ptr_type, Some(AddressSpace::default()), "_ZTIi");
     /// type_info_int.set_linkage(Linkage::External);
     ///
     /// // make the catch landing pad
     /// let clause = type_info_int.as_basic_value_enum();
-    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[clause], false, &quot;res&quot;);
+    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[clause], false, "res");
     /// ```
     ///
     /// * **filter**: A filter clause encodes that only some types of exceptions are valid at this
@@ -3662,7 +3664,7 @@
     /// use inkwell::AddressSpace;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// // type of an exception in C++
@@ -3672,30 +3674,30 @@
     ///
     /// // the personality function used by C++
     /// let personality_function = {
-    ///     let name = &quot;__gxx_personality_v0&quot;;
+    ///     let name = "__gxx_personality_v0";
     ///     let linkage = Some(Linkage::External);
     ///
     ///     module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
     /// };
     ///
     /// // link in the C++ type info for the `int` type
-    /// let type_info_int = module.add_global(i8_ptr_type, Some(AddressSpace::default()), &quot;_ZTIi&quot;);
+    /// let type_info_int = module.add_global(i8_ptr_type, Some(AddressSpace::default()), "_ZTIi");
     /// type_info_int.set_linkage(Linkage::External);
     ///
     /// // make the filter landing pad
     /// let filter_pattern = i8_ptr_type.const_array(&amp;[type_info_int.as_any_value_enum().into_pointer_value()]);
-    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[filter_pattern.into()], false, &quot;res&quot;);
+    /// let res = builder.build_landing_pad(exception_type, personality_function, &amp;[filter_pattern.into()], false, "res");
     /// ```
     </span><span class="kw">pub fn </span>build_landing_pad&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         exception_type: T,
-        personality_function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        clauses: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        personality_function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        clauses: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;],
         is_cleanup: bool,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;
     <span class="kw">where
-        </span>T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        </span>T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;,
     {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>num_clauses = clauses.len() <span class="kw">as </span>u32;
@@ -3735,15 +3737,15 @@
     /// use inkwell::module::Linkage;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let builder = context.create_builder();
     ///
     /// let f32_type = context.f32_type();
     /// let fn_type = f32_type.fn_type(&amp;[], false);
     ///
     /// // we will pretend this function can throw an exception
-    /// let function = module.add_function(&quot;bomb&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("bomb", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -3751,15 +3753,15 @@
     ///
     /// builder.build_return(Some(&amp;pi));
     ///
-    /// let function2 = module.add_function(&quot;wrapper&quot;, fn_type, None);
-    /// let basic_block2 = context.append_basic_block(function2, &quot;entry&quot;);
+    /// let function2 = module.add_function("wrapper", fn_type, None);
+    /// let basic_block2 = context.append_basic_block(function2, "entry");
     ///
     /// builder.position_at_end(basic_block2);
     ///
-    /// let then_block = context.append_basic_block(function2, &quot;then_block&quot;);
-    /// let catch_block = context.append_basic_block(function2, &quot;catch_block&quot;);
+    /// let then_block = context.append_basic_block(function2, "then_block");
+    /// let catch_block = context.append_basic_block(function2, "catch_block");
     ///
-    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, &quot;get_pi&quot;);
+    /// let call_site = builder.build_invoke(function, &amp;[], then_block, catch_block, "get_pi");
     ///
     /// {
     ///     builder.position_at_end(then_block);
@@ -3775,7 +3777,7 @@
     ///
     ///     // the personality function used by C++
     ///     let personality_function = {
-    ///         let name = &quot;__gxx_personality_v0&quot;;
+    ///         let name = "__gxx_personality_v0";
     ///         let linkage = Some(Linkage::External);
     ///
     ///         module.add_function(name, context.i64_type().fn_type(&amp;[], false), linkage)
@@ -3787,28 +3789,28 @@
     ///     let exception_type = context.struct_type(&amp;[i8_ptr_type.into(), i32_type.into()], false);
     ///
     ///     // make the landing pad; must give a concrete type to the slice
-    ///     let res = builder.build_landing_pad( exception_type, personality_function, &amp;[], true, &quot;res&quot;);
+    ///     let res = builder.build_landing_pad( exception_type, personality_function, &amp;[], true, "res");
     ///
     ///     // do cleanup ...
     ///
     ///     builder.build_resume(res);
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>build_resume&lt;V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: V) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_resume&lt;V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: V) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{ LLVMBuildResume(<span class="self">self</span>.builder, value.as_value_ref()) };
 
         <span class="kw">unsafe </span>{ InstructionValue::new(val) }
     }
 
-    <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?
+    <span class="comment">// REVIEW: Doesn't GEP work on array too?
     </span><span class="doccomment">/// GEP is very likely to segfault if indexes are used incorrectly, and is therefore an unsafe function. Maybe we can change this in the future.
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
     </span><span class="kw">pub unsafe fn </span>build_gep(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span><span class="kw-2">mut </span>index_values: Vec&lt;LLVMValueRef&gt; = ordered_indexes.iter().map(|val| val.as_value_ref()).collect();
@@ -3824,16 +3826,16 @@
         PointerValue::new(value)
     }
 
-    <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?
+    <span class="comment">// REVIEW: Doesn't GEP work on array too?
     </span><span class="doccomment">/// GEP is very likely to segfault if indexes are used incorrectly, and is therefore an unsafe function. Maybe we can change this in the future.
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
-    </span><span class="kw">pub unsafe fn </span>build_gep&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub unsafe fn </span>build_gep&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pointee_ty: T,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span><span class="kw-2">mut </span>index_values: Vec&lt;LLVMValueRef&gt; = ordered_indexes.iter().map(|val| val.as_value_ref()).collect();
@@ -3850,16 +3852,16 @@
         PointerValue::new(value)
     }
 
-    <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?
+    <span class="comment">// REVIEW: Doesn't GEP work on array too?
     // REVIEW: This could be merge in with build_gep via a in_bounds: bool param
     </span><span class="doccomment">/// GEP is very likely to segfault if indexes are used incorrectly, and is therefore an unsafe function. Maybe we can change this in the future.
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
     </span><span class="kw">pub unsafe fn </span>build_in_bounds_gep(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span><span class="kw-2">mut </span>index_values: Vec&lt;LLVMValueRef&gt; = ordered_indexes.iter().map(|val| val.as_value_ref()).collect();
@@ -3875,17 +3877,17 @@
         PointerValue::new(value)
     }
 
-    <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?
+    <span class="comment">// REVIEW: Doesn't GEP work on array too?
     // REVIEW: This could be merge in with build_gep via a in_bounds: bool param
     </span><span class="doccomment">/// GEP is very likely to segfault if indexes are used incorrectly, and is therefore an unsafe function. Maybe we can change this in the future.
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
-    </span><span class="kw">pub unsafe fn </span>build_in_bounds_gep&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub unsafe fn </span>build_in_bounds_gep&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pointee_ty: T,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;],
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        ordered_indexes: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ctx</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span><span class="kw-2">mut </span>index_values: Vec&lt;LLVMValueRef&gt; = ordered_indexes.iter().map(|val| val.as_value_ref()).collect();
@@ -3902,7 +3904,7 @@
         PointerValue::new(value)
     }
 
-    <span class="doccomment">/// Builds a GEP instruction on a struct pointer. Returns `Err(())` if input `PointerValue` doesn&#39;t
+    <span class="doccomment">/// Builds a GEP instruction on a struct pointer. Returns `Err(())` if input `PointerValue` doesn't
     /// point to a struct or if index is out of bounds.
     ///
     /// # Example
@@ -3913,7 +3915,7 @@
     ///
     /// let context = Context::create();
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;struct_gep&quot;);
+    /// let module = context.create_module("struct_gep");
     /// let void_type = context.void_type();
     /// let i32_ty = context.i32_type();
     /// let i32_ptr_ty = i32_ty.ptr_type(AddressSpace::default());
@@ -3921,22 +3923,22 @@
     /// let struct_ty = context.struct_type(field_types, false);
     /// let struct_ptr_ty = struct_ty.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_ty.into(), struct_ptr_ty.into()], false);
-    /// let fn_value = module.add_function(&quot;&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry);
     ///
     /// let i32_ptr = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let struct_ptr = fn_value.get_last_param().unwrap().into_pointer_value();
     ///
-    /// assert!(builder.build_struct_gep(i32_ptr, 0, &quot;struct_gep&quot;).is_err());
-    /// assert!(builder.build_struct_gep(i32_ptr, 10, &quot;struct_gep&quot;).is_err());
-    /// assert!(builder.build_struct_gep(struct_ptr, 0, &quot;struct_gep&quot;).is_ok());
-    /// assert!(builder.build_struct_gep(struct_ptr, 1, &quot;struct_gep&quot;).is_ok());
-    /// assert!(builder.build_struct_gep(struct_ptr, 2, &quot;struct_gep&quot;).is_err());
+    /// assert!(builder.build_struct_gep(i32_ptr, 0, "struct_gep").is_err());
+    /// assert!(builder.build_struct_gep(i32_ptr, 10, "struct_gep").is_err());
+    /// assert!(builder.build_struct_gep(struct_ptr, 0, "struct_gep").is_ok());
+    /// assert!(builder.build_struct_gep(struct_ptr, 1, "struct_gep").is_ok());
+    /// assert!(builder.build_struct_gep(struct_ptr, 2, "struct_gep").is_err());
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
-    </span><span class="kw">pub fn </span>build_struct_gep(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, index: u32, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, ()&gt; {
+    </span><span class="kw">pub fn </span>build_struct_gep(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, index: u32, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, ()&gt; {
         <span class="kw">let </span>ptr_ty = ptr.get_type();
         <span class="kw">let </span>pointee_ty = ptr_ty.get_element_type();
 
@@ -3957,7 +3959,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(PointerValue::new(value)) }
     }
 
-    <span class="doccomment">/// Builds a GEP instruction on a struct pointer. Returns `Err(())` if input `PointerValue` doesn&#39;t
+    <span class="doccomment">/// Builds a GEP instruction on a struct pointer. Returns `Err(())` if input `PointerValue` doesn't
     /// point to a struct or if index is out of bounds.
     ///
     /// # Example
@@ -3968,7 +3970,7 @@
     ///
     /// let context = Context::create();
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;struct_gep&quot;);
+    /// let module = context.create_module("struct_gep");
     /// let void_type = context.void_type();
     /// let i32_ty = context.i32_type();
     /// let i32_ptr_ty = i32_ty.ptr_type(AddressSpace::default());
@@ -3976,28 +3978,28 @@
     /// let struct_ty = context.struct_type(field_types, false);
     /// let struct_ptr_ty = struct_ty.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_ty.into(), struct_ptr_ty.into()], false);
-    /// let fn_value = module.add_function(&quot;&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry);
     ///
     /// let i32_ptr = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let struct_ptr = fn_value.get_last_param().unwrap().into_pointer_value();
     ///
-    /// assert!(builder.build_struct_gep(i32_ty, i32_ptr, 0, &quot;struct_gep&quot;).is_err());
-    /// assert!(builder.build_struct_gep(i32_ty, i32_ptr, 10, &quot;struct_gep&quot;).is_err());
-    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 0, &quot;struct_gep&quot;).is_ok());
-    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 1, &quot;struct_gep&quot;).is_ok());
-    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 2, &quot;struct_gep&quot;).is_err());
+    /// assert!(builder.build_struct_gep(i32_ty, i32_ptr, 0, "struct_gep").is_err());
+    /// assert!(builder.build_struct_gep(i32_ty, i32_ptr, 10, "struct_gep").is_err());
+    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 0, "struct_gep").is_ok());
+    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 1, "struct_gep").is_ok());
+    /// assert!(builder.build_struct_gep(struct_ty, struct_ptr, 2, "struct_gep").is_err());
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>build_struct_gep&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_struct_gep&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pointee_ty: T,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         index: u32,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, ()&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, ()&gt; {
         <span class="kw">let </span>pointee_ty = pointee_ty.as_any_type_enum();
 
         <span class="kw">if </span>!pointee_ty.is_struct_type() {
@@ -4035,28 +4037,28 @@
     ///
     /// // Builds a function which diffs two pointers
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_type.into(), i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param1 = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let i32_ptr_param2 = fn_value.get_nth_param(1).unwrap().into_pointer_value();
     ///
     /// builder.position_at_end(entry);
-    /// builder.build_ptr_diff(i32_ptr_param1, i32_ptr_param2, &quot;diff&quot;);
+    /// builder.build_ptr_diff(i32_ptr_param1, i32_ptr_param2, "diff");
     /// builder.build_return(None);
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
     </span><span class="kw">pub fn </span>build_ptr_diff(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        lhs_ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        rhs_ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        lhs_ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        rhs_ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildPtrDiff(
@@ -4080,29 +4082,29 @@
     ///
     /// // Builds a function which diffs two pointers
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_type.into(), i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param1 = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let i32_ptr_param2 = fn_value.get_nth_param(1).unwrap().into_pointer_value();
     ///
     /// builder.position_at_end(entry);
-    /// builder.build_ptr_diff(i32_ptr_type, i32_ptr_param1, i32_ptr_param2, &quot;diff&quot;);
+    /// builder.build_ptr_diff(i32_ptr_type, i32_ptr_param1, i32_ptr_param2, "diff");
     /// builder.build_return(None);
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>build_ptr_diff&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_ptr_diff&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pointee_ty: T,
-        lhs_ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        rhs_ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        lhs_ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        rhs_ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4123,7 +4125,7 @@
     // tricky with VoidType since it has no instance value?
     // TODOC: Phi Instruction(s) must be first instruction(s) in a BasicBlock.
     // REVIEW: Not sure if we can enforce the above somehow via types.
-    </span><span class="kw">pub fn </span>build_phi&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, type_: T, name: <span class="kw-2">&amp;</span>str) -&gt; PhiValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_phi&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, type_: T, name: <span class="kw-2">&amp;</span>str) -&gt; PhiValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildPhi(<span class="self">self</span>.builder, type_.as_type_ref(), c_string.as_ptr()) };
 
@@ -4140,22 +4142,22 @@
     ///
     /// // Builds a function which takes an i32 pointer and stores a 7 in it.
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let i32_seven = i32_type.const_int(7, false);
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param = fn_value.get_first_param().unwrap().into_pointer_value();
     ///
     /// builder.position_at_end(entry);
     /// builder.build_store(i32_ptr_param, i32_seven);
     /// builder.build_return(None);
     /// ```
-    </span><span class="kw">pub fn </span>build_store&lt;V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, value: V) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_store&lt;V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, value: V) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildStore(<span class="self">self</span>.builder, value.as_value_ref(), ptr.as_value_ref()) };
 
         <span class="kw">unsafe </span>{ InstructionValue::new(value) }
@@ -4171,23 +4173,23 @@
     ///
     /// // Builds a function which takes an i32 pointer and returns the pointed at i32.
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = i32_type.fn_type(&amp;[i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param = fn_value.get_first_param().unwrap().into_pointer_value();
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let pointee = builder.build_load(i32_ptr_param, &quot;load&quot;);
+    /// let pointee = builder.build_load(i32_ptr_param, "load");
     ///
     /// builder.build_return(Some(&amp;pointee));
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">14.0</span>)]
-    </span><span class="kw">pub fn </span>build_load(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_load(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildLoad(<span class="self">self</span>.builder, ptr.as_value_ref(), c_string.as_ptr()) };
@@ -4205,28 +4207,28 @@
     ///
     /// // Builds a function which takes an i32 pointer and returns the pointed at i32.
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ret&quot;);
+    /// let module = context.create_module("ret");
     /// let builder = context.create_builder();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = i32_type.fn_type(&amp;[i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;ret&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("ret", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param = fn_value.get_first_param().unwrap().into_pointer_value();
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let pointee = builder.build_load(i32_type, i32_ptr_param, &quot;load2&quot;);
+    /// let pointee = builder.build_load(i32_type, i32_ptr_param, "load2");
     ///
     /// builder.build_return(Some(&amp;pointee));
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">15.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>build_load&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_load&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pointee_ty: T,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4242,7 +4244,7 @@
     }
 
     <span class="comment">// TODOC: Stack allocation
-    </span><span class="kw">pub fn </span>build_alloca&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_alloca&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildAlloca(<span class="self">self</span>.builder, ty.as_type_ref(), c_string.as_ptr()) };
 
@@ -4250,12 +4252,12 @@
     }
 
     <span class="comment">// TODOC: Stack allocation
-    </span><span class="kw">pub fn </span>build_array_alloca&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_array_alloca&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ty: T,
-        size: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        size: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value =
             <span class="kw">unsafe </span>{ LLVMBuildArrayAlloca(<span class="self">self</span>.builder, ty.as_type_ref(), size.as_value_ref(), c_string.as_ptr()) };
@@ -4274,18 +4276,18 @@
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_memcpy(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        dest: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        dest: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         dest_align_bytes: u32,
-        src: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        src: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         src_align_bytes: u32,
-        size: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        size: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!is_alignment_ok(src_align_bytes) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The src_align_bytes argument to build_memcpy was not a power of 2.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The src_align_bytes argument to build_memcpy was not a power of 2."</span>);
         }
 
         <span class="kw">if </span>!is_alignment_ok(dest_align_bytes) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The dest_align_bytes argument to build_memcpy was not a power of 2.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The dest_align_bytes argument to build_memcpy was not a power of 2."</span>);
         }
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4313,18 +4315,18 @@
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_memmove(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        dest: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        dest: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         dest_align_bytes: u32,
-        src: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        src: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         src_align_bytes: u32,
-        size: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        size: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!is_alignment_ok(src_align_bytes) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The src_align_bytes argument to build_memmove was not a power of 2 under 2^64.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The src_align_bytes argument to build_memmove was not a power of 2 under 2^64."</span>);
         }
 
         <span class="kw">if </span>!is_alignment_ok(dest_align_bytes) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The dest_align_bytes argument to build_memmove was not a power of 2 under 2^64.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The dest_align_bytes argument to build_memmove was not a power of 2 under 2^64."</span>);
         }
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4352,13 +4354,13 @@
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>build_memset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        dest: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        dest: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         dest_align_bytes: u32,
-        val: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        size: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        val: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        size: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!is_alignment_ok(dest_align_bytes) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The src_align_bytes argument to build_memmove was not a power of 2 under 2^64.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The src_align_bytes argument to build_memmove was not a power of 2 under 2^64."</span>);
         }
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4375,10 +4377,10 @@
     }
 
     <span class="comment">// TODOC: Heap allocation
-    </span><span class="kw">pub fn </span>build_malloc&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>build_malloc&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="comment">// LLVMBulidMalloc segfaults if ty is unsized
         </span><span class="kw">if </span>!ty.is_sized() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Cannot build malloc call for an unsized type&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Cannot build malloc call for an unsized type"</span>);
         }
 
         <span class="kw">let </span>c_string = to_c_str(name);
@@ -4389,15 +4391,15 @@
     }
 
     <span class="comment">// TODOC: Heap allocation
-    </span><span class="kw">pub fn </span>build_array_malloc&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_array_malloc&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ty: T,
-        size: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        size: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="comment">// LLVMBulidArrayMalloc segfaults if ty is unsized
         </span><span class="kw">if </span>!ty.is_sized() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Cannot build array malloc call for an unsized type&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Cannot build array malloc call for an unsized type"</span>);
         }
 
         <span class="kw">let </span>c_string = to_c_str(name);
@@ -4409,11 +4411,11 @@
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: PointerValue&lt;P&gt;) -&gt; InstructionValue {
-    </span><span class="kw">pub fn </span>build_free(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_free(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ InstructionValue::new(LLVMBuildFree(<span class="self">self</span>.builder, ptr.as_value_ref())) }
     }
 
-    <span class="kw">pub fn </span>insert_instruction(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
+    <span class="kw">pub fn </span>insert_instruction(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
         <span class="kw">match </span>name {
             <span class="prelude-val">Some</span>(name) =&gt; {
                 <span class="kw">let </span>c_string = to_c_str(name);
@@ -4426,14 +4428,14 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_insert_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_insert_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ BasicBlock::new(LLVMGetInsertBlock(<span class="self">self</span>.builder)) }
     }
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes
     // SubType: &lt;I: IntSubType&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
     //     if I::sign() == Unsigned { LLVMBuildUDiv() } else { LLVMBuildSDiv() }
-    </span><span class="kw">pub fn </span>build_int_unsigned_div&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_unsigned_div&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildUDiv(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4442,7 +4444,7 @@
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_signed_div&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_signed_div&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildSDiv(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4451,7 +4453,7 @@
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_exact_signed_div&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_exact_signed_div&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value =
             <span class="kw">unsafe </span>{ LLVMBuildExactSDiv(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
@@ -4461,7 +4463,7 @@
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_unsigned_rem&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_unsigned_rem&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildURem(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4470,14 +4472,14 @@
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_signed_rem&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_signed_rem&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildSRem(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_s_extend&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_int_s_extend&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildSExt(
@@ -4494,10 +4496,10 @@
     <span class="comment">// REVIEW: Does this need vector support?
     </span><span class="kw">pub fn </span>build_address_space_cast(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ptr_val: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        ptr_type: PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ptr_val: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        ptr_type: PointerType&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildAddrSpaceCast(
@@ -4521,28 +4523,28 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;bc&quot;);
+    /// let module = context.create_module("bc");
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let i32_type = context.i32_type();
     /// let arg_types = [i32_type.into()];
     /// let fn_type = void_type.fn_type(&amp;arg_types, false);
-    /// let fn_value = module.add_function(&quot;bc&quot;, fn_type, None);
+    /// let fn_value = module.add_function("bc", fn_type, None);
     /// let builder = context.create_builder();
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_arg = fn_value.get_first_param().unwrap();
     ///
     /// builder.position_at_end(entry);
     ///
-    /// builder.build_bitcast(i32_arg, f32_type, &quot;i32tof32&quot;);
+    /// builder.build_bitcast(i32_arg, f32_type, "i32tof32");
     /// builder.build_return(None);
     ///
     /// assert!(module.verify().is_ok());
     /// ```
-    </span><span class="kw">pub fn </span>build_bitcast&lt;T, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, val: V, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;
+    </span><span class="kw">pub fn </span>build_bitcast&lt;T, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, val: V, ty: T, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;
     <span class="kw">where
-        </span>T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        </span>T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;,
+        V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;,
     {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildBitCast(<span class="self">self</span>.builder, val.as_value_ref(), ty.as_type_ref(), c_string.as_ptr()) };
@@ -4550,7 +4552,7 @@
         <span class="kw">unsafe </span>{ BasicValueEnum::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_s_extend_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_int_s_extend_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int_value: T,
         int_type: T::BaseType,
@@ -4569,7 +4571,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_z_extend&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_int_z_extend&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildZExt(
@@ -4583,7 +4585,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_z_extend_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_int_z_extend_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int_value: T,
         int_type: T::BaseType,
@@ -4602,7 +4604,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_truncate&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_int_truncate&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int_value: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -4617,7 +4619,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_int_truncate_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_int_truncate_or_bit_cast&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int_value: T,
         int_type: T::BaseType,
@@ -4637,7 +4639,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_rem&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_float_rem&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFRem(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4645,12 +4647,12 @@
     }
 
     <span class="comment">// REVIEW: Consolidate these two casts into one via subtypes
-    </span><span class="kw">pub fn </span>build_float_to_unsigned_int&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_float_to_unsigned_int&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         float: T,
-        int_type: &lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType,
+        int_type: &lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildFPToUI(
@@ -4664,12 +4666,12 @@
         <span class="kw">unsafe </span>{ &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&gt;::MathConvType <span class="kw">as </span>IntMathType&gt;::ValueType::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_to_signed_int&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_float_to_signed_int&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         float: T,
-        int_type: &lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType,
+        int_type: &lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildFPToSI(
@@ -4684,12 +4686,12 @@
     }
 
     <span class="comment">// REVIEW: Consolidate these two casts into one via subtypes
-    </span><span class="kw">pub fn </span>build_unsigned_int_to_float&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_unsigned_int_to_float&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int: T,
-        float_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType,
+        float_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildUIToFP(
@@ -4703,12 +4705,12 @@
         <span class="kw">unsafe </span>{ &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&gt;::MathConvType <span class="kw">as </span>FloatMathType&gt;::ValueType::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_signed_int_to_float&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_signed_int_to_float&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int: T,
-        float_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType,
+        float_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildSIToFP(
@@ -4722,7 +4724,7 @@
         <span class="kw">unsafe </span>{ &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&gt;::MathConvType <span class="kw">as </span>FloatMathType&gt;::ValueType::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_trunc&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_float_trunc&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildFPTrunc(
@@ -4736,7 +4738,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_ext&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_float_ext&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildFPExt(
@@ -4750,7 +4752,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_cast&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_float_cast&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, float: T, float_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildFPCast(
@@ -4765,7 +4767,7 @@
     }
 
     <span class="comment">// SubType: &lt;L, R&gt;(&amp;self, lhs: &amp;IntValue&lt;L&gt;, rhs: &amp;IntType&lt;R&gt;, name: &amp;str) -&gt; IntValue&lt;R&gt; {
-    </span><span class="kw">pub fn </span>build_int_cast&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_cast&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, int: T, int_type: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildIntCast(
@@ -4781,7 +4783,7 @@
 
     <span class="doccomment">/// Like `build_int_cast`, but respects the signedness of the type being cast to.
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>build_int_cast_sign_flag&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_int_cast_sign_flag&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int: T,
         int_type: T::BaseType,
@@ -4802,7 +4804,7 @@
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_float_div&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    <span class="kw">pub fn </span>build_float_div&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFDiv(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4810,7 +4812,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_add&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_add&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildAdd(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4819,7 +4821,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_add via flag param
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nsw_add&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nsw_add&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNSWAdd(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4828,7 +4830,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_add via flag param
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nuw_add&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nuw_add&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNUWAdd(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4836,7 +4838,7 @@
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {
-    </span><span class="kw">pub fn </span>build_float_add&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_float_add&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFAdd(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4844,7 +4846,7 @@
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {
-    </span><span class="kw">pub fn </span>build_xor&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_xor&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildXor(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4852,7 +4854,7 @@
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {
-    </span><span class="kw">pub fn </span>build_and&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_and&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildAnd(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4860,7 +4862,7 @@
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {
-    </span><span class="kw">pub fn </span>build_or&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_or&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildOr(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4870,7 +4872,7 @@
     <span class="doccomment">/// Builds an `IntValue` containing the result of a logical left shift instruction.
     ///
     /// # Example
-    /// A logical left shift is an operation in which an integer value&#39;s bits are shifted left by N number of positions.
+    /// A logical left shift is an operation in which an integer value's bits are shifted left by N number of positions.
     ///
     /// ```rust,no_run
     /// assert_eq!(0b0000_0001 &lt;&lt; 0, 0b0000_0001);
@@ -4893,24 +4895,24 @@
     ///
     /// // Setup
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let i8_type = context.i8_type();
     /// let fn_type = i8_type.fn_type(&amp;[i8_type.into(), i8_type.into()], false);
     ///
     /// // Function Definition
-    /// let function = module.add_function(&quot;left_shift&quot;, fn_type, None);
+    /// let function = module.add_function("left_shift", fn_type, None);
     /// let value = function.get_first_param().unwrap().into_int_value();
     /// let n = function.get_nth_param(1).unwrap().into_int_value();
-    /// let entry_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let entry_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
-    /// let shift = builder.build_left_shift(value, n, &quot;left_shift&quot;); // value &lt;&lt; n
+    /// let shift = builder.build_left_shift(value, n, "left_shift"); // value &lt;&lt; n
     ///
     /// builder.build_return(Some(&amp;shift));
     /// ```
-    </span><span class="kw">pub fn </span>build_left_shift&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_left_shift&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildShl(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -4920,7 +4922,7 @@
     <span class="doccomment">/// Builds an `IntValue` containing the result of a right shift instruction.
     ///
     /// # Example
-    /// A right shift is an operation in which an integer value&#39;s bits are shifted right by N number of positions.
+    /// A right shift is an operation in which an integer value's bits are shifted right by N number of positions.
     /// It may either be logical and have its leftmost N bit(s) filled with zeros or sign extended and filled with ones
     /// if the leftmost bit was one.
     ///
@@ -4962,26 +4964,26 @@
     ///
     /// // Setup
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let i8_type = context.i8_type();
     /// let fn_type = i8_type.fn_type(&amp;[i8_type.into(), i8_type.into()], false);
     ///
     /// // Function Definition
-    /// let function = module.add_function(&quot;right_shift&quot;, fn_type, None);
+    /// let function = module.add_function("right_shift", fn_type, None);
     /// let value = function.get_first_param().unwrap().into_int_value();
     /// let n = function.get_nth_param(1).unwrap().into_int_value();
-    /// let entry_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let entry_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
     /// // Whether or not your right shift is sign extended (true) or logical (false) depends
     /// // on the boolean input parameter:
-    /// let shift = builder.build_right_shift(value, n, false, &quot;right_shift&quot;); // value &gt;&gt; n
+    /// let shift = builder.build_right_shift(value, n, false, "right_shift"); // value &gt;&gt; n
     ///
     /// builder.build_return(Some(&amp;shift));
     /// ```
-    </span><span class="kw">pub fn </span>build_right_shift&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, sign_extend: bool, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_right_shift&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, sign_extend: bool, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             <span class="kw">if </span>sign_extend {
@@ -4995,7 +4997,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_sub&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_sub&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildSub(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5003,7 +5005,7 @@
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_sub via flag param
-    </span><span class="kw">pub fn </span>build_int_nsw_sub&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nsw_sub&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNSWSub(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5012,7 +5014,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_sub via flag param
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nuw_sub&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nuw_sub&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNUWSub(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5020,7 +5022,7 @@
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {
-    </span><span class="kw">pub fn </span>build_float_sub&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_float_sub&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFSub(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5028,7 +5030,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_mul&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_mul&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildMul(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5037,7 +5039,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_mul via flag param
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nsw_mul&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nsw_mul&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNSWMul(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5046,7 +5048,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_mul via flag param
     // SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nuw_mul&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nuw_mul&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNUWMul(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
@@ -5054,20 +5056,20 @@
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {
-    </span><span class="kw">pub fn </span>build_float_mul&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_float_mul&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: T, rhs: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFMul(<span class="self">self</span>.builder, lhs.as_value_ref(), rhs.as_value_ref(), c_string.as_ptr()) };
 
         <span class="kw">unsafe </span>{ T::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_cast&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;, V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_cast&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;, V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         op: InstructionOpcode,
         from_value: V,
         to_type: T,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildCast(
@@ -5083,7 +5085,7 @@
     }
 
     <span class="comment">// SubType: &lt;F, T&gt;(&amp;self, from: &amp;PointerValue&lt;F&gt;, to: &amp;PointerType&lt;T&gt;, name: &amp;str) -&gt; PointerValue&lt;T&gt; {
-    </span><span class="kw">pub fn </span>build_pointer_cast&lt;T: PointerMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, from: T, to: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_pointer_cast&lt;T: PointerMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, from: T, to: T::BaseType, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value =
             <span class="kw">unsafe </span>{ LLVMBuildPointerCast(<span class="self">self</span>.builder, from.as_value_ref(), to.as_type_ref(), c_string.as_ptr()) };
@@ -5092,16 +5094,16 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, op, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;bool&gt; { ?
-    // Note: we need a way to get an appropriate return type, since this method&#39;s return value
+    // Note: we need a way to get an appropriate return type, since this method's return value
     // is always a bool (or vector of bools), not necessarily the same as the input value
     // See https://github.com/TheDan64/inkwell/pull/47#discussion_r197599297
-    </span><span class="kw">pub fn </span>build_int_compare&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_int_compare&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         op: IntPredicate,
         lhs: T,
         rhs: T,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildICmp(
@@ -5113,18 +5115,18 @@
             )
         };
 
-        <span class="kw">unsafe </span>{ &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType::new(value) }
+        <span class="kw">unsafe </span>{ &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType::new(value) }
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, op, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name) -&gt; IntValue&lt;bool&gt; { ?
     // Note: see comment on build_int_compare regarding return value type
-    </span><span class="kw">pub fn </span>build_float_compare&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_float_compare&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         op: FloatPredicate,
         lhs: T,
         rhs: T,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::MathConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5140,7 +5142,7 @@
         <span class="kw">unsafe </span>{ &lt;&lt;T::BaseType <span class="kw">as </span>FloatMathType&gt;::MathConvType <span class="kw">as </span>IntMathType&gt;::ValueType::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_unconditional_branch(<span class="kw-2">&amp;</span><span class="self">self</span>, destination_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>build_unconditional_branch(<span class="kw-2">&amp;</span><span class="self">self</span>, destination_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildBr(<span class="self">self</span>.builder, destination_block.basic_block) };
 
         <span class="kw">unsafe </span>{ InstructionValue::new(value) }
@@ -5148,10 +5150,10 @@
 
     <span class="kw">pub fn </span>build_conditional_branch(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        comparison: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        then_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        else_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        comparison: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        then_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        else_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildCondBr(
                 <span class="self">self</span>.builder,
@@ -5164,11 +5166,11 @@
         <span class="kw">unsafe </span>{ InstructionValue::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_indirect_branch&lt;BV: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    <span class="kw">pub fn </span>build_indirect_branch&lt;BV: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         address: BV,
-        destinations: <span class="kw-2">&amp;</span>[BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;],
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        destinations: <span class="kw-2">&amp;</span>[BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;],
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildIndirectBr(<span class="self">self</span>.builder, address.as_value_ref(), destinations.len() <span class="kw">as </span>u32) };
 
         <span class="kw">for </span>destination <span class="kw">in </span>destinations {
@@ -5179,7 +5181,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_neg&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_neg&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNeg(<span class="self">self</span>.builder, value.as_value_ref(), c_string.as_ptr()) };
 
@@ -5188,7 +5190,7 @@
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_neg via flag and subtypes
     // SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nsw_neg&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nsw_neg&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNSWNeg(<span class="self">self</span>.builder, value.as_value_ref(), c_string.as_ptr()) };
 
@@ -5196,7 +5198,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_int_nuw_neg&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_int_nuw_neg&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNUWNeg(<span class="self">self</span>.builder, value.as_value_ref(), c_string.as_ptr()) };
 
@@ -5204,7 +5206,7 @@
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, value: &amp;FloatValue&lt;F&gt;, name) -&gt; FloatValue&lt;F&gt; {
-    </span><span class="kw">pub fn </span>build_float_neg&lt;T: FloatMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_float_neg&lt;T: FloatMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildFNeg(<span class="self">self</span>.builder, value.as_value_ref(), c_string.as_ptr()) };
 
@@ -5212,7 +5214,7 @@
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;bool&gt; { ?
-    </span><span class="kw">pub fn </span>build_not&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
+    </span><span class="kw">pub fn </span>build_not&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T, name: <span class="kw-2">&amp;</span>str) -&gt; T {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildNot(<span class="self">self</span>.builder, value.as_value_ref(), c_string.as_ptr()) };
 
@@ -5220,16 +5222,16 @@
     }
 
     <span class="comment">// REVIEW: What if instruction and basic_block are completely unrelated?
-    // It&#39;d be great if we could get the BB from the instruction behind the scenes
-    </span><span class="kw">pub fn </span>position_at(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    // It'd be great if we could get the BB from the instruction behind the scenes
+    </span><span class="kw">pub fn </span>position_at(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMPositionBuilder(<span class="self">self</span>.builder, basic_block.basic_block, instruction.as_value_ref()) }
     }
 
-    <span class="kw">pub fn </span>position_before(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>position_before(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMPositionBuilderBefore(<span class="self">self</span>.builder, instruction.as_value_ref()) }
     }
 
-    <span class="kw">pub fn </span>position_at_end(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>position_at_end(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{
             LLVMPositionBuilderAtEnd(<span class="self">self</span>.builder, basic_block.basic_block);
         }
@@ -5244,58 +5246,58 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;av&quot;);
+    /// let module = context.create_module("av");
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let i32_type = context.i32_type();
     /// let struct_type = context.struct_type(&amp;[i32_type.into(), f32_type.into()], false);
     /// let array_type = i32_type.array_type(3);
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;av_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("av_fn", fn_type, None);
     /// let builder = context.create_builder();
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let array_alloca = builder.build_alloca(array_type, &quot;array_alloca&quot;);
+    /// let array_alloca = builder.build_alloca(array_type, "array_alloca");
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
-    /// let array = builder.build_load(array_alloca, &quot;array_load&quot;).into_array_value();
-    /// #[cfg(any(feature = &quot;llvm15-0&quot;, feature = &quot;llvm16-0&quot;))]
-    /// let array = builder.build_load(i32_type, array_alloca, &quot;array_load&quot;).into_array_value();
+    /// let array = builder.build_load(array_alloca, "array_load").into_array_value();
+    /// #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    /// let array = builder.build_load(i32_type, array_alloca, "array_load").into_array_value();
     ///
     /// let const_int1 = i32_type.const_int(2, false);
     /// let const_int2 = i32_type.const_int(5, false);
     /// let const_int3 = i32_type.const_int(6, false);
     ///
-    /// assert!(builder.build_insert_value(array, const_int1, 0, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int2, 1, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int3, 2, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int3, 3, &quot;insert&quot;).is_none());
+    /// assert!(builder.build_insert_value(array, const_int1, 0, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int2, 1, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int3, 2, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int3, 3, "insert").is_none());
     ///
-    /// assert!(builder.build_extract_value(array, 0, &quot;extract&quot;).unwrap().is_int_value());
-    /// assert!(builder.build_extract_value(array, 1, &quot;extract&quot;).unwrap().is_int_value());
-    /// assert!(builder.build_extract_value(array, 2, &quot;extract&quot;).unwrap().is_int_value());
-    /// assert!(builder.build_extract_value(array, 3, &quot;extract&quot;).is_none());
+    /// assert!(builder.build_extract_value(array, 0, "extract").unwrap().is_int_value());
+    /// assert!(builder.build_extract_value(array, 1, "extract").unwrap().is_int_value());
+    /// assert!(builder.build_extract_value(array, 2, "extract").unwrap().is_int_value());
+    /// assert!(builder.build_extract_value(array, 3, "extract").is_none());
     /// ```
-    </span><span class="kw">pub fn </span>build_extract_value&lt;AV: AggregateValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_extract_value&lt;AV: AggregateValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         agg: AV,
         index: u32,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>size = <span class="kw">match </span>agg.as_aggregate_value_enum() {
             AggregateValueEnum::ArrayValue(av) =&gt; av.get_type().len(),
             AggregateValueEnum::StructValue(sv) =&gt; sv.get_type().count_fields(),
@@ -5321,46 +5323,46 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;av&quot;);
+    /// let module = context.create_module("av");
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let i32_type = context.i32_type();
     /// let struct_type = context.struct_type(&amp;[i32_type.into(), f32_type.into()], false);
     /// let array_type = i32_type.array_type(3);
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;av_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("av_fn", fn_type, None);
     /// let builder = context.create_builder();
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let array_alloca = builder.build_alloca(array_type, &quot;array_alloca&quot;);
+    /// let array_alloca = builder.build_alloca(array_type, "array_alloca");
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
-    /// let array = builder.build_load(array_alloca, &quot;array_load&quot;).into_array_value();
-    /// #[cfg(any(feature = &quot;llvm15-0&quot;, feature = &quot;llvm16-0&quot;))]
-    /// let array = builder.build_load(i32_type, array_alloca, &quot;array_load&quot;).into_array_value();
+    /// let array = builder.build_load(array_alloca, "array_load").into_array_value();
+    /// #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    /// let array = builder.build_load(i32_type, array_alloca, "array_load").into_array_value();
     ///
     /// let const_int1 = i32_type.const_int(2, false);
     /// let const_int2 = i32_type.const_int(5, false);
     /// let const_int3 = i32_type.const_int(6, false);
     ///
-    /// assert!(builder.build_insert_value(array, const_int1, 0, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int2, 1, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int3, 2, &quot;insert&quot;).is_some());
-    /// assert!(builder.build_insert_value(array, const_int3, 3, &quot;insert&quot;).is_none());
+    /// assert!(builder.build_insert_value(array, const_int1, 0, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int2, 1, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int3, 2, "insert").is_some());
+    /// assert!(builder.build_insert_value(array, const_int3, 3, "insert").is_none());
     /// ```
     </span><span class="kw">pub fn </span>build_insert_value&lt;AV, BV&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -5368,10 +5370,10 @@
         value: BV,
         index: u32,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;AggregateValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;AggregateValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt;
     <span class="kw">where
-        </span>AV: AggregateValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        BV: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        </span>AV: AggregateValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        BV: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;,
     {
         <span class="kw">let </span>size = <span class="kw">match </span>agg.as_aggregate_value_enum() {
             AggregateValueEnum::ArrayValue(av) =&gt; av.get_type().len(),
@@ -5405,28 +5407,28 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;av&quot;);
+    /// let module = context.create_module("av");
     /// let i32_type = context.i32_type();
     /// let i32_zero = i32_type.const_int(0, false);
     /// let vec_type = i32_type.vec_type(2);
     /// let fn_type = i32_type.fn_type(&amp;[vec_type.into()], false);
-    /// let fn_value = module.add_function(&quot;vec_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("vec_fn", fn_type, None);
     /// let builder = context.create_builder();
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let vector_param = fn_value.get_first_param().unwrap().into_vector_value();
     ///
     /// builder.position_at_end(entry);
     ///
-    /// let extracted = builder.build_extract_element(vector_param, i32_zero, &quot;insert&quot;);
+    /// let extracted = builder.build_extract_element(vector_param, i32_zero, "insert");
     ///
     /// builder.build_return(Some(&amp;extracted));
     /// ```
     </span><span class="kw">pub fn </span>build_extract_element(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        vector: VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        index: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        vector: VectorValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        index: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5450,29 +5452,29 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;av&quot;);
+    /// let module = context.create_module("av");
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_zero = i32_type.const_int(0, false);
     /// let i32_seven = i32_type.const_int(7, false);
     /// let vec_type = i32_type.vec_type(2);
     /// let fn_type = void_type.fn_type(&amp;[vec_type.into()], false);
-    /// let fn_value = module.add_function(&quot;vec_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("vec_fn", fn_type, None);
     /// let builder = context.create_builder();
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let vector_param = fn_value.get_first_param().unwrap().into_vector_value();
     ///
     /// builder.position_at_end(entry);
-    /// builder.build_insert_element(vector_param, i32_seven, i32_zero, &quot;insert&quot;);
+    /// builder.build_insert_element(vector_param, i32_seven, i32_zero, "insert");
     /// builder.build_return(None);
     /// ```
-    </span><span class="kw">pub fn </span>build_insert_element&lt;V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_insert_element&lt;V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        vector: VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        vector: VectorValue&lt;<span class="lifetime">'ctx</span>&gt;,
         element: V,
-        index: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        index: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; VectorValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5488,7 +5490,7 @@
         <span class="kw">unsafe </span>{ VectorValue::new(value) }
     }
 
-    <span class="kw">pub fn </span>build_unreachable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>build_unreachable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{ LLVMBuildUnreachable(<span class="self">self</span>.builder) };
 
         <span class="kw">unsafe </span>{ InstructionValue::new(val) }
@@ -5496,7 +5498,7 @@
 
     <span class="comment">// REVIEW: Not sure if this should return InstructionValue or an actual value
     // TODO: Better name for num?
-    </span><span class="kw">pub fn </span>build_fence(<span class="kw-2">&amp;</span><span class="self">self</span>, atomic_ordering: AtomicOrdering, num: i32, name: <span class="kw-2">&amp;</span>str) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_fence(<span class="kw-2">&amp;</span><span class="self">self</span>, atomic_ordering: AtomicOrdering, num: i32, name: <span class="kw-2">&amp;</span>str) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{ LLVMBuildFence(<span class="self">self</span>.builder, atomic_ordering.into(), num, c_string.as_ptr()) };
@@ -5505,11 +5507,11 @@
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, name) -&gt; IntValue&lt;bool&gt; {
-    </span><span class="kw">pub fn </span>build_is_null&lt;T: PointerMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_is_null&lt;T: PointerMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ptr: T,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{ LLVMBuildIsNull(<span class="self">self</span>.builder, ptr.as_value_ref(), c_string.as_ptr()) };
 
@@ -5517,11 +5519,11 @@
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, name) -&gt; IntValue&lt;bool&gt; {
-    </span><span class="kw">pub fn </span>build_is_not_null&lt;T: PointerMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_is_not_null&lt;T: PointerMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ptr: T,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{ LLVMBuildIsNotNull(<span class="self">self</span>.builder, ptr.as_value_ref(), c_string.as_ptr()) };
 
@@ -5529,12 +5531,12 @@
     }
 
     <span class="comment">// SubType: &lt;I, P&gt;(&amp;self, int: &amp;IntValue&lt;I&gt;, ptr_type: &amp;PointerType&lt;P&gt;, name) -&gt; PointerValue&lt;P&gt; {
-    </span><span class="kw">pub fn </span>build_int_to_ptr&lt;T: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_int_to_ptr&lt;T: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         int: T,
-        ptr_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType,
+        ptr_type: &lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5550,12 +5552,12 @@
     }
 
     <span class="comment">// SubType: &lt;I, P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, int_type: &amp;IntType&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {
-    </span><span class="kw">pub fn </span>build_ptr_to_int&lt;T: PointerMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_ptr_to_int&lt;T: PointerMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ptr: T,
-        int_type: &lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType,
+        int_type: &lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;::ValueType {
+    ) -&gt; &lt;&lt;T::BaseType <span class="kw">as </span>PointerMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::PtrConvType <span class="kw">as </span>IntMathType&lt;<span class="lifetime">'ctx</span>&gt;&gt;::ValueType {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5579,10 +5581,10 @@
     // SubTypes: I think value and case values must be the same subtype (maybe). Case value might need to be constants
     </span><span class="kw">pub fn </span>build_switch(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        value: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        else_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        cases: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;)],
-    ) -&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        value: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        else_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;,
+        cases: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ctx</span>&gt;, BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;)],
+    ) -&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>switch_value = <span class="kw">unsafe </span>{
             LLVMBuildSwitch(
                 <span class="self">self</span>.builder,
@@ -5600,13 +5602,13 @@
     }
 
     <span class="comment">// SubTypes: condition can only be IntValue&lt;bool&gt; or VectorValue&lt;IntValue&lt;Bool&gt;&gt;
-    </span><span class="kw">pub fn </span>build_select&lt;BV: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, IMV: IntMathValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_select&lt;BV: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;, IMV: IntMathValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         condition: IMV,
         then: BV,
         else_: BV,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildSelect(
@@ -5622,7 +5624,7 @@
     }
 
     <span class="comment">// The unsafety of this function should be fixable with subtypes. See GH #32
-    </span><span class="kw">pub unsafe fn </span>build_global_string(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub unsafe fn </span>build_global_string(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string_value = to_c_str(value);
         <span class="kw">let </span>c_string_name = to_c_str(name);
         <span class="kw">let </span>value = LLVMBuildGlobalString(<span class="self">self</span>.builder, c_string_value.as_ptr(), c_string_name.as_ptr());
@@ -5632,7 +5634,7 @@
 
     <span class="comment">// REVIEW: Does this similar fn have the same issue build_global_string does? If so, mark as unsafe
     // and fix with subtypes.
-    </span><span class="kw">pub fn </span>build_global_string_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>build_global_string_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string_value = to_c_str(value);
         <span class="kw">let </span>c_string_name = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMBuildGlobalStringPtr(<span class="self">self</span>.builder, c_string_value.as_ptr(), c_string_name.as_ptr()) };
@@ -5643,11 +5645,11 @@
     <span class="comment">// REVIEW: Do we need to constrain types here? subtypes?
     </span><span class="kw">pub fn </span>build_shuffle_vector(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        left: VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        right: VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        mask: VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        left: VectorValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        right: VectorValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        mask: VectorValue&lt;<span class="lifetime">'ctx</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; VectorValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; VectorValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMBuildShuffleVector(
@@ -5665,12 +5667,12 @@
     <span class="comment">// REVIEW: Is return type correct?
     // SubTypes: I think this should be type: BT -&gt; BT::Value
     // https://llvm.org/docs/LangRef.html#i-va-arg
-    </span><span class="kw">pub fn </span>build_va_arg&lt;BT: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_va_arg&lt;BT: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        list: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        list: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         type_: BT,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -5693,14 +5695,14 @@
     /// use inkwell::context::Context;
     /// use inkwell::{AddressSpace, AtomicOrdering, AtomicRMWBinOp};
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;rmw&quot;);
+    /// let module = context.create_module("rmw");
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_seven = i32_type.const_int(7, false);
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;rmw&quot;, fn_type, None);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("rmw", fn_type, None);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let i32_ptr_param = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let builder = context.create_builder();
     /// builder.position_at_end(entry);
@@ -5711,20 +5713,20 @@
     </span><span class="kw">pub fn </span>build_atomicrmw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         op: AtomicRMWBinOp,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        value: IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        value: IntValue&lt;<span class="lifetime">'ctx</span>&gt;,
         ordering: AtomicOrdering,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="comment">// TODO: add support for fadd, fsub and xchg on floating point types in LLVM 9+.
 
-        // &quot;The type of ‘&lt;value&gt;’ must be an integer type whose bit width is a power of two greater than or equal to eight and less than or equal to a target-specific size limit. The type of the ‘&lt;pointer&gt;’ operand must be a pointer to that type.&quot; -- https://releases.llvm.org/3.6.2/docs/LangRef.html#atomicrmw-instruction
+        // "The type of ‘&lt;value&gt;’ must be an integer type whose bit width is a power of two greater than or equal to eight and less than or equal to a target-specific size limit. The type of the ‘&lt;pointer&gt;’ operand must be a pointer to that type." -- https://releases.llvm.org/3.6.2/docs/LangRef.html#atomicrmw-instruction
         </span><span class="kw">if </span>value.get_type().get_bit_width() &lt; <span class="number">8 </span>|| !value.get_type().get_bit_width().is_power_of_two() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The bitwidth of value must be a power of 2 and greater than 8.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The bitwidth of value must be a power of 2 and greater than 8."</span>);
         }
 
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm15-0&quot;</span>, feature = <span class="string">&quot;llvm16-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm15-0"</span>, feature = <span class="string">"llvm16-0"</span>)))]
         </span><span class="kw">if </span>ptr.get_type().get_element_type() != value.get_type().into() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Pointer&#39;s pointee type must match the value&#39;s type.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Pointer's pointee type must match the value's type."</span>);
         }
 
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{
@@ -5749,53 +5751,53 @@
     /// use inkwell::context::Context;
     /// use inkwell::{AddressSpace, AtomicOrdering};
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;cmpxchg&quot;);
+    /// let module = context.create_module("cmpxchg");
     /// let void_type = context.void_type();
     /// let i32_type = context.i32_type();
     /// let i32_ptr_type = i32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[i32_ptr_type.into()], false);
-    /// let fn_value = module.add_function(&quot;&quot;, fn_type, None);
+    /// let fn_value = module.add_function("", fn_type, None);
     /// let i32_ptr_param = fn_value.get_first_param().unwrap().into_pointer_value();
     /// let i32_seven = i32_type.const_int(7, false);
     /// let i32_eight = i32_type.const_int(8, false);
-    /// let entry = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let entry = context.append_basic_block(fn_value, "entry");
     /// let builder = context.create_builder();
     /// builder.position_at_end(entry);
     /// builder.build_cmpxchg(i32_ptr_param, i32_seven, i32_eight, AtomicOrdering::AcquireRelease, AtomicOrdering::Monotonic);
     /// builder.build_return(None);
     /// ```
     </span><span class="comment">// https://llvm.org/docs/LangRef.html#cmpxchg-instruction
-    </span><span class="kw">pub fn </span>build_cmpxchg&lt;V: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>build_cmpxchg&lt;V: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ptr: PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ptr: PointerValue&lt;<span class="lifetime">'ctx</span>&gt;,
         cmp: V,
         new: V,
         success: AtomicOrdering,
         failure: AtomicOrdering,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;StructValue&lt;<span class="lifetime">'ctx</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">let </span>cmp = cmp.as_basic_value_enum();
         <span class="kw">let </span>new = new.as_basic_value_enum();
         <span class="kw">if </span>cmp.get_type() != new.get_type() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The value to compare against and the value to replace with must have the same type.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The value to compare against and the value to replace with must have the same type."</span>);
         }
         <span class="kw">if </span>!cmp.is_int_value() &amp;&amp; !cmp.is_pointer_value() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The values must have pointer or integer type.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The values must have pointer or integer type."</span>);
         }
 
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm15-0&quot;</span>, feature = <span class="string">&quot;llvm16-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm15-0"</span>, feature = <span class="string">"llvm16-0"</span>)))]
         </span><span class="kw">if </span>ptr.get_type().get_element_type().to_basic_type_enum() != cmp.get_type() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The pointer does not point to an element of the value type.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The pointer does not point to an element of the value type."</span>);
         }
 
-        <span class="comment">// &quot;Both ordering parameters must be at least monotonic, the ordering constraint on failure must be no stronger than that on success, and the failure ordering cannot be either release or acq_rel.&quot; -- https://llvm.org/docs/LangRef.html#cmpxchg-instruction
+        <span class="comment">// "Both ordering parameters must be at least monotonic, the ordering constraint on failure must be no stronger than that on success, and the failure ordering cannot be either release or acq_rel." -- https://llvm.org/docs/LangRef.html#cmpxchg-instruction
         </span><span class="kw">if </span>success &lt; AtomicOrdering::Monotonic || failure &lt; AtomicOrdering::Monotonic {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Both success and failure orderings must be Monotonic or stronger.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Both success and failure orderings must be Monotonic or stronger."</span>);
         }
         <span class="kw">if </span>failure &gt; success {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The failure ordering may not be stronger than the success ordering.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The failure ordering may not be stronger than the success ordering."</span>);
         }
         <span class="kw">if </span>failure == AtomicOrdering::Release || failure == AtomicOrdering::AcquireRelease {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The failure ordering may not be release or acquire release.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The failure ordering may not be release or acquire release."</span>);
         }
 
         <span class="kw">let </span>val = <span class="kw">unsafe </span>{
@@ -5815,7 +5817,7 @@
 
     <span class="doccomment">/// Set the debug info source location of the instruction currently pointed at by the builder
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=<span class="number">8.0</span>)]
-    </span><span class="kw">pub fn </span>set_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;, location: DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    </span><span class="kw">pub fn </span>set_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;, location: DILocation&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">use </span>llvm_sys::core::LLVMMetadataAsValue;
         <span class="kw">use </span>llvm_sys::core::LLVMSetCurrentDebugLocation;
         <span class="kw">unsafe </span>{
@@ -5828,7 +5830,7 @@
 
     <span class="doccomment">/// Set the debug info source location of the instruction currently pointed at by the builder
     </span><span class="attr">#[llvm_versions(<span class="number">9.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>set_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    </span><span class="kw">pub fn </span>set_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: DILocation&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">use </span>llvm_sys::core::LLVMSetCurrentDebugLocation2;
         <span class="kw">unsafe </span>{
             LLVMSetCurrentDebugLocation2(<span class="self">self</span>.builder, location.metadata_ref);
@@ -5838,7 +5840,7 @@
     <span class="doccomment">/// Get the debug info source location of the instruction currently pointed at by the builder,
     /// if available.
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DILocation&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DILocation&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">use </span>llvm_sys::core::LLVMGetCurrentDebugLocation;
         <span class="kw">use </span>llvm_sys::core::LLVMValueAsMetadata;
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{ LLVMGetCurrentDebugLocation(<span class="self">self</span>.builder) };
@@ -5852,7 +5854,7 @@
     }
 
     <span class="doccomment">/// Unset the debug info source location of the instruction currently pointed at by the
-    /// builder. If there isn&#39;t any debug info, this is a no-op.
+    /// builder. If there isn't any debug info, this is a no-op.
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=<span class="number">8.0</span>)]
     </span><span class="kw">pub fn </span>unset_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use </span>llvm_sys::core::LLVMSetCurrentDebugLocation;
@@ -5862,7 +5864,7 @@
     }
 
     <span class="doccomment">/// Unset the debug info source location of the instruction currently pointed at by the
-    /// builder. If there isn&#39;t any debug info, this is a no-op.
+    /// builder. If there isn't any debug info, this is a no-op.
     </span><span class="attr">#[llvm_versions(<span class="number">9.0</span>..=latest)]
     </span><span class="kw">pub fn </span>unset_current_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use </span>llvm_sys::core::LLVMSetCurrentDebugLocation2;
@@ -5881,7 +5883,7 @@
     </span>align &gt; <span class="number">0 </span>&amp;&amp; align.is_power_of_two() &amp;&amp; (align <span class="kw">as </span>f64).log2() &lt; <span class="number">64.0
 </span>}
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>Builder&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Builder&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{
             LLVMDisposeBuilder(<span class="self">self</span>.builder);

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.5.11/src/tokens.rs`."><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.5.11/src/tokens.rs`."><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../toml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -764,10 +766,10 @@
 }
 
 <span class="attr">#[derive(Eq, PartialEq, Debug)]
-</span><span class="kw">pub enum </span>Token&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Whitespace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+</span><span class="kw">pub enum </span>Token&lt;<span class="lifetime">'a</span>&gt; {
+    Whitespace(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
     Newline,
-    Comment(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    Comment(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
 
     Equals,
     Period,
@@ -779,10 +781,10 @@
     LeftBracket,
     RightBracket,
 
-    Keylike(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    Keylike(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
     String {
-        src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-        val: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
+        src: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+        val: Cow&lt;<span class="lifetime">'a</span>, str&gt;,
         multiline: bool,
     },
 }
@@ -800,20 +802,20 @@
     MultilineStringKey(usize),
     Wanted {
         at: usize,
-        expected: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        found: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        expected: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        found: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     },
 }
 
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    chars: CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>Tokenizer&lt;<span class="lifetime">'a</span>&gt; {
+    input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    chars: CrlfFold&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">struct </span>CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt; {
-    chars: str::CharIndices&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">struct </span>CrlfFold&lt;<span class="lifetime">'a</span>&gt; {
+    chars: str::CharIndices&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
@@ -822,8 +824,8 @@
     Owned(string::String),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Tokenizer&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Tokenizer&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; Tokenizer&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>t = Tokenizer {
             input,
             chars: CrlfFold {
@@ -831,31 +833,31 @@
             },
         };
         <span class="comment">// Eat utf-8 BOM
-        </span>t.eatc(<span class="string">&#39;\u{feff}&#39;</span>);
+        </span>t.eatc(<span class="string">'\u{feff}'</span>);
         t
     }
 
-    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+    <span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">'a</span>&gt;)&gt;, Error&gt; {
         <span class="kw">let </span>(start, token) = <span class="kw">match </span><span class="self">self</span>.one() {
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\n&#39;</span>)) =&gt; (start, Newline),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39; &#39;</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\t&#39;</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;#&#39;</span>)) =&gt; (start, <span class="self">self</span>.comment_token(start)),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;=&#39;</span>)) =&gt; (start, Equals),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;.&#39;</span>)) =&gt; (start, Period),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;,&#39;</span>)) =&gt; (start, Comma),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;:&#39;</span>)) =&gt; (start, Colon),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;+&#39;</span>)) =&gt; (start, Plus),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;{&#39;</span>)) =&gt; (start, LeftBrace),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;}&#39;</span>)) =&gt; (start, RightBrace),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;[&#39;</span>)) =&gt; (start, LeftBracket),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;]&#39;</span>)) =&gt; (start, RightBracket),
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
+            <span class="prelude-val">Some</span>((start, <span class="string">'\n'</span>)) =&gt; (start, Newline),
+            <span class="prelude-val">Some</span>((start, <span class="string">' '</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">'\t'</span>)) =&gt; (start, <span class="self">self</span>.whitespace_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">'#'</span>)) =&gt; (start, <span class="self">self</span>.comment_token(start)),
+            <span class="prelude-val">Some</span>((start, <span class="string">'='</span>)) =&gt; (start, Equals),
+            <span class="prelude-val">Some</span>((start, <span class="string">'.'</span>)) =&gt; (start, Period),
+            <span class="prelude-val">Some</span>((start, <span class="string">','</span>)) =&gt; (start, Comma),
+            <span class="prelude-val">Some</span>((start, <span class="string">':'</span>)) =&gt; (start, Colon),
+            <span class="prelude-val">Some</span>((start, <span class="string">'+'</span>)) =&gt; (start, Plus),
+            <span class="prelude-val">Some</span>((start, <span class="string">'{'</span>)) =&gt; (start, LeftBrace),
+            <span class="prelude-val">Some</span>((start, <span class="string">'}'</span>)) =&gt; (start, RightBrace),
+            <span class="prelude-val">Some</span>((start, <span class="string">'['</span>)) =&gt; (start, LeftBracket),
+            <span class="prelude-val">Some</span>((start, <span class="string">']'</span>)) =&gt; (start, RightBracket),
+            <span class="prelude-val">Some</span>((start, <span class="string">'\''</span>)) =&gt; {
                 <span class="kw">return </span><span class="self">self
                     </span>.literal_string(start)
                     .map(|t| <span class="prelude-val">Some</span>((<span class="self">self</span>.step_span(start), t)))
             }
-            <span class="prelude-val">Some</span>((start, <span class="string">&#39;&quot;&#39;</span>)) =&gt; {
+            <span class="prelude-val">Some</span>((start, <span class="string">'"'</span>)) =&gt; {
                 <span class="kw">return </span><span class="self">self
                     </span>.basic_string(start)
                     .map(|t| <span class="prelude-val">Some</span>((<span class="self">self</span>.step_span(start), t)))
@@ -870,16 +872,16 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((span, token)))
     }
 
-    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">&#39;a</span>&gt;)&gt;, Error&gt; {
+    <span class="kw">pub fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Span, Token&lt;<span class="lifetime">'a</span>&gt;)&gt;, Error&gt; {
         <span class="self">self</span>.clone().next()
     }
 
-    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
+    <span class="kw">pub fn </span>eat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="self">self</span>.eat_spanned(expected).map(|s| s.is_some())
     }
 
-    <span class="doccomment">/// Eat a value, returning it&#39;s span if it was consumed.
-    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;, Error&gt; {
+    <span class="doccomment">/// Eat a value, returning it's span if it was consumed.
+    </span><span class="kw">pub fn </span>eat_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Span&gt;, Error&gt; {
         <span class="kw">let </span>span = <span class="kw">match </span><span class="self">self</span>.peek()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, <span class="kw-2">ref </span>found)) <span class="kw">if </span>expected == <span class="kw-2">*</span>found =&gt; span,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -890,14 +892,14 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(span))
     }
 
-    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">pub fn </span>expect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="comment">// ignore span
         </span><span class="kw">let _ </span>= <span class="self">self</span>.expect_spanned(expected)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Expect the given token returning its span.
-    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Span, Error&gt; {
+    </span><span class="kw">pub fn </span>expect_spanned(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expected: Token&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Span, Error&gt; {
         <span class="kw">let </span>current = <span class="self">self</span>.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, found)) =&gt; {
@@ -914,12 +916,12 @@
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::Wanted {
                 at: <span class="self">self</span>.input.len(),
                 expected: expected.describe(),
-                found: <span class="string">&quot;eof&quot;</span>,
+                found: <span class="string">"eof"</span>,
             }),
         }
     }
 
-    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;), Error&gt; {
+    <span class="kw">pub fn </span>table_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Span, Cow&lt;<span class="lifetime">'a</span>, str&gt;), Error&gt; {
         <span class="kw">let </span>current = <span class="self">self</span>.current();
         <span class="kw">match </span><span class="self">self</span>.next()<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>((span, Token::Keylike(k))) =&gt; <span class="prelude-val">Ok</span>((span, k.into())),
@@ -935,33 +937,33 @@
                 <span class="kw">if </span>multiline {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MultilineStringKey(offset));
                 }
-                <span class="kw">match </span>src.find(<span class="string">&#39;\n&#39;</span>) {
+                <span class="kw">match </span>src.find(<span class="string">'\n'</span>) {
                     <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>((span, val)),
                     <span class="prelude-val">Some</span>(i) =&gt; <span class="prelude-val">Err</span>(Error::NewlineInTableKey(offset + i)),
                 }
             }
             <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(Error::Wanted {
                 at: current,
-                expected: <span class="string">&quot;a table key&quot;</span>,
+                expected: <span class="string">"a table key"</span>,
                 found: other.describe(),
             }),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::Wanted {
                 at: <span class="self">self</span>.input.len(),
-                expected: <span class="string">&quot;a table key&quot;</span>,
-                found: <span class="string">&quot;eof&quot;</span>,
+                expected: <span class="string">"a table key"</span>,
+                found: <span class="string">"eof"</span>,
             }),
         }
     }
 
     <span class="kw">pub fn </span>eat_whitespace(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
+        <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">' '</span>) || <span class="self">self</span>.eatc(<span class="string">'\t'</span>) {
             <span class="comment">// ...
         </span>}
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>eat_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
-        <span class="kw">if </span>!<span class="self">self</span>.eatc(<span class="string">&#39;#&#39;</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.eatc(<span class="string">'#'</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
         drop(<span class="self">self</span>.comment_token(<span class="number">0</span>));
@@ -974,7 +976,7 @@
             <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>((<span class="kw">_</span>, Token::Newline)) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Some</span>((<span class="kw">_</span>, other)) =&gt; <span class="prelude-val">Err</span>(Error::Wanted {
                 at: current,
-                expected: <span class="string">&quot;newline&quot;</span>,
+                expected: <span class="string">"newline"</span>,
                 found: other.describe(),
             }),
         }
@@ -983,7 +985,7 @@
     <span class="kw">pub fn </span>skip_to_newline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.one() {
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) | <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'\n'</span>)) | <span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
         }
@@ -1007,20 +1009,20 @@
             .unwrap_or_else(|| <span class="self">self</span>.input.len())
     }
 
-    <span class="kw">pub fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+    <span class="kw">pub fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {
         <span class="self">self</span>.input
     }
 
-    <span class="kw">fn </span>whitespace_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">&#39; &#39;</span>) || <span class="self">self</span>.eatc(<span class="string">&#39;\t&#39;</span>) {
+    <span class="kw">fn </span>whitespace_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">while </span><span class="self">self</span>.eatc(<span class="string">' '</span>) || <span class="self">self</span>.eatc(<span class="string">'\t'</span>) {
             <span class="comment">// ...
         </span>}
         Whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()])
     }
 
-    <span class="kw">fn </span>comment_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>comment_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = <span class="self">self</span>.chars.clone().next() {
-            <span class="kw">if </span>ch != <span class="string">&#39;\t&#39; </span>&amp;&amp; !(<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) {
+            <span class="kw">if </span>ch != <span class="string">'\t' </span>&amp;&amp; !(<span class="string">'\u{20}'</span>..=<span class="string">'\u{10ffff}'</span>).contains(<span class="kw-2">&amp;</span>ch) {
                 <span class="kw">break</span>;
             }
             <span class="self">self</span>.one();
@@ -1034,13 +1036,13 @@
         delim: char,
         start: usize,
         new_ch: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
-            <span class="kw-2">&amp;mut </span>Tokenizer&lt;<span class="lifetime">&#39;_</span>&gt;,
+            <span class="kw-2">&amp;mut </span>Tokenizer&lt;<span class="lifetime">'_</span>&gt;,
             <span class="kw-2">&amp;mut </span>MaybeString,
             bool,
             usize,
             char,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>multiline = <span class="bool-val">false</span>;
         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
             <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
@@ -1048,25 +1050,25 @@
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(String {
                     src: <span class="kw-2">&amp;</span><span class="self">self</span>.input[start..start + <span class="number">2</span>],
-                    val: Cow::Borrowed(<span class="string">&quot;&quot;</span>),
+                    val: Cow::Borrowed(<span class="string">""</span>),
                     multiline: <span class="bool-val">false</span>,
                 });
             }
         }
         <span class="kw">let </span><span class="kw-2">mut </span>val = MaybeString::NotEscaped(<span class="self">self</span>.current());
         <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
-        <span class="lifetime">&#39;outer</span>: <span class="kw">loop </span>{
+        <span class="lifetime">'outer</span>: <span class="kw">loop </span>{
             n += <span class="number">1</span>;
             <span class="kw">match </span><span class="self">self</span>.one() {
-                <span class="prelude-val">Some</span>((i, <span class="string">&#39;\n&#39;</span>)) =&gt; {
+                <span class="prelude-val">Some</span>((i, <span class="string">'\n'</span>)) =&gt; {
                     <span class="kw">if </span>multiline {
-                        <span class="kw">if </span><span class="self">self</span>.input.as_bytes()[i] == <span class="string">b&#39;\r&#39; </span>{
+                        <span class="kw">if </span><span class="self">self</span>.input.as_bytes()[i] == <span class="string">b'\r' </span>{
                             val.to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>.input[..i]);
                         }
                         <span class="kw">if </span>n == <span class="number">1 </span>{
                             val = MaybeString::NotEscaped(<span class="self">self</span>.current());
                         } <span class="kw">else </span>{
-                            val.push(<span class="string">&#39;\n&#39;</span>);
+                            val.push(<span class="string">'\n'</span>);
                         }
                         <span class="kw">continue</span>;
                     } <span class="kw">else </span>{
@@ -1077,12 +1079,12 @@
                     <span class="kw">if </span>multiline {
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
                             val.push(delim);
-                            <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
+                            <span class="kw">continue </span><span class="lifetime">'outer</span>;
                         }
                         <span class="kw">if </span>!<span class="self">self</span>.eatc(delim) {
                             val.push(delim);
                             val.push(delim);
-                            <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
+                            <span class="kw">continue </span><span class="lifetime">'outer</span>;
                         }
                         <span class="kw">if </span><span class="self">self</span>.eatc(delim) {
                             val.push(delim);
@@ -1105,9 +1107,9 @@
         }
     }
 
-    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
-        <span class="self">self</span>.read_string(<span class="string">&#39;\&#39;&#39;</span>, start, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
-            <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| ((<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) {
+    <span class="kw">fn </span>literal_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
+        <span class="self">self</span>.read_string(<span class="string">'\''</span>, start, <span class="kw-2">&amp;mut </span>|_me, val, _multi, i, ch| {
+            <span class="kw">if </span>ch == <span class="string">'\u{09}' </span>|| ((<span class="string">'\u{20}'</span>..=<span class="string">'\u{10ffff}'</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">'\u{7f}'</span>) {
                 val.push(ch);
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
@@ -1116,31 +1118,31 @@
         })
     }
 
-    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
-        <span class="self">self</span>.read_string(<span class="string">&#39;&quot;&#39;</span>, start, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span>ch {
-            <span class="string">&#39;\\&#39; </span>=&gt; {
+    <span class="kw">fn </span>basic_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
+        <span class="self">self</span>.read_string(<span class="string">'"'</span>, start, <span class="kw-2">&amp;mut </span>|me, val, multi, i, ch| <span class="kw">match </span>ch {
+            <span class="string">'\\' </span>=&gt; {
                 val.to_owned(<span class="kw-2">&amp;</span>me.input[..i]);
                 <span class="kw">match </span>me.chars.next() {
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;&quot;&#39;</span>)) =&gt; val.push(<span class="string">&#39;&quot;&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\\&#39;</span>)) =&gt; val.push(<span class="string">&#39;\\&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;b&#39;</span>)) =&gt; val.push(<span class="string">&#39;\u{8}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;f&#39;</span>)) =&gt; val.push(<span class="string">&#39;\u{c}&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;n&#39;</span>)) =&gt; val.push(<span class="string">&#39;\n&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;r&#39;</span>)) =&gt; val.push(<span class="string">&#39;\r&#39;</span>),
-                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;t&#39;</span>)) =&gt; val.push(<span class="string">&#39;\t&#39;</span>),
-                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;u&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;U&#39;</span>)) =&gt; {
-                        <span class="kw">let </span>len = <span class="kw">if </span>c == <span class="string">&#39;u&#39; </span>{ <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">8 </span>};
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'"'</span>)) =&gt; val.push(<span class="string">'"'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'\\'</span>)) =&gt; val.push(<span class="string">'\\'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'b'</span>)) =&gt; val.push(<span class="string">'\u{8}'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'f'</span>)) =&gt; val.push(<span class="string">'\u{c}'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'n'</span>)) =&gt; val.push(<span class="string">'\n'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'r'</span>)) =&gt; val.push(<span class="string">'\r'</span>),
+                    <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'t'</span>)) =&gt; val.push(<span class="string">'\t'</span>),
+                    <span class="prelude-val">Some</span>((i, c @ <span class="string">'u'</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">'U'</span>)) =&gt; {
+                        <span class="kw">let </span>len = <span class="kw">if </span>c == <span class="string">'u' </span>{ <span class="number">4 </span>} <span class="kw">else </span>{ <span class="number">8 </span>};
                         val.push(me.hex(start, i, len)<span class="question-mark">?</span>);
                     }
-                    <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39; &#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\t&#39;</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">&#39;\n&#39;</span>)) <span class="kw">if </span>multi =&gt; {
-                        <span class="kw">if </span>c != <span class="string">&#39;\n&#39; </span>{
+                    <span class="prelude-val">Some</span>((i, c @ <span class="string">' '</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">'\t'</span>)) | <span class="prelude-val">Some</span>((i, c @ <span class="string">'\n'</span>)) <span class="kw">if </span>multi =&gt; {
+                        <span class="kw">if </span>c != <span class="string">'\n' </span>{
                             <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = me.chars.clone().next() {
                                 <span class="kw">match </span>ch {
-                                    <span class="string">&#39; &#39; </span>| <span class="string">&#39;\t&#39; </span>=&gt; {
+                                    <span class="string">' ' </span>| <span class="string">'\t' </span>=&gt; {
                                         me.chars.next();
                                         <span class="kw">continue</span>;
                                     }
-                                    <span class="string">&#39;\n&#39; </span>=&gt; {
+                                    <span class="string">'\n' </span>=&gt; {
                                         me.chars.next();
                                         <span class="kw">break</span>;
                                     }
@@ -1150,7 +1152,7 @@
                         }
                         <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = me.chars.clone().next() {
                             <span class="kw">match </span>ch {
-                                <span class="string">&#39; &#39; </span>| <span class="string">&#39;\t&#39; </span>| <span class="string">&#39;\n&#39; </span>=&gt; {
+                                <span class="string">' ' </span>| <span class="string">'\t' </span>| <span class="string">'\n' </span>=&gt; {
                                     me.chars.next();
                                 }
                                 <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
@@ -1162,7 +1164,7 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            ch <span class="kw">if </span>ch == <span class="string">&#39;\u{09}&#39; </span>|| ((<span class="string">&#39;\u{20}&#39;</span>..=<span class="string">&#39;\u{10ffff}&#39;</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">&#39;\u{7f}&#39;</span>) =&gt; {
+            ch <span class="kw">if </span>ch == <span class="string">'\u{09}' </span>|| ((<span class="string">'\u{20}'</span>..=<span class="string">'\u{10ffff}'</span>).contains(<span class="kw-2">&amp;</span>ch) &amp;&amp; ch != <span class="string">'\u{7f}'</span>) =&gt; {
                 val.push(ch);
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1186,7 +1188,7 @@
         }
     }
 
-    <span class="kw">fn </span>keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>keylike(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize) -&gt; Token&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ch)) = <span class="self">self</span>.peek_one() {
             <span class="kw">if </span>!is_keylike(ch) {
                 <span class="kw">break</span>;
@@ -1196,7 +1198,7 @@
         Keylike(<span class="kw-2">&amp;</span><span class="self">self</span>.input[start..<span class="self">self</span>.current()])
     }
 
-    <span class="kw">pub fn </span>substr_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; usize {
+    <span class="kw">pub fn </span>substr_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; usize {
         <span class="macro">assert!</span>(s.len() &lt;= <span class="self">self</span>.input.len());
         <span class="kw">let </span>a = <span class="self">self</span>.input.as_ptr() <span class="kw">as </span>usize;
         <span class="kw">let </span>b = s.as_ptr() <span class="kw">as </span>usize;
@@ -1224,16 +1226,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>CrlfFold&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>CrlfFold&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Item = (usize, char);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, char)&gt; {
         <span class="self">self</span>.chars.next().map(|(i, c)| {
-            <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>{
+            <span class="kw">if </span>c == <span class="string">'\r' </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>attempt = <span class="self">self</span>.chars.clone();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">&#39;\n&#39;</span>)) = attempt.next() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="string">'\n'</span>)) = attempt.next() {
                     <span class="self">self</span>.chars = attempt;
-                    <span class="kw">return </span>(i, <span class="string">&#39;\n&#39;</span>);
+                    <span class="kw">return </span>(i, <span class="string">'\n'</span>);
                 }
             }
             (i, c)
@@ -1259,7 +1261,7 @@
         }
     }
 
-    <span class="kw">fn </span>into_cow(<span class="self">self</span>, input: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+    <span class="kw">fn </span>into_cow(<span class="self">self</span>, input: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             MaybeString::NotEscaped(start) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span>input[start..]),
             MaybeString::Owned(s) =&gt; Cow::Owned(s),
@@ -1268,36 +1270,36 @@
 }
 
 <span class="kw">fn </span>is_keylike(ch: char) -&gt; bool {
-    (<span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
-        || (<span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
-        || (<span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39;</span>).contains(<span class="kw-2">&amp;</span>ch)
-        || ch == <span class="string">&#39;-&#39;
-        </span>|| ch == <span class="string">&#39;_&#39;
+    (<span class="string">'A'</span>..=<span class="string">'Z'</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || (<span class="string">'a'</span>..=<span class="string">'z'</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || (<span class="string">'0'</span>..=<span class="string">'9'</span>).contains(<span class="kw-2">&amp;</span>ch)
+        || ch == <span class="string">'-'
+        </span>|| ch == <span class="string">'_'
 </span>}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Token&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Token&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub fn </span>describe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            Token::Keylike(<span class="kw">_</span>) =&gt; <span class="string">&quot;an identifier&quot;</span>,
-            Token::Equals =&gt; <span class="string">&quot;an equals&quot;</span>,
-            Token::Period =&gt; <span class="string">&quot;a period&quot;</span>,
-            Token::Comment(<span class="kw">_</span>) =&gt; <span class="string">&quot;a comment&quot;</span>,
-            Token::Newline =&gt; <span class="string">&quot;a newline&quot;</span>,
-            Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="string">&quot;whitespace&quot;</span>,
-            Token::Comma =&gt; <span class="string">&quot;a comma&quot;</span>,
-            Token::RightBrace =&gt; <span class="string">&quot;a right brace&quot;</span>,
-            Token::LeftBrace =&gt; <span class="string">&quot;a left brace&quot;</span>,
-            Token::RightBracket =&gt; <span class="string">&quot;a right bracket&quot;</span>,
-            Token::LeftBracket =&gt; <span class="string">&quot;a left bracket&quot;</span>,
+            Token::Keylike(<span class="kw">_</span>) =&gt; <span class="string">"an identifier"</span>,
+            Token::Equals =&gt; <span class="string">"an equals"</span>,
+            Token::Period =&gt; <span class="string">"a period"</span>,
+            Token::Comment(<span class="kw">_</span>) =&gt; <span class="string">"a comment"</span>,
+            Token::Newline =&gt; <span class="string">"a newline"</span>,
+            Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="string">"whitespace"</span>,
+            Token::Comma =&gt; <span class="string">"a comma"</span>,
+            Token::RightBrace =&gt; <span class="string">"a right brace"</span>,
+            Token::LeftBrace =&gt; <span class="string">"a left brace"</span>,
+            Token::RightBracket =&gt; <span class="string">"a right bracket"</span>,
+            Token::LeftBracket =&gt; <span class="string">"a left bracket"</span>,
             Token::String { multiline, .. } =&gt; {
                 <span class="kw">if </span>multiline {
-                    <span class="string">&quot;a multiline string&quot;
+                    <span class="string">"a multiline string"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;a string&quot;
+                    <span class="string">"a string"
                 </span>}
             }
-            Token::Colon =&gt; <span class="string">&quot;a colon&quot;</span>,
-            Token::Plus =&gt; <span class="string">&quot;a plus&quot;</span>,
+            Token::Colon =&gt; <span class="string">"a colon"</span>,
+            Token::Plus =&gt; <span class="string">"a plus"</span>,
         }
     }
 }
@@ -1330,14 +1332,14 @@
             <span class="macro">assert!</span>(t.next().unwrap().is_none());
         }
 
-        t(<span class="string">&quot;&#39;&#39;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;&#39;&#39;&#39;&#39;&#39;&#39;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;&#39;&#39;&#39;\n&#39;&#39;&#39;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;&#39;a&#39;&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;&#39;\&quot;a&#39;&quot;</span>, <span class="string">&quot;\&quot;a&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;&#39;&#39;&#39;&#39;a&#39;&#39;&#39;&quot;</span>, <span class="string">&quot;&#39;a&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;&#39;&#39;&#39;\n&#39;a\n&#39;&#39;&#39;&quot;</span>, <span class="string">&quot;&#39;a\n&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;&#39;&#39;&#39;a\n&#39;a\r\n&#39;&#39;&#39;&quot;</span>, <span class="string">&quot;a\n&#39;a\n&quot;</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"''"</span>, <span class="string">""</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"''''''"</span>, <span class="string">""</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"'''\n'''"</span>, <span class="string">""</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"'a'"</span>, <span class="string">"a"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"'\"a'"</span>, <span class="string">"\"a"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"''''a'''"</span>, <span class="string">"'a"</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"'''\n'a\n'''"</span>, <span class="string">"'a\n"</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"'''a\n'a\r\n'''"</span>, <span class="string">"a\n'a\n"</span>, <span class="bool-val">true</span>);
     }
 
     <span class="attr">#[test]
@@ -1356,40 +1358,40 @@
             <span class="macro">assert!</span>(t.next().unwrap().is_none());
         }
 
-        t(<span class="string">r#&quot;&quot;&quot;&quot;#</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;#</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">r#&quot;&quot;a&quot;&quot;#</span>, <span class="string">&quot;a&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;&quot;&quot;a&quot;&quot;&quot;&quot;#</span>, <span class="string">&quot;a&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">r#&quot;&quot;\t&quot;&quot;#</span>, <span class="string">&quot;\t&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\u0000&quot;&quot;#</span>, <span class="string">&quot;\0&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\U00000000&quot;&quot;#</span>, <span class="string">&quot;\0&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\U000A0000&quot;&quot;#</span>, <span class="string">&quot;\u{A0000}&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\\t&quot;&quot;#</span>, <span class="string">&quot;\\t&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;\&quot;\t\&quot;&quot;</span>, <span class="string">&quot;\t&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;\&quot;\&quot;\&quot;\n\t\&quot;\&quot;\&quot;&quot;</span>, <span class="string">&quot;\t&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;\&quot;\&quot;\&quot;\\\n\&quot;\&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">true</span>);
+        t(<span class="string">r#""""#</span>, <span class="string">""</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""""""""#</span>, <span class="string">""</span>, <span class="bool-val">true</span>);
+        t(<span class="string">r#""a""#</span>, <span class="string">"a"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""""a""""#</span>, <span class="string">"a"</span>, <span class="bool-val">true</span>);
+        t(<span class="string">r#""\t""#</span>, <span class="string">"\t"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\u0000""#</span>, <span class="string">"\0"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\U00000000""#</span>, <span class="string">"\0"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\U000A0000""#</span>, <span class="string">"\u{A0000}"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\\t""#</span>, <span class="string">"\\t"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"\"\t\""</span>, <span class="string">"\t"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"\"\"\"\n\t\"\"\""</span>, <span class="string">"\t"</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"\"\"\"\\\n\"\"\""</span>, <span class="string">""</span>, <span class="bool-val">true</span>);
         t(
-            <span class="string">&quot;\&quot;\&quot;\&quot;\\\n     \t   \t  \\\r\n  \t \n  \t \r\n\&quot;\&quot;\&quot;&quot;</span>,
-            <span class="string">&quot;&quot;</span>,
+            <span class="string">"\"\"\"\\\n     \t   \t  \\\r\n  \t \n  \t \r\n\"\"\""</span>,
+            <span class="string">""</span>,
             <span class="bool-val">true</span>,
         );
-        t(<span class="string">r#&quot;&quot;\r&quot;&quot;#</span>, <span class="string">&quot;\r&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\n&quot;&quot;#</span>, <span class="string">&quot;\n&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\b&quot;&quot;#</span>, <span class="string">&quot;\u{8}&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;a\fa&quot;&quot;#</span>, <span class="string">&quot;a\u{c}a&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">r#&quot;&quot;\&quot;a&quot;&quot;#</span>, <span class="string">&quot;\&quot;a&quot;</span>, <span class="bool-val">false</span>);
-        t(<span class="string">&quot;\&quot;\&quot;\&quot;\na\&quot;\&quot;\&quot;&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">&quot;\&quot;\&quot;\&quot;\n\&quot;\&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="bool-val">true</span>);
-        t(<span class="string">r#&quot;&quot;&quot;&quot;a\&quot;&quot;&quot;b&quot;&quot;&quot;&quot;#</span>, <span class="string">&quot;a\&quot;\&quot;\&quot;b&quot;</span>, <span class="bool-val">true</span>);
-        err(<span class="string">r#&quot;&quot;\a&quot;#</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">&#39;a&#39;</span>));
-        err(<span class="string">&quot;\&quot;\\\n&quot;</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">&#39;\n&#39;</span>));
-        err(<span class="string">&quot;\&quot;\\\r\n&quot;</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">&#39;\n&#39;</span>));
-        err(<span class="string">&quot;\&quot;\\&quot;</span>, Error::UnterminatedString(<span class="number">0</span>));
-        err(<span class="string">&quot;\&quot;\u{0}&quot;</span>, Error::InvalidCharInString(<span class="number">1</span>, <span class="string">&#39;\u{0}&#39;</span>));
-        err(<span class="string">r#&quot;&quot;\U00&quot;&quot;#</span>, Error::InvalidHexEscape(<span class="number">5</span>, <span class="string">&#39;&quot;&#39;</span>));
-        err(<span class="string">r#&quot;&quot;\U00&quot;#</span>, Error::UnterminatedString(<span class="number">0</span>));
-        err(<span class="string">r#&quot;&quot;\uD800&quot;#</span>, Error::InvalidEscapeValue(<span class="number">2</span>, <span class="number">0xd800</span>));
-        err(<span class="string">r#&quot;&quot;\UFFFFFFFF&quot;#</span>, Error::InvalidEscapeValue(<span class="number">2</span>, <span class="number">0xffff_ffff</span>));
+        t(<span class="string">r#""\r""#</span>, <span class="string">"\r"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\n""#</span>, <span class="string">"\n"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\b""#</span>, <span class="string">"\u{8}"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""a\fa""#</span>, <span class="string">"a\u{c}a"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">r#""\"a""#</span>, <span class="string">"\"a"</span>, <span class="bool-val">false</span>);
+        t(<span class="string">"\"\"\"\na\"\"\""</span>, <span class="string">"a"</span>, <span class="bool-val">true</span>);
+        t(<span class="string">"\"\"\"\n\"\"\""</span>, <span class="string">""</span>, <span class="bool-val">true</span>);
+        t(<span class="string">r#""""a\"""b""""#</span>, <span class="string">"a\"\"\"b"</span>, <span class="bool-val">true</span>);
+        err(<span class="string">r#""\a"#</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">'a'</span>));
+        err(<span class="string">"\"\\\n"</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">'\n'</span>));
+        err(<span class="string">"\"\\\r\n"</span>, Error::InvalidEscape(<span class="number">2</span>, <span class="string">'\n'</span>));
+        err(<span class="string">"\"\\"</span>, Error::UnterminatedString(<span class="number">0</span>));
+        err(<span class="string">"\"\u{0}"</span>, Error::InvalidCharInString(<span class="number">1</span>, <span class="string">'\u{0}'</span>));
+        err(<span class="string">r#""\U00""#</span>, Error::InvalidHexEscape(<span class="number">5</span>, <span class="string">'"'</span>));
+        err(<span class="string">r#""\U00"#</span>, Error::UnterminatedString(<span class="number">0</span>));
+        err(<span class="string">r#""\uD800"#</span>, Error::InvalidEscapeValue(<span class="number">2</span>, <span class="number">0xd800</span>));
+        err(<span class="string">r#""\UFFFFFFFF"#</span>, Error::InvalidEscapeValue(<span class="number">2</span>, <span class="number">0xffff_ffff</span>));
     }
 
     <span class="attr">#[test]
@@ -1400,21 +1402,21 @@
             <span class="macro">assert_eq!</span>(token, Token::Keylike(input));
             <span class="macro">assert!</span>(t.next().unwrap().is_none());
         }
-        t(<span class="string">&quot;foo&quot;</span>);
-        t(<span class="string">&quot;0bar&quot;</span>);
-        t(<span class="string">&quot;bar0&quot;</span>);
-        t(<span class="string">&quot;1234&quot;</span>);
-        t(<span class="string">&quot;a-b&quot;</span>);
-        t(<span class="string">&quot;a_B&quot;</span>);
-        t(<span class="string">&quot;-_-&quot;</span>);
-        t(<span class="string">&quot;___&quot;</span>);
+        t(<span class="string">"foo"</span>);
+        t(<span class="string">"0bar"</span>);
+        t(<span class="string">"bar0"</span>);
+        t(<span class="string">"1234"</span>);
+        t(<span class="string">"a-b"</span>);
+        t(<span class="string">"a_B"</span>);
+        t(<span class="string">"-_-"</span>);
+        t(<span class="string">"___"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>all() {
-        <span class="kw">fn </span>t(input: <span class="kw-2">&amp;</span>str, expected: <span class="kw-2">&amp;</span>[((usize, usize), Token&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>str)]) {
+        <span class="kw">fn </span>t(input: <span class="kw-2">&amp;</span>str, expected: <span class="kw-2">&amp;</span>[((usize, usize), Token&lt;<span class="lifetime">'_</span>&gt;, <span class="kw-2">&amp;</span>str)]) {
             <span class="kw">let </span><span class="kw-2">mut </span>tokens = Tokenizer::new(input);
-            <span class="kw">let </span><span class="kw-2">mut </span>actual: Vec&lt;((usize, usize), Token&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>str)&gt; = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>actual: Vec&lt;((usize, usize), Token&lt;<span class="lifetime">'_</span>&gt;, <span class="kw-2">&amp;</span>str)&gt; = Vec::new();
             <span class="kw">while let </span><span class="prelude-val">Some</span>((span, token)) = tokens.next().unwrap() {
                 actual.push((span.into(), token, <span class="kw-2">&amp;</span>input[span.start..span.end]));
             }
@@ -1425,60 +1427,60 @@
         }
 
         t(
-            <span class="string">&quot; a &quot;</span>,
+            <span class="string">" a "</span>,
             <span class="kw-2">&amp;</span>[
-                ((<span class="number">0</span>, <span class="number">1</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">1</span>, <span class="number">2</span>), Token::Keylike(<span class="string">&quot;a&quot;</span>), <span class="string">&quot;a&quot;</span>),
-                ((<span class="number">2</span>, <span class="number">3</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
+                ((<span class="number">0</span>, <span class="number">1</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">1</span>, <span class="number">2</span>), Token::Keylike(<span class="string">"a"</span>), <span class="string">"a"</span>),
+                ((<span class="number">2</span>, <span class="number">3</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
             ],
         );
 
         t(
-            <span class="string">&quot; a\t [[]] \t [] {} , . =\n# foo \r\n#foo \n &quot;</span>,
+            <span class="string">" a\t [[]] \t [] {} , . =\n# foo \r\n#foo \n "</span>,
             <span class="kw-2">&amp;</span>[
-                ((<span class="number">0</span>, <span class="number">1</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">1</span>, <span class="number">2</span>), Token::Keylike(<span class="string">&quot;a&quot;</span>), <span class="string">&quot;a&quot;</span>),
-                ((<span class="number">2</span>, <span class="number">4</span>), Token::Whitespace(<span class="string">&quot;\t &quot;</span>), <span class="string">&quot;\t &quot;</span>),
-                ((<span class="number">4</span>, <span class="number">5</span>), Token::LeftBracket, <span class="string">&quot;[&quot;</span>),
-                ((<span class="number">5</span>, <span class="number">6</span>), Token::LeftBracket, <span class="string">&quot;[&quot;</span>),
-                ((<span class="number">6</span>, <span class="number">7</span>), Token::RightBracket, <span class="string">&quot;]&quot;</span>),
-                ((<span class="number">7</span>, <span class="number">8</span>), Token::RightBracket, <span class="string">&quot;]&quot;</span>),
-                ((<span class="number">8</span>, <span class="number">11</span>), Token::Whitespace(<span class="string">&quot; \t &quot;</span>), <span class="string">&quot; \t &quot;</span>),
-                ((<span class="number">11</span>, <span class="number">12</span>), Token::LeftBracket, <span class="string">&quot;[&quot;</span>),
-                ((<span class="number">12</span>, <span class="number">13</span>), Token::RightBracket, <span class="string">&quot;]&quot;</span>),
-                ((<span class="number">13</span>, <span class="number">14</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">14</span>, <span class="number">15</span>), Token::LeftBrace, <span class="string">&quot;{&quot;</span>),
-                ((<span class="number">15</span>, <span class="number">16</span>), Token::RightBrace, <span class="string">&quot;}&quot;</span>),
-                ((<span class="number">16</span>, <span class="number">17</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">17</span>, <span class="number">18</span>), Token::Comma, <span class="string">&quot;,&quot;</span>),
-                ((<span class="number">18</span>, <span class="number">19</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">19</span>, <span class="number">20</span>), Token::Period, <span class="string">&quot;.&quot;</span>),
-                ((<span class="number">20</span>, <span class="number">21</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
-                ((<span class="number">21</span>, <span class="number">22</span>), Token::Equals, <span class="string">&quot;=&quot;</span>),
-                ((<span class="number">22</span>, <span class="number">23</span>), Token::Newline, <span class="string">&quot;\n&quot;</span>),
-                ((<span class="number">23</span>, <span class="number">29</span>), Token::Comment(<span class="string">&quot;# foo &quot;</span>), <span class="string">&quot;# foo &quot;</span>),
-                ((<span class="number">29</span>, <span class="number">31</span>), Token::Newline, <span class="string">&quot;\r\n&quot;</span>),
-                ((<span class="number">31</span>, <span class="number">36</span>), Token::Comment(<span class="string">&quot;#foo &quot;</span>), <span class="string">&quot;#foo &quot;</span>),
-                ((<span class="number">36</span>, <span class="number">37</span>), Token::Newline, <span class="string">&quot;\n&quot;</span>),
-                ((<span class="number">37</span>, <span class="number">38</span>), Token::Whitespace(<span class="string">&quot; &quot;</span>), <span class="string">&quot; &quot;</span>),
+                ((<span class="number">0</span>, <span class="number">1</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">1</span>, <span class="number">2</span>), Token::Keylike(<span class="string">"a"</span>), <span class="string">"a"</span>),
+                ((<span class="number">2</span>, <span class="number">4</span>), Token::Whitespace(<span class="string">"\t "</span>), <span class="string">"\t "</span>),
+                ((<span class="number">4</span>, <span class="number">5</span>), Token::LeftBracket, <span class="string">"["</span>),
+                ((<span class="number">5</span>, <span class="number">6</span>), Token::LeftBracket, <span class="string">"["</span>),
+                ((<span class="number">6</span>, <span class="number">7</span>), Token::RightBracket, <span class="string">"]"</span>),
+                ((<span class="number">7</span>, <span class="number">8</span>), Token::RightBracket, <span class="string">"]"</span>),
+                ((<span class="number">8</span>, <span class="number">11</span>), Token::Whitespace(<span class="string">" \t "</span>), <span class="string">" \t "</span>),
+                ((<span class="number">11</span>, <span class="number">12</span>), Token::LeftBracket, <span class="string">"["</span>),
+                ((<span class="number">12</span>, <span class="number">13</span>), Token::RightBracket, <span class="string">"]"</span>),
+                ((<span class="number">13</span>, <span class="number">14</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">14</span>, <span class="number">15</span>), Token::LeftBrace, <span class="string">"{"</span>),
+                ((<span class="number">15</span>, <span class="number">16</span>), Token::RightBrace, <span class="string">"}"</span>),
+                ((<span class="number">16</span>, <span class="number">17</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">17</span>, <span class="number">18</span>), Token::Comma, <span class="string">","</span>),
+                ((<span class="number">18</span>, <span class="number">19</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">19</span>, <span class="number">20</span>), Token::Period, <span class="string">"."</span>),
+                ((<span class="number">20</span>, <span class="number">21</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
+                ((<span class="number">21</span>, <span class="number">22</span>), Token::Equals, <span class="string">"="</span>),
+                ((<span class="number">22</span>, <span class="number">23</span>), Token::Newline, <span class="string">"\n"</span>),
+                ((<span class="number">23</span>, <span class="number">29</span>), Token::Comment(<span class="string">"# foo "</span>), <span class="string">"# foo "</span>),
+                ((<span class="number">29</span>, <span class="number">31</span>), Token::Newline, <span class="string">"\r\n"</span>),
+                ((<span class="number">31</span>, <span class="number">36</span>), Token::Comment(<span class="string">"#foo "</span>), <span class="string">"#foo "</span>),
+                ((<span class="number">36</span>, <span class="number">37</span>), Token::Newline, <span class="string">"\n"</span>),
+                ((<span class="number">37</span>, <span class="number">38</span>), Token::Whitespace(<span class="string">" "</span>), <span class="string">" "</span>),
             ],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>bare_cr_bad() {
-        err(<span class="string">&quot;\r&quot;</span>, Error::Unexpected(<span class="number">0</span>, <span class="string">&#39;\r&#39;</span>));
-        err(<span class="string">&quot;&#39;\n&quot;</span>, Error::NewlineInString(<span class="number">1</span>));
-        err(<span class="string">&quot;&#39;\u{0}&quot;</span>, Error::InvalidCharInString(<span class="number">1</span>, <span class="string">&#39;\u{0}&#39;</span>));
-        err(<span class="string">&quot;&#39;&quot;</span>, Error::UnterminatedString(<span class="number">0</span>));
-        err(<span class="string">&quot;\u{0}&quot;</span>, Error::Unexpected(<span class="number">0</span>, <span class="string">&#39;\u{0}&#39;</span>));
+        err(<span class="string">"\r"</span>, Error::Unexpected(<span class="number">0</span>, <span class="string">'\r'</span>));
+        err(<span class="string">"'\n"</span>, Error::NewlineInString(<span class="number">1</span>));
+        err(<span class="string">"'\u{0}"</span>, Error::InvalidCharInString(<span class="number">1</span>, <span class="string">'\u{0}'</span>));
+        err(<span class="string">"'"</span>, Error::UnterminatedString(<span class="number">0</span>));
+        err(<span class="string">"\u{0}"</span>, Error::Unexpected(<span class="number">0</span>, <span class="string">'\u{0}'</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>bad_comment() {
-        <span class="kw">let </span><span class="kw-2">mut </span>t = Tokenizer::new(<span class="string">&quot;#\u{0}&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>t = Tokenizer::new(<span class="string">"#\u{0}"</span>);
         t.next().unwrap().unwrap();
-        <span class="macro">assert_eq!</span>(t.next(), <span class="prelude-val">Err</span>(Error::Unexpected(<span class="number">1</span>, <span class="string">&#39;\u{0}&#39;</span>)));
+        <span class="macro">assert_eq!</span>(t.next(), <span class="prelude-val">Err</span>(Error::Unexpected(<span class="number">1</span>, <span class="string">'\u{0}'</span>)));
         <span class="macro">assert!</span>(t.next().unwrap().is_none());
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fancy_regex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1618,7 +1620,7 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the &quot;Software&quot;), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -1627,7 +1629,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -1640,12 +1642,12 @@ An implementation of regexes, supporting a relatively rich set of features, incl
 and lookaround.
 
 It builds on top of the excellent [regex] crate. If you are not
-familiar with it, make sure you read its documentation and maybe you don&#39;t even need fancy-regex.
+familiar with it, make sure you read its documentation and maybe you don't even need fancy-regex.
 
 If your regex or parts of it does not use any special features, the matching is delegated to the
-regex crate. That means it has linear runtime. But if you use &quot;fancy&quot; features such as
+regex crate. That means it has linear runtime. But if you use "fancy" features such as
 backreferences or look-around, an engine with backtracking needs to be used. In that case, the regex
-can be slow and take exponential time to run because of what is called &quot;catastrophic backtracking&quot;.
+can be slow and take exponential time to run because of what is called "catastrophic backtracking".
 This depends on the regex and the input.
 
 # Usage
@@ -1660,8 +1662,8 @@ An example with backreferences to check if a text consists of two identical word
 ```rust
 use fancy_regex::Regex;
 
-let re = Regex::new(r&quot;^(\w+) (\1)$&quot;).unwrap();
-let result = re.is_match(&quot;foo foo&quot;);
+let re = Regex::new(r"^(\w+) (\1)$").unwrap();
+let result = re.is_match("foo foo");
 
 assert!(result.is_ok());
 let did_match = result.unwrap();
@@ -1676,18 +1678,18 @@ entire input text.
 ```rust
 use fancy_regex::Regex;
 
-let re = Regex::new(r&quot;(\d)\1&quot;).unwrap();
-let result = re.find(&quot;foo 22&quot;);
+let re = Regex::new(r"(\d)\1").unwrap();
+let result = re.find("foo 22");
 
-assert!(result.is_ok(), &quot;execution was successful&quot;);
+assert!(result.is_ok(), "execution was successful");
 let match_option = result.unwrap();
 
-assert!(match_option.is_some(), &quot;found a match&quot;);
+assert!(match_option.is_some(), "found a match");
 let m = match_option.unwrap();
 
 assert_eq!(m.start(), 4);
 assert_eq!(m.end(), 6);
-assert_eq!(m.as_str(), &quot;22&quot;);
+assert_eq!(m.as_str(), "22");
 ```
 
 ## Example: Capturing groups
@@ -1695,17 +1697,17 @@ assert_eq!(m.as_str(), &quot;22&quot;);
 ```rust
 use fancy_regex::Regex;
 
-let re = Regex::new(r&quot;(?&lt;!AU)\$(\d+)&quot;).unwrap();
-let result = re.captures(&quot;AU$10, $20&quot;);
+let re = Regex::new(r"(?&lt;!AU)\$(\d+)").unwrap();
+let result = re.captures("AU$10, $20");
 
-let captures = result.expect(&quot;Error running regex&quot;).expect(&quot;No match found&quot;);
-let group = captures.get(1).expect(&quot;No group&quot;);
-assert_eq!(group.as_str(), &quot;20&quot;);
+let captures = result.expect("Error running regex").expect("No match found");
+let group = captures.get(1).expect("No group");
+assert_eq!(group.as_str(), "20");
 ```
 
 # Syntax
 
-The regex syntax is based on the [regex] crate&#39;s, with some additional supported syntax.
+The regex syntax is based on the [regex] crate's, with some additional supported syntax.
 
 Escapes:
 
@@ -1743,20 +1745,20 @@ Look-around assertions for matching without changing the current position:
 `(?=exp)`
 : look-ahead, succeeds if *exp* matches to the right of the current position \
 `(?!exp)`
-: negative look-ahead, succeeds if *exp* doesn&#39;t match to the right \
+: negative look-ahead, succeeds if *exp* doesn't match to the right \
 `(?&lt;=exp)`
 : look-behind, succeeds if *exp* matches to the left of the current position \
 `(?&lt;!exp)`
-: negative look-behind, succeeds if *exp* doesn&#39;t match to the left
+: negative look-behind, succeeds if *exp* doesn't match to the left
 
 Atomic groups using `(?&gt;exp)` to prevent backtracking within `exp`, e.g.:
 
 ```
 # use fancy_regex::Regex;
-let re = Regex::new(r&quot;^a(?&gt;bc|b)c$&quot;).unwrap();
-assert!(re.is_match(&quot;abcc&quot;).unwrap());
-// Doesn&#39;t match because `|b` is never tried because of the atomic group
-assert!(!re.is_match(&quot;abc&quot;).unwrap());
+let re = Regex::new(r"^a(?&gt;bc|b)c$").unwrap();
+assert!(re.is_match("abcc").unwrap());
+// Doesn't match because `|b` is never tried because of the atomic group
+assert!(!re.is_match("abc").unwrap());
 ```
 
 Conditionals - if/then/else:
@@ -1773,7 +1775,7 @@ Conditionals - if/then/else:
 [regex]: https://crates.io/crates/regex
 */
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/fancy-regex/0.11.0&quot;</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/fancy-regex/0.11.0"</span>)]
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
 
@@ -1817,10 +1819,10 @@ Conditionals - if/then/else:
     named_groups: Arc&lt;NamedGroups&gt;,
 }
 
-<span class="comment">// Separate enum because we don&#39;t want to expose any of this
+<span class="comment">// Separate enum because we don't want to expose any of this
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">enum </span>RegexImpl {
-    <span class="comment">// Do we want to box this? It&#39;s pretty big...
+    <span class="comment">// Do we want to box this? It's pretty big...
     </span>Wrap {
         inner: regex::Regex,
         options: RegexOptions,
@@ -1834,8 +1836,8 @@ Conditionals - if/then/else:
 
 <span class="doccomment">/// A single match of a regex or group in an input text
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-</span><span class="kw">pub struct </span>Match&lt;<span class="lifetime">&#39;t</span>&gt; {
-    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+</span><span class="kw">pub struct </span>Match&lt;<span class="lifetime">'t</span>&gt; {
+    text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
     start: usize,
     end: usize,
 }
@@ -1845,30 +1847,30 @@ Conditionals - if/then/else:
 /// The iterator yields a `Result&lt;Match&gt;`. The iterator stops when no more
 /// matches can be found.
 ///
-/// `&#39;r` is the lifetime of the compiled regular expression and `&#39;t` is the
+/// `'r` is the lifetime of the compiled regular expression and `'t` is the
 /// lifetime of the matched string.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-    re: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex,
-    text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
+    re: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>Regex,
+    text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
     last_end: usize,
     last_match: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; Matches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
     <span class="doccomment">/// Return the text being searched.
-    </span><span class="kw">pub fn </span>text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str {
+    </span><span class="kw">pub fn </span>text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str {
         <span class="self">self</span>.text
     }
 
     <span class="doccomment">/// Return the underlying regex.
-    </span><span class="kw">pub fn </span>regex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex {
+    </span><span class="kw">pub fn </span>regex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'r </span>Regex {
         <span class="kw-2">&amp;</span><span class="self">self</span>.re
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; Iterator <span class="kw">for </span>Matches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;;
 
     <span class="doccomment">/// Adapted from the `regex` crate. Calls `find_from_pos` repeatedly.
     /// Ignores empty matches immediately after a match.
@@ -1901,7 +1903,7 @@ Conditionals - if/then/else:
             // the next search at the smallest possible starting position
             // of the next match following this one.
             </span><span class="self">self</span>.last_end = next_utf8(<span class="self">self</span>.text, mat.end);
-            <span class="comment">// Don&#39;t accept empty matches immediately following a match.
+            <span class="comment">// Don't accept empty matches immediately following a match.
             // Just move on to the next match.
             </span><span class="kw">if </span><span class="prelude-val">Some</span>(mat.end) == <span class="self">self</span>.last_match {
                 <span class="kw">return </span><span class="self">self</span>.next();
@@ -1921,25 +1923,25 @@ Conditionals - if/then/else:
 ///
 /// The iterator stops when no more matches can be found.
 ///
-/// `&#39;r` is the lifetime of the compiled regular expression and `&#39;t` is the
+/// `'r` is the lifetime of the compiled regular expression and `'t` is the
 /// lifetime of the matched string.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;);
+</span><span class="kw">pub struct </span>CaptureMatches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt;(Matches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; CaptureMatches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
     <span class="doccomment">/// Return the text being searched.
-    </span><span class="kw">pub fn </span>text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str {
+    </span><span class="kw">pub fn </span>text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str {
         <span class="self">self</span>.<span class="number">0</span>.text
     }
 
     <span class="doccomment">/// Return the underlying regex.
-    </span><span class="kw">pub fn </span>regex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>Regex {
+    </span><span class="kw">pub fn </span>regex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'r </span>Regex {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.re
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; Iterator <span class="kw">for </span>CaptureMatches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Captures&lt;<span class="lifetime">'t</span>&gt;&gt;;
 
     <span class="doccomment">/// Adapted from the `regex` crate. Calls `captures_from_pos` repeatedly.
     /// Ignores empty matches immediately after a match.
@@ -1956,7 +1958,7 @@ Conditionals - if/then/else:
 
         <span class="kw">let </span>mat = captures
             .get(<span class="number">0</span>)
-            .expect(<span class="string">&quot;`Captures` is expected to have entire match at 0th position&quot;</span>);
+            .expect(<span class="string">"`Captures` is expected to have entire match at 0th position"</span>);
         <span class="kw">if </span>mat.start == mat.end {
             <span class="self">self</span>.<span class="number">0</span>.last_end = next_utf8(<span class="self">self</span>.<span class="number">0</span>.text, mat.end);
             <span class="kw">if </span><span class="prelude-val">Some</span>(mat.end) == <span class="self">self</span>.<span class="number">0</span>.last_match {
@@ -1974,27 +1976,27 @@ Conditionals - if/then/else:
 
 <span class="doccomment">/// A set of capture groups found for a regex.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    inner: CapturesImpl&lt;<span class="lifetime">&#39;t</span>&gt;,
+</span><span class="kw">pub struct </span>Captures&lt;<span class="lifetime">'t</span>&gt; {
+    inner: CapturesImpl&lt;<span class="lifetime">'t</span>&gt;,
     named_groups: Arc&lt;NamedGroups&gt;,
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>CapturesImpl&lt;<span class="lifetime">&#39;t</span>&gt; {
+</span><span class="kw">enum </span>CapturesImpl&lt;<span class="lifetime">'t</span>&gt; {
     Wrap {
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
         locations: regex::CaptureLocations,
     },
     Fancy {
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
         saves: Vec&lt;usize&gt;,
     },
 }
 
 <span class="doccomment">/// Iterator for captured groups in order in which they appear in the regex.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
-    caps: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt;,
+</span><span class="kw">pub struct </span>SubCaptureMatches&lt;<span class="lifetime">'c</span>, <span class="lifetime">'t</span>&gt; {
+    caps: <span class="kw-2">&amp;</span><span class="lifetime">'c </span>Captures&lt;<span class="lifetime">'t</span>&gt;,
     i: usize,
 }
 
@@ -2069,15 +2071,15 @@ Conditionals - if/then/else:
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.as_str())
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.as_str())
     }
 }
 
@@ -2172,8 +2174,8 @@ Conditionals - if/then/else:
     /// ```rust
     /// # use fancy_regex::Regex;
     ///
-    /// let re = Regex::new(r&quot;(\w+) \1&quot;).unwrap();
-    /// assert!(re.is_match(&quot;mirror mirror on the wall&quot;).unwrap());
+    /// let re = Regex::new(r"(\w+) \1").unwrap();
+    /// assert!(re.is_match("mirror mirror on the wall").unwrap());
     /// ```
     </span><span class="kw">pub fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
@@ -2199,14 +2201,14 @@ Conditionals - if/then/else:
     /// ```rust
     /// # use fancy_regex::Regex;
     ///
-    /// let re = Regex::new(r&quot;\w+(?=!)&quot;).unwrap();
-    /// let mut matches = re.find_iter(&quot;so fancy! even with! iterators!&quot;);
-    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), &quot;fancy&quot;);
-    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), &quot;with&quot;);
-    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), &quot;iterators&quot;);
+    /// let re = Regex::new(r"\w+(?=!)").unwrap();
+    /// let mut matches = re.find_iter("so fancy! even with! iterators!");
+    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), "fancy");
+    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), "with");
+    /// assert_eq!(matches.next().unwrap().unwrap().as_str(), "iterators");
     /// assert!(matches.next().is_none());
     /// ```
-    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str) -&gt; Matches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+    </span><span class="kw">pub fn </span>find_iter&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str) -&gt; Matches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
         Matches {
             re: <span class="kw-2">&amp;</span><span class="self">self</span>,
             text,
@@ -2227,10 +2229,10 @@ Conditionals - if/then/else:
     /// ```rust
     /// # use fancy_regex::Regex;
     ///
-    /// let re = Regex::new(r&quot;\w+(?=!)&quot;).unwrap();
-    /// assert_eq!(re.find(&quot;so fancy!&quot;).unwrap().unwrap().as_str(), &quot;fancy&quot;);
+    /// let re = Regex::new(r"\w+(?=!)").unwrap();
+    /// assert_eq!(re.find("so fancy!").unwrap().unwrap().as_str(), "fancy");
     /// ```
-    </span><span class="kw">pub fn </span>find&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>find&lt;<span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="self">self</span>.find_from_pos(text, <span class="number">0</span>)
     }
 
@@ -2242,8 +2244,8 @@ Conditionals - if/then/else:
     ///
     /// ```
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(r&quot;(?m:^)(\d+)&quot;).unwrap();
-    /// let text = &quot;1 test 123\n2 foo&quot;;
+    /// let re = Regex::new(r"(?m:^)(\d+)").unwrap();
+    /// let text = "1 test 123\n2 foo";
     /// let mat = re.find_from_pos(text, 7).unwrap().unwrap();
     ///
     /// assert_eq!(mat.start(), 11);
@@ -2252,16 +2254,16 @@ Conditionals - if/then/else:
     ///
     /// Note that in some cases this is not the same as using the `find`
     /// method and passing a slice of the string, see [Regex::captures_from_pos()] for details.
-    </span><span class="kw">pub fn </span>find_from_pos&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, pos: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>find_from_pos&lt;<span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str, pos: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="self">self</span>.find_from_pos_with_option_flags(text, pos, <span class="number">0</span>)
     }
 
-    <span class="kw">fn </span>find_from_pos_with_option_flags&lt;<span class="lifetime">&#39;t</span>&gt;(
+    <span class="kw">fn </span>find_from_pos_with_option_flags&lt;<span class="lifetime">'t</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
         pos: usize,
         option_flags: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             RegexImpl::Wrap { inner, .. } =&gt; <span class="prelude-val">Ok</span>(inner
                 .find_at(text, pos)
@@ -2282,23 +2284,23 @@ Conditionals - if/then/else:
     /// ```rust
     /// # use fancy_regex::Regex;
     ///
-    /// let re = Regex::new(r&quot;(\d{4})-(\d{2})&quot;).unwrap();
-    /// let text = &quot;It was between 2018-04 and 2020-01&quot;;
+    /// let re = Regex::new(r"(\d{4})-(\d{2})").unwrap();
+    /// let text = "It was between 2018-04 and 2020-01";
     /// let mut all_captures = re.captures_iter(text);
     ///
     /// let first = all_captures.next().unwrap().unwrap();
-    /// assert_eq!(first.get(1).unwrap().as_str(), &quot;2018&quot;);
-    /// assert_eq!(first.get(2).unwrap().as_str(), &quot;04&quot;);
-    /// assert_eq!(first.get(0).unwrap().as_str(), &quot;2018-04&quot;);
+    /// assert_eq!(first.get(1).unwrap().as_str(), "2018");
+    /// assert_eq!(first.get(2).unwrap().as_str(), "04");
+    /// assert_eq!(first.get(0).unwrap().as_str(), "2018-04");
     ///
     /// let second = all_captures.next().unwrap().unwrap();
-    /// assert_eq!(second.get(1).unwrap().as_str(), &quot;2020&quot;);
-    /// assert_eq!(second.get(2).unwrap().as_str(), &quot;01&quot;);
-    /// assert_eq!(second.get(0).unwrap().as_str(), &quot;2020-01&quot;);
+    /// assert_eq!(second.get(1).unwrap().as_str(), "2020");
+    /// assert_eq!(second.get(2).unwrap().as_str(), "01");
+    /// assert_eq!(second.get(0).unwrap().as_str(), "2020-01");
     ///
     /// assert!(all_captures.next().is_none());
     /// ```
-    </span><span class="kw">pub fn </span>captures_iter&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str) -&gt; CaptureMatches&lt;<span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span>&gt; {
+    </span><span class="kw">pub fn </span>captures_iter&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'r </span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str) -&gt; CaptureMatches&lt;<span class="lifetime">'r</span>, <span class="lifetime">'t</span>&gt; {
         CaptureMatches(<span class="self">self</span>.find_iter(text))
     }
 
@@ -2313,16 +2315,16 @@ Conditionals - if/then/else:
     /// ```rust
     /// # use fancy_regex::Regex;
     ///
-    /// let re = Regex::new(r&quot;(\d{4})-(\d{2})-(\d{2})&quot;).unwrap();
-    /// let text = &quot;The date was 2018-04-07&quot;;
+    /// let re = Regex::new(r"(\d{4})-(\d{2})-(\d{2})").unwrap();
+    /// let text = "The date was 2018-04-07";
     /// let captures = re.captures(text).unwrap().unwrap();
     ///
-    /// assert_eq!(captures.get(1).unwrap().as_str(), &quot;2018&quot;);
-    /// assert_eq!(captures.get(2).unwrap().as_str(), &quot;04&quot;);
-    /// assert_eq!(captures.get(3).unwrap().as_str(), &quot;07&quot;);
-    /// assert_eq!(captures.get(0).unwrap().as_str(), &quot;2018-04-07&quot;);
+    /// assert_eq!(captures.get(1).unwrap().as_str(), "2018");
+    /// assert_eq!(captures.get(2).unwrap().as_str(), "04");
+    /// assert_eq!(captures.get(3).unwrap().as_str(), "07");
+    /// assert_eq!(captures.get(0).unwrap().as_str(), "2018-04-07");
     /// ```
-    </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="self">self</span>.captures_from_pos(text, <span class="number">0</span>)
     }
 
@@ -2335,12 +2337,12 @@ Conditionals - if/then/else:
     ///
     /// ```
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(r&quot;(?m:^)(\d+)&quot;).unwrap();
-    /// let text = &quot;1 test 123\n2 foo&quot;;
+    /// let re = Regex::new(r"(?m:^)(\d+)").unwrap();
+    /// let text = "1 test 123\n2 foo";
     /// let captures = re.captures_from_pos(text, 7).unwrap().unwrap();
     ///
     /// let group = captures.get(1).unwrap();
-    /// assert_eq!(group.as_str(), &quot;2&quot;);
+    /// assert_eq!(group.as_str(), "2");
     /// assert_eq!(group.start(), 11);
     /// assert_eq!(group.end(), 12);
     /// ```
@@ -2351,16 +2353,16 @@ Conditionals - if/then/else:
     ///
     /// ```
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(r&quot;(?m:^)(\d+)&quot;).unwrap();
-    /// let text = &quot;1 test 123\n2 foo&quot;;
+    /// let re = Regex::new(r"(?m:^)(\d+)").unwrap();
+    /// let text = "1 test 123\n2 foo";
     /// let captures = re.captures(&amp;text[7..]).unwrap().unwrap();
-    /// assert_eq!(captures.get(1).unwrap().as_str(), &quot;123&quot;);
+    /// assert_eq!(captures.get(1).unwrap().as_str(), "123");
     /// ```
     ///
-    /// This matched the number &quot;123&quot; because it&#39;s at the beginning of the text
+    /// This matched the number "123" because it's at the beginning of the text
     /// of the string slice.
     ///
-    </span><span class="kw">pub fn </span>captures_from_pos&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, pos: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>captures_from_pos&lt;<span class="lifetime">'t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str, pos: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="kw">let </span>named_groups = <span class="self">self</span>.named_groups.clone();
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             RegexImpl::Wrap { inner, .. } =&gt; {
@@ -2411,14 +2413,14 @@ Conditionals - if/then/else:
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>debug_print(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
-            RegexImpl::Wrap { inner, .. } =&gt; <span class="macro">println!</span>(<span class="string">&quot;wrapped {:?}&quot;</span>, inner),
+            RegexImpl::Wrap { inner, .. } =&gt; <span class="macro">println!</span>(<span class="string">"wrapped {:?}"</span>, inner),
             RegexImpl::Fancy { prog, .. } =&gt; prog.debug_print(),
         }
     }
 
     <span class="doccomment">/// Replaces the leftmost-first match with the replacement provided.
     /// The replacement can be a regular string (where `$N` and `$name` are
-    /// expanded to match capture groups) or a function that takes the matches&#39;
+    /// expanded to match capture groups) or a function that takes the matches'
     /// `Captures` and returns the replaced string.
     ///
     /// If no match is found, then a copy of the string is returned unchanged.
@@ -2433,8 +2435,8 @@ Conditionals - if/then/else:
     /// entire match) or it can be a name (consisting of letters, digits or
     /// underscores) corresponding to a named capture group.
     ///
-    /// If `name` isn&#39;t a valid capture group (whether the name doesn&#39;t exist
-    /// or isn&#39;t a valid index), then it is replaced with the empty string.
+    /// If `name` isn't a valid capture group (whether the name doesn't exist
+    /// or isn't a valid index), then it is replaced with the empty string.
     ///
     /// The longest possible name is used. e.g., `$1a` looks up the capture
     /// group named `1a` and not the capture group at index `1`. To exert more
@@ -2449,8 +2451,8 @@ Conditionals - if/then/else:
     ///
     /// ```rust
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(&quot;[^01]+&quot;).unwrap();
-    /// assert_eq!(re.replace(&quot;1078910&quot;, &quot;&quot;), &quot;1010&quot;);
+    /// let re = Regex::new("[^01]+").unwrap();
+    /// assert_eq!(re.replace("1078910", ""), "1010");
     /// ```
     ///
     /// But anything satisfying the `Replacer` trait will work. For example,
@@ -2460,23 +2462,23 @@ Conditionals - if/then/else:
     ///
     /// ```rust
     /// # use fancy_regex::{Regex, Captures};
-    /// let re = Regex::new(r&quot;([^,\s]+),\s+(\S+)&quot;).unwrap();
-    /// let result = re.replace(&quot;Springsteen, Bruce&quot;, |caps: &amp;Captures| {
-    ///     format!(&quot;{} {}&quot;, &amp;caps[2], &amp;caps[1])
+    /// let re = Regex::new(r"([^,\s]+),\s+(\S+)").unwrap();
+    /// let result = re.replace("Springsteen, Bruce", |caps: &amp;Captures| {
+    ///     format!("{} {}", &amp;caps[2], &amp;caps[1])
     /// });
-    /// assert_eq!(result, &quot;Bruce Springsteen&quot;);
+    /// assert_eq!(result, "Bruce Springsteen");
     /// ```
     ///
     /// But this is a bit cumbersome to use all the time. Instead, a simple
     /// syntax is supported that expands `$name` into the corresponding capture
-    /// group. Here&#39;s the last example, but using this expansion technique
+    /// group. Here's the last example, but using this expansion technique
     /// with named capture groups:
     ///
     /// ```rust
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(r&quot;(?P&lt;last&gt;[^,\s]+),\s+(?P&lt;first&gt;\S+)&quot;).unwrap();
-    /// let result = re.replace(&quot;Springsteen, Bruce&quot;, &quot;$first $last&quot;);
-    /// assert_eq!(result, &quot;Bruce Springsteen&quot;);
+    /// let re = Regex::new(r"(?P&lt;last&gt;[^,\s]+),\s+(?P&lt;first&gt;\S+)").unwrap();
+    /// let result = re.replace("Springsteen, Bruce", "$first $last");
+    /// assert_eq!(result, "Bruce Springsteen");
     /// ```
     ///
     /// Note that using `$2` instead of `$first` or `$1` instead of `$last`
@@ -2489,13 +2491,13 @@ Conditionals - if/then/else:
     ///
     /// ```rust
     /// # use fancy_regex::Regex;
-    /// let re = Regex::new(r&quot;(?P&lt;first&gt;\w+)\s+(?P&lt;second&gt;\w+)&quot;).unwrap();
-    /// let result = re.replace(&quot;deep fried&quot;, &quot;${first}_$second&quot;);
-    /// assert_eq!(result, &quot;deep_fried&quot;);
+    /// let re = Regex::new(r"(?P&lt;first&gt;\w+)\s+(?P&lt;second&gt;\w+)").unwrap();
+    /// let result = re.replace("deep fried", "${first}_$second");
+    /// assert_eq!(result, "deep_fried");
     /// ```
     ///
     /// Without the curly braces, the capture group name `first_` would be
-    /// used, and since it doesn&#39;t exist, it would be replaced with the empty
+    /// used, and since it doesn't exist, it would be replaced with the empty
     /// string.
     ///
     /// Finally, sometimes you just want to replace a literal string with no
@@ -2506,11 +2508,11 @@ Conditionals - if/then/else:
     /// # use fancy_regex::Regex;
     /// use fancy_regex::NoExpand;
     ///
-    /// let re = Regex::new(r&quot;(?P&lt;last&gt;[^,\s]+),\s+(\S+)&quot;).unwrap();
-    /// let result = re.replace(&quot;Springsteen, Bruce&quot;, NoExpand(&quot;$2 $last&quot;));
-    /// assert_eq!(result, &quot;$2 $last&quot;);
+    /// let re = Regex::new(r"(?P&lt;last&gt;[^,\s]+),\s+(\S+)").unwrap();
+    /// let result = re.replace("Springsteen, Bruce", NoExpand("$2 $last"));
+    /// assert_eq!(result, "$2 $last");
     /// ```
-    </span><span class="kw">pub fn </span>replace&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, rep: R) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, str&gt; {
+    </span><span class="kw">pub fn </span>replace&lt;<span class="lifetime">'t</span>, R: Replacer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str, rep: R) -&gt; Cow&lt;<span class="lifetime">'t</span>, str&gt; {
         <span class="self">self</span>.replacen(text, <span class="number">1</span>, rep)
     }
 
@@ -2520,7 +2522,7 @@ Conditionals - if/then/else:
     ///
     /// See the documentation for `replace` for details on how to access
     /// capturing group matches in the replacement string.
-    </span><span class="kw">pub fn </span>replace_all&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, rep: R) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, str&gt; {
+    </span><span class="kw">pub fn </span>replace_all&lt;<span class="lifetime">'t</span>, R: Replacer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str, rep: R) -&gt; Cow&lt;<span class="lifetime">'t</span>, str&gt; {
         <span class="self">self</span>.replacen(text, <span class="number">0</span>, rep)
     }
 
@@ -2530,19 +2532,19 @@ Conditionals - if/then/else:
     ///
     /// See the documentation for `replace` for details on how to access
     /// capturing group matches in the replacement string.
-    </span><span class="kw">pub fn </span>replacen&lt;<span class="lifetime">&#39;t</span>, R: Replacer&gt;(
+    </span><span class="kw">pub fn </span>replacen&lt;<span class="lifetime">'t</span>, R: Replacer&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str,
+        text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str,
         limit: usize,
         <span class="kw-2">mut </span>rep: R,
-    ) -&gt; Cow&lt;<span class="lifetime">&#39;t</span>, str&gt; {
-        <span class="comment">// If we know that the replacement doesn&#39;t have any capture expansions,
+    ) -&gt; Cow&lt;<span class="lifetime">'t</span>, str&gt; {
+        <span class="comment">// If we know that the replacement doesn't have any capture expansions,
         // then we can fast path. The fast path can make a tremendous
         // difference:
         //
         //   1) We use `find_iter` instead of `captures_iter`. Not asking for
         //      captures generally makes the regex engines faster.
-        //   2) We don&#39;t need to look up all of the capture groups and do
+        //   2) We don't need to look up all of the capture groups and do
         //      replacements inside the replacement string. We just push it
         //      at each match and be done with it.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(rep) = rep.no_expansion() {
@@ -2589,7 +2591,7 @@ Conditionals - if/then/else:
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'t</span>&gt; Match&lt;<span class="lifetime">'t</span>&gt; {
     <span class="doccomment">/// Returns the starting byte offset of the match in the text.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -2610,35 +2612,35 @@ Conditionals - if/then/else:
 
     <span class="doccomment">/// Returns the matched text.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str {
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.text[<span class="self">self</span>.start..<span class="self">self</span>.end]
     }
 
     <span class="doccomment">/// Creates a new match from the given text and byte offsets.
-    </span><span class="kw">fn </span>new(text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str, start: usize, end: usize) -&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
+    </span><span class="kw">fn </span>new(text: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str, start: usize, end: usize) -&gt; Match&lt;<span class="lifetime">'t</span>&gt; {
         Match { text, start, end }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; From&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str {
-    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">&#39;t</span>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>str {
+<span class="kw">impl</span>&lt;<span class="lifetime">'t</span>&gt; From&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'t </span>str {
+    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">'t</span>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'t </span>str {
         m.as_str()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; From&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; <span class="kw">for </span>Range&lt;usize&gt; {
-    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">&#39;t</span>&gt;) -&gt; Range&lt;usize&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'t</span>&gt; From&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt; <span class="kw">for </span>Range&lt;usize&gt; {
+    <span class="kw">fn </span>from(m: Match&lt;<span class="lifetime">'t</span>&gt;) -&gt; Range&lt;usize&gt; {
         m.range()
     }
 }
 
-<span class="attr">#[allow(clippy::len_without_is_empty)] </span><span class="comment">// follow regex&#39;s API
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+<span class="attr">#[allow(clippy::len_without_is_empty)] </span><span class="comment">// follow regex's API
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'t</span>&gt; Captures&lt;<span class="lifetime">'t</span>&gt; {
     <span class="doccomment">/// Get the capture group by its index in the regex.
     ///
     /// If there is no match for that group or the index does not correspond to a group, `None` is
     /// returned. The index 0 returns the whole match.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             CapturesImpl::Wrap { text, locations } =&gt; {
                 locations
@@ -2666,7 +2668,7 @@ Conditionals - if/then/else:
 
     <span class="doccomment">/// Returns the match for a named capture group.  Returns `None` the capture
     /// group did not match or if there is no group with the given name.
-    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt; {
         <span class="self">self</span>.named_groups.get(name).and_then(|i| <span class="self">self</span>.get(<span class="kw-2">*</span>i))
     }
 
@@ -2678,8 +2680,8 @@ Conditionals - if/then/else:
     /// entire match) or it can be a name (consisting of letters, digits or
     /// underscores) corresponding to a named capture group.
     ///
-    /// If `group` isn&#39;t a valid capture group (whether the name doesn&#39;t exist
-    /// or isn&#39;t a valid index), then it is replaced with the empty string.
+    /// If `group` isn't a valid capture group (whether the name doesn't exist
+    /// or isn't a valid index), then it is replaced with the empty string.
     ///
     /// The longest possible name is used. e.g., `$1a` looks up the capture
     /// group named `1a` and not the capture group at index `1`. To exert more
@@ -2696,7 +2698,7 @@ Conditionals - if/then/else:
 
     <span class="doccomment">/// Iterate over the captured groups in order in which they appeared in the regex. The first
     /// capture corresponds to the whole match.
-    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;c</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="self">self</span>) -&gt; SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
+    </span><span class="kw">pub fn </span>iter&lt;<span class="lifetime">'c</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'c </span><span class="self">self</span>) -&gt; SubCaptureMatches&lt;<span class="lifetime">'c</span>, <span class="lifetime">'t</span>&gt; {
         SubCaptureMatches { caps: <span class="self">self</span>, i: <span class="number">0 </span>}
     }
 
@@ -2714,22 +2716,22 @@ Conditionals - if/then/else:
 ///
 /// Get a group by index.
 ///
-/// `&#39;t` is the lifetime of the matched text.
+/// `'t` is the lifetime of the matched text.
 ///
-/// The text can&#39;t outlive the `Captures` object if this method is
+/// The text can't outlive the `Captures` object if this method is
 /// used, because of how `Index` is defined (normally `a[i]` is part
-/// of `a` and can&#39;t outlive it); to do that, use `get()` instead.
+/// of `a` and can't outlive it); to do that, use `get()` instead.
 ///
 /// # Panics
 ///
 /// If there is no group at the given index.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'t</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">'t</span>&gt; {
     <span class="kw">type </span>Output = str;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="self">self</span>.get(i)
             .map(|m| m.as_str())
-            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;no group at index &#39;{}&#39;&quot;</span>, i))
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"no group at index '{}'"</span>, i))
     }
 }
 
@@ -2737,30 +2739,30 @@ Conditionals - if/then/else:
 ///
 /// Get a group by name.
 ///
-/// `&#39;t` is the lifetime of the matched text and `&#39;i` is the lifetime
+/// `'t` is the lifetime of the matched text and `'i` is the lifetime
 /// of the group name (the index).
 ///
-/// The text can&#39;t outlive the `Captures` object if this method is
+/// The text can't outlive the `Captures` object if this method is
 /// used, because of how `Index` is defined (normally `a[i]` is part
-/// of `a` and can&#39;t outlive it); to do that, use `name` instead.
+/// of `a` and can't outlive it); to do that, use `name` instead.
 ///
 /// # Panics
 ///
 /// If there is no group named by the given value.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;i</span>&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'t</span>, <span class="lifetime">'i</span>&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>str&gt; <span class="kw">for </span>Captures&lt;<span class="lifetime">'t</span>&gt; {
     <span class="kw">type </span>Output = str;
 
-    <span class="kw">fn </span>index&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+    <span class="kw">fn </span>index&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {
         <span class="self">self</span>.name(name)
             .map(|m| m.as_str())
-            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;no group named &#39;{}&#39;&quot;</span>, name))
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"no group named '{}'"</span>, name))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; Iterator <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'c</span>, <span class="lifetime">'t</span>&gt; Iterator <span class="kw">for </span>SubCaptureMatches&lt;<span class="lifetime">'c</span>, <span class="lifetime">'t</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">&#39;t</span>&gt;&gt;&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;Match&lt;<span class="lifetime">'t</span>&gt;&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.i &lt; <span class="self">self</span>.caps.len() {
             <span class="kw">let </span>result = <span class="self">self</span>.caps.get(<span class="self">self</span>.i);
             <span class="self">self</span>.i += <span class="number">1</span>;
@@ -2804,7 +2806,7 @@ Conditionals - if/then/else:
     <span class="doccomment">/// Alternative of multiple expressions, one of them must match, e.g. `a|b` is an alternative
     /// where either the literal `a` or `b` must match
     </span>Alt(Vec&lt;Expr&gt;),
-    <span class="doccomment">/// Capturing group of expression, e.g. `(a.)` matches `a` and any character and &quot;captures&quot;
+    <span class="doccomment">/// Capturing group of expression, e.g. `(a.)` matches `a` and any character and "captures"
     /// (remembers) the match
     </span>Group(Box&lt;Expr&gt;),
     <span class="doccomment">/// Look-around (e.g. positive/negative look-ahead or look-behind) with an expression, e.g.
@@ -2822,7 +2824,7 @@ Conditionals - if/then/else:
         /// Non-greedy means as little as possible, e.g. `.*?b` would match only `ab` in `abab`.
         </span>greedy: bool,
     },
-    <span class="doccomment">/// Delegate a regex to the regex crate. This is used as a simplification so that we don&#39;t have
+    <span class="doccomment">/// Delegate a regex to the regex crate. This is used as a simplification so that we don't have
     /// to represent all the expressions in the AST, e.g. character classes.
     </span>Delegate {
         <span class="doccomment">/// The regex
@@ -2872,16 +2874,16 @@ Conditionals - if/then/else:
 /// returns the name of each group, or [None] if the group has
 /// no name.  Because capture group 0 cannot have a name, the
 /// first item returned is always [None].
-</span><span class="kw">pub struct </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt;(std::vec::IntoIter&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;&gt;);
+</span><span class="kw">pub struct </span>CaptureNames&lt;<span class="lifetime">'r</span>&gt;(std::vec::IntoIter&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'r </span>str&gt;&gt;);
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;&lt;CaptureNames&gt;&quot;</span>)
+<span class="kw">impl </span>Debug <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"&lt;CaptureNames&gt;"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>&gt; Iterator <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">&#39;r</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>&gt; Iterator <span class="kw">for </span>CaptureNames&lt;<span class="lifetime">'r</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'r </span>str&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.<span class="number">0</span>.next()
@@ -2893,16 +2895,16 @@ Conditionals - if/then/else:
 </span><span class="kw">fn </span>push_usize(s: <span class="kw-2">&amp;mut </span>String, x: usize) {
     <span class="kw">if </span>x &gt;= <span class="number">10 </span>{
         push_usize(s, x / <span class="number">10</span>);
-        s.push((<span class="string">b&#39;0&#39; </span>+ (x % <span class="number">10</span>) <span class="kw">as </span>u8) <span class="kw">as </span>char);
+        s.push((<span class="string">b'0' </span>+ (x % <span class="number">10</span>) <span class="kw">as </span>u8) <span class="kw">as </span>char);
     } <span class="kw">else </span>{
-        s.push((<span class="string">b&#39;0&#39; </span>+ (x <span class="kw">as </span>u8)) <span class="kw">as </span>char);
+        s.push((<span class="string">b'0' </span>+ (x <span class="kw">as </span>u8)) <span class="kw">as </span>char);
     }
 }
 
 <span class="kw">fn </span>is_special(c: char) -&gt; bool {
     <span class="kw">match </span>c {
-        <span class="string">&#39;\\&#39; </span>| <span class="string">&#39;.&#39; </span>| <span class="string">&#39;+&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;?&#39; </span>| <span class="string">&#39;(&#39; </span>| <span class="string">&#39;)&#39; </span>| <span class="string">&#39;|&#39; </span>| <span class="string">&#39;[&#39; </span>| <span class="string">&#39;]&#39; </span>| <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;$&#39;
-        </span>| <span class="string">&#39;#&#39; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="string">'\\' </span>| <span class="string">'.' </span>| <span class="string">'+' </span>| <span class="string">'*' </span>| <span class="string">'?' </span>| <span class="string">'(' </span>| <span class="string">')' </span>| <span class="string">'|' </span>| <span class="string">'[' </span>| <span class="string">']' </span>| <span class="string">'{' </span>| <span class="string">'}' </span>| <span class="string">'^' </span>| <span class="string">'$'
+        </span>| <span class="string">'#' </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
@@ -2910,20 +2912,20 @@ Conditionals - if/then/else:
 <span class="kw">fn </span>push_quoted(buf: <span class="kw-2">&amp;mut </span>String, s: <span class="kw-2">&amp;</span>str) {
     <span class="kw">for </span>c <span class="kw">in </span>s.chars() {
         <span class="kw">if </span>is_special(c) {
-            buf.push(<span class="string">&#39;\\&#39;</span>);
+            buf.push(<span class="string">'\\'</span>);
         }
         buf.push(c);
     }
 }
 
-<span class="doccomment">/// Escapes special characters in `text` with &#39;\\&#39;.  Returns a string which, when interpreted
+<span class="doccomment">/// Escapes special characters in `text` with '\\'.  Returns a string which, when interpreted
 /// as a regex, matches exactly `text`.
 </span><span class="kw">pub fn </span>escape(text: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;str&gt; {
     <span class="comment">// Using bytes() is OK because all special characters are single bytes.
     </span><span class="kw">match </span>text.bytes().filter(|<span class="kw-2">&amp;</span>b| is_special(b <span class="kw">as </span>char)).count() {
         <span class="number">0 </span>=&gt; Cow::Borrowed(text),
         n =&gt; {
-            <span class="comment">// The capacity calculation is exact because &#39;\\&#39; is a single byte.
+            <span class="comment">// The capacity calculation is exact because '\\' is a single byte.
             </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::with_capacity(text.len() + n);
             push_quoted(<span class="kw-2">&amp;mut </span>buf, text);
             Cow::Owned(buf)
@@ -2938,7 +2940,7 @@ Conditionals - if/then/else:
         Parser::parse(re)
     }
 
-    <span class="doccomment">/// Convert expression to a regex string in the regex crate&#39;s syntax.
+    <span class="doccomment">/// Convert expression to a regex string in the regex crate's syntax.
     ///
     /// # Panics
     ///
@@ -2946,49 +2948,49 @@ Conditionals - if/then/else:
     </span><span class="kw">pub fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>String, precedence: u8) {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             Expr::Empty =&gt; (),
-            Expr::Any { newline } =&gt; buf.push_str(<span class="kw">if </span>newline { <span class="string">&quot;(?s:.)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;.&quot; </span>}),
+            Expr::Any { newline } =&gt; buf.push_str(<span class="kw">if </span>newline { <span class="string">"(?s:.)" </span>} <span class="kw">else </span>{ <span class="string">"." </span>}),
             Expr::Literal { <span class="kw-2">ref </span>val, casei } =&gt; {
                 <span class="kw">if </span>casei {
-                    buf.push_str(<span class="string">&quot;(?i:&quot;</span>);
+                    buf.push_str(<span class="string">"(?i:"</span>);
                 }
                 push_quoted(buf, val);
                 <span class="kw">if </span>casei {
-                    buf.push_str(<span class="string">&quot;)&quot;</span>);
+                    buf.push_str(<span class="string">")"</span>);
                 }
             }
-            Expr::StartText =&gt; buf.push(<span class="string">&#39;^&#39;</span>),
-            Expr::EndText =&gt; buf.push(<span class="string">&#39;$&#39;</span>),
-            Expr::StartLine =&gt; buf.push_str(<span class="string">&quot;(?m:^)&quot;</span>),
-            Expr::EndLine =&gt; buf.push_str(<span class="string">&quot;(?m:$)&quot;</span>),
+            Expr::StartText =&gt; buf.push(<span class="string">'^'</span>),
+            Expr::EndText =&gt; buf.push(<span class="string">'$'</span>),
+            Expr::StartLine =&gt; buf.push_str(<span class="string">"(?m:^)"</span>),
+            Expr::EndLine =&gt; buf.push_str(<span class="string">"(?m:$)"</span>),
             Expr::Concat(<span class="kw-2">ref </span>children) =&gt; {
                 <span class="kw">if </span>precedence &gt; <span class="number">1 </span>{
-                    buf.push_str(<span class="string">&quot;(?:&quot;</span>);
+                    buf.push_str(<span class="string">"(?:"</span>);
                 }
                 <span class="kw">for </span>child <span class="kw">in </span>children {
                     child.to_str(buf, <span class="number">2</span>);
                 }
                 <span class="kw">if </span>precedence &gt; <span class="number">1 </span>{
-                    buf.push(<span class="string">&#39;)&#39;</span>)
+                    buf.push(<span class="string">')'</span>)
                 }
             }
             Expr::Alt(<span class="kw-2">ref </span>children) =&gt; {
                 <span class="kw">if </span>precedence &gt; <span class="number">0 </span>{
-                    buf.push_str(<span class="string">&quot;(?:&quot;</span>);
+                    buf.push_str(<span class="string">"(?:"</span>);
                 }
                 <span class="kw">for </span>(i, child) <span class="kw">in </span>children.iter().enumerate() {
                     <span class="kw">if </span>i != <span class="number">0 </span>{
-                        buf.push(<span class="string">&#39;|&#39;</span>);
+                        buf.push(<span class="string">'|'</span>);
                     }
                     child.to_str(buf, <span class="number">1</span>);
                 }
                 <span class="kw">if </span>precedence &gt; <span class="number">0 </span>{
-                    buf.push(<span class="string">&#39;)&#39;</span>);
+                    buf.push(<span class="string">')'</span>);
                 }
             }
             Expr::Group(<span class="kw-2">ref </span>child) =&gt; {
-                buf.push(<span class="string">&#39;(&#39;</span>);
+                buf.push(<span class="string">'('</span>);
                 child.to_str(buf, <span class="number">0</span>);
-                buf.push(<span class="string">&#39;)&#39;</span>);
+                buf.push(<span class="string">')'</span>);
             }
             Expr::Repeat {
                 <span class="kw-2">ref </span>child,
@@ -2997,30 +2999,30 @@ Conditionals - if/then/else:
                 greedy,
             } =&gt; {
                 <span class="kw">if </span>precedence &gt; <span class="number">2 </span>{
-                    buf.push_str(<span class="string">&quot;(?:&quot;</span>);
+                    buf.push_str(<span class="string">"(?:"</span>);
                 }
                 child.to_str(buf, <span class="number">3</span>);
                 <span class="kw">match </span>(lo, hi) {
-                    (<span class="number">0</span>, <span class="number">1</span>) =&gt; buf.push(<span class="string">&#39;?&#39;</span>),
-                    (<span class="number">0</span>, usize::MAX) =&gt; buf.push(<span class="string">&#39;*&#39;</span>),
-                    (<span class="number">1</span>, usize::MAX) =&gt; buf.push(<span class="string">&#39;+&#39;</span>),
+                    (<span class="number">0</span>, <span class="number">1</span>) =&gt; buf.push(<span class="string">'?'</span>),
+                    (<span class="number">0</span>, usize::MAX) =&gt; buf.push(<span class="string">'*'</span>),
+                    (<span class="number">1</span>, usize::MAX) =&gt; buf.push(<span class="string">'+'</span>),
                     (lo, hi) =&gt; {
-                        buf.push(<span class="string">&#39;{&#39;</span>);
+                        buf.push(<span class="string">'{'</span>);
                         push_usize(buf, lo);
                         <span class="kw">if </span>lo != hi {
-                            buf.push(<span class="string">&#39;,&#39;</span>);
+                            buf.push(<span class="string">','</span>);
                             <span class="kw">if </span>hi != usize::MAX {
                                 push_usize(buf, hi);
                             }
                         }
-                        buf.push(<span class="string">&#39;}&#39;</span>);
+                        buf.push(<span class="string">'}'</span>);
                     }
                 }
                 <span class="kw">if </span>!greedy {
-                    buf.push(<span class="string">&#39;?&#39;</span>);
+                    buf.push(<span class="string">'?'</span>);
                 }
                 <span class="kw">if </span>precedence &gt; <span class="number">2 </span>{
-                    buf.push(<span class="string">&#39;)&#39;</span>);
+                    buf.push(<span class="string">')'</span>);
                 }
             }
             Expr::Delegate {
@@ -3028,14 +3030,14 @@ Conditionals - if/then/else:
             } =&gt; {
                 <span class="comment">// at the moment, delegate nodes are just atoms
                 </span><span class="kw">if </span>casei {
-                    buf.push_str(<span class="string">&quot;(?i:&quot;</span>);
+                    buf.push_str(<span class="string">"(?i:"</span>);
                 }
                 buf.push_str(inner);
                 <span class="kw">if </span>casei {
-                    buf.push_str(<span class="string">&quot;)&quot;</span>);
+                    buf.push_str(<span class="string">")"</span>);
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;attempting to format hard expr&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempting to format hard expr"</span>),
         }
     }
 }
@@ -3081,9 +3083,9 @@ Conditionals - if/then/else:
 // it would make sense to bring this back.
 /*
 pub fn detect_possible_backref(re: &amp;str) -&gt; bool {
-    let mut last = b&#39;\x00&#39;;
+    let mut last = b'\x00';
     for b in re.as_bytes() {
-        if b&#39;0&#39; &lt;= *b &amp;&amp; *b &lt;= b&#39;9&#39; &amp;&amp; last == b&#39;\\&#39; { return true; }
+        if b'0' &lt;= *b &amp;&amp; *b &lt;= b'9' &amp;&amp; last == b'\\' { return true; }
         last = *b;
     }
     false
@@ -3092,11 +3094,11 @@ pub fn detect_possible_backref(re: &amp;str) -&gt; bool {
 pub fn detect_possible_backref(re: &amp;str) -&gt; bool {
     let mut bytes = re.as_bytes();
     loop {
-        match memchr::memchr(b&#39;\\&#39;, &amp;bytes[..bytes.len() - 1]) {
+        match memchr::memchr(b'\\', &amp;bytes[..bytes.len() - 1]) {
             Some(i) =&gt; {
                 bytes = &amp;bytes[i + 1..];
                 let c = bytes[0];
-                if b&#39;0&#39; &lt;= c &amp;&amp; c &lt;= b&#39;9&#39; { return true; }
+                if b'0' &lt;= c &amp;&amp; c &lt;= b'9' { return true; }
             }
             None =&gt; return false
         }
@@ -3133,50 +3135,50 @@ pub fn detect_possible_backref(re: &amp;str) -&gt; bool {
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_str_concat_alt() {
         <span class="kw">let </span>e = Expr::Concat(<span class="macro">vec!</span>[
-            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;b&quot;</span>)]),
-            make_literal(<span class="string">&quot;c&quot;</span>),
+            Expr::Alt(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"b"</span>)]),
+            make_literal(<span class="string">"c"</span>),
         ]);
-        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">&quot;(?:a|b)c&quot;</span>);
+        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">"(?:a|b)c"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_str_rep_concat() {
         <span class="kw">let </span>e = Expr::Repeat {
-            child: Box::new(Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">&quot;a&quot;</span>), make_literal(<span class="string">&quot;b&quot;</span>)])),
+            child: Box::new(Expr::Concat(<span class="macro">vec!</span>[make_literal(<span class="string">"a"</span>), make_literal(<span class="string">"b"</span>)])),
             lo: <span class="number">2</span>,
             hi: <span class="number">3</span>,
             greedy: <span class="bool-val">true</span>,
         };
-        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">&quot;(?:ab){2,3}&quot;</span>);
+        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">"(?:ab){2,3}"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_str_group_alt() {
         <span class="kw">let </span>e = Expr::Group(Box::new(Expr::Alt(<span class="macro">vec!</span>[
-            make_literal(<span class="string">&quot;a&quot;</span>),
-            make_literal(<span class="string">&quot;b&quot;</span>),
+            make_literal(<span class="string">"a"</span>),
+            make_literal(<span class="string">"b"</span>),
         ])));
-        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">&quot;(a|b)&quot;</span>);
+        <span class="macro">assert_eq!</span>(to_str(e), <span class="string">"(a|b)"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>as_str_debug() {
-        <span class="kw">let </span>s = <span class="string">r&quot;(a+)b\1&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">r"(a+)b\1"</span>;
         <span class="kw">let </span>regex = Regex::new(s).unwrap();
         <span class="macro">assert_eq!</span>(s, regex.as_str());
-        <span class="macro">assert_eq!</span>(s, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, regex));
+        <span class="macro">assert_eq!</span>(s, <span class="macro">format!</span>(<span class="string">"{:?}"</span>, regex));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>display() {
-        <span class="kw">let </span>s = <span class="string">r&quot;(a+)b\1&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">r"(a+)b\1"</span>;
         <span class="kw">let </span>regex = Regex::new(s).unwrap();
-        <span class="macro">assert_eq!</span>(s, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, regex));
+        <span class="macro">assert_eq!</span>(s, <span class="macro">format!</span>(<span class="string">"{}"</span>, regex));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>from_str() {
-        <span class="kw">let </span>s = <span class="string">r&quot;(a+)b\1&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">r"(a+)b\1"</span>;
         <span class="kw">let </span>regex = s.parse::&lt;Regex&gt;().unwrap();
         <span class="macro">assert_eq!</span>(regex.as_str(), s);
     }
@@ -3185,50 +3187,50 @@ pub fn detect_possible_backref(re: &amp;str) -&gt; bool {
     </span><span class="kw">fn </span>to_str_repeat() {
         <span class="kw">fn </span>repeat(lo: usize, hi: usize, greedy: bool) -&gt; Expr {
             Expr::Repeat {
-                child: Box::new(make_literal(<span class="string">&quot;a&quot;</span>)),
+                child: Box::new(make_literal(<span class="string">"a"</span>)),
                 lo,
                 hi,
                 greedy,
             }
         }
 
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">true</span>)), <span class="string">&quot;a{2}&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">false</span>)), <span class="string">&quot;a{2}?&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">3</span>, <span class="bool-val">true</span>)), <span class="string">&quot;a{2,3}&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">3</span>, <span class="bool-val">false</span>)), <span class="string">&quot;a{2,3}?&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">&quot;a{2,}&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">&quot;a{2,}?&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, <span class="number">1</span>, <span class="bool-val">true</span>)), <span class="string">&quot;a?&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, <span class="number">1</span>, <span class="bool-val">false</span>)), <span class="string">&quot;a??&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">&quot;a*&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">&quot;a*?&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">1</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">&quot;a+&quot;</span>);
-        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">1</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">&quot;a+?&quot;</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">true</span>)), <span class="string">"a{2}"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">false</span>)), <span class="string">"a{2}?"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">3</span>, <span class="bool-val">true</span>)), <span class="string">"a{2,3}"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, <span class="number">3</span>, <span class="bool-val">false</span>)), <span class="string">"a{2,3}?"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">"a{2,}"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">2</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">"a{2,}?"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, <span class="number">1</span>, <span class="bool-val">true</span>)), <span class="string">"a?"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, <span class="number">1</span>, <span class="bool-val">false</span>)), <span class="string">"a??"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">"a*"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">0</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">"a*?"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">1</span>, usize::MAX, <span class="bool-val">true</span>)), <span class="string">"a+"</span>);
+        <span class="macro">assert_eq!</span>(to_str(repeat(<span class="number">1</span>, usize::MAX, <span class="bool-val">false</span>)), <span class="string">"a+?"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>escape() {
         <span class="comment">// Check that strings that need no quoting are borrowed, and that non-special punctuation
         // is not quoted.
-        </span><span class="kw">match </span><span class="kw">crate</span>::escape(<span class="string">&quot;@foo&quot;</span>) {
-            Cow::Borrowed(s) =&gt; <span class="macro">assert_eq!</span>(s, <span class="string">&quot;@foo&quot;</span>),
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Value should be borrowed.&quot;</span>),
+        </span><span class="kw">match </span><span class="kw">crate</span>::escape(<span class="string">"@foo"</span>) {
+            Cow::Borrowed(s) =&gt; <span class="macro">assert_eq!</span>(s, <span class="string">"@foo"</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Value should be borrowed."</span>),
         }
 
         <span class="comment">// Check typical usage.
-        </span><span class="macro">assert_eq!</span>(<span class="kw">crate</span>::escape(<span class="string">&quot;fo*o&quot;</span>).into_owned(), <span class="string">&quot;fo\\*o&quot;</span>);
+        </span><span class="macro">assert_eq!</span>(<span class="kw">crate</span>::escape(<span class="string">"fo*o"</span>).into_owned(), <span class="string">"fo\\*o"</span>);
 
         <span class="comment">// Check that multibyte characters are handled correctly.
-        </span><span class="macro">assert_eq!</span>(<span class="kw">crate</span>::escape(<span class="string">&quot;fø*ø&quot;</span>).into_owned(), <span class="string">&quot;fø\\*ø&quot;</span>);
+        </span><span class="macro">assert_eq!</span>(<span class="kw">crate</span>::escape(<span class="string">"fø*ø"</span>).into_owned(), <span class="string">"fø\\*ø"</span>);
     }
 
     <span class="comment">/*
     #[test]
     fn detect_backref() {
-        assert_eq!(detect_possible_backref(&quot;a0a1a2&quot;), false);
-        assert_eq!(detect_possible_backref(&quot;a0a1\\a2&quot;), false);
-        assert_eq!(detect_possible_backref(&quot;a0a\\1a2&quot;), true);
-        assert_eq!(detect_possible_backref(&quot;a0a1a2\\&quot;), false);
+        assert_eq!(detect_possible_backref("a0a1a2"), false);
+        assert_eq!(detect_possible_backref("a0a1\\a2"), false);
+        assert_eq!(detect_possible_backref("a0a\\1a2"), true);
+        assert_eq!(detect_possible_backref("a0a1a2\\"), false);
     }
     */
 </span>}

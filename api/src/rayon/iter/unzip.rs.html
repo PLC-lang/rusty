@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/unzip.rs`."><title>unzip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/unzip.rs`."><title>unzip.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -526,7 +528,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::plumbing::<span class="kw-2">*</span>;
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// This trait abstracts the different ways we can &quot;unzip&quot; one parallel
+<span class="doccomment">/// This trait abstracts the different ways we can "unzip" one parallel
 /// iterator into two distinct consumers, which we can handle almost
 /// identically apart from how to process the individual items.
 </span><span class="kw">trait </span>UnzipOp&lt;T&gt;: Sync + Send {
@@ -573,7 +575,7 @@
     FromB: Send + ParallelExtend&lt;OP::Right&gt;,
 {
     <span class="comment">// We have no idea what the consumers will look like for these
-    // collections&#39; `par_extend`, but we can intercept them in our own
+    // collections' `par_extend`, but we can intercept them in our own
     // `drive_unindexed`.  Start with the left side, type `A`:
     </span><span class="kw">let </span>iter = UnzipA { base: pi, op, b };
     a.par_extend(iter);
@@ -716,13 +718,13 @@
 }
 
 <span class="doccomment">/// A fake iterator to intercept the `Consumer` for type `A`.
-</span><span class="kw">struct </span>UnzipA&lt;<span class="lifetime">&#39;b</span>, I, OP, FromB&gt; {
+</span><span class="kw">struct </span>UnzipA&lt;<span class="lifetime">'b</span>, I, OP, FromB&gt; {
     base: I,
     op: OP,
-    b: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>FromB,
+    b: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>FromB,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;b</span>, I, OP, FromB&gt; ParallelIterator <span class="kw">for </span>UnzipA&lt;<span class="lifetime">&#39;b</span>, I, OP, FromB&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'b</span>, I, OP, FromB&gt; ParallelIterator <span class="kw">for </span>UnzipA&lt;<span class="lifetime">'b</span>, I, OP, FromB&gt;
 <span class="kw">where
     </span>I: ParallelIterator,
     OP: UnzipOp&lt;I::Item&gt;,
@@ -736,7 +738,7 @@
     {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="prelude-val">None</span>;
         {
-            <span class="comment">// Now it&#39;s time to find the consumer for type `B`
+            <span class="comment">// Now it's time to find the consumer for type `B`
             </span><span class="kw">let </span>iter = UnzipB {
                 base: <span class="self">self</span>.base,
                 op: <span class="self">self</span>.op,
@@ -745,10 +747,10 @@
             };
             <span class="self">self</span>.b.par_extend(iter);
         }
-        <span class="comment">// NB: If for some reason `b.par_extend` doesn&#39;t actually drive the
-        // iterator, then we won&#39;t have a result for the left side to return
-        // at all.  We can&#39;t fake an arbitrary consumer&#39;s result, so panic.
-        </span>result.expect(<span class="string">&quot;unzip consumers didn&#39;t execute!&quot;</span>)
+        <span class="comment">// NB: If for some reason `b.par_extend` doesn't actually drive the
+        // iterator, then we won't have a result for the left side to return
+        // at all.  We can't fake an arbitrary consumer's result, so panic.
+        </span>result.expect(<span class="string">"unzip consumers didn't execute!"</span>)
     }
 
     <span class="kw">fn </span>opt_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
@@ -761,20 +763,20 @@
 }
 
 <span class="doccomment">/// A fake iterator to intercept the `Consumer` for type `B`.
-</span><span class="kw">struct </span>UnzipB&lt;<span class="lifetime">&#39;r</span>, I, OP, CA&gt;
+</span><span class="kw">struct </span>UnzipB&lt;<span class="lifetime">'r</span>, I, OP, CA&gt;
 <span class="kw">where
     </span>I: ParallelIterator,
     OP: UnzipOp&lt;I::Item&gt;,
     CA: UnindexedConsumer&lt;OP::Left&gt;,
-    CA::Result: <span class="lifetime">&#39;r</span>,
+    CA::Result: <span class="lifetime">'r</span>,
 {
     base: I,
     op: OP,
     left_consumer: CA,
-    left_result: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;CA::Result&gt;,
+    left_result: <span class="kw-2">&amp;</span><span class="lifetime">'r </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;CA::Result&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;r</span>, I, OP, CA&gt; ParallelIterator <span class="kw">for </span>UnzipB&lt;<span class="lifetime">&#39;r</span>, I, OP, CA&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'r</span>, I, OP, CA&gt; ParallelIterator <span class="kw">for </span>UnzipB&lt;<span class="lifetime">'r</span>, I, OP, CA&gt;
 <span class="kw">where
     </span>I: ParallelIterator,
     OP: UnzipOp&lt;I::Item&gt;,
@@ -808,19 +810,19 @@
 }
 
 <span class="doccomment">/// `Consumer` that unzips into two other `Consumer`s
-</span><span class="kw">struct </span>UnzipConsumer&lt;<span class="lifetime">&#39;a</span>, OP, CA, CB&gt; {
-    op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OP,
+</span><span class="kw">struct </span>UnzipConsumer&lt;<span class="lifetime">'a</span>, OP, CA, CB&gt; {
+    op: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OP,
     left: CA,
     right: CB,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, OP, CA, CB&gt; Consumer&lt;T&gt; <span class="kw">for </span>UnzipConsumer&lt;<span class="lifetime">&#39;a</span>, OP, CA, CB&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, OP, CA, CB&gt; Consumer&lt;T&gt; <span class="kw">for </span>UnzipConsumer&lt;<span class="lifetime">'a</span>, OP, CA, CB&gt;
 <span class="kw">where
     </span>OP: UnzipOp&lt;T&gt;,
     CA: Consumer&lt;OP::Left&gt;,
     CB: Consumer&lt;OP::Right&gt;,
 {
-    <span class="kw">type </span>Folder = UnzipFolder&lt;<span class="lifetime">&#39;a</span>, OP, CA::Folder, CB::Folder&gt;;
+    <span class="kw">type </span>Folder = UnzipFolder&lt;<span class="lifetime">'a</span>, OP, CA::Folder, CB::Folder&gt;;
     <span class="kw">type </span>Reducer = UnzipReducer&lt;CA::Reducer, CB::Reducer&gt;;
     <span class="kw">type </span><span class="prelude-ty">Result </span>= (CA::Result, CB::Result);
 
@@ -855,12 +857,12 @@
     }
 
     <span class="kw">fn </span>full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// don&#39;t stop until everyone is full
+        <span class="comment">// don't stop until everyone is full
         </span><span class="self">self</span>.left.full() &amp;&amp; <span class="self">self</span>.right.full()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, OP, CA, CB&gt; UnindexedConsumer&lt;T&gt; <span class="kw">for </span>UnzipConsumer&lt;<span class="lifetime">&#39;a</span>, OP, CA, CB&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, OP, CA, CB&gt; UnindexedConsumer&lt;T&gt; <span class="kw">for </span>UnzipConsumer&lt;<span class="lifetime">'a</span>, OP, CA, CB&gt;
 <span class="kw">where
     </span>OP: UnzipOp&lt;T&gt;,
     CA: UnindexedConsumer&lt;OP::Left&gt;,
@@ -883,13 +885,13 @@
 }
 
 <span class="doccomment">/// `Folder` that unzips into two other `Folder`s
-</span><span class="kw">struct </span>UnzipFolder&lt;<span class="lifetime">&#39;a</span>, OP, FA, FB&gt; {
-    op: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>OP,
+</span><span class="kw">struct </span>UnzipFolder&lt;<span class="lifetime">'a</span>, OP, FA, FB&gt; {
+    op: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>OP,
     left: FA,
     right: FB,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, OP, FA, FB&gt; Folder&lt;T&gt; <span class="kw">for </span>UnzipFolder&lt;<span class="lifetime">&#39;a</span>, OP, FA, FB&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, OP, FA, FB&gt; Folder&lt;T&gt; <span class="kw">for </span>UnzipFolder&lt;<span class="lifetime">'a</span>, OP, FA, FB&gt;
 <span class="kw">where
     </span>OP: UnzipOp&lt;T&gt;,
     FA: Folder&lt;OP::Left&gt;,
@@ -911,7 +913,7 @@
     }
 
     <span class="kw">fn </span>full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// don&#39;t stop until everyone is full
+        <span class="comment">// don't stop until everyone is full
         </span><span class="self">self</span>.left.full() &amp;&amp; <span class="self">self</span>.right.full()
     }
 }

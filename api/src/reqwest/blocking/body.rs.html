@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/body.rs`."><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/body.rs`."><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -353,7 +355,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::fs::File;
 <span class="kw">use </span>std::future::Future;
-<span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
 </span><span class="kw">use </span>std::io::Cursor;
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Read};
 <span class="kw">use </span>std::mem;
@@ -391,7 +393,7 @@
     /// # use std::fs::File;
     /// # use reqwest::blocking::Body;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let file = File::open(&quot;national_secrets.txt&quot;)?;
+    /// let file = File::open("national_secrets.txt")?;
     /// let body = Body::new(file);
     /// # Ok(())
     /// # }
@@ -404,12 +406,12 @@
     /// ```rust
     /// # use reqwest::blocking::Body;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let s = &quot;A stringy body&quot;;
+    /// let s = "A stringy body";
     /// let body = Body::from(s);
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>new&lt;R: Read + Send + <span class="lifetime">&#39;static</span>&gt;(reader: R) -&gt; Body {
+    </span><span class="kw">pub fn </span>new&lt;R: Read + Send + <span class="lifetime">'static</span>&gt;(reader: R) -&gt; Body {
         Body {
             kind: Kind::Reader(Box::from(reader), <span class="prelude-val">None</span>),
         }
@@ -423,13 +425,13 @@
     /// # use std::fs::File;
     /// # use reqwest::blocking::Body;
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let file = File::open(&quot;a_large_file.txt&quot;)?;
+    /// let file = File::open("a_large_file.txt")?;
     /// let file_size = file.metadata()?.len();
     /// let body = Body::sized(file, file_size);
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>sized&lt;R: Read + Send + <span class="lifetime">&#39;static</span>&gt;(reader: R, len: u64) -&gt; Body {
+    </span><span class="kw">pub fn </span>sized&lt;R: Read + Send + <span class="lifetime">'static</span>&gt;(reader: R, len: u64) -&gt; Body {
         Body {
             kind: Kind::Reader(Box::from(reader), <span class="prelude-val">Some</span>(len)),
         }
@@ -466,7 +468,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind {
             Kind::Reader(<span class="kw">_</span>, len) =&gt; len,
@@ -474,7 +476,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_reader(<span class="self">self</span>) -&gt; Reader {
         <span class="kw">match </span><span class="self">self</span>.kind {
             Kind::Reader(r, <span class="kw">_</span>) =&gt; Reader::Reader(r),
@@ -534,18 +536,18 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt; <span class="kw">for </span>Body {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]) -&gt; Body {
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]) -&gt; Body {
         Body {
             kind: Kind::Bytes(Bytes::from_static(s)),
         }
     }
 }
 
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>Body {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; <span class="kw">for </span>Body {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Body {
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; Body {
         s.as_bytes().into()
     }
 }
@@ -572,32 +574,32 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             Kind::Reader(<span class="kw">_</span>, <span class="kw-2">ref </span>v) =&gt; f
-                .debug_struct(<span class="string">&quot;Reader&quot;</span>)
-                .field(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span>DebugLength(v))
+                .debug_struct(<span class="string">"Reader"</span>)
+                .field(<span class="string">"length"</span>, <span class="kw-2">&amp;</span>DebugLength(v))
                 .finish(),
             Kind::Bytes(<span class="kw-2">ref </span>v) =&gt; fmt::Debug::fmt(v, f),
         }
     }
 }
 
-<span class="kw">struct </span>DebugLength&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="prelude-ty">Option</span>&lt;u64&gt;);
+<span class="kw">struct </span>DebugLength&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="prelude-ty">Option</span>&lt;u64&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>DebugLength&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; fmt::Debug <span class="kw">for </span>DebugLength&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0 </span>{
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>len) =&gt; fmt::Debug::fmt(len, f),
-            <span class="prelude-val">None </span>=&gt; f.write_str(<span class="string">&quot;Unknown&quot;</span>),
+            <span class="prelude-val">None </span>=&gt; f.write_str(<span class="string">"Unknown"</span>),
         }
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Reader {
     Reader(Box&lt;<span class="kw">dyn </span>Read + Send&gt;),
     Bytes(Cursor&lt;Bytes&gt;),
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
 </span><span class="kw">impl </span>Read <span class="kw">for </span>Reader {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
@@ -656,7 +658,7 @@
             <span class="kw">let </span>bytes = <span class="kw">unsafe </span>{ mem::transmute::&lt;<span class="kw-2">&amp;mut </span>UninitSlice, <span class="kw-2">&amp;mut </span>[u8]&gt;(buf.chunk_mut()) };
             <span class="kw">match </span>body.read(bytes) {
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-                    <span class="comment">// The buffer was empty and nothing&#39;s left to
+                    <span class="comment">// The buffer was empty and nothing's left to
                     // read. Return.
                     </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
@@ -664,7 +666,7 @@
                     buf.advance_mut(n);
                 },
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    tx.take().expect(<span class="string">&quot;tx only taken on error&quot;</span>).abort();
+                    tx.take().expect(<span class="string">"tx only taken on error"</span>).abort();
                     <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="kw">crate</span>::error::body(e));
                 }
             }
@@ -675,7 +677,7 @@
 
         </span><span class="kw">let </span>buf_len = buf.len() <span class="kw">as </span>u64;
         tx.as_mut()
-            .expect(<span class="string">&quot;tx only taken on error&quot;</span>)
+            .expect(<span class="string">"tx only taken on error"</span>)
             .send_data(buf.split().freeze())
             .<span class="kw">await
             </span>.map_err(<span class="kw">crate</span>::error::body)<span class="question-mark">?</span>;

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/index/visitor.rs`."><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/index/visitor.rs`."><title>visitor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -852,7 +854,7 @@
 <span class="kw">pub fn </span>visit_pou(index: <span class="kw-2">&amp;mut </span>Index, pou: <span class="kw-2">&amp;</span>Pou) {
     <span class="kw">let </span><span class="kw-2">mut </span>members = <span class="macro">vec!</span>[];
 
-    <span class="comment">//register the pou&#39;s member variables
+    <span class="comment">//register the pou's member variables
     </span><span class="kw">let </span><span class="kw-2">mut </span>member_varargs = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
     <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
@@ -914,7 +916,7 @@
         }
     }
 
-    <span class="comment">//register a function&#39;s return type as a member variable
+    <span class="comment">//register a function's return type as a member variable
     </span><span class="kw">let </span>return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
     <span class="kw">if </span>pou.return_type.is_some() {
         <span class="kw">let </span>entry = index.register_member_variable(
@@ -1039,7 +1041,7 @@
         .map(|it| it.get_location())
         .as_ref()
         .or(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>implementation.location))
-        .map(Clone::clone)
+        .cloned()
         .unwrap();
     index.register_implementation(
         <span class="kw-2">&amp;</span>implementation.name,
@@ -1075,7 +1077,7 @@
 <span class="doccomment">/// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 </span><span class="kw">fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="comment">//get unique name
-    </span><span class="kw">let </span>type_name = internal_type_name(<span class="string">&quot;auto_pointer_to_&quot;</span>, inner_type_name);
+    </span><span class="kw">let </span>type_name = internal_type_name(<span class="string">"auto_pointer_to_"</span>, inner_type_name);
 
     <span class="comment">//check if type was already created
     </span><span class="kw">if </span>index.find_effective_type_by_name(type_name.as_str()).is_none() {
@@ -1108,7 +1110,7 @@
         <span class="kw">let </span>variable = VariableIndexEntry::create_global(
             <span class="kw-2">&amp;</span>var.name,
             <span class="kw-2">&amp;</span>var.name,
-            var.data_type_declaration.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>),
+            var.data_type_declaration.get_name().expect(<span class="string">"named variable datatype"</span>),
             var.location.clone(),
         )
         .set_initial_value(initializer)
@@ -1160,7 +1162,7 @@
                     );
                     index.register_enum_element(<span class="kw-2">&amp;</span>element_name, enum_name, <span class="prelude-val">Some</span>(init), ele.get_location())
                 } <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;the preprocessor should have provided explicit assignments for enum values&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"the preprocessor should have provided explicit assignments for enum values"</span>)
                 }
             }
 
@@ -1213,7 +1215,7 @@
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
         DataType::PointerType { name: <span class="prelude-val">Some</span>(name), referenced_type, .. } =&gt; {
-            <span class="kw">let </span>inner_type_name = referenced_type.get_name().expect(<span class="string">&quot;named datatype&quot;</span>);
+            <span class="kw">let </span>inner_type_name = referenced_type.get_name().expect(<span class="string">"named datatype"</span>);
             <span class="kw">let </span>information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
@@ -1242,7 +1244,7 @@
                     TypeSize::from_literal((value + <span class="number">1</span>) <span class="kw">as </span>i64)
                 }
                 <span class="prelude-val">Some</span>(statement) =&gt; {
-                    <span class="comment">// construct a &quot;x + 1&quot; expression because we need one additional character for \0 terminator
+                    <span class="comment">// construct a "x + 1" expression because we need one additional character for \0 terminator
                     </span><span class="kw">let </span>len_plus_1 = AstFactory::create_binary_expression(
                         statement.clone(),
                         ast::Operator::Plus,
@@ -1330,15 +1332,15 @@
     <span class="kw">let </span>ndims = <span class="kw">match </span>bounds.get_stmt() {
         AstStatement::VlaRangeStatement =&gt; <span class="number">1</span>,
         AstStatement::ExpressionList(expressions) =&gt; expressions.len(),
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;not a bounds statement&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"not a bounds statement"</span>),
     };
 
-    <span class="kw">let </span>referenced_type = referenced_type.get_name().expect(<span class="string">&quot;named datatype&quot;</span>).to_string();
+    <span class="kw">let </span>referenced_type = referenced_type.get_name().expect(<span class="string">"named datatype"</span>).to_string();
     <span class="kw">let </span>struct_name = name.to_owned();
 
-    <span class="kw">let </span>dummy_array_name = <span class="macro">format!</span>(<span class="string">&quot;__arr_vla_{ndims}_{referenced_type}&quot;</span>).to_lowercase();
-    <span class="kw">let </span>member_array_name = <span class="macro">format!</span>(<span class="string">&quot;__ptr_to_{dummy_array_name}&quot;</span>);
-    <span class="kw">let </span>member_dimensions_name = <span class="macro">format!</span>(<span class="string">&quot;__bounds_{dummy_array_name}&quot;</span>);
+    <span class="kw">let </span>dummy_array_name = <span class="macro">format!</span>(<span class="string">"__arr_vla_{ndims}_{referenced_type}"</span>).to_lowercase();
+    <span class="kw">let </span>member_array_name = <span class="macro">format!</span>(<span class="string">"__ptr_to_{dummy_array_name}"</span>);
+    <span class="kw">let </span>member_dimensions_name = <span class="macro">format!</span>(<span class="string">"__bounds_{dummy_array_name}"</span>);
 
     <span class="comment">// check the index if a dummy-array type matching the given VLA (eg. 1 dimension, type INT) already exists.
     // if we find a type, we can use references to the internal types. otherwise, register the array in the index
@@ -1430,7 +1432,7 @@
     </span><span class="kw">let </span>variables = <span class="macro">vec!</span>[
         <span class="comment">// Pointer
         </span>Variable {
-            name: <span class="macro">format!</span>(<span class="string">&quot;struct_vla_{referenced_type}_{ndims}&quot;</span>).to_lowercase(),
+            name: <span class="macro">format!</span>(<span class="string">"struct_vla_{referenced_type}_{ndims}"</span>).to_lowercase(),
             data_type_declaration: vla_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
@@ -1438,7 +1440,7 @@
         },
         <span class="comment">// Dimensions Array
         </span>Variable {
-            name: <span class="string">&quot;dimensions&quot;</span>.to_string(),
+            name: <span class="string">"dimensions"</span>.to_string(),
             data_type_declaration: dim_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
@@ -1494,7 +1496,7 @@
             }
 
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="string">&quot;Invalid array definition: RangeStatement expected&quot;</span>,
+                <span class="string">"Invalid array definition: RangeStatement expected"</span>,
                 it.get_location(),
             )),
         })
@@ -1504,7 +1506,7 @@
     </span><span class="kw">let </span>dimensions = dimensions.unwrap();
 
     <span class="comment">//TODO hmm we need to talk about all this unwrapping :-/
-    </span><span class="kw">let </span>referenced_type_name = referenced_type.get_name().expect(<span class="string">&quot;named datatype&quot;</span>);
+    </span><span class="kw">let </span>referenced_type_name = referenced_type.get_name().expect(<span class="string">"named datatype"</span>);
     <span class="kw">let </span>information = DataTypeInformation::Array {
         name: name.clone(),
         inner_type_name: referenced_type_name.to_string(),
@@ -1572,7 +1574,7 @@
                 )
             }
 
-            <span class="kw">let </span>member_type = var.data_type_declaration.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>);
+            <span class="kw">let </span>member_type = var.data_type_declaration.get_name().expect(<span class="string">"named variable datatype"</span>);
             <span class="kw">let </span>init = index.get_mut_const_expressions().maybe_add_constant_expression(
                 var.initializer.clone(),
                 member_type,

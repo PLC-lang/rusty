@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/content/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/content/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -409,18 +411,18 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements a generic `Content` type that can hold
 //! runtime typed data.
 //!
-//! It&#39;s modelled after serde&#39;s data format but it&#39;s in fact possible to use
+//! It's modelled after serde's data format but it's in fact possible to use
 //! this independently of serde.  The `yaml` and `json` support implemented
 //! here works without serde.  Only `yaml` has an implemented parser but since
 //! YAML is a superset of JSON insta instead currently parses JSON via the
 //! YAML implementation.
 
 </span><span class="kw">pub mod </span>json;
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serialization;
 <span class="kw">pub mod </span>yaml;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">pub use </span>serialization::<span class="kw-2">*</span>;
 
 <span class="kw">use </span>std::fmt;
@@ -430,26 +432,26 @@
 </span><span class="kw">pub enum </span>Error {
     FailedParsingYaml(std::path::PathBuf),
     UnexpectedDataType,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;_cargo_insta_internal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
     </span>MissingField,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;_cargo_insta_internal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
     </span>FileIo(std::io::Error, std::path::PathBuf),
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             Error::FailedParsingYaml(p) =&gt; {
-                f.write_str(<span class="macro">format!</span>(<span class="string">&quot;Failed parsing the YAML from {:?}&quot;</span>, p.display()).as_str())
+                f.write_str(<span class="macro">format!</span>(<span class="string">"Failed parsing the YAML from {:?}"</span>, p.display()).as_str())
             }
             Error::UnexpectedDataType =&gt; {
-                f.write_str(<span class="string">&quot;The present data type wasn&#39;t what was expected&quot;</span>)
+                f.write_str(<span class="string">"The present data type wasn't what was expected"</span>)
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;_cargo_insta_internal&quot;</span>)]
-            </span>Error::MissingField =&gt; f.write_str(<span class="string">&quot;A required field was missing&quot;</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;_cargo_insta_internal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
+            </span>Error::MissingField =&gt; f.write_str(<span class="string">"A required field was missing"</span>),
+            <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
             </span>Error::FileIo(e, p) =&gt; {
-                f.write_str(<span class="macro">format!</span>(<span class="string">&quot;File error for {:?}: {}&quot;</span>, p.display(), e).as_str())
+                f.write_str(<span class="macro">format!</span>(<span class="string">"File error for {:?}: {}"</span>, p.display(), e).as_str())
             }
         }
     }
@@ -464,13 +466,13 @@
 /// dynamic redaction functions.
 ///
 /// Some enum variants are intentionally not exposed to user code.
-/// It&#39;s generally recommended to construct content objects by
+/// It's generally recommended to construct content objects by
 /// using the [`From`](std::convert::From) trait and by using the
 /// accessor methods to assert on it.
 ///
 /// While matching on the content is possible in theory it is
 /// recommended against.  The reason for this is that the content
-/// enum holds variants that can &quot;wrap&quot; values where it&#39;s not
+/// enum holds variants that can "wrap" values where it's not
 /// expected.  For instance if a field holds an `Option&lt;String&gt;`
 /// you cannot use pattern matching to extract the string as it
 /// will be contained in an internal `Some` variant that is not
@@ -510,30 +512,30 @@
     <span class="attr">#[doc(hidden)]
     </span>Unit,
     <span class="attr">#[doc(hidden)]
-    </span>UnitStruct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    </span>UnitStruct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
     <span class="attr">#[doc(hidden)]
-    </span>UnitVariant(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    </span>UnitVariant(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
     <span class="attr">#[doc(hidden)]
-    </span>NewtypeStruct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Box&lt;Content&gt;),
+    </span>NewtypeStruct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Box&lt;Content&gt;),
     <span class="attr">#[doc(hidden)]
-    </span>NewtypeVariant(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Box&lt;Content&gt;),
+    </span>NewtypeVariant(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Box&lt;Content&gt;),
 
     Seq(Vec&lt;Content&gt;),
     <span class="attr">#[doc(hidden)]
     </span>Tuple(Vec&lt;Content&gt;),
     <span class="attr">#[doc(hidden)]
-    </span>TupleStruct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Vec&lt;Content&gt;),
+    </span>TupleStruct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Vec&lt;Content&gt;),
     <span class="attr">#[doc(hidden)]
-    </span>TupleVariant(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Vec&lt;Content&gt;),
+    </span>TupleVariant(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Vec&lt;Content&gt;),
     Map(Vec&lt;(Content, Content)&gt;),
     <span class="attr">#[doc(hidden)]
-    </span>Struct(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Content)&gt;),
+    </span>Struct(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Content)&gt;),
     <span class="attr">#[doc(hidden)]
     </span>StructVariant(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         u32,
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Content)&gt;,
+        <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, Content)&gt;,
     ),
 }
 
@@ -570,14 +572,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>Content {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; Content {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>Content {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; Content {
         Content::String(value.to_string())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; <span class="kw">for </span>Content {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; Content {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt; <span class="kw">for </span>Content {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]) -&gt; Content {
         Content::Bytes(value.to_vec())
     }
 }

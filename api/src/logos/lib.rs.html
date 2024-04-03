@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-0.12.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="logos" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../logos/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-0.12.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="logos" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../logos/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -397,7 +399,7 @@
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! &lt;img src=&quot;https://raw.githubusercontent.com/maciejhirsz/logos/master/logos.svg?sanitize=true&quot; alt=&quot;Logos logo&quot; width=&quot;250&quot; align=&quot;right&quot;&gt;
+</pre></div><pre class="rust"><code><span class="doccomment">//! &lt;img src="https://raw.githubusercontent.com/maciejhirsz/logos/master/logos.svg?sanitize=true" alt="Logos logo" width="250" align="right"&gt;
 //!
 //! # Logos
 //!
@@ -406,7 +408,7 @@
 //! **Logos** has two goals:
 //!
 //! + To make it easy to create a Lexer, so you can focus on more complex problems.
-//! + To make the generated Lexer faster than anything you&#39;d write by hand.
+//! + To make the generated Lexer faster than anything you'd write by hand.
 //!
 //! To achieve those, **Logos**:
 //!
@@ -424,14 +426,14 @@
 //! #[derive(Logos, Debug, PartialEq)]
 //! enum Token {
 //!     // Tokens can be literal strings, of any length.
-//!     #[token(&quot;fast&quot;)]
+//!     #[token("fast")]
 //!     Fast,
 //!
-//!     #[token(&quot;.&quot;)]
+//!     #[token(".")]
 //!     Period,
 //!
 //!     // Or regular expressions.
-//!     #[regex(&quot;[a-zA-Z]+&quot;)]
+//!     #[regex("[a-zA-Z]+")]
 //!     Text,
 //!
 //!     // Logos requires one token variant to handle errors,
@@ -439,32 +441,32 @@
 //!     #[error]
 //!     // We can also use this variant to define whitespace,
 //!     // or any other matches we wish to skip.
-//!     #[regex(r&quot;[ \t\n\f]+&quot;, logos::skip)]
+//!     #[regex(r"[ \t\n\f]+", logos::skip)]
 //!     Error,
 //! }
 //!
 //! fn main() {
-//!     let mut lex = Token::lexer(&quot;Create ridiculously fast Lexers.&quot;);
+//!     let mut lex = Token::lexer("Create ridiculously fast Lexers.");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Text));
 //!     assert_eq!(lex.span(), 0..6);
-//!     assert_eq!(lex.slice(), &quot;Create&quot;);
+//!     assert_eq!(lex.slice(), "Create");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Text));
 //!     assert_eq!(lex.span(), 7..19);
-//!     assert_eq!(lex.slice(), &quot;ridiculously&quot;);
+//!     assert_eq!(lex.slice(), "ridiculously");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Fast));
 //!     assert_eq!(lex.span(), 20..24);
-//!     assert_eq!(lex.slice(), &quot;fast&quot;);
+//!     assert_eq!(lex.slice(), "fast");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Text));
-//!     assert_eq!(lex.slice(), &quot;Lexers&quot;);
+//!     assert_eq!(lex.slice(), "Lexers");
 //!     assert_eq!(lex.span(), 25..31);
 //!
 //!     assert_eq!(lex.next(), Some(Token::Period));
 //!     assert_eq!(lex.span(), 31..32);
-//!     assert_eq!(lex.slice(), &quot;.&quot;);
+//!     assert_eq!(lex.slice(), ".");
 //!
 //!     assert_eq!(lex.next(), None);
 //! }
@@ -481,43 +483,43 @@
 //! // Note: callbacks can return `Option` or `Result`
 //! fn kilo(lex: &amp;mut Lexer&lt;Token&gt;) -&gt; Option&lt;u64&gt; {
 //!     let slice = lex.slice();
-//!     let n: u64 = slice[..slice.len() - 1].parse().ok()?; // skip &#39;k&#39;
+//!     let n: u64 = slice[..slice.len() - 1].parse().ok()?; // skip 'k'
 //!     Some(n * 1_000)
 //! }
 //!
 //! fn mega(lex: &amp;mut Lexer&lt;Token&gt;) -&gt; Option&lt;u64&gt; {
 //!     let slice = lex.slice();
-//!     let n: u64 = slice[..slice.len() - 1].parse().ok()?; // skip &#39;m&#39;
+//!     let n: u64 = slice[..slice.len() - 1].parse().ok()?; // skip 'm'
 //!     Some(n * 1_000_000)
 //! }
 //!
 //! #[derive(Logos, Debug, PartialEq)]
 //! enum Token {
-//!     #[regex(r&quot;[ \t\n\f]+&quot;, logos::skip)]
+//!     #[regex(r"[ \t\n\f]+", logos::skip)]
 //!     #[error]
 //!     Error,
 //!
 //!     // Callbacks can use closure syntax, or refer
 //!     // to a function defined elsewhere.
 //!     //
-//!     // Each pattern can have it&#39;s own callback.
-//!     #[regex(&quot;[0-9]+&quot;, |lex| lex.slice().parse())]
-//!     #[regex(&quot;[0-9]+k&quot;, kilo)]
-//!     #[regex(&quot;[0-9]+m&quot;, mega)]
+//!     // Each pattern can have it's own callback.
+//!     #[regex("[0-9]+", |lex| lex.slice().parse())]
+//!     #[regex("[0-9]+k", kilo)]
+//!     #[regex("[0-9]+m", mega)]
 //!     Number(u64),
 //! }
 //!
 //! fn main() {
-//!     let mut lex = Token::lexer(&quot;5 42k 75m&quot;);
+//!     let mut lex = Token::lexer("5 42k 75m");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Number(5)));
-//!     assert_eq!(lex.slice(), &quot;5&quot;);
+//!     assert_eq!(lex.slice(), "5");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Number(42_000)));
-//!     assert_eq!(lex.slice(), &quot;42k&quot;);
+//!     assert_eq!(lex.slice(), "42k");
 //!
 //!     assert_eq!(lex.next(), Some(Token::Number(75_000_000)));
-//!     assert_eq!(lex.slice(), &quot;75m&quot;);
+//!     assert_eq!(lex.slice(), "75m");
 //!
 //!     assert_eq!(lex.next(), None);
 //! }
@@ -549,7 +551,7 @@
 //! + Specific beats generic.
 //!
 //! If any two definitions could match the same input, like `fast` and `[a-zA-Z]+`
-//! in the example above, it&#39;s the longer and more specific definition of `Token::Fast`
+//! in the example above, it's the longer and more specific definition of `Token::Fast`
 //! that will be the result.
 //!
 //! This is done by comparing numeric priority attached to each definition. Every consecutive,
@@ -558,16 +560,16 @@
 //!
 //! + `[a-zA-Z]+` has a priority of 1 (lowest possible), because at minimum it can match a single byte to a class.
 //! + `foobar` has a priority of 12.
-//! + `(foo|hello)(bar)?` has a priority of 6, `foo` being it&#39;s shortest possible match.
+//! + `(foo|hello)(bar)?` has a priority of 6, `foo` being it's shortest possible match.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 #![warn(missing_docs)]
-#![doc(html_logo_url = <span class="string">&quot;https://maciej.codes/kosz/logos.png&quot;</span>)]
+#![doc(html_logo_url = <span class="string">"https://maciej.codes/kosz/logos.png"</span>)]
 
-#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">extern crate </span>core <span class="kw">as </span>std;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;export_derive&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"export_derive"</span>)]
 </span><span class="kw">pub use </span>logos_derive::Logos;
 
 <span class="kw">mod </span>lexer;
@@ -581,7 +583,7 @@
 
 <span class="doccomment">/// Trait implemented for an enum representing all tokens. You should never have
 /// to implement it manually, use the `#[derive(Logos)]` attribute on your enum.
-</span><span class="kw">pub trait </span>Logos&lt;<span class="lifetime">&#39;source</span>&gt;: Sized {
+</span><span class="kw">pub trait </span>Logos&lt;<span class="lifetime">'source</span>&gt;: Sized {
     <span class="doccomment">/// Associated type `Extras` for the particular lexer. This can be set using
     /// `#[logos(extras = MyExtras)]` and accessed inside callbacks.
     </span><span class="kw">type </span>Extras;
@@ -589,18 +591,18 @@
     <span class="doccomment">/// Source type this token can be lexed from. This will default to `str`,
     /// unless one of the defined patterns explicitly uses non-unicode byte values
     /// or byte slices, in which case that implementation will use `[u8]`.
-    </span><span class="kw">type </span>Source: Source + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;source</span>;
+    </span><span class="kw">type </span>Source: Source + <span class="question-mark">?</span>Sized + <span class="lifetime">'source</span>;
 
     <span class="doccomment">/// Helper `const` of the variant marked as `#[error]`.
     </span><span class="kw">const </span>ERROR: <span class="self">Self</span>;
 
     <span class="doccomment">/// The heart of Logos. Called by the `Lexer`. The implementation for this function
     /// is generated by the `logos-derive` crate.
-    </span><span class="kw">fn </span>lex(lexer: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">&#39;source</span>, <span class="self">Self</span>&gt;);
+    </span><span class="kw">fn </span>lex(lexer: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">'source</span>, <span class="self">Self</span>&gt;);
 
     <span class="doccomment">/// Create a new instance of a `Lexer` that will produce tokens implementing
     /// this `Logos`.
-    </span><span class="kw">fn </span>lexer(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span><span class="self">Self</span>::Source) -&gt; Lexer&lt;<span class="lifetime">&#39;source</span>, <span class="self">Self</span>&gt;
+    </span><span class="kw">fn </span>lexer(source: <span class="kw-2">&amp;</span><span class="lifetime">'source </span><span class="self">Self</span>::Source) -&gt; Lexer&lt;<span class="lifetime">'source</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>::Extras: Default,
     {
@@ -610,9 +612,9 @@
     <span class="doccomment">/// Create a new instance of a `Lexer` with the provided `Extras` that will
     /// produce tokens implementing this `Logos`.
     </span><span class="kw">fn </span>lexer_with_extras(
-        source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span><span class="self">Self</span>::Source,
+        source: <span class="kw-2">&amp;</span><span class="lifetime">'source </span><span class="self">Self</span>::Source,
         extras: <span class="self">Self</span>::Extras,
-    ) -&gt; Lexer&lt;<span class="lifetime">&#39;source</span>, <span class="self">Self</span>&gt; {
+    ) -&gt; Lexer&lt;<span class="lifetime">'source</span>, <span class="self">Self</span>&gt; {
         Lexer::with_extras(source, extras)
     }
 }
@@ -626,24 +628,24 @@
 /// use logos::{Logos, Skip};
 ///
 /// #[derive(Logos, Debug, PartialEq)]
-/// enum Token&lt;&#39;a&gt; {
-///     // We will treat &quot;abc&quot; as if it was whitespace.
+/// enum Token&lt;'a&gt; {
+///     // We will treat "abc" as if it was whitespace.
 ///     // This is identical to using `logos::skip`.
-///     #[regex(&quot; |abc&quot;, |_| Skip)]
+///     #[regex(" |abc", |_| Skip)]
 ///     #[error]
 ///     Error,
 ///
-///     #[regex(&quot;[a-zA-Z]+&quot;)]
-///     Text(&amp;&#39;a str),
+///     #[regex("[a-zA-Z]+")]
+///     Text(&amp;'a str),
 /// }
 ///
-/// let tokens: Vec&lt;_&gt; = Token::lexer(&quot;Hello abc world&quot;).collect();
+/// let tokens: Vec&lt;_&gt; = Token::lexer("Hello abc world").collect();
 ///
 /// assert_eq!(
 ///     tokens,
 ///     &amp;[
-///         Token::Text(&quot;Hello&quot;),
-///         Token::Text(&quot;world&quot;),
+///         Token::Text("Hello"),
+///         Token::Text("world"),
 ///     ],
 /// );
 /// ```
@@ -659,11 +661,11 @@
 ///
 /// #[derive(Logos, Debug, PartialEq)]
 /// enum Token {
-///     #[regex(r&quot;[ \n\f\t]+&quot;, logos::skip)]
+///     #[regex(r"[ \n\f\t]+", logos::skip)]
 ///     #[error]
 ///     Error,
 ///
-///     #[regex(&quot;[0-9]+&quot;, |lex| {
+///     #[regex("[0-9]+", |lex| {
 ///         let n: u64 = lex.slice().parse().unwrap();
 ///
 ///         // Only emit a token if `n` is an even number
@@ -675,7 +677,7 @@
 ///     EvenNumber(u64)
 /// }
 ///
-/// let tokens: Vec&lt;_&gt; = Token::lexer(&quot;20 11 42 23 100 8002&quot;).collect();
+/// let tokens: Vec&lt;_&gt; = Token::lexer("20 11 42 23 100 8002").collect();
 ///
 /// assert_eq!(
 ///     tokens,
@@ -706,11 +708,11 @@
 ///
 /// #[derive(Logos, Debug, PartialEq)]
 /// enum Token {
-///     #[regex(r&quot;[ \n\f\t]+&quot;, logos::skip)]
+///     #[regex(r"[ \n\f\t]+", logos::skip)]
 ///     #[error]
 ///     Error,
 ///
-///     #[regex(&quot;[0-9]+&quot;, |lex| {
+///     #[regex("[0-9]+", |lex| {
 ///         let n: u64 = lex.slice().parse().unwrap();
 ///
 ///         // Only emit a token if `n` is an even number.
@@ -728,7 +730,7 @@
 ///     NiceEvenNumber(u64)
 /// }
 ///
-/// let tokens: Vec&lt;_&gt; = Token::lexer(&quot;20 11 42 23 100 10&quot;).collect();
+/// let tokens: Vec&lt;_&gt; = Token::lexer("20 11 42 23 100 10").collect();
 ///
 /// assert_eq!(
 ///     tokens,
@@ -760,28 +762,28 @@
 /// use logos::Logos;
 ///
 /// #[derive(Logos, Debug, PartialEq)]
-/// enum Token&lt;&#39;a&gt; {
-///     // We will treat &quot;abc&quot; as if it was whitespace
-///     #[regex(&quot; |abc&quot;, logos::skip)]
+/// enum Token&lt;'a&gt; {
+///     // We will treat "abc" as if it was whitespace
+///     #[regex(" |abc", logos::skip)]
 ///     #[error]
 ///     Error,
 ///
-///     #[regex(&quot;[a-zA-Z]+&quot;)]
-///     Text(&amp;&#39;a str),
+///     #[regex("[a-zA-Z]+")]
+///     Text(&amp;'a str),
 /// }
 ///
-/// let tokens: Vec&lt;_&gt; = Token::lexer(&quot;Hello abc world&quot;).collect();
+/// let tokens: Vec&lt;_&gt; = Token::lexer("Hello abc world").collect();
 ///
 /// assert_eq!(
 ///     tokens,
 ///     &amp;[
-///         Token::Text(&quot;Hello&quot;),
-///         Token::Text(&quot;world&quot;),
+///         Token::Text("Hello"),
+///         Token::Text("world"),
 ///     ],
 /// );
 /// ```
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>skip&lt;<span class="lifetime">&#39;source</span>, Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;&gt;(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;) -&gt; Skip {
+</span><span class="kw">pub fn </span>skip&lt;<span class="lifetime">'source</span>, Token: Logos&lt;<span class="lifetime">'source</span>&gt;&gt;(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Lexer&lt;<span class="lifetime">'source</span>, Token&gt;) -&gt; Skip {
     Skip
 }
 
@@ -790,10 +792,10 @@
     <span class="macro">macro_rules! </span>external_doc_test {
         (<span class="macro-nonterminal">$x</span>:expr) =&gt; {
             <span class="attr">#[doc = <span class="macro-nonterminal">$x</span>]
-            </span><span class="kw">extern </span><span class="string">&quot;C&quot; </span>{}
+            </span><span class="kw">extern </span><span class="string">"C" </span>{}
         };
     }
 
-    <span class="macro">external_doc_test!</span>(<span class="macro">include_str!</span>(<span class="string">&quot;../../README.md&quot;</span>));
+    <span class="macro">external_doc_test!</span>(<span class="macro">include_str!</span>(<span class="string">"../../README.md"</span>));
 }
 </code></pre></div></section></main></body></html>

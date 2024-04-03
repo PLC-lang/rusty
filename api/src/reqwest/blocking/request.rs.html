@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/request.rs`."><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/request.rs`."><title>request.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1067,12 +1069,12 @@
 
 <span class="kw">use </span>http::{request::Parts, Request <span class="kw">as </span>HttpRequest, Version};
 <span class="kw">use </span>serde::Serialize;
-<span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
 </span><span class="kw">use </span>serde_json;
 <span class="kw">use </span>serde_urlencoded;
 
 <span class="kw">use </span><span class="kw">super</span>::body::{<span class="self">self</span>, Body};
-<span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::multipart;
 <span class="kw">use </span><span class="kw">super</span>::Client;
 <span class="kw">use </span><span class="kw">crate</span>::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE};
@@ -1088,7 +1090,7 @@
 ///
 /// To construct a `RequestBuilder`, refer to the `Client` documentation.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;RequestBuilder does nothing until you &#39;send&#39; it&quot;</span>]
+#[must_use = <span class="string">"RequestBuilder does nothing until you 'send' it"</span>]
 </span><span class="kw">pub struct </span>RequestBuilder {
     client: Client,
     request: <span class="kw">crate</span>::Result&lt;Request&gt;,
@@ -1237,8 +1239,8 @@
     ///
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.get(&quot;https://www.rust-lang.org&quot;)
-    ///     .header(USER_AGENT, &quot;foo&quot;)
+    /// let res = client.get("https://www.rust-lang.org")
+    ///     .header(USER_AGENT, "foo")
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1290,15 +1292,15 @@
     ///
     /// fn construct_headers() -&gt; HeaderMap {
     ///     let mut headers = HeaderMap::new();
-    ///     headers.insert(USER_AGENT, HeaderValue::from_static(&quot;reqwest&quot;));
-    ///     headers.insert(CONTENT_TYPE, HeaderValue::from_static(&quot;image/png&quot;));
+    ///     headers.insert(USER_AGENT, HeaderValue::from_static("reqwest"));
+    ///     headers.insert(CONTENT_TYPE, HeaderValue::from_static("image/png"));
     ///     headers
     /// }
     ///
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let file = fs::File::open(&quot;much_beauty.png&quot;)?;
+    /// let file = fs::File::open("much_beauty.png")?;
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org/post&quot;)
+    /// let res = client.post("http://httpbin.org/post")
     ///     .headers(construct_headers())
     ///     .body(file)
     ///     .send()?;
@@ -1317,8 +1319,8 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let resp = client.delete(&quot;http://httpbin.org/delete&quot;)
-    ///     .basic_auth(&quot;admin&quot;, Some(&quot;good password&quot;))
+    /// let resp = client.delete("http://httpbin.org/delete")
+    ///     .basic_auth("admin", Some("good password"))
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1337,8 +1339,8 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let resp = client.delete(&quot;http://httpbin.org/delete&quot;)
-    ///     .bearer_auth(&quot;token&quot;)
+    /// let resp = client.delete("http://httpbin.org/delete")
+    ///     .bearer_auth("token")
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1347,7 +1349,7 @@
     <span class="kw">where
         </span>T: fmt::Display,
     {
-        <span class="kw">let </span>header_value = <span class="macro">format!</span>(<span class="string">&quot;Bearer {}&quot;</span>, token);
+        <span class="kw">let </span>header_value = <span class="macro">format!</span>(<span class="string">"Bearer {}"</span>, token);
         <span class="self">self</span>.header_sensitive(<span class="kw">crate</span>::header::AUTHORIZATION, <span class="kw-2">&amp;*</span>header_value, <span class="bool-val">true</span>)
     }
 
@@ -1360,8 +1362,8 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org/post&quot;)
-    ///     .body(&quot;from a &amp;str!&quot;)
+    /// let res = client.post("http://httpbin.org/post")
+    ///     .body("from a &amp;str!")
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1371,9 +1373,9 @@
     ///
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
-    /// let file = std::fs::File::open(&quot;from_a_file.txt&quot;)?;
+    /// let file = std::fs::File::open("from_a_file.txt")?;
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org/post&quot;)
+    /// let res = client.post("http://httpbin.org/post")
     ///     .body(file)
     ///     .send()?;
     /// # Ok(())
@@ -1388,7 +1390,7 @@
     /// // from bytes!
     /// let bytes: Vec&lt;u8&gt; = vec![1, 10, 100];
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org/post&quot;)
+    /// let res = client.post("http://httpbin.org/post")
     ///     .body(bytes)
     ///     .send()?;
     /// # Ok(())
@@ -1420,15 +1422,15 @@
     /// be called multiple times and that existing query parameters are not
     /// overwritten if the same key is used. The key will simply show up
     /// twice in the query string.
-    /// Calling `.query(&amp;[(&quot;foo&quot;, &quot;a&quot;), (&quot;foo&quot;, &quot;b&quot;)])` gives `&quot;foo=a&amp;foo=b&quot;`.
+    /// Calling `.query(&amp;[("foo", "a"), ("foo", "b")])` gives `"foo=a&amp;foo=b"`.
     ///
     /// ```rust
     /// # use reqwest::Error;
     /// #
     /// # fn run() -&gt; Result&lt;(), Error&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.get(&quot;http://httpbin.org&quot;)
-    ///     .query(&amp;[(&quot;lang&quot;, &quot;rust&quot;)])
+    /// let res = client.get("http://httpbin.org")
+    ///     .query(&amp;[("lang", "rust")])
     ///     .send()?;
     /// # Ok(())
     /// # }
@@ -1436,8 +1438,8 @@
     ///
     /// # Note
     /// This method does not support serializing a single key-value
-    /// pair. Instead of using `.query((&quot;key&quot;, &quot;val&quot;))`, use a sequence, such
-    /// as `.query(&amp;[(&quot;key&quot;, &quot;val&quot;)])`. It&#39;s also possible to serialize structs
+    /// pair. Instead of using `.query(("key", "val"))`, use a sequence, such
+    /// as `.query(&amp;[("key", "val")])`. It's also possible to serialize structs
     /// and maps into a key-value pair.
     ///
     /// # Errors
@@ -1455,7 +1457,7 @@
             }
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <span class="self">self</span>.request {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) = req.url().query() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">""</span>) = req.url().query() {
                 req.url_mut().set_query(<span class="prelude-val">None</span>);
             }
         }
@@ -1485,10 +1487,10 @@
     /// #
     /// # fn run() -&gt; Result&lt;(), Error&gt; {
     /// let mut params = HashMap::new();
-    /// params.insert(&quot;lang&quot;, &quot;rust&quot;);
+    /// params.insert("lang", "rust");
     ///
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org&quot;)
+    /// let res = client.post("http://httpbin.org")
     ///     .form(&amp;params)
     ///     .send()?;
     /// # Ok(())
@@ -1506,7 +1508,7 @@
                 <span class="prelude-val">Ok</span>(body) =&gt; {
                     req.headers_mut().insert(
                         CONTENT_TYPE,
-                        HeaderValue::from_static(<span class="string">&quot;application/x-www-form-urlencoded&quot;</span>),
+                        HeaderValue::from_static(<span class="string">"application/x-www-form-urlencoded"</span>),
                     );
                     <span class="kw-2">*</span>req.body_mut() = <span class="prelude-val">Some</span>(body.into());
                 }
@@ -1536,10 +1538,10 @@
     /// #
     /// # fn run() -&gt; Result&lt;(), Error&gt; {
     /// let mut map = HashMap::new();
-    /// map.insert(&quot;lang&quot;, &quot;rust&quot;);
+    /// map.insert("lang", "rust");
     ///
     /// let client = reqwest::blocking::Client::new();
-    /// let res = client.post(&quot;http://httpbin.org&quot;)
+    /// let res = client.post("http://httpbin.org")
     ///     .json(&amp;map)
     ///     .send()?;
     /// # Ok(())
@@ -1548,10 +1550,10 @@
     ///
     /// # Errors
     ///
-    /// Serialization can fail if `T`&#39;s implementation of `Serialize` decides to
+    /// Serialization can fail if `T`'s implementation of `Serialize` decides to
     /// fail, or if `T` contains a map with non-string keys.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
     </span><span class="kw">pub fn </span>json&lt;T: Serialize + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">mut </span><span class="self">self</span>, json: <span class="kw-2">&amp;</span>T) -&gt; RequestBuilder {
         <span class="kw">let </span><span class="kw-2">mut </span>error = <span class="prelude-val">None</span>;
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = <span class="self">self</span>.request {
@@ -1559,7 +1561,7 @@
                 <span class="prelude-val">Ok</span>(body) =&gt; {
                     <span class="kw">if </span>!req.headers().contains_key(CONTENT_TYPE) {
                         req.headers_mut()
-                            .insert(CONTENT_TYPE, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
+                            .insert(CONTENT_TYPE, HeaderValue::from_static(<span class="string">"application/json"</span>));
                     }
                     <span class="kw-2">*</span>req.body_mut() = <span class="prelude-val">Some</span>(body.into());
                 }
@@ -1580,10 +1582,10 @@
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
     /// let form = reqwest::blocking::multipart::Form::new()
-    ///     .text(&quot;key3&quot;, &quot;value3&quot;)
-    ///     .file(&quot;file&quot;, &quot;/path/to/field&quot;)?;
+    ///     .text("key3", "value3")
+    ///     .file("file", "/path/to/field")?;
     ///
-    /// let response = client.post(&quot;your url&quot;)
+    /// let response = client.post("your url")
     ///     .multipart(form)
     ///     .send()?;
     /// # Ok(())
@@ -1591,12 +1593,12 @@
     /// ```
     ///
     /// See [`multipart`](multipart/) for more examples.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;multipart&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;multipart&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"multipart"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"multipart"</span>)))]
     </span><span class="kw">pub fn </span>multipart(<span class="self">self</span>, <span class="kw-2">mut </span>multipart: multipart::Form) -&gt; RequestBuilder {
         <span class="kw">let </span><span class="kw-2">mut </span>builder = <span class="self">self</span>.header(
             CONTENT_TYPE,
-            <span class="macro">format!</span>(<span class="string">&quot;multipart/form-data; boundary={}&quot;</span>, multipart.boundary()).as_str(),
+            <span class="macro">format!</span>(<span class="string">"multipart/form-data; boundary={}"</span>, multipart.boundary()).as_str(),
         );
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>req) = builder.request {
             <span class="kw-2">*</span>req.body_mut() = <span class="prelude-val">Some</span>(<span class="kw">match </span>multipart.compute_length() {
@@ -1635,8 +1637,8 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let builder = client.post(&quot;http://httpbin.org/post&quot;)
-    ///     .body(&quot;from a &amp;str!&quot;);
+    /// let builder = client.post("http://httpbin.org/post")
+    ///     .body("from a &amp;str!");
     /// let clone = builder.try_clone();
     /// assert!(clone.is_some());
     /// # Ok(())
@@ -1648,7 +1650,7 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let builder = client.get(&quot;http://httpbin.org/get&quot;);
+    /// let builder = client.get("http://httpbin.org/get");
     /// let clone = builder.try_clone();
     /// assert!(clone.is_some());
     /// # Ok(())
@@ -1660,7 +1662,7 @@
     /// ```rust
     /// # fn run() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
     /// let client = reqwest::blocking::Client::new();
-    /// let builder = client.get(&quot;http://httpbin.org/get&quot;)
+    /// let builder = client.get("http://httpbin.org/get")
     ///     .body(reqwest::blocking::Body::new(std::io::empty()));
     /// let clone = builder.try_clone();
     /// assert!(clone.is_none());
@@ -1705,17 +1707,17 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Request {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        fmt_request_fields(<span class="kw-2">&amp;mut </span>f.debug_struct(<span class="string">&quot;Request&quot;</span>), <span class="self">self</span>).finish()
+        fmt_request_fields(<span class="kw-2">&amp;mut </span>f.debug_struct(<span class="string">"Request"</span>), <span class="self">self</span>).finish()
     }
 }
 
-<span class="kw">fn </span>fmt_request_fields&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(
-    f: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;,
+<span class="kw">fn </span>fmt_request_fields&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(
+    f: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;,
     req: <span class="kw-2">&amp;</span>Request,
-) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    f.field(<span class="string">&quot;method&quot;</span>, req.method())
-        .field(<span class="string">&quot;url&quot;</span>, req.url())
-        .field(<span class="string">&quot;headers&quot;</span>, req.headers())
+) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>fmt::DebugStruct&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    f.field(<span class="string">"method"</span>, req.method())
+        .field(<span class="string">"url"</span>, req.url())
+        .field(<span class="string">"headers"</span>, req.headers())
 }
 
 <span class="attr">#[cfg(test)]
@@ -1725,7 +1727,7 @@
     <span class="kw">use </span><span class="kw">crate</span>::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, HOST};
     <span class="kw">use </span><span class="kw">crate</span>::Method;
     <span class="kw">use </span>serde::Serialize;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
     </span><span class="kw">use </span>serde_json;
     <span class="kw">use </span>serde_urlencoded;
     <span class="kw">use </span>std::collections::{BTreeMap, HashMap};
@@ -1734,7 +1736,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_get_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.get(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::GET);
@@ -1744,7 +1746,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_head_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.head(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::HEAD);
@@ -1754,7 +1756,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_post_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::POST);
@@ -1764,7 +1766,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_put_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.put(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::PUT);
@@ -1774,7 +1776,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_patch_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.patch(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::PATCH);
@@ -1784,7 +1786,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_delete_request() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.delete(some_url).build().unwrap();
 
         <span class="macro">assert_eq!</span>(r.method(), <span class="kw-2">&amp;</span>Method::DELETE);
@@ -1794,10 +1796,10 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_header() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
-        <span class="kw">let </span>header = HeaderValue::from_static(<span class="string">&quot;google.com&quot;</span>);
+        <span class="kw">let </span>header = HeaderValue::from_static(<span class="string">"google.com"</span>);
 
         <span class="comment">// Add a copy of the header to the request builder
         </span><span class="kw">let </span>r = r.header(HOST, header.clone()).build().unwrap();
@@ -1809,10 +1811,10 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_headers() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
-        <span class="kw">let </span>header = HeaderValue::from_static(<span class="string">&quot;google.com&quot;</span>);
+        <span class="kw">let </span>header = HeaderValue::from_static(<span class="string">"google.com"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
         headers.insert(HOST, header);
@@ -1827,11 +1829,11 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_headers_multi() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
-        <span class="kw">let </span>header_json = HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>);
-        <span class="kw">let </span>header_xml = HeaderValue::from_static(<span class="string">&quot;application/xml&quot;</span>);
+        <span class="kw">let </span>header_json = HeaderValue::from_static(<span class="string">"application/json"</span>);
+        <span class="kw">let </span>header_xml = HeaderValue::from_static(<span class="string">"application/xml"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
         headers.append(ACCEPT, header_json);
@@ -1843,18 +1845,18 @@
         <span class="comment">// then make sure they were added correctly
         </span><span class="macro">assert_eq!</span>(r.headers(), <span class="kw-2">&amp;</span>headers);
         <span class="kw">let </span><span class="kw-2">mut </span>all_values = r.headers().get_all(ACCEPT).iter();
-        <span class="macro">assert_eq!</span>(all_values.next().unwrap(), <span class="kw-2">&amp;</span><span class="string">&quot;application/json&quot;</span>);
-        <span class="macro">assert_eq!</span>(all_values.next().unwrap(), <span class="kw-2">&amp;</span><span class="string">&quot;application/xml&quot;</span>);
+        <span class="macro">assert_eq!</span>(all_values.next().unwrap(), <span class="kw-2">&amp;</span><span class="string">"application/json"</span>);
+        <span class="macro">assert_eq!</span>(all_values.next().unwrap(), <span class="kw-2">&amp;</span><span class="string">"application/xml"</span>);
         <span class="macro">assert_eq!</span>(all_values.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_body() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
-        <span class="kw">let </span>body = <span class="string">&quot;Some interesting content&quot;</span>;
+        <span class="kw">let </span>body = <span class="string">"Some interesting content"</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>r = r.body(body).build().unwrap();
 
@@ -1866,26 +1868,26 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_query_append() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>r = client.get(some_url);
 
-        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)]);
-        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;qux&quot;</span>, <span class="number">3</span>)]);
+        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">"foo"</span>, <span class="string">"bar"</span>)]);
+        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">"qux"</span>, <span class="number">3</span>)]);
 
-        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">"request is valid"</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">"foo=bar&amp;qux=3"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_query_append_same() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>r = client.get(some_url);
 
-        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;a&quot;</span>), (<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;b&quot;</span>)]);
+        r = r.query(<span class="kw-2">&amp;</span>[(<span class="string">"foo"</span>, <span class="string">"a"</span>), (<span class="string">"foo"</span>, <span class="string">"b"</span>)]);
 
-        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=a&amp;foo=b&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">"request is valid"</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">"foo=a&amp;foo=b"</span>));
     }
 
     <span class="attr">#[test]
@@ -1897,51 +1899,51 @@
         }
 
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>r = client.get(some_url);
 
         <span class="kw">let </span>params = Params {
-            foo: <span class="string">&quot;bar&quot;</span>.into(),
+            foo: <span class="string">"bar"</span>.into(),
             qux: <span class="number">3</span>,
         };
 
         r = r.query(<span class="kw-2">&amp;</span>params);
 
-        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=3&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">"request is valid"</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">"foo=bar&amp;qux=3"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_query_map() {
         <span class="kw">let </span><span class="kw-2">mut </span>params = BTreeMap::new();
-        params.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>);
-        params.insert(<span class="string">&quot;qux&quot;</span>, <span class="string">&quot;three&quot;</span>);
+        params.insert(<span class="string">"foo"</span>, <span class="string">"bar"</span>);
+        params.insert(<span class="string">"qux"</span>, <span class="string">"three"</span>);
 
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>r = client.get(some_url);
 
         r = r.query(<span class="kw-2">&amp;</span>params);
 
-        <span class="kw">let </span>req = r.build().expect(<span class="string">&quot;request is valid&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo=bar&amp;qux=three&quot;</span>));
+        <span class="kw">let </span>req = r.build().expect(<span class="string">"request is valid"</span>);
+        <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">Some</span>(<span class="string">"foo=bar&amp;qux=three"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_form() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
         <span class="kw">let </span><span class="kw-2">mut </span>form_data = HashMap::new();
-        form_data.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>);
+        form_data.insert(<span class="string">"foo"</span>, <span class="string">"bar"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>r = r.form(<span class="kw-2">&amp;</span>form_data).build().unwrap();
 
         <span class="comment">// Make sure the content type was set
         </span><span class="macro">assert_eq!</span>(
             r.headers().get(CONTENT_TYPE).unwrap(),
-            <span class="kw-2">&amp;</span><span class="string">&quot;application/x-www-form-urlencoded&quot;
+            <span class="kw-2">&amp;</span><span class="string">"application/x-www-form-urlencoded"
         </span>);
 
         <span class="kw">let </span>buf = body::read_to_string(r.body_mut().take().unwrap()).unwrap();
@@ -1951,19 +1953,19 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+    #[cfg(feature = <span class="string">"json"</span>)]
     </span><span class="kw">fn </span>add_json() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
 
         <span class="kw">let </span><span class="kw-2">mut </span>json_data = HashMap::new();
-        json_data.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>);
+        json_data.insert(<span class="string">"foo"</span>, <span class="string">"bar"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>r = r.json(<span class="kw-2">&amp;</span>json_data).build().unwrap();
 
         <span class="comment">// Make sure the content type was set
-        </span><span class="macro">assert_eq!</span>(r.headers().get(CONTENT_TYPE).unwrap(), <span class="kw-2">&amp;</span><span class="string">&quot;application/json&quot;</span>);
+        </span><span class="macro">assert_eq!</span>(r.headers().get(CONTENT_TYPE).unwrap(), <span class="kw-2">&amp;</span><span class="string">"application/json"</span>);
 
         <span class="kw">let </span>buf = body::read_to_string(r.body_mut().take().unwrap()).unwrap();
 
@@ -1972,7 +1974,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;json&quot;</span>)]
+    #[cfg(feature = <span class="string">"json"</span>)]
     </span><span class="kw">fn </span>add_json_fail() {
         <span class="kw">use </span>serde::ser::Error <span class="kw">as _</span>;
         <span class="kw">use </span>serde::{Serialize, Serializer};
@@ -1983,12 +1985,12 @@
             <span class="kw">where
                 </span>S: Serializer,
             {
-                <span class="prelude-val">Err</span>(S::Error::custom(<span class="string">&quot;nope&quot;</span>))
+                <span class="prelude-val">Err</span>(S::Error::custom(<span class="string">"nope"</span>))
             }
         }
 
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>r = client.post(some_url);
         <span class="kw">let </span>json_data = MyStruct;
         <span class="kw">let </span>err = r.json(<span class="kw-2">&amp;</span>json_data).build().unwrap_err();
@@ -2001,127 +2003,127 @@
         <span class="kw">use </span>http::HeaderMap;
 
         <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
-        headers.insert(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>.parse().unwrap());
-        headers.append(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;baz&quot;</span>.parse().unwrap());
+        headers.insert(<span class="string">"foo"</span>, <span class="string">"bar"</span>.parse().unwrap());
+        headers.append(<span class="string">"foo"</span>, <span class="string">"baz"</span>.parse().unwrap());
 
         <span class="kw">let </span>client = Client::new();
         <span class="kw">let </span>req = client
-            .get(<span class="string">&quot;https://hyper.rs&quot;</span>)
-            .header(<span class="string">&quot;im-a&quot;</span>, <span class="string">&quot;keeper&quot;</span>)
-            .header(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;pop me&quot;</span>)
+            .get(<span class="string">"https://hyper.rs"</span>)
+            .header(<span class="string">"im-a"</span>, <span class="string">"keeper"</span>)
+            .header(<span class="string">"foo"</span>, <span class="string">"pop me"</span>)
             .headers(headers)
             .build()
-            .expect(<span class="string">&quot;request build&quot;</span>);
+            .expect(<span class="string">"request build"</span>);
 
-        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;im-a&quot;</span>], <span class="string">&quot;keeper&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">"im-a"</span>], <span class="string">"keeper"</span>);
 
-        <span class="kw">let </span>foo = req.headers().get_all(<span class="string">&quot;foo&quot;</span>).iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>foo = req.headers().get_all(<span class="string">"foo"</span>).iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">assert_eq!</span>(foo.len(), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(foo[<span class="number">0</span>], <span class="string">&quot;bar&quot;</span>);
-        <span class="macro">assert_eq!</span>(foo[<span class="number">1</span>], <span class="string">&quot;baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(foo[<span class="number">0</span>], <span class="string">"bar"</span>);
+        <span class="macro">assert_eq!</span>(foo[<span class="number">1</span>], <span class="string">"baz"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>normalize_empty_query() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://google.com/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://google.com/"</span>;
         <span class="kw">let </span>empty_query: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str)] = <span class="kw-2">&amp;</span>[];
 
         <span class="kw">let </span>req = client
             .get(some_url)
             .query(empty_query)
             .build()
-            .expect(<span class="string">&quot;request build&quot;</span>);
+            .expect(<span class="string">"request build"</span>);
 
         <span class="macro">assert_eq!</span>(req.url().query(), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://google.com/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"https://google.com/"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>convert_url_authority_into_basic_auth() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://Aladdin:open sesame@localhost/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://Aladdin:open sesame@localhost/"</span>;
 
-        <span class="kw">let </span>req = client.get(some_url).build().expect(<span class="string">&quot;request build&quot;</span>);
+        <span class="kw">let </span>req = client.get(some_url).build().expect(<span class="string">"request build"</span>);
 
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"https://localhost/"</span>);
         <span class="macro">assert_eq!</span>(
-            req.headers()[<span class="string">&quot;authorization&quot;</span>],
-            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;
+            req.headers()[<span class="string">"authorization"</span>],
+            <span class="string">"Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
         </span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>convert_from_http_request() {
         <span class="kw">let </span>http_request = HttpRequest::builder()
-            .method(<span class="string">&quot;GET&quot;</span>)
-            .uri(<span class="string">&quot;http://localhost/&quot;</span>)
-            .header(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
-            .body(<span class="string">&quot;test test test&quot;</span>)
+            .method(<span class="string">"GET"</span>)
+            .uri(<span class="string">"http://localhost/"</span>)
+            .header(<span class="string">"User-Agent"</span>, <span class="string">"my-awesome-agent/1.0"</span>)
+            .body(<span class="string">"test test test"</span>)
             .unwrap();
         <span class="kw">let </span>req: Request = Request::try_from(http_request).unwrap();
         <span class="macro">assert_eq!</span>(req.body().is_none(), <span class="bool-val">false</span>);
-        <span class="kw">let </span>test_data = <span class="string">b&quot;test test test&quot;</span>;
+        <span class="kw">let </span>test_data = <span class="string">b"test test test"</span>;
         <span class="macro">assert_eq!</span>(req.body().unwrap().as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>test_data[..]));
         <span class="kw">let </span>headers = req.headers();
-        <span class="macro">assert_eq!</span>(headers.get(<span class="string">&quot;User-Agent&quot;</span>).unwrap(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
+        <span class="macro">assert_eq!</span>(headers.get(<span class="string">"User-Agent"</span>).unwrap(), <span class="string">"my-awesome-agent/1.0"</span>);
         <span class="macro">assert_eq!</span>(req.method(), Method::GET);
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"http://localhost/"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>set_http_request_version() {
         <span class="kw">let </span>http_request = HttpRequest::builder()
-            .method(<span class="string">&quot;GET&quot;</span>)
-            .uri(<span class="string">&quot;http://localhost/&quot;</span>)
-            .header(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;my-awesome-agent/1.0&quot;</span>)
+            .method(<span class="string">"GET"</span>)
+            .uri(<span class="string">"http://localhost/"</span>)
+            .header(<span class="string">"User-Agent"</span>, <span class="string">"my-awesome-agent/1.0"</span>)
             .version(Version::HTTP_11)
-            .body(<span class="string">&quot;test test test&quot;</span>)
+            .body(<span class="string">"test test test"</span>)
             .unwrap();
         <span class="kw">let </span>req: Request = Request::try_from(http_request).unwrap();
         <span class="macro">assert_eq!</span>(req.body().is_none(), <span class="bool-val">false</span>);
-        <span class="kw">let </span>test_data = <span class="string">b&quot;test test test&quot;</span>;
+        <span class="kw">let </span>test_data = <span class="string">b"test test test"</span>;
         <span class="macro">assert_eq!</span>(req.body().unwrap().as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>test_data[..]));
         <span class="kw">let </span>headers = req.headers();
-        <span class="macro">assert_eq!</span>(headers.get(<span class="string">&quot;User-Agent&quot;</span>).unwrap(), <span class="string">&quot;my-awesome-agent/1.0&quot;</span>);
+        <span class="macro">assert_eq!</span>(headers.get(<span class="string">"User-Agent"</span>).unwrap(), <span class="string">"my-awesome-agent/1.0"</span>);
         <span class="macro">assert_eq!</span>(req.method(), Method::GET);
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;http://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"http://localhost/"</span>);
         <span class="macro">assert_eq!</span>(req.version(), Version::HTTP_11);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_basic_auth_sensitive_header() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://localhost/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://localhost/"</span>;
 
         <span class="kw">let </span>req = client
             .get(some_url)
-            .basic_auth(<span class="string">&quot;Aladdin&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;open sesame&quot;</span>))
+            .basic_auth(<span class="string">"Aladdin"</span>, <span class="prelude-val">Some</span>(<span class="string">"open sesame"</span>))
             .build()
-            .expect(<span class="string">&quot;request build&quot;</span>);
+            .expect(<span class="string">"request build"</span>);
 
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"https://localhost/"</span>);
         <span class="macro">assert_eq!</span>(
-            req.headers()[<span class="string">&quot;authorization&quot;</span>],
-            <span class="string">&quot;Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==&quot;
+            req.headers()[<span class="string">"authorization"</span>],
+            <span class="string">"Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
         </span>);
-        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>].is_sensitive(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">"authorization"</span>].is_sensitive(), <span class="bool-val">true</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_bearer_auth_sensitive_header() {
         <span class="kw">let </span>client = Client::new();
-        <span class="kw">let </span>some_url = <span class="string">&quot;https://localhost/&quot;</span>;
+        <span class="kw">let </span>some_url = <span class="string">"https://localhost/"</span>;
 
         <span class="kw">let </span>req = client
             .get(some_url)
-            .bearer_auth(<span class="string">&quot;Hold my bear&quot;</span>)
+            .bearer_auth(<span class="string">"Hold my bear"</span>)
             .build()
-            .expect(<span class="string">&quot;request build&quot;</span>);
+            .expect(<span class="string">"request build"</span>);
 
-        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">&quot;https://localhost/&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>], <span class="string">&quot;Bearer Hold my bear&quot;</span>);
-        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">&quot;authorization&quot;</span>].is_sensitive(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(req.url().as_str(), <span class="string">"https://localhost/"</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">"authorization"</span>], <span class="string">"Bearer Hold my bear"</span>);
+        <span class="macro">assert_eq!</span>(req.headers()[<span class="string">"authorization"</span>].is_sensitive(), <span class="bool-val">true</span>);
     }
 }
 </code></pre></div></section></main></body></html>

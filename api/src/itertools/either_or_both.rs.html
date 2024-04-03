@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/itertools-0.11.0/src/either_or_both.rs`."><title>either_or_both.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/itertools-0.11.0/src/either_or_both.rs`."><title>either_or_both.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="itertools" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../itertools/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -567,15 +569,15 @@
     /// ```
     /// // On the `Left` variant.
     /// # use itertools::{EitherOrBoth, EitherOrBoth::{Left, Right, Both}};
-    /// let x: EitherOrBoth&lt;_, ()&gt; = Left(&quot;bonjour&quot;);
-    /// assert_eq!(x.just_left(), Some(&quot;bonjour&quot;));
+    /// let x: EitherOrBoth&lt;_, ()&gt; = Left("bonjour");
+    /// assert_eq!(x.just_left(), Some("bonjour"));
     ///
     /// // On the `Right` variant.
-    /// let x: EitherOrBoth&lt;(), _&gt; = Right(&quot;hola&quot;);
+    /// let x: EitherOrBoth&lt;(), _&gt; = Right("hola");
     /// assert_eq!(x.just_left(), None);
     ///
     /// // On the `Both` variant.
-    /// let x = Both(&quot;bonjour&quot;, &quot;hola&quot;);
+    /// let x = Both("bonjour", "hola");
     /// assert_eq!(x.just_left(), None);
     /// ```
     </span><span class="kw">pub fn </span>just_left(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;A&gt; {
@@ -592,15 +594,15 @@
     /// ```
     /// // On the `Left` variant.
     /// # use itertools::{EitherOrBoth::{Left, Right, Both}, EitherOrBoth};
-    /// let x: EitherOrBoth&lt;_, ()&gt; = Left(&quot;auf wiedersehen&quot;);
-    /// assert_eq!(x.just_left(), Some(&quot;auf wiedersehen&quot;));
+    /// let x: EitherOrBoth&lt;_, ()&gt; = Left("auf wiedersehen");
+    /// assert_eq!(x.just_left(), Some("auf wiedersehen"));
     ///
     /// // On the `Right` variant.
-    /// let x: EitherOrBoth&lt;(), _&gt; = Right(&quot;adios&quot;);
+    /// let x: EitherOrBoth&lt;(), _&gt; = Right("adios");
     /// assert_eq!(x.just_left(), None);
     ///
     /// // On the `Both` variant.
-    /// let x = Both(&quot;auf wiedersehen&quot;, &quot;adios&quot;);
+    /// let x = Both("auf wiedersehen", "adios");
     /// assert_eq!(x.just_left(), None);
     /// ```
     </span><span class="kw">pub fn </span>just_right(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt; {
@@ -694,7 +696,7 @@
     }
 
     <span class="doccomment">/// Apply the function `f` on the value `a` in `Left(a)` or `Both(a, b)` variants. If it is
-    /// present rewrapping the result in `self`&#39;s original variant.
+    /// present rewrapping the result in `self`'s original variant.
     </span><span class="kw">pub fn </span>map_left&lt;F, M&gt;(<span class="self">self</span>, f: F) -&gt; EitherOrBoth&lt;M, B&gt;
     <span class="kw">where
         </span>F: FnOnce(A) -&gt; M,
@@ -707,7 +709,7 @@
     }
 
     <span class="doccomment">/// Apply the function `f` on the value `b` in `Right(b)` or `Both(a, b)` variants.
-    /// If it is present rewrapping the result in `self`&#39;s original variant.
+    /// If it is present rewrapping the result in `self`'s original variant.
     </span><span class="kw">pub fn </span>map_right&lt;F, M&gt;(<span class="self">self</span>, f: F) -&gt; EitherOrBoth&lt;A, M&gt;
     <span class="kw">where
         </span>F: FnOnce(B) -&gt; M,
@@ -721,7 +723,7 @@
 
     <span class="doccomment">/// Apply the functions `f` and `g` on the value `a` and `b` respectively;
     /// found in `Left(a)`, `Right(b)`, or `Both(a, b)` variants.
-    /// The Result is rewrapped `self`&#39;s original variant.
+    /// The Result is rewrapped `self`'s original variant.
     </span><span class="kw">pub fn </span>map_any&lt;F, L, G, R&gt;(<span class="self">self</span>, f: F, g: G) -&gt; EitherOrBoth&lt;L, R&gt;
     <span class="kw">where
         </span>F: FnOnce(A) -&gt; L,
@@ -773,9 +775,9 @@
     ///
     /// ```
     /// # use itertools::EitherOrBoth;
-    /// assert_eq!(EitherOrBoth::Both(&quot;tree&quot;, 1).or(&quot;stone&quot;, 5), (&quot;tree&quot;, 1));
-    /// assert_eq!(EitherOrBoth::Left(&quot;tree&quot;).or(&quot;stone&quot;, 5), (&quot;tree&quot;, 5));
-    /// assert_eq!(EitherOrBoth::Right(1).or(&quot;stone&quot;, 5), (&quot;stone&quot;, 1));
+    /// assert_eq!(EitherOrBoth::Both("tree", 1).or("stone", 5), ("tree", 1));
+    /// assert_eq!(EitherOrBoth::Left("tree").or("stone", 5), ("tree", 5));
+    /// assert_eq!(EitherOrBoth::Right(1).or("stone", 5), ("stone", 1));
     /// ```
     </span><span class="kw">pub fn </span>or(<span class="self">self</span>, l: A, r: B) -&gt; (A, B) {
         <span class="kw">match </span><span class="self">self </span>{
@@ -810,9 +812,9 @@
     /// ```
     /// # use itertools::EitherOrBoth;
     /// let k = 10;
-    /// assert_eq!(EitherOrBoth::Both(&quot;tree&quot;, 1).or_else(|| &quot;stone&quot;, || 2 * k), (&quot;tree&quot;, 1));
-    /// assert_eq!(EitherOrBoth::Left(&quot;tree&quot;).or_else(|| &quot;stone&quot;, || 2 * k), (&quot;tree&quot;, 20));
-    /// assert_eq!(EitherOrBoth::Right(1).or_else(|| &quot;stone&quot;, || 2 * k), (&quot;stone&quot;, 1));
+    /// assert_eq!(EitherOrBoth::Both("tree", 1).or_else(|| "stone", || 2 * k), ("tree", 1));
+    /// assert_eq!(EitherOrBoth::Left("tree").or_else(|| "stone", || 2 * k), ("tree", 20));
+    /// assert_eq!(EitherOrBoth::Right(1).or_else(|| "stone", || 2 * k), ("stone", 1));
     /// ```
     </span><span class="kw">pub fn </span>or_else&lt;L: FnOnce() -&gt; A, R: FnOnce() -&gt; B&gt;(<span class="self">self</span>, l: L, r: R) -&gt; (A, B) {
         <span class="kw">match </span><span class="self">self </span>{
@@ -870,9 +872,9 @@
     /// assert_eq!(*either.insert_left(69), 69);
     ///
     /// // Inserting a second value.
-    /// let mut either = Right(&quot;no&quot;);
-    /// assert_eq!(*either.insert_left(&quot;yes&quot;), &quot;yes&quot;);
-    /// assert_eq!(either, Both(&quot;yes&quot;, &quot;no&quot;));
+    /// let mut either = Right("no");
+    /// assert_eq!(*either.insert_left("yes"), "yes");
+    /// assert_eq!(either, Both("yes", "no"));
     /// ```
     </span><span class="kw">pub fn </span>insert_left(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: A) -&gt; <span class="kw-2">&amp;mut </span>A {
         <span class="kw">match </span><span class="self">self </span>{
@@ -912,9 +914,9 @@
     /// assert_eq!(*either.insert_left(69), 69);
     ///
     /// // Inserting a second value.
-    /// let mut either = Left(&quot;what&#39;s&quot;);
+    /// let mut either = Left("what's");
     /// assert_eq!(*either.insert_right(9 + 10), 21 - 2);
-    /// assert_eq!(either, Both(&quot;what&#39;s&quot;, 9+10));
+    /// assert_eq!(either, Both("what's", 9+10));
     /// ```
     </span><span class="kw">pub fn </span>insert_right(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: B) -&gt; <span class="kw-2">&amp;mut </span>B {
         <span class="kw">match </span><span class="self">self </span>{

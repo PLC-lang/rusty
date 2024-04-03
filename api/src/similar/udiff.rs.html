@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/udiff.rs`."><title>udiff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/udiff.rs`."><title>udiff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -364,13 +366,13 @@
 //!
 //! ```rust
 //! use similar::TextDiff;
-//! # let old_text = &quot;&quot;;
-//! # let new_text = &quot;&quot;;
+//! # let old_text = "";
+//! # let new_text = "";
 //! let text_diff = TextDiff::from_lines(old_text, new_text);
-//! print!(&quot;{}&quot;, text_diff
+//! print!("{}", text_diff
 //!     .unified_diff()
 //!     .context_radius(10)
-//!     .header(&quot;old_file&quot;, &quot;new_file&quot;));
+//!     .header("old_file", "new_file"));
 //! ```
 //!
 //! # Unicode vs Bytes
@@ -382,7 +384,7 @@
 //!
 //! The former uses [`DiffableStr::to_string_lossy`], the latter uses
 //! [`DiffableStr::as_bytes`] for each line.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;text&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"text"</span>)]
 </span><span class="kw">use </span>std::{fmt, io};
 
 <span class="kw">use </span><span class="kw">crate</span>::iter::AllChangesIter;
@@ -392,9 +394,9 @@
 <span class="kw">struct </span>MissingNewlineHint(bool);
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>MissingNewlineHint {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;\n\\ No newline at end of file&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"\n\\ No newline at end of file"</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -418,13 +420,13 @@
         <span class="kw">let </span><span class="kw-2">mut </span>beginning = <span class="self">self</span>.start() + <span class="number">1</span>;
         <span class="kw">let </span>len = <span class="self">self</span>.end().saturating_sub(<span class="self">self</span>.start());
         <span class="kw">if </span>len == <span class="number">1 </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, beginning)
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, beginning)
         } <span class="kw">else </span>{
             <span class="kw">if </span>len == <span class="number">0 </span>{
                 <span class="comment">// empty ranges begin at line just before the range
                 </span>beginning -= <span class="number">1</span>;
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;{},{}&quot;</span>, beginning, len)
+            <span class="macro">write!</span>(f, <span class="string">"{},{}"</span>, beginning, len)
         }
     }
 }
@@ -453,7 +455,7 @@
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>UnifiedHunkHeader {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;@@ -{} +{} @@&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.old_range, <span class="kw-2">&amp;</span><span class="self">self</span>.new_range)
+        <span class="macro">write!</span>(f, <span class="string">"@@ -{} +{} @@"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.old_range, <span class="kw-2">&amp;</span><span class="self">self</span>.new_range)
     }
 }
 
@@ -461,13 +463,13 @@
 ///
 /// ```rust
 /// use similar::TextDiff;
-/// # let old_text = &quot;&quot;;
-/// # let new_text = &quot;&quot;;
+/// # let old_text = "";
+/// # let new_text = "";
 /// let text_diff = TextDiff::from_lines(old_text, new_text);
-/// print!(&quot;{}&quot;, text_diff
+/// print!("{}", text_diff
 ///     .unified_diff()
 ///     .context_radius(10)
-///     .header(&quot;old_file&quot;, &quot;new_file&quot;));
+///     .header("old_file", "new_file"));
 /// ```
 ///
 /// ## Unicode vs Bytes
@@ -477,16 +479,16 @@
 /// versions by using [`UnifiedDiff.to_string`] or [`UnifiedDiff.to_writer`].
 /// The former uses [`DiffableStr::to_string_lossy`], the latter uses
 /// [`DiffableStr::as_bytes`] for each line.
-</span><span class="kw">pub struct </span>UnifiedDiff&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
-    diff: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diff </span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;,
+</span><span class="kw">pub struct </span>UnifiedDiff&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
+    diff: <span class="kw-2">&amp;</span><span class="lifetime">'diff </span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;,
     context_radius: usize,
     missing_newline_hint: bool,
     header: <span class="prelude-ty">Option</span>&lt;(String, String)&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; UnifiedDiff&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; UnifiedDiff&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
     <span class="doccomment">/// Creates a formatter from a text diff object.
-    </span><span class="kw">pub fn </span>from_text_diff(diff: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diff </span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_text_diff(diff: <span class="kw-2">&amp;</span><span class="lifetime">'diff </span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;) -&gt; <span class="self">Self </span>{
         UnifiedDiff {
             diff,
             context_radius: <span class="number">3</span>,
@@ -526,7 +528,7 @@
     </span>}
 
     <span class="doccomment">/// Iterates over all hunks as configured.
-    </span><span class="kw">pub fn </span>iter_hunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = UnifiedDiffHunk&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;&gt; {
+    </span><span class="kw">pub fn </span>iter_hunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = UnifiedDiffHunk&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;&gt; {
         <span class="kw">let </span>diff = <span class="self">self</span>.diff;
         <span class="kw">let </span>missing_newline_hint = <span class="self">self</span>.missing_newline_hint;
         <span class="self">self</span>.diff
@@ -539,15 +541,15 @@
     <span class="doccomment">/// Write the unified diff as bytes to the output stream.
     </span><span class="kw">pub fn </span>to_writer&lt;W: io::Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>w: W) -&gt; <span class="prelude-ty">Result</span>&lt;(), io::Error&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;diff</span>: <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new </span>+ <span class="lifetime">&#39;bufs</span>,
+        </span><span class="lifetime">'diff</span>: <span class="lifetime">'old </span>+ <span class="lifetime">'new </span>+ <span class="lifetime">'bufs</span>,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>header = <span class="self">self</span>.header.as_ref();
         <span class="kw">for </span>hunk <span class="kw">in </span><span class="self">self</span>.iter_hunks() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>((old_file, new_file)) = header.take() {
-                <span class="macro">writeln!</span>(w, <span class="string">&quot;--- {}&quot;</span>, old_file)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(w, <span class="string">&quot;+++ {}&quot;</span>, new_file)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(w, <span class="string">"--- {}"</span>, old_file)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(w, <span class="string">"+++ {}"</span>, new_file)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(w, <span class="string">&quot;{}&quot;</span>, hunk)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(w, <span class="string">"{}"</span>, hunk)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -562,22 +564,22 @@
 
 <span class="doccomment">/// Unified diff hunk formatter.
 ///
-/// The `Display` this renders out a single unified diff&#39;s hunk.
-</span><span class="kw">pub struct </span>UnifiedDiffHunk&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
-    diff: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diff </span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;,
+/// The `Display` this renders out a single unified diff's hunk.
+</span><span class="kw">pub struct </span>UnifiedDiffHunk&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
+    diff: <span class="kw-2">&amp;</span><span class="lifetime">'diff </span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;,
     ops: Vec&lt;DiffOp&gt;,
     missing_newline_hint: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;
-    UnifiedDiffHunk&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;
+    UnifiedDiffHunk&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;
 {
     <span class="doccomment">/// Creates a new hunk for some operations.
     </span><span class="kw">pub fn </span>new(
         ops: Vec&lt;DiffOp&gt;,
-        diff: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diff </span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;,
+        diff: <span class="kw-2">&amp;</span><span class="lifetime">'diff </span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;,
         missing_newline_hint: bool,
-    ) -&gt; UnifiedDiffHunk&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+    ) -&gt; UnifiedDiffHunk&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
         UnifiedDiffHunk {
             diff,
             ops,
@@ -601,11 +603,11 @@
     }
 
     <span class="doccomment">/// Iterates over all changes in a hunk.
-    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">&#39;x</span>, <span class="lifetime">&#39;slf</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;slf </span><span class="self">self</span>) -&gt; AllChangesIter&lt;<span class="lifetime">&#39;slf</span>, <span class="lifetime">&#39;x</span>, T&gt;
+    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">'x</span>, <span class="lifetime">'slf</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>) -&gt; AllChangesIter&lt;<span class="lifetime">'slf</span>, <span class="lifetime">'x</span>, T&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;x</span>: <span class="lifetime">&#39;slf </span>+ <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new</span>,
-        <span class="lifetime">&#39;old</span>: <span class="lifetime">&#39;x</span>,
-        <span class="lifetime">&#39;new</span>: <span class="lifetime">&#39;x</span>,
+        </span><span class="lifetime">'x</span>: <span class="lifetime">'slf </span>+ <span class="lifetime">'old </span>+ <span class="lifetime">'new</span>,
+        <span class="lifetime">'old</span>: <span class="lifetime">'x</span>,
+        <span class="lifetime">'new</span>: <span class="lifetime">'x</span>,
     {
         AllChangesIter::new(<span class="self">self</span>.diff.old_slices(), <span class="self">self</span>.diff.new_slices(), <span class="self">self</span>.ops())
     }
@@ -613,60 +615,60 @@
     <span class="doccomment">/// Write the hunk as bytes to the output stream.
     </span><span class="kw">pub fn </span>to_writer&lt;W: io::Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>w: W) -&gt; <span class="prelude-ty">Result</span>&lt;(), io::Error&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;diff</span>: <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new </span>+ <span class="lifetime">&#39;bufs</span>,
+        </span><span class="lifetime">'diff</span>: <span class="lifetime">'old </span>+ <span class="lifetime">'new </span>+ <span class="lifetime">'bufs</span>,
     {
         <span class="kw">for </span>(idx, change) <span class="kw">in </span><span class="self">self</span>.iter_changes().enumerate() {
             <span class="kw">if </span>idx == <span class="number">0 </span>{
-                <span class="macro">writeln!</span>(w, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.header())<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(w, <span class="string">"{}"</span>, <span class="self">self</span>.header())<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(w, <span class="string">&quot;{}&quot;</span>, change.tag())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(w, <span class="string">"{}"</span>, change.tag())<span class="question-mark">?</span>;
             w.write_all(change.value().as_bytes())<span class="question-mark">?</span>;
             <span class="kw">if </span>!<span class="self">self</span>.diff.newline_terminated() {
                 <span class="macro">writeln!</span>(w)<span class="question-mark">?</span>;
             }
             <span class="kw">if </span><span class="self">self</span>.diff.newline_terminated() &amp;&amp; change.missing_newline() {
-                <span class="macro">writeln!</span>(w, <span class="string">&quot;{}&quot;</span>, MissingNewlineHint(<span class="self">self</span>.missing_newline_hint))<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(w, <span class="string">"{}"</span>, MissingNewlineHint(<span class="self">self</span>.missing_newline_hint))<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display
-    <span class="kw">for </span>UnifiedDiffHunk&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display
+    <span class="kw">for </span>UnifiedDiffHunk&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;
 <span class="kw">where
-    </span><span class="lifetime">&#39;diff</span>: <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new </span>+ <span class="lifetime">&#39;bufs</span>,
+    </span><span class="lifetime">'diff</span>: <span class="lifetime">'old </span>+ <span class="lifetime">'new </span>+ <span class="lifetime">'bufs</span>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">for </span>(idx, change) <span class="kw">in </span><span class="self">self</span>.iter_changes().enumerate() {
             <span class="kw">if </span>idx == <span class="number">0 </span>{
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.header())<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.header())<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}{}&quot;</span>, change.tag(), change.to_string_lossy())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}{}"</span>, change.tag(), change.to_string_lossy())<span class="question-mark">?</span>;
             <span class="kw">if </span>!<span class="self">self</span>.diff.newline_terminated() {
                 <span class="macro">writeln!</span>(f)<span class="question-mark">?</span>;
             }
             <span class="kw">if </span><span class="self">self</span>.diff.newline_terminated() &amp;&amp; change.missing_newline() {
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, MissingNewlineHint(<span class="self">self</span>.missing_newline_hint))<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">"{}"</span>, MissingNewlineHint(<span class="self">self</span>.missing_newline_hint))<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display
-    <span class="kw">for </span>UnifiedDiff&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display
+    <span class="kw">for </span>UnifiedDiff&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;
 <span class="kw">where
-    </span><span class="lifetime">&#39;diff</span>: <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new </span>+ <span class="lifetime">&#39;bufs</span>,
+    </span><span class="lifetime">'diff</span>: <span class="lifetime">'old </span>+ <span class="lifetime">'new </span>+ <span class="lifetime">'bufs</span>,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>header = <span class="self">self</span>.header.as_ref();
         <span class="kw">for </span>hunk <span class="kw">in </span><span class="self">self</span>.iter_hunks() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>((old_file, new_file)) = header.take() {
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;--- {}&quot;</span>, old_file)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(f, <span class="string">&quot;+++ {}&quot;</span>, new_file)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">"--- {}"</span>, old_file)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">"+++ {}"</span>, new_file)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, hunk)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, hunk)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -695,25 +697,25 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_unified_diff() {
     <span class="kw">let </span>diff = TextDiff::from_lines(
-        <span class="string">&quot;a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz\nA\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ&quot;</span>,
-        <span class="string">&quot;a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\nS\nt\nu\nv\nw\nx\ny\nz\nA\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\no\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ&quot;</span>,
+        <span class="string">"a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz\nA\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ"</span>,
+        <span class="string">"a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\nS\nt\nu\nv\nw\nx\ny\nz\nA\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\no\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ"</span>,
     );
-    <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff.unified_diff().header(<span class="string">&quot;a.txt&quot;</span>, <span class="string">&quot;b.txt&quot;</span>).to_string());
+    <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff.unified_diff().header(<span class="string">"a.txt"</span>, <span class="string">"b.txt"</span>).to_string());
 }
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_empty_unified_diff() {
-    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;abc&quot;</span>);
-    <span class="macro">assert_eq!</span>(diff.unified_diff().header(<span class="string">&quot;a.txt&quot;</span>, <span class="string">&quot;b.txt&quot;</span>).to_string(), <span class="string">&quot;&quot;</span>);
+    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">"abc"</span>, <span class="string">"abc"</span>);
+    <span class="macro">assert_eq!</span>(diff.unified_diff().header(<span class="string">"a.txt"</span>, <span class="string">"b.txt"</span>).to_string(), <span class="string">""</span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_unified_diff_newline_hint() {
-    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">&quot;a\n&quot;</span>, <span class="string">&quot;b&quot;</span>);
-    <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff.unified_diff().header(<span class="string">&quot;a.txt&quot;</span>, <span class="string">&quot;b.txt&quot;</span>).to_string());
+    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">"a\n"</span>, <span class="string">"b"</span>);
+    <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff.unified_diff().header(<span class="string">"a.txt"</span>, <span class="string">"b.txt"</span>).to_string());
     <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff
         .unified_diff()
         .missing_newline_hint(<span class="bool-val">false</span>)
-        .header(<span class="string">&quot;a.txt&quot;</span>, <span class="string">&quot;b.txt&quot;</span>)
+        .header(<span class="string">"a.txt"</span>, <span class="string">"b.txt"</span>)
         .to_string());
 }
 </code></pre></div></section></main></body></html>

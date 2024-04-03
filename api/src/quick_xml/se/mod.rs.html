@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/quick-xml-0.30.0/src/se/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../quick_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -747,7 +749,7 @@
     };
     () =&gt; {
         <span class="kw">fn </span>serialize_bool(<span class="kw-2">mut </span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-            <span class="self">self</span>.write_str(<span class="kw">if </span>value { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>})<span class="question-mark">?</span>;
+            <span class="self">self</span>.write_str(<span class="kw">if </span>value { <span class="string">"true" </span>} <span class="kw">else </span>{ <span class="string">"false" </span>})<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.writer)
         }
 
@@ -776,7 +778,7 @@
         <span class="kw">fn </span>serialize_bytes(<span class="self">self</span>, _value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
             <span class="comment">//TODO: customization point - allow user to decide how to encode bytes
             </span><span class="prelude-val">Err</span>(DeError::Unsupported(
-                <span class="string">&quot;`serialize_bytes` not supported yet&quot;</span>.into(),
+                <span class="string">"`serialize_bytes` not supported yet"</span>.into(),
             ))
         }
 
@@ -790,16 +792,16 @@
 
         <span class="kw">fn </span>serialize_unit_variant(
             <span class="self">self</span>,
-            _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             _variant_index: u32,
-            variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
             <span class="self">self</span>.serialize_str(variant)
         }
 
         <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
             <span class="self">self</span>,
-            _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             value: <span class="kw-2">&amp;</span>T,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
             value.serialize(<span class="self">self</span>)
@@ -832,18 +834,18 @@
 /// # use serde::Serialize;
 /// # use pretty_assertions::assert_eq;
 /// #[derive(Serialize)]
-/// struct Root&lt;&#39;a&gt; {
-///     #[serde(rename = &quot;@attribute&quot;)]
-///     attribute: &amp;&#39;a str,
-///     element: &amp;&#39;a str,
-///     #[serde(rename = &quot;$text&quot;)]
-///     text: &amp;&#39;a str,
+/// struct Root&lt;'a&gt; {
+///     #[serde(rename = "@attribute")]
+///     attribute: &amp;'a str,
+///     element: &amp;'a str,
+///     #[serde(rename = "$text")]
+///     text: &amp;'a str,
 /// }
 ///
 /// let data = Root {
-///     attribute: &quot;attribute content&quot;,
-///     element: &quot;element content&quot;,
-///     text: &quot;text content&quot;,
+///     attribute: "attribute content",
+///     element: "element content",
+///     text: "text content",
 /// };
 ///
 /// let mut buffer = String::new();
@@ -852,10 +854,10 @@
 ///     buffer,
 ///     // The root tag name is automatically deduced from the struct name
 ///     // This will not work for other types or struct with #[serde(flatten)] fields
-///     &quot;&lt;Root attribute=\&quot;attribute content\&quot;&gt;\
+///     "&lt;Root attribute=\"attribute content\"&gt;\
 ///         &lt;element&gt;element content&lt;/element&gt;\
 ///         text content\
-///     &lt;/Root&gt;&quot;
+///     &lt;/Root&gt;"
 /// );
 /// ```
 </span><span class="kw">pub fn </span>to_writer&lt;W, T&gt;(<span class="kw-2">mut </span>writer: W, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), DeError&gt;
@@ -875,28 +877,28 @@
 /// # use serde::Serialize;
 /// # use pretty_assertions::assert_eq;
 /// #[derive(Serialize)]
-/// struct Root&lt;&#39;a&gt; {
-///     #[serde(rename = &quot;@attribute&quot;)]
-///     attribute: &amp;&#39;a str,
-///     element: &amp;&#39;a str,
-///     #[serde(rename = &quot;$text&quot;)]
-///     text: &amp;&#39;a str,
+/// struct Root&lt;'a&gt; {
+///     #[serde(rename = "@attribute")]
+///     attribute: &amp;'a str,
+///     element: &amp;'a str,
+///     #[serde(rename = "$text")]
+///     text: &amp;'a str,
 /// }
 ///
 /// let data = Root {
-///     attribute: &quot;attribute content&quot;,
-///     element: &quot;element content&quot;,
-///     text: &quot;text content&quot;,
+///     attribute: "attribute content",
+///     element: "element content",
+///     text: "text content",
 /// };
 ///
 /// assert_eq!(
 ///     to_string(&amp;data).unwrap(),
 ///     // The root tag name is automatically deduced from the struct name
 ///     // This will not work for other types or struct with #[serde(flatten)] fields
-///     &quot;&lt;Root attribute=\&quot;attribute content\&quot;&gt;\
+///     "&lt;Root attribute=\"attribute content\"&gt;\
 ///         &lt;element&gt;element content&lt;/element&gt;\
 ///         text content\
-///     &lt;/Root&gt;&quot;
+///     &lt;/Root&gt;"
 /// );
 /// ```
 </span><span class="kw">pub fn </span>to_string&lt;T&gt;(value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;String, DeError&gt;
@@ -918,28 +920,28 @@
 /// # use serde::Serialize;
 /// # use pretty_assertions::assert_eq;
 /// #[derive(Serialize)]
-/// struct Root&lt;&#39;a&gt; {
-///     #[serde(rename = &quot;@attribute&quot;)]
-///     attribute: &amp;&#39;a str,
-///     element: &amp;&#39;a str,
-///     #[serde(rename = &quot;$text&quot;)]
-///     text: &amp;&#39;a str,
+/// struct Root&lt;'a&gt; {
+///     #[serde(rename = "@attribute")]
+///     attribute: &amp;'a str,
+///     element: &amp;'a str,
+///     #[serde(rename = "$text")]
+///     text: &amp;'a str,
 /// }
 ///
 /// let data = Root {
-///     attribute: &quot;attribute content&quot;,
-///     element: &quot;element content&quot;,
-///     text: &quot;text content&quot;,
+///     attribute: "attribute content",
+///     element: "element content",
+///     text: "text content",
 /// };
 ///
 /// let mut buffer = String::new();
-/// to_writer_with_root(&amp;mut buffer, &quot;top-level&quot;, &amp;data).unwrap();
+/// to_writer_with_root(&amp;mut buffer, "top-level", &amp;data).unwrap();
 /// assert_eq!(
 ///     buffer,
-///     &quot;&lt;top-level attribute=\&quot;attribute content\&quot;&gt;\
+///     "&lt;top-level attribute=\"attribute content\"&gt;\
 ///         &lt;element&gt;element content&lt;/element&gt;\
 ///         text content\
-///     &lt;/top-level&gt;&quot;
+///     &lt;/top-level&gt;"
 /// );
 /// ```
 ///
@@ -962,26 +964,26 @@
 /// # use serde::Serialize;
 /// # use pretty_assertions::assert_eq;
 /// #[derive(Serialize)]
-/// struct Root&lt;&#39;a&gt; {
-///     #[serde(rename = &quot;@attribute&quot;)]
-///     attribute: &amp;&#39;a str,
-///     element: &amp;&#39;a str,
-///     #[serde(rename = &quot;$text&quot;)]
-///     text: &amp;&#39;a str,
+/// struct Root&lt;'a&gt; {
+///     #[serde(rename = "@attribute")]
+///     attribute: &amp;'a str,
+///     element: &amp;'a str,
+///     #[serde(rename = "$text")]
+///     text: &amp;'a str,
 /// }
 ///
 /// let data = Root {
-///     attribute: &quot;attribute content&quot;,
-///     element: &quot;element content&quot;,
-///     text: &quot;text content&quot;,
+///     attribute: "attribute content",
+///     element: "element content",
+///     text: "text content",
 /// };
 ///
 /// assert_eq!(
-///     to_string_with_root(&quot;top-level&quot;, &amp;data).unwrap(),
-///     &quot;&lt;top-level attribute=\&quot;attribute content\&quot;&gt;\
+///     to_string_with_root("top-level", &amp;data).unwrap(),
+///     "&lt;top-level attribute=\"attribute content\"&gt;\
 ///         &lt;element&gt;element content&lt;/element&gt;\
 ///         text content\
-///     &lt;/top-level&gt;&quot;
+///     &lt;/top-level&gt;"
 /// );
 /// ```
 ///
@@ -1013,8 +1015,8 @@
     /// `&lt;`      | `&amp;lt;`
     /// `&gt;`      | `&amp;gt;`
     /// `&amp;`      | `&amp;amp;`
-    /// `&quot;`      | `&amp;quot;`
-    /// `&#39;`      | `&amp;apos;`
+    /// `"`      | `&amp;quot;`
+    /// `'`      | `&amp;apos;`
     </span>Full,
     <span class="doccomment">/// Performs escaping that is compatible with SGML specification.
     ///
@@ -1050,7 +1052,7 @@
 </span><span class="macro">macro_rules! </span>forward {
     (<span class="macro-nonterminal">$name</span>:ident(<span class="macro-nonterminal">$ty</span>:ty)) =&gt; {
         <span class="kw">fn </span><span class="macro-nonterminal">$name</span>(<span class="self">self</span>, value: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-            <span class="self">self</span>.ser(<span class="kw-2">&amp;</span><span class="macro">concat!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), <span class="string">&quot;`&quot;</span>))<span class="question-mark">?</span>.<span class="macro-nonterminal">$name</span>(value)
+            <span class="self">self</span>.ser(<span class="kw-2">&amp;</span><span class="macro">concat!</span>(<span class="string">"`"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ty</span>), <span class="string">"`"</span>))<span class="question-mark">?</span>.<span class="macro-nonterminal">$name</span>(value)
         }
     };
 }
@@ -1069,29 +1071,29 @@
 /// &lt;https://www.w3.org/TR/xml11/#NT-NameStartChar&gt;
 </span><span class="kw">const fn </span>is_xml11_name_start_char(ch: char) -&gt; bool {
     <span class="kw">match </span>ch {
-        <span class="string">&#39;:&#39;
-        </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39;
-        </span>| <span class="string">&#39;_&#39;
-        </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39;
-        </span>| <span class="string">&#39;\u{00C0}&#39;</span>..=<span class="string">&#39;\u{00D6}&#39;
-        </span>| <span class="string">&#39;\u{00D8}&#39;</span>..=<span class="string">&#39;\u{00F6}&#39;
-        </span>| <span class="string">&#39;\u{00F8}&#39;</span>..=<span class="string">&#39;\u{02FF}&#39;
-        </span>| <span class="string">&#39;\u{0370}&#39;</span>..=<span class="string">&#39;\u{037D}&#39;
-        </span>| <span class="string">&#39;\u{037F}&#39;</span>..=<span class="string">&#39;\u{1FFF}&#39;
-        </span>| <span class="string">&#39;\u{200C}&#39;</span>..=<span class="string">&#39;\u{200D}&#39;
-        </span>| <span class="string">&#39;\u{2070}&#39;</span>..=<span class="string">&#39;\u{218F}&#39;
-        </span>| <span class="string">&#39;\u{2C00}&#39;</span>..=<span class="string">&#39;\u{2FEF}&#39;
-        </span>| <span class="string">&#39;\u{3001}&#39;</span>..=<span class="string">&#39;\u{D7FF}&#39;
-        </span>| <span class="string">&#39;\u{F900}&#39;</span>..=<span class="string">&#39;\u{FDCF}&#39;
-        </span>| <span class="string">&#39;\u{FDF0}&#39;</span>..=<span class="string">&#39;\u{FFFD}&#39;
-        </span>| <span class="string">&#39;\u{10000}&#39;</span>..=<span class="string">&#39;\u{EFFFF}&#39; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="string">':'
+        </span>| <span class="string">'A'</span>..=<span class="string">'Z'
+        </span>| <span class="string">'_'
+        </span>| <span class="string">'a'</span>..=<span class="string">'z'
+        </span>| <span class="string">'\u{00C0}'</span>..=<span class="string">'\u{00D6}'
+        </span>| <span class="string">'\u{00D8}'</span>..=<span class="string">'\u{00F6}'
+        </span>| <span class="string">'\u{00F8}'</span>..=<span class="string">'\u{02FF}'
+        </span>| <span class="string">'\u{0370}'</span>..=<span class="string">'\u{037D}'
+        </span>| <span class="string">'\u{037F}'</span>..=<span class="string">'\u{1FFF}'
+        </span>| <span class="string">'\u{200C}'</span>..=<span class="string">'\u{200D}'
+        </span>| <span class="string">'\u{2070}'</span>..=<span class="string">'\u{218F}'
+        </span>| <span class="string">'\u{2C00}'</span>..=<span class="string">'\u{2FEF}'
+        </span>| <span class="string">'\u{3001}'</span>..=<span class="string">'\u{D7FF}'
+        </span>| <span class="string">'\u{F900}'</span>..=<span class="string">'\u{FDCF}'
+        </span>| <span class="string">'\u{FDF0}'</span>..=<span class="string">'\u{FFFD}'
+        </span>| <span class="string">'\u{10000}'</span>..=<span class="string">'\u{EFFFF}' </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 <span class="doccomment">/// &lt;https://www.w3.org/TR/xml11/#NT-NameChar&gt;
 </span><span class="kw">const fn </span>is_xml11_name_char(ch: char) -&gt; bool {
     <span class="kw">match </span>ch {
-        <span class="string">&#39;-&#39; </span>| <span class="string">&#39;.&#39; </span>| <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;\u{00B7}&#39; </span>| <span class="string">&#39;\u{0300}&#39;</span>..=<span class="string">&#39;\u{036F}&#39; </span>| <span class="string">&#39;\u{203F}&#39;</span>..=<span class="string">&#39;\u{2040}&#39; </span>=&gt; {
+        <span class="string">'-' </span>| <span class="string">'.' </span>| <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'\u{00B7}' </span>| <span class="string">'\u{0300}'</span>..=<span class="string">'\u{036F}' </span>| <span class="string">'\u{203F}'</span>..=<span class="string">'\u{2040}' </span>=&gt; {
             <span class="bool-val">true
         </span>}
         <span class="kw">_ </span>=&gt; is_xml11_name_start_char(ch),
@@ -1100,22 +1102,22 @@
 
 <span class="doccomment">/// Helper struct to self-defense from errors
 </span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
-</span><span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">struct </span>XmlName&lt;<span class="lifetime">&#39;n</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>str);
+</span><span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">struct </span>XmlName&lt;<span class="lifetime">'n</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'n </span>str);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;n</span>&gt; XmlName&lt;<span class="lifetime">&#39;n</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'n</span>&gt; XmlName&lt;<span class="lifetime">'n</span>&gt; {
     <span class="doccomment">/// Checks correctness of the XML name according to [XML 1.1 specification]
     ///
     /// [XML 1.1 specification]: https://www.w3.org/TR/xml11/#NT-Name
-    </span><span class="kw">pub fn </span>try_from(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;XmlName&lt;<span class="lifetime">&#39;n</span>&gt;, DeError&gt; {
+    </span><span class="kw">pub fn </span>try_from(name: <span class="kw-2">&amp;</span><span class="lifetime">'n </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;XmlName&lt;<span class="lifetime">'n</span>&gt;, DeError&gt; {
         <span class="comment">//TODO: Customization point: allow user to decide if he want to reject or encode the name
         </span><span class="kw">match </span>name.chars().next() {
             <span class="prelude-val">Some</span>(ch) <span class="kw">if </span>!is_xml11_name_start_char(ch) =&gt; <span class="prelude-val">Err</span>(DeError::Unsupported(
-                <span class="macro">format!</span>(<span class="string">&quot;character `{ch}` is not allowed at the start of an XML name `{name}`&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"character `{ch}` is not allowed at the start of an XML name `{name}`"</span>)
                     .into(),
             )),
             <span class="kw">_ </span>=&gt; <span class="kw">match </span>name.matches(|ch| !is_xml11_name_char(ch)).next() {
                 <span class="prelude-val">Some</span>(s) =&gt; <span class="prelude-val">Err</span>(DeError::Unsupported(
-                    <span class="macro">format!</span>(<span class="string">&quot;character `{s}` is not allowed in an XML name `{name}`&quot;</span>).into(),
+                    <span class="macro">format!</span>(<span class="string">"character `{s}` is not allowed in an XML name `{name}`"</span>).into(),
                 )),
                 <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(XmlName(name)),
             },
@@ -1125,13 +1127,13 @@
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Indent&lt;<span class="lifetime">&#39;i</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Indent&lt;<span class="lifetime">'i</span>&gt; {
     <span class="prelude-val">None</span>,
     Owned(Indentation),
-    Borrow(<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span><span class="kw-2">mut </span>Indentation),
+    Borrow(<span class="kw-2">&amp;</span><span class="lifetime">'i </span><span class="kw-2">mut </span>Indentation),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; Indent&lt;<span class="lifetime">&#39;i</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; Indent&lt;<span class="lifetime">'i</span>&gt; {
     <span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Indent {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None =&gt; Indent::None,
@@ -1160,11 +1162,11 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None =&gt; {}
             <span class="self">Self</span>::Owned(i) =&gt; {
-                writer.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+                writer.write_char(<span class="string">'\n'</span>)<span class="question-mark">?</span>;
                 writer.write_str(from_utf8(i.current())<span class="question-mark">?</span>)<span class="question-mark">?</span>;
             }
             <span class="self">Self</span>::Borrow(i) =&gt; {
-                writer.write_char(<span class="string">&#39;\n&#39;</span>)<span class="question-mark">?</span>;
+                writer.write_char(<span class="string">'\n'</span>)<span class="question-mark">?</span>;
                 writer.write_str(from_utf8(i.current())<span class="question-mark">?</span>)<span class="question-mark">?</span>;
             }
         }
@@ -1175,19 +1177,19 @@
 <span class="comment">////////////////////////////////////////////////////////////////////////////////////////////////////
 
 </span><span class="doccomment">/// A Serializer
-</span><span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W: Write&gt; {
-    ser: ContentSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt;,
+</span><span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W: Write&gt; {
+    ser: ContentSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt;,
     <span class="doccomment">/// Name of the root tag. If not specified, deduced from the structure name
-    </span>root_tag: <span class="prelude-ty">Option</span>&lt;XmlName&lt;<span class="lifetime">&#39;r</span>&gt;&gt;,
+    </span>root_tag: <span class="prelude-ty">Option</span>&lt;XmlName&lt;<span class="lifetime">'r</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W: Write&gt; Serializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W: Write&gt; Serializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; {
     <span class="doccomment">/// Creates a new `Serializer` that uses struct name as a root tag name.
     ///
     /// Note, that attempt to serialize a non-struct (including unit structs
     /// and newtype structs) will end up to an error. Use `with_root` to create
     /// serializer with explicitly defined root element name
-    </span><span class="kw">pub fn </span>new(writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;w </span><span class="kw-2">mut </span>W) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(writer: <span class="kw-2">&amp;</span><span class="lifetime">'w </span><span class="kw-2">mut </span>W) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             ser: ContentSerializer {
                 writer,
@@ -1213,10 +1215,10 @@
     /// # use quick_xml::se::Serializer;
     ///
     /// let mut buffer = String::new();
-    /// let ser = Serializer::with_root(&amp;mut buffer, Some(&quot;root&quot;)).unwrap();
+    /// let ser = Serializer::with_root(&amp;mut buffer, Some("root")).unwrap();
     ///
-    /// &quot;node&quot;.serialize(ser).unwrap();
-    /// assert_eq!(buffer, &quot;&lt;root&gt;node&lt;/root&gt;&quot;);
+    /// "node".serialize(ser).unwrap();
+    /// assert_eq!(buffer, "&lt;root&gt;node&lt;/root&gt;");
     /// ```
     ///
     /// When serializing a struct, newtype struct, unit struct or tuple `root_tag`
@@ -1234,25 +1236,25 @@
     /// }
     ///
     /// let mut buffer = String::new();
-    /// let ser = Serializer::with_root(&amp;mut buffer, Some(&quot;root&quot;)).unwrap();
+    /// let ser = Serializer::with_root(&amp;mut buffer, Some("root")).unwrap();
     ///
     /// let data = Struct {
-    ///     question: &quot;The Ultimate Question of Life, the Universe, and Everything&quot;.into(),
+    ///     question: "The Ultimate Question of Life, the Universe, and Everything".into(),
     ///     answer: 42,
     /// };
     ///
     /// data.serialize(ser).unwrap();
     /// assert_eq!(
     ///     buffer,
-    ///     &quot;&lt;root&gt;\
+    ///     "&lt;root&gt;\
     ///         &lt;question&gt;The Ultimate Question of Life, the Universe, and Everything&lt;/question&gt;\
     ///         &lt;answer&gt;42&lt;/answer&gt;\
-    ///      &lt;/root&gt;&quot;
+    ///      &lt;/root&gt;"
     /// );
     /// ```
     ///
     /// [XML name]: https://www.w3.org/TR/xml11/#NT-Name
-    </span><span class="kw">pub fn </span>with_root(writer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;w </span><span class="kw-2">mut </span>W, root_tag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, DeError&gt; {
+    </span><span class="kw">pub fn </span>with_root(writer: <span class="kw-2">&amp;</span><span class="lifetime">'w </span><span class="kw-2">mut </span>W, root_tag: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'r </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, DeError&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             ser: ContentSerializer {
                 writer,
@@ -1290,7 +1292,7 @@
     /// data.serialize(ser).unwrap();
     /// assert_eq!(
     ///     buffer,
-    ///     &quot;&lt;Struct&gt;&lt;question&gt;&lt;/question&gt;&lt;/Struct&gt;&quot;
+    ///     "&lt;Struct&gt;&lt;question&gt;&lt;/question&gt;&lt;/Struct&gt;"
     /// );
     /// ```
     </span><span class="kw">pub fn </span>expand_empty_elements(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expand: bool) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
@@ -1305,19 +1307,19 @@
     </span>}
 
     <span class="doccomment">/// Set the indent object for a serializer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indent: Indent&lt;<span class="lifetime">&#39;r</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_indent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indent: Indent&lt;<span class="lifetime">'r</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.ser.indent = indent;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Creates actual serializer or returns an error if root tag is not defined.
     /// In that case `err` contains the name of type that cannot be serialized.
-    </span><span class="kw">fn </span>ser(<span class="self">self</span>, err: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt;, DeError&gt; {
+    </span><span class="kw">fn </span>ser(<span class="self">self</span>, err: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt;, DeError&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(key) = <span class="self">self</span>.root_tag {
             <span class="prelude-val">Ok</span>(ElementSerializer { ser: <span class="self">self</span>.ser, key })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(DeError::Unsupported(
-                <span class="macro">format!</span>(<span class="string">&quot;cannot serialize {} without defined root tag&quot;</span>, err).into(),
+                <span class="macro">format!</span>(<span class="string">"cannot serialize {} without defined root tag"</span>, err).into(),
             ))
         }
     }
@@ -1325,7 +1327,7 @@
     <span class="doccomment">/// Creates actual serializer using root tag or a specified `key` if root tag
     /// is not defined. Returns an error if root tag is not defined and a `key`
     /// does not conform [XML rules](XmlName::try_from) for names.
-    </span><span class="kw">fn </span>ser_name(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt;, DeError&gt; {
+    </span><span class="kw">fn </span>ser_name(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt;, DeError&gt; {
         <span class="prelude-val">Ok</span>(ElementSerializer {
             ser: <span class="self">self</span>.ser,
             key: <span class="kw">match </span><span class="self">self</span>.root_tag {
@@ -1336,20 +1338,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W: Write&gt; ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W: Write&gt; ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = DeError;
 
-    <span class="kw">type </span>SerializeSeq = &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeSeq;
-    <span class="kw">type </span>SerializeTuple = &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTuple;
+    <span class="kw">type </span>SerializeSeq = &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeSeq;
+    <span class="kw">type </span>SerializeTuple = &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTuple;
     <span class="kw">type </span>SerializeTupleStruct =
-        &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTupleStruct;
+        &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTupleStruct;
     <span class="kw">type </span>SerializeTupleVariant =
-        &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTupleVariant;
-    <span class="kw">type </span>SerializeMap = &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeMap;
-    <span class="kw">type </span>SerializeStruct = &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeStruct;
+        &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeTupleVariant;
+    <span class="kw">type </span>SerializeMap = &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeMap;
+    <span class="kw">type </span>SerializeStruct = &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeStruct;
     <span class="kw">type </span>SerializeStructVariant =
-        &lt;ElementSerializer&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeStructVariant;
+        &lt;ElementSerializer&lt;<span class="lifetime">'w</span>, <span class="lifetime">'r</span>, W&gt; <span class="kw">as </span>ser::Serializer&gt;::SerializeStructVariant;
 
     <span class="macro">forward!</span>(serialize_bool(bool));
 
@@ -1384,18 +1386,18 @@
     }
 
     <span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
-        <span class="self">self</span>.ser(<span class="string">&quot;`()`&quot;</span>)<span class="question-mark">?</span>.serialize_unit()
+        <span class="self">self</span>.ser(<span class="string">"`()`"</span>)<span class="question-mark">?</span>.serialize_unit()
     }
 
-    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?</span>.serialize_unit_struct(name)
     }
 
     <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?
             </span>.serialize_unit_variant(name, variant_index, variant)
@@ -1403,7 +1405,7 @@
 
     <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?</span>.serialize_newtype_struct(name, value)
@@ -1411,9 +1413,9 @@
 
     <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized + Serialize&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?
@@ -1421,16 +1423,16 @@
     }
 
     <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeSeq, DeError&gt; {
-        <span class="self">self</span>.ser(<span class="string">&quot;sequence&quot;</span>)<span class="question-mark">?</span>.serialize_seq(len)
+        <span class="self">self</span>.ser(<span class="string">"sequence"</span>)<span class="question-mark">?</span>.serialize_seq(len)
     }
 
     <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTuple, DeError&gt; {
-        <span class="self">self</span>.ser(<span class="string">&quot;unnamed tuple&quot;</span>)<span class="question-mark">?</span>.serialize_tuple(len)
+        <span class="self">self</span>.ser(<span class="string">"unnamed tuple"</span>)<span class="question-mark">?</span>.serialize_tuple(len)
     }
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?</span>.serialize_tuple_struct(name, len)
@@ -1438,9 +1440,9 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?
@@ -1448,12 +1450,12 @@
     }
 
     <span class="kw">fn </span>serialize_map(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap, DeError&gt; {
-        <span class="self">self</span>.ser(<span class="string">&quot;map&quot;</span>)<span class="question-mark">?</span>.serialize_map(len)
+        <span class="self">self</span>.ser(<span class="string">"map"</span>)<span class="question-mark">?</span>.serialize_map(len)
     }
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?</span>.serialize_struct(name, len)
@@ -1461,9 +1463,9 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, DeError&gt; {
         <span class="self">self</span>.ser_name(name)<span class="question-mark">?

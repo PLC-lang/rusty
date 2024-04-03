@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-rational-0.4.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_rational" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-rational-0.4.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_rational" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../num_rational/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3120,13 +3122,13 @@
 //!
 //! The `num-rational` crate is tested for rustc 1.31 and greater.
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/num-rational/0.4&quot;</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/num-rational/0.4"</span>)]
 #![no_std]
-</span><span class="comment">// Ratio ops often use other &quot;suspicious&quot; ops
+</span><span class="comment">// Ratio ops often use other "suspicious" ops
 </span><span class="attr">#![allow(clippy::suspicious_arithmetic_impl)]
 #![allow(clippy::suspicious_op_assign_impl)]
 
-#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 #[macro_use]
 </span><span class="kw">extern crate </span>std;
 
@@ -3136,10 +3138,10 @@
 <span class="kw">use </span>core::hash::{Hash, Hasher};
 <span class="kw">use </span>core::ops::{Add, Div, Mul, Neg, Rem, ShlAssign, Sub};
 <span class="kw">use </span>core::str::FromStr;
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::error::Error;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="kw">use </span>num_bigint::{BigInt, BigUint, Sign, ToBigInt};
 
 <span class="kw">use </span>num_integer::Integer;
@@ -3164,8 +3166,8 @@
 
 <span class="doccomment">/// Alias for a `Ratio` of machine-sized integers.
 </span><span class="attr">#[deprecated(
-    since = <span class="string">&quot;0.4.0&quot;</span>,
-    note = <span class="string">&quot;it&#39;s better to use a specific size, like `Rational32` or `Rational64`&quot;
+    since = <span class="string">"0.4.0"</span>,
+    note = <span class="string">"it's better to use a specific size, like `Rational32` or `Rational64`"
 </span>)]
 </span><span class="kw">pub type </span>Rational = Ratio&lt;isize&gt;;
 <span class="doccomment">/// Alias for a `Ratio` of 32-bit-sized integers.
@@ -3173,7 +3175,7 @@
 <span class="doccomment">/// Alias for a `Ratio` of 64-bit-sized integers.
 </span><span class="kw">pub type </span>Rational64 = Ratio&lt;i64&gt;;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="doccomment">/// Alias for arbitrary precision rationals.
 </span><span class="kw">pub type </span>BigRational = Ratio&lt;BigInt&gt;;
 
@@ -3235,7 +3237,7 @@
     /// **Panics if `denom` is zero.**
     </span><span class="kw">fn </span>reduce(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.denom.is_zero() {
-            <span class="macro">panic!</span>(<span class="string">&quot;denominator == 0&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"denominator == 0"</span>);
         }
         <span class="kw">if </span><span class="self">self</span>.numer.is_zero() {
             <span class="self">self</span>.denom.set_one();
@@ -3292,7 +3294,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>into_recip(<span class="self">self</span>) -&gt; Ratio&lt;T&gt; {
         <span class="kw">match </span><span class="self">self</span>.numer.cmp(<span class="kw-2">&amp;</span>T::zero()) {
-            cmp::Ordering::Equal =&gt; <span class="macro">panic!</span>(<span class="string">&quot;division by zero&quot;</span>),
+            cmp::Ordering::Equal =&gt; <span class="macro">panic!</span>(<span class="string">"division by zero"</span>),
             cmp::Ordering::Greater =&gt; Ratio::new_raw(<span class="self">self</span>.denom, <span class="self">self</span>.numer),
             cmp::Ordering::Less =&gt; Ratio::new_raw(T::zero() - <span class="self">self</span>.denom, T::zero() - <span class="self">self</span>.numer),
         }
@@ -3376,13 +3378,13 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>pow(<span class="kw-2">&amp;</span><span class="self">self</span>, expon: i32) -&gt; Ratio&lt;T&gt;
     <span class="kw">where
-        for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T: Pow&lt;u32, Output = T&gt;,
+        for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T: Pow&lt;u32, Output = T&gt;,
     {
         Pow::pow(<span class="self">self</span>, expon)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="kw">impl </span>Ratio&lt;BigInt&gt; {
     <span class="doccomment">/// Converts a float into a rational number.
     </span><span class="kw">pub fn </span>from_float&lt;T: FloatCore&gt;(f: T) -&gt; <span class="prelude-ty">Option</span>&lt;BigRational&gt; {
@@ -3436,7 +3438,7 @@
 
 <span class="comment">// Comparisons
 
-// Mathematically, comparing a/b and c/d is the same as comparing a*d and b*c, but it&#39;s very easy
+// Mathematically, comparing a/b and c/d is the same as comparing a*d and b*c, but it's very easy
 // for those multiplications to overflow fixed-size integers, so we need to take care.
 
 </span><span class="kw">impl</span>&lt;T: Clone + Integer&gt; Ord <span class="kw">for </span>Ratio&lt;T&gt; {
@@ -3465,7 +3467,7 @@
             };
         }
 
-        <span class="comment">// Unfortunately, we don&#39;t have CheckedMul to try.  That could sometimes avoid all the
+        <span class="comment">// Unfortunately, we don't have CheckedMul to try.  That could sometimes avoid all the
         // division below, or even always avoid it for BigInt and BigUint.
         // FIXME- future breaking change to add Checked* to Integer?
 
@@ -3508,7 +3510,7 @@
 
 <span class="kw">impl</span>&lt;T: Clone + Integer&gt; Eq <span class="kw">for </span>Ratio&lt;T&gt; {}
 
-<span class="comment">// NB: We can&#39;t just `#[derive(Hash)]`, because it needs to agree
+<span class="comment">// NB: We can't just `#[derive(Hash)]`, because it needs to agree
 // with `Eq` even for non-reduced ratios.
 </span><span class="kw">impl</span>&lt;T: Clone + Integer + Hash&gt; Hash <span class="kw">for </span>Ratio&lt;T&gt; {
     <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
@@ -3541,10 +3543,10 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Integer + Clone&gt; Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: Integer + Clone&gt; Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
         <span class="kw">fn </span>sum&lt;I&gt;(iter: I) -&gt; <span class="self">Self
         </span><span class="kw">where
-            </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt;,
+            </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt;,
         {
             iter.fold(<span class="self">Self</span>::zero(), |sum, num| sum + num)
         }
@@ -3559,10 +3561,10 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Integer + Clone&gt; Product&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: Integer + Clone&gt; Product&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
         <span class="kw">fn </span>product&lt;I&gt;(iter: I) -&gt; <span class="self">Self
         </span><span class="kw">where
-            </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt;,
+            </span>I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt;,
         {
             iter.fold(<span class="self">Self</span>::one(), |prod, num| prod * num)
         }
@@ -3691,13 +3693,13 @@
 
     <span class="macro">macro_rules! </span>forward_op_assign {
         (<span class="kw">impl </span><span class="macro-nonterminal">$imp</span>:ident, <span class="macro-nonterminal">$method</span>:ident) =&gt; {
-            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Clone + Integer + NumAssign&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
+            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: Clone + Integer + NumAssign&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
                 <span class="attr">#[inline]
                 </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Ratio&lt;T&gt;) {
                     <span class="self">self</span>.<span class="macro-nonterminal">$method</span>(other.clone())
                 }
             }
-            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Clone + Integer + NumAssign&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
+            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: Clone + Integer + NumAssign&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; <span class="kw">for </span>Ratio&lt;T&gt; {
                 <span class="attr">#[inline]
                 </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>T) {
                     <span class="self">self</span>.<span class="macro-nonterminal">$method</span>(other.clone())
@@ -3715,19 +3717,19 @@
 
 <span class="macro">macro_rules! </span>forward_ref_ref_binop {
     (<span class="kw">impl </span><span class="macro-nonterminal">$imp</span>:ident, <span class="macro-nonterminal">$method</span>:ident) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T: Clone + Integer&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, T: Clone + Integer&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt; {
             <span class="kw">type </span>Output = Ratio&lt;T&gt;;
 
             <span class="attr">#[inline]
-            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Ratio&lt;T&gt;) -&gt; Ratio&lt;T&gt; {
+            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Ratio&lt;T&gt;) -&gt; Ratio&lt;T&gt; {
                 <span class="self">self</span>.clone().<span class="macro-nonterminal">$method</span>(other.clone())
             }
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, T: Clone + Integer&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, T: Clone + Integer&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>T&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt; {
             <span class="kw">type </span>Output = Ratio&lt;T&gt;;
 
             <span class="attr">#[inline]
-            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T) -&gt; Ratio&lt;T&gt; {
+            </span><span class="kw">fn </span><span class="macro-nonterminal">$method</span>(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>T) -&gt; Ratio&lt;T&gt; {
                 <span class="self">self</span>.clone().<span class="macro-nonterminal">$method</span>(other.clone())
             }
         }
@@ -3736,7 +3738,7 @@
 
 <span class="macro">macro_rules! </span>forward_ref_val_binop {
     (<span class="kw">impl </span><span class="macro-nonterminal">$imp</span>:ident, <span class="macro-nonterminal">$method</span>:ident) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;Ratio&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;Ratio&lt;T&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;
         <span class="kw">where
             </span>T: Clone + Integer,
         {
@@ -3747,7 +3749,7 @@
                 <span class="self">self</span>.clone().<span class="macro-nonterminal">$method</span>(other)
             }
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;T&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;T&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;
         <span class="kw">where
             </span>T: Clone + Integer,
         {
@@ -3763,7 +3765,7 @@
 
 <span class="macro">macro_rules! </span>forward_val_ref_binop {
     (<span class="kw">impl </span><span class="macro-nonterminal">$imp</span>:ident, <span class="macro-nonterminal">$method</span>:ident) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;&gt; <span class="kw">for </span>Ratio&lt;T&gt;
         <span class="kw">where
             </span>T: Clone + Integer,
         {
@@ -3774,7 +3776,7 @@
                 <span class="self">self</span>.<span class="macro-nonterminal">$method</span>(other.clone())
             }
         }
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>Ratio&lt;T&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; <span class="macro-nonterminal">$imp</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; <span class="kw">for </span>Ratio&lt;T&gt;
         <span class="kw">where
             </span>T: Clone + Integer,
         {
@@ -3943,7 +3945,7 @@
             <span class="kw">let </span>numer = numer / g.clone();
             <span class="kw">let </span>denom = denom / g;
             <span class="kw">let </span>raw = <span class="kw">if </span>denom &lt; T::zero() {
-                <span class="comment">// We need to keep denom positive, but 2&#39;s-complement MIN may
+                <span class="comment">// We need to keep denom positive, but 2's-complement MIN may
                 // overflow negation -- instead we can check multiplying -1.
                 </span><span class="kw">let </span>n1 = T::zero() - T::one();
                 Ratio::new_raw(numer.checked_mul(<span class="kw-2">&amp;</span>n1)<span class="question-mark">?</span>, denom.checked_mul(<span class="kw-2">&amp;</span>n1)<span class="question-mark">?</span>)
@@ -3989,7 +3991,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Neg <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Neg <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;
 <span class="kw">where
     </span>T: Clone + Integer + Neg&lt;Output = T&gt;,
 {
@@ -4013,7 +4015,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Inv <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ratio&lt;T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Inv <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Ratio&lt;T&gt;
 <span class="kw">where
     </span>T: Clone + Integer,
 {
@@ -4067,8 +4069,8 @@
 
     <span class="doccomment">/// Parses `numer/denom` where the numbers are in base `radix`.
     </span><span class="kw">fn </span>from_str_radix(s: <span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;Ratio&lt;T&gt;, ParseRatioError&gt; {
-        <span class="kw">if </span>s.splitn(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>).count() == <span class="number">2 </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>parts = s.splitn(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>).map(|ss| {
+        <span class="kw">if </span>s.splitn(<span class="number">2</span>, <span class="string">'/'</span>).count() == <span class="number">2 </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>parts = s.splitn(<span class="number">2</span>, <span class="string">'/'</span>).map(|ss| {
                 T::from_str_radix(ss, radix).map_err(|<span class="kw">_</span>| ParseRatioError {
                     kind: RatioErrorKind::ParseError,
                 })
@@ -4137,20 +4139,20 @@
 </span><span class="macro">macro_rules! </span>impl_formatting {
     (<span class="macro-nonterminal">$fmt_trait</span>:ident, <span class="macro-nonterminal">$prefix</span>:expr, <span class="macro-nonterminal">$fmt_str</span>:expr, <span class="macro-nonterminal">$fmt_alt</span>:expr) =&gt; {
         <span class="kw">impl</span>&lt;T: <span class="macro-nonterminal">$fmt_trait </span>+ Clone + Integer&gt; <span class="macro-nonterminal">$fmt_trait </span><span class="kw">for </span>Ratio&lt;T&gt; {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
                 <span class="kw">let </span>pre_pad = <span class="kw">if </span><span class="self">self</span>.denom.is_one() {
                     <span class="macro">format!</span>(<span class="macro-nonterminal">$fmt_str</span>, <span class="self">self</span>.numer)
                 } <span class="kw">else </span>{
                     <span class="kw">if </span>f.alternate() {
-                        <span class="macro">format!</span>(<span class="macro">concat!</span>(<span class="macro-nonterminal">$fmt_str</span>, <span class="string">&quot;/&quot;</span>, <span class="macro-nonterminal">$fmt_alt</span>), <span class="self">self</span>.numer, <span class="self">self</span>.denom)
+                        <span class="macro">format!</span>(<span class="macro">concat!</span>(<span class="macro-nonterminal">$fmt_str</span>, <span class="string">"/"</span>, <span class="macro-nonterminal">$fmt_alt</span>), <span class="self">self</span>.numer, <span class="self">self</span>.denom)
                     } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="macro">concat!</span>(<span class="macro-nonterminal">$fmt_str</span>, <span class="string">&quot;/&quot;</span>, <span class="macro-nonterminal">$fmt_str</span>), <span class="self">self</span>.numer, <span class="self">self</span>.denom)
+                        <span class="macro">format!</span>(<span class="macro">concat!</span>(<span class="macro-nonterminal">$fmt_str</span>, <span class="string">"/"</span>, <span class="macro-nonterminal">$fmt_str</span>), <span class="self">self</span>.numer, <span class="self">self</span>.denom)
                     }
                 };
                 <span class="comment">// TODO: replace with strip_prefix, when stabalized
                 </span><span class="kw">let </span>(pre_pad, non_negative) = {
-                    <span class="kw">if </span>pre_pad.starts_with(<span class="string">&quot;-&quot;</span>) {
+                    <span class="kw">if </span>pre_pad.starts_with(<span class="string">"-"</span>) {
                         (<span class="kw-2">&amp;</span>pre_pad[<span class="number">1</span>..], <span class="bool-val">false</span>)
                     } <span class="kw">else </span>{
                         (<span class="kw-2">&amp;</span>pre_pad[..], <span class="bool-val">true</span>)
@@ -4158,30 +4160,30 @@
                 };
                 f.pad_integral(non_negative, <span class="macro-nonterminal">$prefix</span>, pre_pad)
             }
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
-            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+            <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
+            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
                 <span class="kw">let </span>plus = <span class="kw">if </span>f.sign_plus() &amp;&amp; <span class="self">self</span>.numer &gt;= T::zero() {
-                    <span class="string">&quot;+&quot;
+                    <span class="string">"+"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;&quot;
+                    <span class="string">""
                 </span>};
                 <span class="kw">if </span><span class="self">self</span>.denom.is_one() {
                     <span class="kw">if </span>f.alternate() {
-                        <span class="macro">write!</span>(f, <span class="macro">concat!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$fmt_alt</span>), plus, <span class="self">self</span>.numer)
+                        <span class="macro">write!</span>(f, <span class="macro">concat!</span>(<span class="string">"{}"</span>, <span class="macro-nonterminal">$fmt_alt</span>), plus, <span class="self">self</span>.numer)
                     } <span class="kw">else </span>{
-                        <span class="macro">write!</span>(f, <span class="macro">concat!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$fmt_str</span>), plus, <span class="self">self</span>.numer)
+                        <span class="macro">write!</span>(f, <span class="macro">concat!</span>(<span class="string">"{}"</span>, <span class="macro-nonterminal">$fmt_str</span>), plus, <span class="self">self</span>.numer)
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">if </span>f.alternate() {
                         <span class="macro">write!</span>(
                             f,
-                            <span class="macro">concat!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$fmt_alt</span>, <span class="string">&quot;/&quot;</span>, <span class="macro-nonterminal">$fmt_alt</span>),
+                            <span class="macro">concat!</span>(<span class="string">"{}"</span>, <span class="macro-nonterminal">$fmt_alt</span>, <span class="string">"/"</span>, <span class="macro-nonterminal">$fmt_alt</span>),
                             plus, <span class="self">self</span>.numer, <span class="self">self</span>.denom
                         )
                     } <span class="kw">else </span>{
                         <span class="macro">write!</span>(
                             f,
-                            <span class="macro">concat!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$fmt_str</span>, <span class="string">&quot;/&quot;</span>, <span class="macro-nonterminal">$fmt_str</span>),
+                            <span class="macro">concat!</span>(<span class="string">"{}"</span>, <span class="macro-nonterminal">$fmt_str</span>, <span class="string">"/"</span>, <span class="macro-nonterminal">$fmt_str</span>),
                             plus, <span class="self">self</span>.numer, <span class="self">self</span>.denom
                         )
                     }
@@ -4191,20 +4193,20 @@
     };
 }
 
-<span class="macro">impl_formatting!</span>(Display, <span class="string">&quot;&quot;</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;{:#}&quot;</span>);
-<span class="macro">impl_formatting!</span>(Octal, <span class="string">&quot;0o&quot;</span>, <span class="string">&quot;{:o}&quot;</span>, <span class="string">&quot;{:#o}&quot;</span>);
-<span class="macro">impl_formatting!</span>(Binary, <span class="string">&quot;0b&quot;</span>, <span class="string">&quot;{:b}&quot;</span>, <span class="string">&quot;{:#b}&quot;</span>);
-<span class="macro">impl_formatting!</span>(LowerHex, <span class="string">&quot;0x&quot;</span>, <span class="string">&quot;{:x}&quot;</span>, <span class="string">&quot;{:#x}&quot;</span>);
-<span class="macro">impl_formatting!</span>(UpperHex, <span class="string">&quot;0x&quot;</span>, <span class="string">&quot;{:X}&quot;</span>, <span class="string">&quot;{:#X}&quot;</span>);
-<span class="macro">impl_formatting!</span>(LowerExp, <span class="string">&quot;&quot;</span>, <span class="string">&quot;{:e}&quot;</span>, <span class="string">&quot;{:#e}&quot;</span>);
-<span class="macro">impl_formatting!</span>(UpperExp, <span class="string">&quot;&quot;</span>, <span class="string">&quot;{:E}&quot;</span>, <span class="string">&quot;{:#E}&quot;</span>);
+<span class="macro">impl_formatting!</span>(Display, <span class="string">""</span>, <span class="string">"{}"</span>, <span class="string">"{:#}"</span>);
+<span class="macro">impl_formatting!</span>(Octal, <span class="string">"0o"</span>, <span class="string">"{:o}"</span>, <span class="string">"{:#o}"</span>);
+<span class="macro">impl_formatting!</span>(Binary, <span class="string">"0b"</span>, <span class="string">"{:b}"</span>, <span class="string">"{:#b}"</span>);
+<span class="macro">impl_formatting!</span>(LowerHex, <span class="string">"0x"</span>, <span class="string">"{:x}"</span>, <span class="string">"{:#x}"</span>);
+<span class="macro">impl_formatting!</span>(UpperHex, <span class="string">"0x"</span>, <span class="string">"{:X}"</span>, <span class="string">"{:#X}"</span>);
+<span class="macro">impl_formatting!</span>(LowerExp, <span class="string">""</span>, <span class="string">"{:e}"</span>, <span class="string">"{:#e}"</span>);
+<span class="macro">impl_formatting!</span>(UpperExp, <span class="string">""</span>, <span class="string">"{:E}"</span>, <span class="string">"{:#E}"</span>);
 
 <span class="kw">impl</span>&lt;T: FromStr + Clone + Integer&gt; FromStr <span class="kw">for </span>Ratio&lt;T&gt; {
     <span class="kw">type </span><span class="prelude-val">Err </span>= ParseRatioError;
 
     <span class="doccomment">/// Parses `numer/denom` or just `numer`.
     </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Ratio&lt;T&gt;, ParseRatioError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>split = s.splitn(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>split = s.splitn(<span class="number">2</span>, <span class="string">'/'</span>);
 
         <span class="kw">let </span>n = split.next().ok_or(ParseRatioError {
             kind: RatioErrorKind::ParseError,
@@ -4213,7 +4215,7 @@
             kind: RatioErrorKind::ParseError,
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>d = split.next().unwrap_or(<span class="string">&quot;1&quot;</span>);
+        <span class="kw">let </span>d = split.next().unwrap_or(<span class="string">"1"</span>);
         <span class="kw">let </span>den = FromStr::from_str(d).map_err(|<span class="kw">_</span>| ParseRatioError {
             kind: RatioErrorKind::ParseError,
         })<span class="question-mark">?</span>;
@@ -4234,7 +4236,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; serde::Serialize <span class="kw">for </span>Ratio&lt;T&gt;
 <span class="kw">where
     </span>T: serde::Serialize + Clone + Integer + PartialOrd,
@@ -4247,14 +4249,14 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, T&gt; serde::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Ratio&lt;T&gt;
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, T&gt; serde::Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Ratio&lt;T&gt;
 <span class="kw">where
-    </span>T: serde::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; + Clone + Integer + PartialOrd,
+    </span>T: serde::Deserialize&lt;<span class="lifetime">'de</span>&gt; + Clone + Integer + PartialOrd,
 {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
-        </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: serde::Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">use </span>serde::de::Error;
         <span class="kw">use </span>serde::de::Unexpected;
@@ -4262,7 +4264,7 @@
         <span class="kw">if </span>denom.is_zero() {
             <span class="prelude-val">Err</span>(Error::invalid_value(
                 Unexpected::Signed(<span class="number">0</span>),
-                <span class="kw-2">&amp;</span><span class="string">&quot;a ratio with non-zero denominator&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="string">"a ratio with non-zero denominator"</span>,
             ))
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(Ratio::new_raw(numer, denom))
@@ -4283,12 +4285,12 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseRatioError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="self">self</span>.kind.description().fmt(f)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>Error <span class="kw">for </span>ParseRatioError {
     <span class="attr">#[allow(deprecated)]
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
@@ -4297,15 +4299,15 @@
 }
 
 <span class="kw">impl </span>RatioErrorKind {
-    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            RatioErrorKind::ParseError =&gt; <span class="string">&quot;failed to parse integer&quot;</span>,
-            RatioErrorKind::ZeroDenominator =&gt; <span class="string">&quot;zero value denominator&quot;</span>,
+            RatioErrorKind::ParseError =&gt; <span class="string">"failed to parse integer"</span>,
+            RatioErrorKind::ZeroDenominator =&gt; <span class="string">"zero value denominator"</span>,
         }
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="kw">impl </span>FromPrimitive <span class="kw">for </span>Ratio&lt;BigInt&gt; {
     <span class="kw">fn </span>from_i64(n: i64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Some</span>(Ratio::from_integer(n.into()))
@@ -4381,7 +4383,7 @@
         <span class="comment">// 1/10e-20 &lt; 1/2**32 which seems like a good default, and 30 seems
         // to work well. Might want to choose something based on the types in the future, e.g.
         // T::max().recip() and T::bits() or something similar.
-        </span><span class="kw">let </span>epsilon = &lt;F <span class="kw">as </span>NumCast&gt;::from(<span class="number">10e-20</span>).expect(<span class="string">&quot;Can&#39;t convert 10e-20&quot;</span>);
+        </span><span class="kw">let </span>epsilon = &lt;F <span class="kw">as </span>NumCast&gt;::from(<span class="number">10e-20</span>).expect(<span class="string">"Can't convert 10e-20"</span>);
         approximate_float(f, epsilon, <span class="number">30</span>)
     }
 }
@@ -4493,7 +4495,7 @@
     <span class="prelude-val">Some</span>(Ratio::new(n1, d1))
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"num-bigint"</span>))]
 </span><span class="macro">macro_rules! </span>to_primitive_small {
     ($(<span class="macro-nonterminal">$type_name</span>:ty)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>ToPrimitive <span class="kw">for </span>Ratio&lt;<span class="macro-nonterminal">$type_name</span>&gt; {
@@ -4525,13 +4527,13 @@
     )<span class="kw-2">*</span>)
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"num-bigint"</span>))]
 </span><span class="macro">to_primitive_small!</span>(u8 i8 u16 i16 u32 i32);
 
-<span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;32&quot;</span>, not(feature = <span class="string">&quot;num-bigint&quot;</span>)))]
+<span class="attr">#[cfg(all(target_pointer_width = <span class="string">"32"</span>, not(feature = <span class="string">"num-bigint"</span>)))]
 </span><span class="macro">to_primitive_small!</span>(usize isize);
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"num-bigint"</span>))]
 </span><span class="macro">macro_rules! </span>to_primitive_64 {
     ($(<span class="macro-nonterminal">$type_name</span>:ty)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl </span>ToPrimitive <span class="kw">for </span>Ratio&lt;<span class="macro-nonterminal">$type_name</span>&gt; {
@@ -4566,13 +4568,13 @@
     )<span class="kw-2">*</span>)
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"num-bigint"</span>))]
 </span><span class="macro">to_primitive_64!</span>(u64 i64);
 
-<span class="attr">#[cfg(all(target_pointer_width = <span class="string">&quot;64&quot;</span>, not(feature = <span class="string">&quot;num-bigint&quot;</span>)))]
+<span class="attr">#[cfg(all(target_pointer_width = <span class="string">"64"</span>, not(feature = <span class="string">"num-bigint"</span>)))]
 </span><span class="macro">to_primitive_64!</span>(usize isize);
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="kw">impl</span>&lt;T: Clone + Integer + ToPrimitive + ToBigInt&gt; ToPrimitive <span class="kw">for </span>Ratio&lt;T&gt; {
     <span class="kw">fn </span>to_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
         <span class="self">self</span>.to_integer().to_i64()
@@ -4614,7 +4616,7 @@
     <span class="kw">fn </span>bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
 </span><span class="kw">impl </span>Bits <span class="kw">for </span>BigInt {
     <span class="kw">fn </span>bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.bits()
@@ -4639,7 +4641,7 @@
 
     <span class="macro">assert_eq!</span>(
         RADIX, <span class="number">2</span>,
-        <span class="string">&quot;only floating point implementations with radix 2 are supported&quot;
+        <span class="string">"only floating point implementations with radix 2 are supported"
     </span>);
 
     <span class="comment">// Inclusive upper and lower bounds to the range of exactly-representable ints in an f64.
@@ -4662,7 +4664,7 @@
 
     <span class="comment">// Otherwise, the goal is to obtain a quotient with at least 55 bits. 53 of these bits will
     // be used as the mantissa of the resulting float, and the remaining two are for rounding.
-    // There&#39;s an error of up to 1 on the number of resulting bits, so we may get either 55 or
+    // There's an error of up to 1 on the number of resulting bits, so we may get either 55 or
     // 56 bits.
     </span><span class="kw">let </span><span class="kw-2">mut </span>numer = numer.abs();
     <span class="kw">let </span><span class="kw-2">mut </span>denom = denom.abs();
@@ -4696,7 +4698,7 @@
 
     <span class="kw">let </span>(quotient, remainder) = numer.div_rem(<span class="kw-2">&amp;</span>denom);
 
-    <span class="comment">// This is guaranteed to fit since we&#39;ve set up quotient to be at most 56 bits.
+    <span class="comment">// This is guaranteed to fit since we've set up quotient to be at most 56 bits.
     </span><span class="kw">let </span><span class="kw-2">mut </span>quotient = quotient.to_u64().unwrap();
     <span class="kw">let </span>n_rounding_bits = {
         <span class="kw">let </span>quotient_bits = <span class="number">64 </span>- quotient.leading_zeros() <span class="kw">as </span>isize;
@@ -4707,7 +4709,7 @@
     <span class="kw">let </span>rounding_bit_mask = (<span class="number">1u64 </span>&lt;&lt; n_rounding_bits) - <span class="number">1</span>;
 
     <span class="comment">// Round to 53 bits with round-to-even. For rounding, we need to take into account both
-    // our rounding bits and the division&#39;s remainder.
+    // our rounding bits and the division's remainder.
     </span><span class="kw">let </span>ls_bit = quotient &amp; (<span class="number">1u64 </span>&lt;&lt; n_rounding_bits) != <span class="number">0</span>;
     <span class="kw">let </span>ms_rounding_bit = quotient &amp; (<span class="number">1u64 </span>&lt;&lt; (n_rounding_bits - <span class="number">1</span>)) != <span class="number">0</span>;
     <span class="kw">let </span>ls_rounding_bits = quotient &amp; (rounding_bit_mask &gt;&gt; <span class="number">1</span>) != <span class="number">0</span>;
@@ -4716,7 +4718,7 @@
     }
     quotient &amp;= !rounding_bit_mask;
 
-    <span class="comment">// The quotient is guaranteed to be exactly representable as it&#39;s now 53 bits + 2 or 3
+    <span class="comment">// The quotient is guaranteed to be exactly representable as it's now 53 bits + 2 or 3
     // trailing zeros, so there is no risk of a rounding error here.
     </span><span class="kw">let </span>q_float = quotient <span class="kw">as </span>f64 * flo_sign;
     ldexp(q_float, shift <span class="kw">as </span>i32)
@@ -4729,7 +4731,7 @@
 
     <span class="macro">assert_eq!</span>(
         RADIX, <span class="number">2</span>,
-        <span class="string">&quot;only floating point implementations with radix 2 are supported&quot;
+        <span class="string">"only floating point implementations with radix 2 are supported"
     </span>);
 
     <span class="kw">const </span>EXPONENT_MASK: u64 = <span class="number">0x7ff </span>&lt;&lt; <span class="number">52</span>;
@@ -4747,7 +4749,7 @@
         <span class="kw">return </span><span class="number">0.0 </span>* x.signum();
     }
 
-    <span class="comment">// curr_exp is the x&#39;s *biased* exponent, and is in the [-54, MAX_UNSIGNED_EXPONENT] range.
+    <span class="comment">// curr_exp is the x's *biased* exponent, and is in the [-54, MAX_UNSIGNED_EXPONENT] range.
     </span><span class="kw">let </span>(bits, curr_exp) = <span class="kw">if </span>!x.is_normal() {
         <span class="comment">// If x is subnormal, we make it normal by multiplying by 2^53. This causes no loss of
         // precision or rounding.
@@ -4765,7 +4767,7 @@
         </span>(bits, curr_exp <span class="kw">as </span>i32)
     };
 
-    <span class="comment">// The addition can&#39;t overflow because exponent is between 0 and 0x7fe, and exp is between
+    <span class="comment">// The addition can't overflow because exponent is between 0 and 0x7fe, and exp is between
     // -2*MAX_EXP and 2*MAX_EXP.
     </span><span class="kw">let </span>new_exp = curr_exp + exp;
 
@@ -4791,7 +4793,7 @@
 }
 
 <span class="attr">#[cfg(test)]
-#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">fn </span>hash&lt;T: Hash&gt;(x: <span class="kw-2">&amp;</span>T) -&gt; u64 {
     <span class="kw">use </span>std::collections::hash_map::RandomState;
     <span class="kw">use </span>std::hash::BuildHasher;
@@ -4803,9 +4805,9 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use </span><span class="kw">super</span>::ldexp;
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"num-bigint"</span>))]
     </span><span class="kw">use </span><span class="kw">super</span>::BigInt;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
     </span><span class="kw">use </span><span class="kw">super</span>::BigRational;
     <span class="kw">use super</span>::{Ratio, Rational64};
 
@@ -4889,14 +4891,14 @@
         denom: <span class="number">1</span>,
     };
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
     </span><span class="kw">pub fn </span>to_big(n: Rational64) -&gt; BigRational {
         Ratio::new(
             FromPrimitive::from_i64(n.numer).unwrap(),
             FromPrimitive::from_i64(n.denom).unwrap(),
         )
     }
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;num-bigint&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"num-bigint"</span>))]
     </span><span class="kw">pub fn </span>to_big(n: Rational64) -&gt; Rational64 {
         Ratio::new(
             FromPrimitive::from_i64(n.numer).unwrap(),
@@ -5009,8 +5011,8 @@
         ];
 
         <span class="kw">fn </span>check_cmp(a: Ratio&lt;i8&gt;, b: Ratio&lt;i8&gt;, ord: Ordering) {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-            </span><span class="macro">println!</span>(<span class="string">&quot;comparing {} and {}&quot;</span>, a, b);
+            <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+            </span><span class="macro">println!</span>(<span class="string">"comparing {} and {}"</span>, a, b);
             <span class="macro">assert_eq!</span>(a.cmp(<span class="kw-2">&amp;</span>b), ord);
             <span class="macro">assert_eq!</span>(b.cmp(<span class="kw-2">&amp;</span>a), ord.reverse());
         }
@@ -5066,16 +5068,16 @@
         <span class="macro">assert!</span>(!_NEG1_2.is_integer());
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
     </span><span class="kw">use </span>core::fmt::{<span class="self">self</span>, Write};
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
     #[derive(Debug)]
     </span><span class="kw">struct </span>NoStdTester {
         cursor: usize,
         buf: [u8; NoStdTester::BUF_SIZE],
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
     </span><span class="kw">impl </span>NoStdTester {
         <span class="kw">fn </span>new() -&gt; NoStdTester {
             NoStdTester {
@@ -5089,11 +5091,11 @@
             <span class="self">self</span>.cursor = <span class="number">0</span>;
         }
 
-        <span class="kw">const </span>WRITE_ERR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Formatted output too long&quot;</span>;
+        <span class="kw">const </span>WRITE_ERR: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Formatted output too long"</span>;
         <span class="kw">const </span>BUF_SIZE: usize = <span class="number">32</span>;
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
     </span><span class="kw">impl </span>Write <span class="kw">for </span>NoStdTester {
         <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; fmt::Result {
             <span class="kw">for </span>byte <span class="kw">in </span>s.bytes() {
@@ -5107,7 +5109,7 @@
         }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
     </span><span class="kw">impl </span>PartialEq&lt;str&gt; <span class="kw">for </span>NoStdTester {
         <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>str) -&gt; bool {
             <span class="kw">let </span>other = other.as_bytes();
@@ -5122,14 +5124,14 @@
 
     <span class="macro">macro_rules! </span>assert_fmt_eq {
         (<span class="macro-nonterminal">$fmt_args</span>:expr, <span class="macro-nonterminal">$string</span>:expr) =&gt; {
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
             </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>tester = NoStdTester::new();
-                <span class="macro">write!</span>(tester, <span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$fmt_args</span>).expect(NoStdTester::WRITE_ERR);
+                <span class="macro">write!</span>(tester, <span class="string">"{}"</span>, <span class="macro-nonterminal">$fmt_args</span>).expect(NoStdTester::WRITE_ERR);
                 <span class="macro">assert_eq!</span>(tester, <span class="kw-2">*</span><span class="macro-nonterminal">$string</span>);
                 tester.clear();
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
             </span>{
                 <span class="macro">assert_eq!</span>(std::fmt::format(<span class="macro-nonterminal">$fmt_args</span>), <span class="macro-nonterminal">$string</span>);
             }
@@ -5144,86 +5146,86 @@
         // positive and negative
         // padding
         // does not test precision (i.e. truncation)
-        </span><span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, _2), <span class="string">&quot;2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+}&quot;</span>, _2), <span class="string">&quot;+2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:-}&quot;</span>, _2), <span class="string">&quot;2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, _1_2), <span class="string">&quot;1/2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, -_1_2), <span class="string">&quot;-1/2&quot;</span>); <span class="comment">// test negatives
-        </span><span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, _0), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, -_2), <span class="string">&quot;-2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+}&quot;</span>, -_2), <span class="string">&quot;-2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:b}&quot;</span>, _2), <span class="string">&quot;10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#b}&quot;</span>, _2), <span class="string">&quot;0b10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:b}&quot;</span>, _1_2), <span class="string">&quot;1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+b}&quot;</span>, _1_2), <span class="string">&quot;+1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:-b}&quot;</span>, _1_2), <span class="string">&quot;1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:b}&quot;</span>, _0), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#b}&quot;</span>, _1_2), <span class="string">&quot;0b1/0b10&quot;</span>);
+        </span><span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, _2), <span class="string">"2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+}"</span>, _2), <span class="string">"+2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:-}"</span>, _2), <span class="string">"2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, _1_2), <span class="string">"1/2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, -_1_2), <span class="string">"-1/2"</span>); <span class="comment">// test negatives
+        </span><span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, _0), <span class="string">"0"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{}"</span>, -_2), <span class="string">"-2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+}"</span>, -_2), <span class="string">"-2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:b}"</span>, _2), <span class="string">"10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#b}"</span>, _2), <span class="string">"0b10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:b}"</span>, _1_2), <span class="string">"1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+b}"</span>, _1_2), <span class="string">"+1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:-b}"</span>, _1_2), <span class="string">"1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:b}"</span>, _0), <span class="string">"0"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#b}"</span>, _1_2), <span class="string">"0b1/0b10"</span>);
         <span class="comment">// no std does not support padding
-        </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:010b}&quot;</span>, _1_2), <span class="string">&quot;0000001/10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:#010b}&quot;</span>, _1_2), <span class="string">&quot;0b001/0b10&quot;</span>);
+        </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:010b}"</span>, _1_2), <span class="string">"0000001/10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:#010b}"</span>, _1_2), <span class="string">"0b001/0b10"</span>);
         <span class="kw">let </span>half_i8: Ratio&lt;i8&gt; = Ratio::new(<span class="number">1_i8</span>, <span class="number">2_i8</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:b}&quot;</span>, -half_i8), <span class="string">&quot;11111111/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#b}&quot;</span>, -half_i8), <span class="string">&quot;0b11111111/0b10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:05}&quot;</span>, Ratio::new(-<span class="number">1_i8</span>, <span class="number">1_i8</span>)), <span class="string">&quot;-0001&quot;</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:b}"</span>, -half_i8), <span class="string">"11111111/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#b}"</span>, -half_i8), <span class="string">"0b11111111/0b10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:05}"</span>, Ratio::new(-<span class="number">1_i8</span>, <span class="number">1_i8</span>)), <span class="string">"-0001"</span>);
 
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:o}&quot;</span>, _8), <span class="string">&quot;10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:o}&quot;</span>, _1_8), <span class="string">&quot;1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:o}&quot;</span>, _0), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#o}&quot;</span>, _1_8), <span class="string">&quot;0o1/0o10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:010o}&quot;</span>, _1_8), <span class="string">&quot;0000001/10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:#010o}&quot;</span>, _1_8), <span class="string">&quot;0o001/0o10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:o}&quot;</span>, -half_i8), <span class="string">&quot;377/2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#o}&quot;</span>, -half_i8), <span class="string">&quot;0o377/0o2&quot;</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:o}"</span>, _8), <span class="string">"10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:o}"</span>, _1_8), <span class="string">"1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:o}"</span>, _0), <span class="string">"0"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#o}"</span>, _1_8), <span class="string">"0o1/0o10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:010o}"</span>, _1_8), <span class="string">"0000001/10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:#010o}"</span>, _1_8), <span class="string">"0o001/0o10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:o}"</span>, -half_i8), <span class="string">"377/2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#o}"</span>, -half_i8), <span class="string">"0o377/0o2"</span>);
 
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, _16), <span class="string">&quot;10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, _15), <span class="string">&quot;f&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, _1_16), <span class="string">&quot;1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, _1_15), <span class="string">&quot;1/f&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, _0), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#x}&quot;</span>, _1_16), <span class="string">&quot;0x1/0x10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:010x}&quot;</span>, _1_16), <span class="string">&quot;0000001/10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:#010x}&quot;</span>, _1_16), <span class="string">&quot;0x001/0x10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:x}&quot;</span>, -half_i8), <span class="string">&quot;ff/2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#x}&quot;</span>, -half_i8), <span class="string">&quot;0xff/0x2&quot;</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, _16), <span class="string">"10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, _15), <span class="string">"f"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, _1_16), <span class="string">"1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, _1_15), <span class="string">"1/f"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, _0), <span class="string">"0"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#x}"</span>, _1_16), <span class="string">"0x1/0x10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:010x}"</span>, _1_16), <span class="string">"0000001/10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:#010x}"</span>, _1_16), <span class="string">"0x001/0x10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:x}"</span>, -half_i8), <span class="string">"ff/2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#x}"</span>, -half_i8), <span class="string">"0xff/0x2"</span>);
 
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, _16), <span class="string">&quot;10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, _15), <span class="string">&quot;F&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, _1_16), <span class="string">&quot;1/10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, _1_15), <span class="string">&quot;1/F&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, _0), <span class="string">&quot;0&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#X}&quot;</span>, _1_16), <span class="string">&quot;0x1/0x10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:010X}&quot;</span>, _1_16), <span class="string">&quot;0000001/10&quot;</span>);
-        <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-        </span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#010X}&quot;</span>, _1_16), <span class="string">&quot;0x001/0x10&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:X}&quot;</span>, -half_i8), <span class="string">&quot;FF/2&quot;</span>);
-        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#X}&quot;</span>, -half_i8), <span class="string">&quot;0xFF/0x2&quot;</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, _16), <span class="string">"10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, _15), <span class="string">"F"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, _1_16), <span class="string">"1/10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, _1_15), <span class="string">"1/F"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, _0), <span class="string">"0"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#X}"</span>, _1_16), <span class="string">"0x1/0x10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:010X}"</span>, _1_16), <span class="string">"0000001/10"</span>);
+        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        </span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:#010X}"</span>, _1_16), <span class="string">"0x001/0x10"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:X}"</span>, -half_i8), <span class="string">"FF/2"</span>);
+        <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#X}"</span>, -half_i8), <span class="string">"0xFF/0x2"</span>);
 
         <span class="attr">#[cfg(has_int_exp_fmt)]
         </span>{
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:e}&quot;</span>, -_2), <span class="string">&quot;-2e0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#e}&quot;</span>, -_2), <span class="string">&quot;-2e0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+e}&quot;</span>, -_2), <span class="string">&quot;-2e0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:e}&quot;</span>, _BILLION), <span class="string">&quot;1e9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+e}&quot;</span>, _BILLION), <span class="string">&quot;+1e9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:e}&quot;</span>, _BILLION.recip()), <span class="string">&quot;1e0/1e9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+e}&quot;</span>, _BILLION.recip()), <span class="string">&quot;+1e0/1e9&quot;</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:e}"</span>, -_2), <span class="string">"-2e0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#e}"</span>, -_2), <span class="string">"-2e0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+e}"</span>, -_2), <span class="string">"-2e0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:e}"</span>, _BILLION), <span class="string">"1e9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+e}"</span>, _BILLION), <span class="string">"+1e9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:e}"</span>, _BILLION.recip()), <span class="string">"1e0/1e9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+e}"</span>, _BILLION.recip()), <span class="string">"+1e0/1e9"</span>);
 
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:E}&quot;</span>, -_2), <span class="string">&quot;-2E0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:#E}&quot;</span>, -_2), <span class="string">&quot;-2E0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+E}&quot;</span>, -_2), <span class="string">&quot;-2E0&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:E}&quot;</span>, _BILLION), <span class="string">&quot;1E9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+E}&quot;</span>, _BILLION), <span class="string">&quot;+1E9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:E}&quot;</span>, _BILLION.recip()), <span class="string">&quot;1E0/1E9&quot;</span>);
-            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{:+E}&quot;</span>, _BILLION.recip()), <span class="string">&quot;+1E0/1E9&quot;</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:E}"</span>, -_2), <span class="string">"-2E0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:#E}"</span>, -_2), <span class="string">"-2E0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+E}"</span>, -_2), <span class="string">"-2E0"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:E}"</span>, _BILLION), <span class="string">"1E9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+E}"</span>, _BILLION), <span class="string">"+1E9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:E}"</span>, _BILLION.recip()), <span class="string">"1E0/1E9"</span>);
+            <span class="macro">assert_fmt_eq!</span>(<span class="macro">format_args!</span>(<span class="string">"{:+E}"</span>, _BILLION.recip()), <span class="string">"+1E0/1E9"</span>);
         }
     }
 
@@ -5807,7 +5809,7 @@
     }
 
     <span class="attr">#[test]
-    #[should_panic(expected = <span class="string">&quot;division by zero&quot;</span>)]
+    #[should_panic(expected = <span class="string">"division by zero"</span>)]
     </span><span class="kw">fn </span>test_recip_fail() {
         <span class="kw">let </span>_a = Ratio::new(<span class="number">0</span>, <span class="number">1</span>).recip();
     }
@@ -5820,11 +5822,11 @@
             <span class="macro">assert_eq!</span>(Pow::pow(r, <span class="kw-2">&amp;</span>e), expected);
             <span class="macro">assert_eq!</span>(Pow::pow(<span class="kw-2">&amp;</span>r, e), expected);
             <span class="macro">assert_eq!</span>(Pow::pow(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>e), expected);
-            <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
             </span>test_big(r, e, expected);
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
         </span><span class="kw">fn </span>test_big(r: Rational64, e: i32, expected: Rational64) {
             <span class="kw">let </span>r = BigRational::new_raw(r.numer.into(), r.denom.into());
             <span class="kw">let </span>expected = BigRational::new_raw(expected.numer.into(), expected.denom.into());
@@ -5848,19 +5850,19 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    #[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>test_to_from_str() {
         <span class="kw">use </span>std::string::{String, ToString};
         <span class="kw">fn </span>test(r: Rational64, s: String) {
             <span class="macro">assert_eq!</span>(FromStr::from_str(<span class="kw-2">&amp;</span>s), <span class="prelude-val">Ok</span>(r));
             <span class="macro">assert_eq!</span>(r.to_string(), s);
         }
-        test(_1, <span class="string">&quot;1&quot;</span>.to_string());
-        test(_0, <span class="string">&quot;0&quot;</span>.to_string());
-        test(_1_2, <span class="string">&quot;1/2&quot;</span>.to_string());
-        test(_3_2, <span class="string">&quot;3/2&quot;</span>.to_string());
-        test(_2, <span class="string">&quot;2&quot;</span>.to_string());
-        test(_NEG1_2, <span class="string">&quot;-1/2&quot;</span>.to_string());
+        test(_1, <span class="string">"1"</span>.to_string());
+        test(_0, <span class="string">"0"</span>.to_string());
+        test(_1_2, <span class="string">"1/2"</span>.to_string());
+        test(_3_2, <span class="string">"3/2"</span>.to_string());
+        test(_2, <span class="string">"2"</span>.to_string());
+        test(_NEG1_2, <span class="string">"-1/2"</span>.to_string());
     }
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_from_str_fail() {
@@ -5869,13 +5871,13 @@
             <span class="macro">assert!</span>(rational.is_err());
         }
 
-        <span class="kw">let </span>xs = [<span class="string">&quot;0 /1&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;1/&quot;</span>, <span class="string">&quot;--1/2&quot;</span>, <span class="string">&quot;3/2/1&quot;</span>, <span class="string">&quot;1/0&quot;</span>];
+        <span class="kw">let </span>xs = [<span class="string">"0 /1"</span>, <span class="string">"abc"</span>, <span class="string">""</span>, <span class="string">"1/"</span>, <span class="string">"--1/2"</span>, <span class="string">"3/2/1"</span>, <span class="string">"1/0"</span>];
         <span class="kw">for </span><span class="kw-2">&amp;</span>s <span class="kw">in </span>xs.iter() {
             test(s);
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_from_float() {
         <span class="kw">use </span>num_traits::float::FloatCore;
@@ -5891,38 +5893,38 @@
         }
 
         <span class="comment">// f32
-        </span>test(core::f32::consts::PI, (<span class="string">&quot;13176795&quot;</span>, <span class="string">&quot;4194304&quot;</span>));
-        test(<span class="number">2f32</span>.powf(<span class="number">100.</span>), (<span class="string">&quot;1267650600228229401496703205376&quot;</span>, <span class="string">&quot;1&quot;</span>));
+        </span>test(core::f32::consts::PI, (<span class="string">"13176795"</span>, <span class="string">"4194304"</span>));
+        test(<span class="number">2f32</span>.powf(<span class="number">100.</span>), (<span class="string">"1267650600228229401496703205376"</span>, <span class="string">"1"</span>));
         test(
             -(<span class="number">2f32</span>.powf(<span class="number">100.</span>)),
-            (<span class="string">&quot;-1267650600228229401496703205376&quot;</span>, <span class="string">&quot;1&quot;</span>),
+            (<span class="string">"-1267650600228229401496703205376"</span>, <span class="string">"1"</span>),
         );
         test(
             <span class="number">1.0 </span>/ <span class="number">2f32</span>.powf(<span class="number">100.</span>),
-            (<span class="string">&quot;1&quot;</span>, <span class="string">&quot;1267650600228229401496703205376&quot;</span>),
+            (<span class="string">"1"</span>, <span class="string">"1267650600228229401496703205376"</span>),
         );
-        test(<span class="number">684729.48391f32</span>, (<span class="string">&quot;1369459&quot;</span>, <span class="string">&quot;2&quot;</span>));
-        test(-<span class="number">8573.5918555f32</span>, (<span class="string">&quot;-4389679&quot;</span>, <span class="string">&quot;512&quot;</span>));
+        test(<span class="number">684729.48391f32</span>, (<span class="string">"1369459"</span>, <span class="string">"2"</span>));
+        test(-<span class="number">8573.5918555f32</span>, (<span class="string">"-4389679"</span>, <span class="string">"512"</span>));
 
         <span class="comment">// f64
         </span>test(
             core::f64::consts::PI,
-            (<span class="string">&quot;884279719003555&quot;</span>, <span class="string">&quot;281474976710656&quot;</span>),
+            (<span class="string">"884279719003555"</span>, <span class="string">"281474976710656"</span>),
         );
-        test(<span class="number">2f64</span>.powf(<span class="number">100.</span>), (<span class="string">&quot;1267650600228229401496703205376&quot;</span>, <span class="string">&quot;1&quot;</span>));
+        test(<span class="number">2f64</span>.powf(<span class="number">100.</span>), (<span class="string">"1267650600228229401496703205376"</span>, <span class="string">"1"</span>));
         test(
             -(<span class="number">2f64</span>.powf(<span class="number">100.</span>)),
-            (<span class="string">&quot;-1267650600228229401496703205376&quot;</span>, <span class="string">&quot;1&quot;</span>),
+            (<span class="string">"-1267650600228229401496703205376"</span>, <span class="string">"1"</span>),
         );
-        test(<span class="number">684729.48391f64</span>, (<span class="string">&quot;367611342500051&quot;</span>, <span class="string">&quot;536870912&quot;</span>));
-        test(-<span class="number">8573.5918555f64</span>, (<span class="string">&quot;-4713381968463931&quot;</span>, <span class="string">&quot;549755813888&quot;</span>));
+        test(<span class="number">684729.48391f64</span>, (<span class="string">"367611342500051"</span>, <span class="string">"536870912"</span>));
+        test(-<span class="number">8573.5918555f64</span>, (<span class="string">"-4713381968463931"</span>, <span class="string">"549755813888"</span>));
         test(
             <span class="number">1.0 </span>/ <span class="number">2f64</span>.powf(<span class="number">100.</span>),
-            (<span class="string">&quot;1&quot;</span>, <span class="string">&quot;1267650600228229401496703205376&quot;</span>),
+            (<span class="string">"1"</span>, <span class="string">"1267650600228229401496703205376"</span>),
         );
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"num-bigint"</span>)]
     #[test]
     </span><span class="kw">fn </span>test_from_float_fail() {
         <span class="kw">use </span>core::{f32, f64};
@@ -5956,7 +5958,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    #[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>test_hash() {
         <span class="macro">assert!</span>(<span class="kw">crate</span>::hash(<span class="kw-2">&amp;</span>_0) != <span class="kw">crate</span>::hash(<span class="kw-2">&amp;</span>_1));
         <span class="macro">assert!</span>(<span class="kw">crate</span>::hash(<span class="kw-2">&amp;</span>_0) != <span class="kw">crate</span>::hash(<span class="kw-2">&amp;</span>_3_2));
@@ -6083,7 +6085,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    #[cfg(feature = <span class="string">"num-bigint"</span>)]
     </span><span class="kw">fn </span>test_ratio_to_i128() {
         <span class="macro">assert_eq!</span>(
             <span class="number">1i128 </span>&lt;&lt; <span class="number">70</span>,
@@ -6094,14 +6096,14 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;num-bigint&quot;</span>)]
+    #[cfg(feature = <span class="string">"num-bigint"</span>)]
     </span><span class="kw">fn </span>test_big_ratio_to_f64() {
         <span class="macro">assert_eq!</span>(
             BigRational::new(
-                <span class="string">&quot;1234567890987654321234567890987654321234567890&quot;
+                <span class="string">"1234567890987654321234567890987654321234567890"
                     </span>.parse()
                     .unwrap(),
-                <span class="string">&quot;3&quot;</span>.parse().unwrap()
+                <span class="string">"3"</span>.parse().unwrap()
             )
             .to_f64(),
             <span class="prelude-val">Some</span>(<span class="number">411522630329218100000000000000000000000000000f64</span>)
@@ -6127,8 +6129,8 @@
         );
         <span class="macro">assert_eq!</span>(
             BigRational::new(
-                <span class="string">&quot;1234567890987654321234567890&quot;</span>.parse().unwrap(),
-                <span class="string">&quot;987654321234567890987654321&quot;</span>.parse().unwrap()
+                <span class="string">"1234567890987654321234567890"</span>.parse().unwrap(),
+                <span class="string">"987654321234567890987654321"</span>.parse().unwrap()
             )
             .to_f64(),
             <span class="prelude-val">Some</span>(<span class="number">1.2499999893125f64</span>)
@@ -6182,7 +6184,7 @@
         <span class="macro">assert_eq!</span>(ldexp(<span class="number">0.0</span>, <span class="number">1</span>), <span class="number">0.0</span>);
         <span class="macro">assert_eq!</span>(ldexp(-<span class="number">0.0</span>, <span class="number">1</span>), -<span class="number">0.0</span>);
 
-        <span class="comment">// Cases where ldexp is equivalent to multiplying by 2^exp because there&#39;s no over- or
+        <span class="comment">// Cases where ldexp is equivalent to multiplying by 2^exp because there's no over- or
         // underflow.
         </span><span class="macro">assert_eq!</span>(ldexp(<span class="number">3.5</span>, <span class="number">5</span>), <span class="number">3.5 </span>* <span class="number">2f64</span>.powi(<span class="number">5</span>));
         <span class="macro">assert_eq!</span>(ldexp(<span class="number">1.0</span>, MAX_EXP - <span class="number">1</span>), <span class="number">2f64</span>.powi(MAX_EXP - <span class="number">1</span>));

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.32/src/macros.rs`."><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.32/src/macros.rs`."><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../zerocopy/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -443,7 +445,7 @@
 /// The macro invocations are emitted, each decorated with the following
 /// attribute: `#[allow(clippy::undocumented_unsafe_blocks)]`.
 </span><span class="macro">macro_rules! </span>safety_comment {
-    (<span class="attr">#[doc = <span class="string">r&quot; SAFETY:&quot;</span>] </span>$($(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* <span class="macro-nonterminal">$</span><span class="kw">macro</span>:<span class="macro">ident!</span><span class="macro-nonterminal">$args</span>:tt;)<span class="kw-2">*</span>) =&gt; {
+    (<span class="attr">#[doc = <span class="string">r" SAFETY:"</span>] </span>$($(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* <span class="macro-nonterminal">$</span><span class="kw">macro</span>:<span class="macro">ident!</span><span class="macro-nonterminal">$args</span>:tt;)<span class="kw-2">*</span>) =&gt; {
         <span class="attr">#[allow(clippy::undocumented_unsafe_blocks, unused_attributes)]
         </span><span class="kw">const _</span>: () = { $($(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="macro-nonterminal">$</span><span class="macro">macro!</span><span class="macro-nonterminal">$args</span>;)* };
     }
@@ -465,7 +467,7 @@
 ///     `&amp;$repr` argument, it must be the case that, given `t: *mut $ty` and
 ///     `let r = t as *mut $repr`, `r` refers to an object of equal or lesser
 ///     size than the object referred to by `t`.
-///   - If the provided closure takes a `&amp;$repr` argument, then given a `Ptr&lt;&#39;a,
+///   - If the provided closure takes a `&amp;$repr` argument, then given a `Ptr&lt;'a,
 ///     $ty&gt;` which satisfies the preconditions of
 ///     `TryFromBytes::&lt;$ty&gt;::is_bit_valid`, it must be guaranteed that the
 ///     memory referenced by that `Ptr` always contains a valid `$repr`.
@@ -551,19 +553,19 @@
 
     (@method TryFromBytes ; |<span class="macro-nonterminal">$candidate</span>:ident: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$repr</span>:ty| <span class="macro-nonterminal">$is_bit_valid</span>:expr) =&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;) -&gt; bool {
+        </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;) -&gt; bool {
             <span class="comment">// SAFETY:
             // - The argument to `cast_unsized` is `|p| p as *mut _` as required
-            //   by that method&#39;s safety precondition.
+            //   by that method's safety precondition.
             // - The caller has promised that the cast results in an object of
             //   equal or lesser size.
-            // - The caller has promised that `$repr`&#39;s alignment is less than
-            //   or equal to `Self`&#39;s alignment.
+            // - The caller has promised that `$repr`'s alignment is less than
+            //   or equal to `Self`'s alignment.
             </span><span class="attr">#[allow(clippy::as_conversions)]
             </span><span class="kw">let </span>candidate = <span class="kw">unsafe </span>{ candidate.cast_unsized::&lt;<span class="macro-nonterminal">$repr</span>, <span class="kw">_</span>&gt;(|p| p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) };
             <span class="comment">// SAFETY:
             // - The caller has promised that the referenced memory region will
-            //   contain a valid `$repr` for `&#39;a`.
+            //   contain a valid `$repr` for `'a`.
             // - The memory may not be referenced by any mutable references.
             //   This is a precondition of `is_bit_valid`.
             // - The memory may not be mutated even via `UnsafeCell`s. This is a
@@ -578,26 +580,26 @@
     };
     (@method TryFromBytes ; |<span class="macro-nonterminal">$candidate</span>:ident: Ptr&lt;<span class="macro-nonterminal">$repr</span>:ty&gt;| <span class="macro-nonterminal">$is_bit_valid</span>:expr) =&gt; {
         <span class="attr">#[inline]
-        </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;) -&gt; bool {
+        </span><span class="kw">unsafe fn </span>is_bit_valid(candidate: Ptr&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;) -&gt; bool {
             <span class="comment">// SAFETY:
             // - The argument to `cast_unsized` is `|p| p as *mut _` as required
-            //   by that method&#39;s safety precondition.
+            //   by that method's safety precondition.
             // - The caller has promised that the cast results in an object of
             //   equal or lesser size.
-            // - The caller has promised that `$repr`&#39;s alignment is less than
-            //   or equal to `Self`&#39;s alignment.
+            // - The caller has promised that `$repr`'s alignment is less than
+            //   or equal to `Self`'s alignment.
             </span><span class="attr">#[allow(clippy::as_conversions)]
             </span><span class="kw">let </span><span class="macro-nonterminal">$candidate </span>= <span class="kw">unsafe </span>{ candidate.cast_unsized::&lt;<span class="macro-nonterminal">$repr</span>, <span class="kw">_</span>&gt;(|p| p <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) };
             <span class="macro-nonterminal">$is_bit_valid
         </span>}
     };
-    (@method TryFromBytes) =&gt; { <span class="attr">#[inline(always)] </span><span class="kw">unsafe fn </span>is_bit_valid(<span class="kw">_</span>: Ptr&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;) -&gt; bool { <span class="bool-val">true </span>} };
+    (@method TryFromBytes) =&gt; { <span class="attr">#[inline(always)] </span><span class="kw">unsafe fn </span>is_bit_valid(<span class="kw">_</span>: Ptr&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;) -&gt; bool { <span class="bool-val">true </span>} };
     (@method <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>) =&gt; {
         <span class="attr">#[allow(clippy::missing_inline_in_public_items)]
         </span><span class="kw">fn </span>only_derive_is_allowed_to_implement_this_trait() {}
     };
     (@method <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>; |<span class="macro-nonterminal">$_candidate</span>:ident $(: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$_ref_repr</span>:ty)<span class="question-mark">? </span>$(: NonNull&lt;<span class="macro-nonterminal">$_ptr_repr</span>:ty&gt;)<span class="question-mark">?</span>| <span class="macro-nonterminal">$_is_bit_valid</span>:expr) =&gt; {
-        <span class="macro">compile_error!</span>(<span class="string">&quot;Can&#39;t provide `is_bit_valid` impl for trait other than `TryFromBytes`&quot;</span>);
+        <span class="macro">compile_error!</span>(<span class="string">"Can't provide `is_bit_valid` impl for trait other than `TryFromBytes`"</span>);
     };
 }
 
@@ -635,10 +637,10 @@
     };
 }
 
-<span class="doccomment">/// Expands to an `Option&lt;extern &quot;C&quot; fn&gt;` type with the given argument types and
+<span class="doccomment">/// Expands to an `Option&lt;extern "C" fn&gt;` type with the given argument types and
 /// return type. Designed for use with `unsafe_impl_for_power_set`.
 </span><span class="macro">macro_rules! </span>opt_extern_c_fn {
-    ($(<span class="macro-nonterminal">$args</span>:ident),* -&gt; <span class="macro-nonterminal">$ret</span>:ident) =&gt; { <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>($(<span class="macro-nonterminal">$args</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$ret</span>&gt; };
+    ($(<span class="macro-nonterminal">$args</span>:ident),* -&gt; <span class="macro-nonterminal">$ret</span>:ident) =&gt; { <span class="prelude-ty">Option</span>&lt;<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>($(<span class="macro-nonterminal">$args</span>),<span class="kw-2">*</span>) -&gt; <span class="macro-nonterminal">$ret</span>&gt; };
 }
 
 <span class="doccomment">/// Expands to a `Option&lt;fn&gt;` type with the given argument types and return
@@ -654,7 +656,7 @@
 /// dependency and still get the benefit of using its derives to validate that
 /// our trait impls are sound.
 ///
-/// When compiling without `--cfg &#39;feature = &quot;derive&quot;` and without `--cfg test`,
+/// When compiling without `--cfg 'feature = "derive"` and without `--cfg test`,
 /// `impl_or_verify!` emits the provided trait impl. When compiling with either
 /// of those cfgs, it is expected that the type in question is deriving the
 /// traits instead. In this case, `impl_or_verify!` emits code which validates
@@ -678,8 +680,8 @@
 /// ## Example
 ///
 /// ```rust,ignore
-/// // Note that these derives are gated by `feature = &quot;derive&quot;`
-/// #[cfg_attr(any(feature = &quot;derive&quot;, test), derive(FromZeroes, FromBytes, AsBytes, Unaligned))]
+/// // Note that these derives are gated by `feature = "derive"`
+/// #[cfg_attr(any(feature = "derive", test), derive(FromZeroes, FromBytes, AsBytes, Unaligned))]
 /// #[repr(transparent)]
 /// struct Wrapper&lt;T&gt;(T);
 ///
@@ -731,11 +733,11 @@
         </span>);
     };
     (@<span class="kw">impl </span><span class="macro-nonterminal">$impl_block</span>:tt) =&gt; {
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;derive&quot;</span>, test)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"derive"</span>, test)))]
         </span><span class="kw">const _</span>: () = { <span class="macro-nonterminal">$impl_block </span>};
     };
     (@verify <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$impl_block</span>:tt) =&gt; {
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;derive&quot;</span>, test))]
+        <span class="attr">#[cfg(any(feature = <span class="string">"derive"</span>, test))]
         </span><span class="kw">const _</span>: () = {
             <span class="kw">trait </span>Subtrait: <span class="macro-nonterminal">$</span><span class="kw">trait </span>{}
             <span class="macro-nonterminal">$impl_block
@@ -818,7 +820,7 @@
 
 <span class="doccomment">/// Uses `align_of` to confirm that a type or set of types have alignment 1.
 ///
-/// Note that `align_of&lt;T&gt;` requires `T: Sized`, so this macro doesn&#39;t work for
+/// Note that `align_of&lt;T&gt;` requires `T: Sized`, so this macro doesn't work for
 /// unsized types.
 </span><span class="macro">macro_rules! </span>assert_unaligned {
     (<span class="macro-nonterminal">$ty</span>:ty) =&gt; {

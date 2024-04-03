@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-0.12.1/src/lexer.rs`."><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="logos" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../logos/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-0.12.1/src/lexer.rs`."><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="logos" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../logos/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -329,8 +331,8 @@
 
 <span class="doccomment">/// `Lexer` is the main struct of the crate that allows you to read through a
 /// `Source` and produce tokens for enums implementing the `Logos` trait.
-</span><span class="kw">pub struct </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;&gt; {
-    source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>Token::Source,
+</span><span class="kw">pub struct </span>Lexer&lt;<span class="lifetime">'source</span>, Token: Logos&lt;<span class="lifetime">'source</span>&gt;&gt; {
+    source: <span class="kw-2">&amp;</span><span class="lifetime">'source </span>Token::Source,
     token: ManuallyDrop&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;&gt;,
     token_start: usize,
     token_end: usize,
@@ -339,26 +341,26 @@
     </span><span class="kw">pub </span>extras: Token::Extras,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token&gt; Debug <span class="kw">for </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token&gt; Debug <span class="kw">for </span>Lexer&lt;<span class="lifetime">'source</span>, Token&gt;
 <span class="kw">where
-    </span>Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;,
+    </span>Token: Logos&lt;<span class="lifetime">'source</span>&gt;,
     Token::Source: Debug,
     Token::Extras: Debug,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         fmt.debug_map()
-            .entry(<span class="kw-2">&amp;</span><span class="string">&quot;source&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.source)
-            .entry(<span class="kw-2">&amp;</span><span class="string">&quot;extras&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.extras)
+            .entry(<span class="kw-2">&amp;</span><span class="string">"source"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.source)
+            .entry(<span class="kw-2">&amp;</span><span class="string">"extras"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.extras)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;&gt; Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token: Logos&lt;<span class="lifetime">'source</span>&gt;&gt; Lexer&lt;<span class="lifetime">'source</span>, Token&gt; {
     <span class="doccomment">/// Create a new `Lexer`.
     ///
     /// Due to type inference, it might be more ergonomic to construct
     /// it by calling [`Token::lexer`](./trait.Logos.html#method.lexer) on any `Token` with derived `Logos`.
-    </span><span class="kw">pub fn </span>new(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>Token::Source) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>new(source: <span class="kw-2">&amp;</span><span class="lifetime">'source </span>Token::Source) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Token::Extras: Default,
     {
@@ -369,7 +371,7 @@
     ///
     /// Due to type inference, it might be more ergonomic to construct
     /// it by calling [`Token::lexer_with_extras`](./trait.Logos.html#method.lexer_with_extras) on any `Token` with derived `Logos`.
-    </span><span class="kw">pub fn </span>with_extras(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>Token::Source, extras: Token::Extras) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_extras(source: <span class="kw-2">&amp;</span><span class="lifetime">'source </span>Token::Source, extras: Token::Extras) -&gt; <span class="self">Self </span>{
         Lexer {
             source,
             token: ManuallyDrop::new(<span class="prelude-val">None</span>),
@@ -381,7 +383,7 @@
 
     <span class="doccomment">/// Source from which this Lexer is reading tokens.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>Token::Source {
+    </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'source </span>Token::Source {
         <span class="self">self</span>.source
     }
 
@@ -395,18 +397,18 @@
     ///
     /// #[derive(Logos, Debug, PartialEq)]
     /// enum Example {
-    ///     #[regex(r&quot;[ \n\t\f]+&quot;, logos::skip)]
+    ///     #[regex(r"[ \n\t\f]+", logos::skip)]
     ///     #[error]
     ///     Error,
     ///
-    ///     #[regex(&quot;-?[0-9]+&quot;, |lex| lex.slice().parse())]
+    ///     #[regex("-?[0-9]+", |lex| lex.slice().parse())]
     ///     Integer(i64),
     ///
-    ///     #[regex(&quot;-?[0-9]+\\.[0-9]+&quot;, |lex| lex.slice().parse())]
+    ///     #[regex("-?[0-9]+\\.[0-9]+", |lex| lex.slice().parse())]
     ///     Float(f64),
     /// }
     ///
-    /// let tokens: Vec&lt;_&gt; = Example::lexer(&quot;42 3.14 -5 f&quot;).spanned().collect();
+    /// let tokens: Vec&lt;_&gt; = Example::lexer("42 3.14 -5 f").spanned().collect();
     ///
     /// assert_eq!(
     ///     tokens,
@@ -414,18 +416,18 @@
     ///         (Example::Integer(42), 0..2),
     ///         (Example::Float(3.14), 3..7),
     ///         (Example::Integer(-5), 8..10),
-    ///         (Example::Error, 11..12), // &#39;f&#39; is not a recognized token
+    ///         (Example::Error, 11..12), // 'f' is not a recognized token
     ///     ],
     /// );
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>spanned(<span class="self">self</span>) -&gt; SpannedIter&lt;<span class="lifetime">&#39;source</span>, Token&gt; {
+    </span><span class="kw">pub fn </span>spanned(<span class="self">self</span>) -&gt; SpannedIter&lt;<span class="lifetime">'source</span>, Token&gt; {
         SpannedIter { lexer: <span class="self">self </span>}
     }
 
     <span class="attr">#[inline]
     #[doc(hidden)]
-    #[deprecated(since = <span class="string">&quot;0.11.0&quot;</span>, note = <span class="string">&quot;please use `span` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.11.0"</span>, note = <span class="string">"please use `span` instead"</span>)]
     </span><span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
         <span class="self">self</span>.span()
     }
@@ -438,13 +440,13 @@
 
     <span class="doccomment">/// Get a string slice of the current token.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>&lt;Token::Source <span class="kw">as </span>Source&gt;::Slice {
+    </span><span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'source </span>&lt;Token::Source <span class="kw">as </span>Source&gt;::Slice {
         <span class="kw">unsafe </span>{ <span class="self">self</span>.source.slice_unchecked(<span class="self">self</span>.span()) }
     }
 
     <span class="doccomment">/// Get a slice of remaining source, starting at the end of current token.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>remainder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;source </span>&lt;Token::Source <span class="kw">as </span>Source&gt;::Slice {
+    </span><span class="kw">pub fn </span>remainder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'source </span>&lt;Token::Source <span class="kw">as </span>Source&gt;::Slice {
         <span class="kw">unsafe </span>{
             <span class="self">self</span>.source
                 .slice_unchecked(<span class="self">self</span>.token_end..<span class="self">self</span>.source.len())
@@ -455,9 +457,9 @@
     ///
     /// The new lexer continues to point at the same span as the current lexer,
     /// and the current token becomes the error token of the new token type.
-    </span><span class="kw">pub fn </span>morph&lt;Token2&gt;(<span class="self">self</span>) -&gt; Lexer&lt;<span class="lifetime">&#39;source</span>, Token2&gt;
+    </span><span class="kw">pub fn </span>morph&lt;Token2&gt;(<span class="self">self</span>) -&gt; Lexer&lt;<span class="lifetime">'source</span>, Token2&gt;
     <span class="kw">where
-        </span>Token2: Logos&lt;<span class="lifetime">&#39;source</span>, Source = Token::Source&gt;,
+        </span>Token2: Logos&lt;<span class="lifetime">'source</span>, Source = Token::Source&gt;,
         Token::Extras: Into&lt;Token2::Extras&gt;,
     {
         Lexer {
@@ -480,14 +482,14 @@
 
         <span class="macro">assert!</span>(
             <span class="self">self</span>.source.is_boundary(<span class="self">self</span>.token_end),
-            <span class="string">&quot;Invalid Lexer bump&quot;</span>,
+            <span class="string">"Invalid Lexer bump"</span>,
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token&gt; Clone <span class="kw">for </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token&gt; Clone <span class="kw">for </span>Lexer&lt;<span class="lifetime">'source</span>, Token&gt;
 <span class="kw">where
-    </span>Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt; + Clone,
+    </span>Token: Logos&lt;<span class="lifetime">'source</span>&gt; + Clone,
     Token::Extras: Clone,
 {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -499,9 +501,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token&gt; Iterator <span class="kw">for </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token&gt; Iterator <span class="kw">for </span>Lexer&lt;<span class="lifetime">'source</span>, Token&gt;
 <span class="kw">where
-    </span>Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;,
+    </span>Token: Logos&lt;<span class="lifetime">'source</span>&gt;,
 {
     <span class="kw">type </span>Item = Token;
 
@@ -513,7 +515,7 @@
 
         <span class="comment">// This basically treats self.token as a temporary field.
         // Since we always immediately return a newly set token here,
-        // we don&#39;t have to replace it with `None` or manually drop
+        // we don't have to replace it with `None` or manually drop
         // it later.
         </span><span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.token) }
     }
@@ -522,13 +524,13 @@
 <span class="doccomment">/// Iterator that pairs tokens with their position in the source.
 ///
 /// Look at [`Lexer::spanned`](./struct.Lexer.html#method.spanned) for documentation.
-</span><span class="kw">pub struct </span>SpannedIter&lt;<span class="lifetime">&#39;source</span>, Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;&gt; {
-    lexer: Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;,
+</span><span class="kw">pub struct </span>SpannedIter&lt;<span class="lifetime">'source</span>, Token: Logos&lt;<span class="lifetime">'source</span>&gt;&gt; {
+    lexer: Lexer&lt;<span class="lifetime">'source</span>, Token&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token&gt; Iterator <span class="kw">for </span>SpannedIter&lt;<span class="lifetime">&#39;source</span>, Token&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token&gt; Iterator <span class="kw">for </span>SpannedIter&lt;<span class="lifetime">'source</span>, Token&gt;
 <span class="kw">where
-    </span>Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;,
+    </span>Token: Logos&lt;<span class="lifetime">'source</span>&gt;,
 {
     <span class="kw">type </span>Item = (Token, Span);
 
@@ -540,11 +542,11 @@
 <span class="attr">#[doc(hidden)]
 </span><span class="doccomment">/// # WARNING!
 ///
-/// **This trait, and it&#39;s methods, are not meant to be used outside of the
+/// **This trait, and it's methods, are not meant to be used outside of the
 /// code produced by `#[derive(Logos)]` macro.**
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;source</span>, Token&gt; LexerInternal&lt;<span class="lifetime">&#39;source</span>&gt; <span class="kw">for </span>Lexer&lt;<span class="lifetime">&#39;source</span>, Token&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'source</span>, Token&gt; LexerInternal&lt;<span class="lifetime">'source</span>&gt; <span class="kw">for </span>Lexer&lt;<span class="lifetime">'source</span>, Token&gt;
 <span class="kw">where
-    </span>Token: Logos&lt;<span class="lifetime">&#39;source</span>&gt;,
+    </span>Token: Logos&lt;<span class="lifetime">'source</span>&gt;,
 {
     <span class="kw">type </span>Token = Token;
 
@@ -553,7 +555,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>read&lt;Chunk&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Chunk&gt;
     <span class="kw">where
-        </span>Chunk: source::Chunk&lt;<span class="lifetime">&#39;source</span>&gt;,
+        </span>Chunk: source::Chunk&lt;<span class="lifetime">'source</span>&gt;,
     {
         <span class="self">self</span>.source.read(<span class="self">self</span>.token_end)
     }
@@ -562,7 +564,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>read_at&lt;Chunk&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Chunk&gt;
     <span class="kw">where
-        </span>Chunk: source::Chunk&lt;<span class="lifetime">&#39;source</span>&gt;,
+        </span>Chunk: source::Chunk&lt;<span class="lifetime">'source</span>&gt;,
     {
         <span class="self">self</span>.source.read(<span class="self">self</span>.token_end + n)
     }
@@ -570,7 +572,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">unsafe fn </span>read_unchecked&lt;Chunk&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; Chunk
     <span class="kw">where
-        </span>Chunk: source::Chunk&lt;<span class="lifetime">&#39;source</span>&gt;,
+        </span>Chunk: source::Chunk&lt;<span class="lifetime">'source</span>&gt;,
     {
         <span class="self">self</span>.source.read_unchecked(<span class="self">self</span>.token_end + n)
     }
@@ -579,7 +581,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>test&lt;T, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, test: F) -&gt; bool
     <span class="kw">where
-        </span>T: source::Chunk&lt;<span class="lifetime">&#39;source</span>&gt;,
+        </span>T: source::Chunk&lt;<span class="lifetime">'source</span>&gt;,
         F: FnOnce(T) -&gt; bool,
     {
         <span class="kw">match </span><span class="self">self</span>.source.read::&lt;T&gt;(<span class="self">self</span>.token_end) {
@@ -592,7 +594,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>test_at&lt;T, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize, test: F) -&gt; bool
     <span class="kw">where
-        </span>T: source::Chunk&lt;<span class="lifetime">&#39;source</span>&gt;,
+        </span>T: source::Chunk&lt;<span class="lifetime">'source</span>&gt;,
         F: FnOnce(T) -&gt; bool,
     {
         <span class="kw">match </span><span class="self">self</span>.source.read::&lt;T&gt;(<span class="self">self</span>.token_end + n) {
@@ -606,7 +608,7 @@
     </span><span class="kw">fn </span>bump_unchecked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: usize) {
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.token_end + size &lt;= <span class="self">self</span>.source.len(),
-            <span class="string">&quot;Bumping out of bounds!&quot;
+            <span class="string">"Bumping out of bounds!"
         </span>);
 
         <span class="self">self</span>.token_end += size;

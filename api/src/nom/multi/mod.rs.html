@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-7.1.3/src/multi/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-7.1.3/src/multi/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../nom/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1055,21 +1057,21 @@
 <span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
 <span class="kw">use </span><span class="kw">crate</span>::error::ParseError;
 <span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, IResult, Needed, Parser};
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lib::std::vec::Vec;
 <span class="kw">use </span><span class="kw">crate</span>::traits::{InputLength, InputTake, ToUsize};
 <span class="kw">use </span>core::num::NonZeroUsize;
 
-<span class="doccomment">/// Don&#39;t pre-allocate more than 64KiB when calling `Vec::with_capacity`.
+<span class="doccomment">/// Don't pre-allocate more than 64KiB when calling `Vec::with_capacity`.
 ///
-/// Pre-allocating memory is a nice optimization but count fields can&#39;t
+/// Pre-allocating memory is a nice optimization but count fields can't
 /// always be trusted. We should clamp initial capacities to some reasonable
 /// amount. This reduces the risk of a bogus count value triggering a panic
 /// due to an OOM error.
 ///
 /// This does not affect correctness. Nom will always read the full number
 /// of elements regardless of the capacity cap.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">const </span>MAX_INITIAL_CAPACITY_BYTES: usize = <span class="number">65536</span>;
 
 <span class="doccomment">/// Repeats the embedded parser, gathering the results in a `Vec`.
@@ -1089,16 +1091,16 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   many0(tag(&quot;abc&quot;))(s)
+///   many0(tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Ok((&quot;123123&quot;, vec![])));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, vec![])));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Ok(("123123", vec![])));
+/// assert_eq!(parser(""), Ok(("", vec![])));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>many0&lt;I, O, E, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, Vec&lt;O&gt;, E&gt;
 <span class="kw">where
   </span>I: Clone + InputLength,
@@ -1144,16 +1146,16 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   many1(tag(&quot;abc&quot;))(s)
+///   many1(tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Err(Err::Error(Error::new(&quot;123123&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Tag))));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Err(Err::Error(Error::new("123123", ErrorKind::Tag))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Tag))));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>many1&lt;I, O, E, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, Vec&lt;O&gt;, E&gt;
 <span class="kw">where
   </span>I: Clone + InputLength,
@@ -1200,17 +1202,17 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, (Vec&lt;&amp;str&gt;, &amp;str)&gt; {
-///   many_till(tag(&quot;abc&quot;), tag(&quot;end&quot;))(s)
+///   many_till(tag("abc"), tag("end"))(s)
 /// };
 ///
-/// assert_eq!(parser(&quot;abcabcend&quot;), Ok((&quot;&quot;, (vec![&quot;abc&quot;, &quot;abc&quot;], &quot;end&quot;))));
-/// assert_eq!(parser(&quot;abc123end&quot;), Err(Err::Error(Error::new(&quot;123end&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;123123end&quot;), Err(Err::Error(Error::new(&quot;123123end&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;abcendefg&quot;), Ok((&quot;efg&quot;, (vec![&quot;abc&quot;], &quot;end&quot;))));
+/// assert_eq!(parser("abcabcend"), Ok(("", (vec!["abc", "abc"], "end"))));
+/// assert_eq!(parser("abc123end"), Err(Err::Error(Error::new("123end", ErrorKind::Tag))));
+/// assert_eq!(parser("123123end"), Err(Err::Error(Error::new("123123end", ErrorKind::Tag))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Tag))));
+/// assert_eq!(parser("abcendefg"), Ok(("efg", (vec!["abc"], "end"))));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>many_till&lt;I, O, P, E, F, G&gt;(
   <span class="kw-2">mut </span>f: F,
   <span class="kw-2">mut </span>g: G,
@@ -1263,17 +1265,17 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   separated_list0(tag(&quot;|&quot;), tag(&quot;abc&quot;))(s)
+///   separated_list0(tag("|"), tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abc|abc|abc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123abc&quot;), Ok((&quot;123abc&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc|def&quot;), Ok((&quot;|def&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, vec![])));
-/// assert_eq!(parser(&quot;def|abc&quot;), Ok((&quot;def|abc&quot;, vec![])));
+/// assert_eq!(parser("abc|abc|abc"), Ok(("", vec!["abc", "abc", "abc"])));
+/// assert_eq!(parser("abc123abc"), Ok(("123abc", vec!["abc"])));
+/// assert_eq!(parser("abc|def"), Ok(("|def", vec!["abc"])));
+/// assert_eq!(parser(""), Ok(("", vec![])));
+/// assert_eq!(parser("def|abc"), Ok(("def|abc", vec![])));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>separated_list0&lt;I, O, O2, E, F, G&gt;(
   <span class="kw-2">mut </span>sep: G,
   <span class="kw-2">mut </span>f: F,
@@ -1337,17 +1339,17 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   separated_list1(tag(&quot;|&quot;), tag(&quot;abc&quot;))(s)
+///   separated_list1(tag("|"), tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abc|abc|abc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123abc&quot;), Ok((&quot;123abc&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc|def&quot;), Ok((&quot;|def&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;def|abc&quot;), Err(Err::Error(Error::new(&quot;def|abc&quot;, ErrorKind::Tag))));
+/// assert_eq!(parser("abc|abc|abc"), Ok(("", vec!["abc", "abc", "abc"])));
+/// assert_eq!(parser("abc123abc"), Ok(("123abc", vec!["abc"])));
+/// assert_eq!(parser("abc|def"), Ok(("|def", vec!["abc"])));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Tag))));
+/// assert_eq!(parser("def|abc"), Err(Err::Error(Error::new("def|abc", ErrorKind::Tag))));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>separated_list1&lt;I, O, O2, E, F, G&gt;(
   <span class="kw-2">mut </span>sep: G,
   <span class="kw-2">mut </span>f: F,
@@ -1415,17 +1417,17 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   many_m_n(0, 2, tag(&quot;abc&quot;))(s)
+///   many_m_n(0, 2, tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Ok((&quot;123123&quot;, vec![])));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, vec![])));
-/// assert_eq!(parser(&quot;abcabcabc&quot;), Ok((&quot;abc&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Ok(("123123", vec![])));
+/// assert_eq!(parser(""), Ok(("", vec![])));
+/// assert_eq!(parser("abcabcabc"), Ok(("abc", vec!["abc", "abc"])));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>many_m_n&lt;I, O, E, F&gt;(
   min: usize,
   max: usize,
@@ -1490,13 +1492,13 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, usize&gt; {
-///   many0_count(tag(&quot;abc&quot;))(s)
+///   many0_count(tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, 2)));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, 1)));
-/// assert_eq!(parser(&quot;123123&quot;), Ok((&quot;123123&quot;, 0)));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, 0)));
+/// assert_eq!(parser("abcabc"), Ok(("", 2)));
+/// assert_eq!(parser("abc123"), Ok(("123", 1)));
+/// assert_eq!(parser("123123"), Ok(("123123", 0)));
+/// assert_eq!(parser(""), Ok(("", 0)));
 /// ```
 </span><span class="kw">pub fn </span>many0_count&lt;I, O, E, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, usize, E&gt;
 <span class="kw">where
@@ -1548,13 +1550,13 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, usize&gt; {
-///   many1_count(tag(&quot;abc&quot;))(s)
+///   many1_count(tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, 2)));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, 1)));
-/// assert_eq!(parser(&quot;123123&quot;), Err(Err::Error(Error::new(&quot;123123&quot;, ErrorKind::Many1Count))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Many1Count))));
+/// assert_eq!(parser("abcabc"), Ok(("", 2)));
+/// assert_eq!(parser("abc123"), Ok(("123", 1)));
+/// assert_eq!(parser("123123"), Err(Err::Error(Error::new("123123", ErrorKind::Many1Count))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Many1Count))));
 /// ```
 </span><span class="kw">pub fn </span>many1_count&lt;I, O, E, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, usize, E&gt;
 <span class="kw">where
@@ -1604,17 +1606,17 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
-///   count(tag(&quot;abc&quot;), 2)(s)
+///   count(tag("abc"), 2)(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Err(Err::Error(Error::new(&quot;123&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;123123&quot;), Err(Err::Error(Error::new(&quot;123123&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;abcabcabc&quot;), Ok((&quot;abc&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Err(Err::Error(Error::new("123", ErrorKind::Tag))));
+/// assert_eq!(parser("123123"), Err(Err::Error(Error::new("123123", ErrorKind::Tag))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Tag))));
+/// assert_eq!(parser("abcabcabc"), Ok(("abc", vec!["abc", "abc"])));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;docsrs&quot;</span>, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 </span><span class="kw">pub fn </span>count&lt;I, O, E, F&gt;(<span class="kw-2">mut </span>f: F, count: usize) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, Vec&lt;O&gt;, E&gt;
 <span class="kw">where
   </span>I: Clone + PartialEq,
@@ -1660,21 +1662,21 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, [&amp;str; 2]&gt; {
-///   let mut buf = [&quot;&quot;, &quot;&quot;];
-///   let (rest, ()) = fill(tag(&quot;abc&quot;), &amp;mut buf)(s)?;
+///   let mut buf = ["", ""];
+///   let (rest, ()) = fill(tag("abc"), &amp;mut buf)(s)?;
 ///   Ok((rest, buf))
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, [&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Err(Err::Error(Error::new(&quot;123&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;123123&quot;), Err(Err::Error(Error::new(&quot;123123&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Tag))));
-/// assert_eq!(parser(&quot;abcabcabc&quot;), Ok((&quot;abc&quot;, [&quot;abc&quot;, &quot;abc&quot;])));
+/// assert_eq!(parser("abcabc"), Ok(("", ["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Err(Err::Error(Error::new("123", ErrorKind::Tag))));
+/// assert_eq!(parser("123123"), Err(Err::Error(Error::new("123123", ErrorKind::Tag))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Tag))));
+/// assert_eq!(parser("abcabcabc"), Ok(("abc", ["abc", "abc"])));
 /// ```
-</span><span class="kw">pub fn </span>fill&lt;<span class="lifetime">&#39;a</span>, I, O, E, F&gt;(f: F, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[O]) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, (), E&gt; + <span class="lifetime">&#39;a
+</span><span class="kw">pub fn </span>fill&lt;<span class="lifetime">'a</span>, I, O, E, F&gt;(f: F, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[O]) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, (), E&gt; + <span class="lifetime">'a
 </span><span class="kw">where
   </span>I: Clone + PartialEq,
-  F: Fn(I) -&gt; IResult&lt;I, O, E&gt; + <span class="lifetime">&#39;a</span>,
+  F: Fn(I) -&gt; IResult&lt;I, O, E&gt; + <span class="lifetime">'a</span>,
   E: ParseError&lt;I&gt;,
 {
   <span class="kw">move </span>|i: I| {
@@ -1721,7 +1723,7 @@
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
 ///   fold_many0(
-///     tag(&quot;abc&quot;),
+///     tag("abc"),
 ///     Vec::new,
 ///     |mut acc: Vec&lt;_&gt;, item| {
 ///       acc.push(item);
@@ -1730,10 +1732,10 @@
 ///   )(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Ok((&quot;123123&quot;, vec![])));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, vec![])));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Ok(("123123", vec![])));
+/// assert_eq!(parser(""), Ok(("", vec![])));
 /// ```
 </span><span class="kw">pub fn </span>fold_many0&lt;I, O, E, F, G, H, R&gt;(
   <span class="kw-2">mut </span>f: F,
@@ -1797,7 +1799,7 @@
 ///
 /// fn parser(s: &amp;str) -&gt; IResult&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; {
 ///   fold_many1(
-///     tag(&quot;abc&quot;),
+///     tag("abc"),
 ///     Vec::new,
 ///     |mut acc: Vec&lt;_&gt;, item| {
 ///       acc.push(item);
@@ -1806,10 +1808,10 @@
 ///   )(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Err(Err::Error(Error::new(&quot;123123&quot;, ErrorKind::Many1))));
-/// assert_eq!(parser(&quot;&quot;), Err(Err::Error(Error::new(&quot;&quot;, ErrorKind::Many1))));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Err(Err::Error(Error::new("123123", ErrorKind::Many1))));
+/// assert_eq!(parser(""), Err(Err::Error(Error::new("", ErrorKind::Many1))));
 /// ```
 </span><span class="kw">pub fn </span>fold_many1&lt;I, O, E, F, G, H, R&gt;(
   <span class="kw-2">mut </span>f: F,
@@ -1885,7 +1887,7 @@
 ///   fold_many_m_n(
 ///     0,
 ///     2,
-///     tag(&quot;abc&quot;),
+///     tag("abc"),
 ///     Vec::new,
 ///     |mut acc: Vec&lt;_&gt;, item| {
 ///       acc.push(item);
@@ -1894,11 +1896,11 @@
 ///   )(s)
 /// }
 ///
-/// assert_eq!(parser(&quot;abcabc&quot;), Ok((&quot;&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
-/// assert_eq!(parser(&quot;abc123&quot;), Ok((&quot;123&quot;, vec![&quot;abc&quot;])));
-/// assert_eq!(parser(&quot;123123&quot;), Ok((&quot;123123&quot;, vec![])));
-/// assert_eq!(parser(&quot;&quot;), Ok((&quot;&quot;, vec![])));
-/// assert_eq!(parser(&quot;abcabcabc&quot;), Ok((&quot;abc&quot;, vec![&quot;abc&quot;, &quot;abc&quot;])));
+/// assert_eq!(parser("abcabc"), Ok(("", vec!["abc", "abc"])));
+/// assert_eq!(parser("abc123"), Ok(("123", vec!["abc"])));
+/// assert_eq!(parser("123123"), Ok(("123123", vec![])));
+/// assert_eq!(parser(""), Ok(("", vec![])));
+/// assert_eq!(parser("abcabcabc"), Ok(("abc", vec!["abc", "abc"])));
 /// ```
 </span><span class="kw">pub fn </span>fold_many_m_n&lt;I, O, E, F, G, H, R&gt;(
   min: usize,
@@ -1964,8 +1966,8 @@
 ///   length_data(be_u16)(s)
 /// }
 ///
-/// assert_eq!(parser(b&quot;\x00\x03abcefg&quot;), Ok((&amp;b&quot;efg&quot;[..], &amp;b&quot;abc&quot;[..])));
-/// assert_eq!(parser(b&quot;\x00\x03a&quot;), Err(Err::Incomplete(Needed::new(2))));
+/// assert_eq!(parser(b"\x00\x03abcefg"), Ok((&amp;b"efg"[..], &amp;b"abc"[..])));
+/// assert_eq!(parser(b"\x00\x03a"), Err(Err::Incomplete(Needed::new(2))));
 /// ```
 </span><span class="kw">pub fn </span>length_data&lt;I, N, E, F&gt;(<span class="kw-2">mut </span>f: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, E&gt;
 <span class="kw">where
@@ -2005,12 +2007,12 @@
 /// use nom::bytes::complete::tag;
 ///
 /// fn parser(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
-///   length_value(be_u16, tag(&quot;abc&quot;))(s)
+///   length_value(be_u16, tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(b&quot;\x00\x03abcefg&quot;), Ok((&amp;b&quot;efg&quot;[..], &amp;b&quot;abc&quot;[..])));
-/// assert_eq!(parser(b&quot;\x00\x03123123&quot;), Err(Err::Error(Error::new(&amp;b&quot;123&quot;[..], ErrorKind::Tag))));
-/// assert_eq!(parser(b&quot;\x00\x03a&quot;), Err(Err::Incomplete(Needed::new(2))));
+/// assert_eq!(parser(b"\x00\x03abcefg"), Ok((&amp;b"efg"[..], &amp;b"abc"[..])));
+/// assert_eq!(parser(b"\x00\x03123123"), Err(Err::Error(Error::new(&amp;b"123"[..], ErrorKind::Tag))));
+/// assert_eq!(parser(b"\x00\x03a"), Err(Err::Incomplete(Needed::new(2))));
 /// ```
 </span><span class="kw">pub fn </span>length_value&lt;I, O, N, E, F, G&gt;(<span class="kw-2">mut </span>f: F, <span class="kw-2">mut </span>g: G) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, O, E&gt;
 <span class="kw">where
@@ -2055,15 +2057,15 @@
 ///
 /// fn parser(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], Vec&lt;&amp;[u8]&gt;&gt; {
 ///   length_count(map(u8, |i| {
-///      println!(&quot;got number: {}&quot;, i);
+///      println!("got number: {}", i);
 ///      i
-///   }), tag(&quot;abc&quot;))(s)
+///   }), tag("abc"))(s)
 /// }
 ///
-/// assert_eq!(parser(&amp;b&quot;\x02abcabcabc&quot;[..]), Ok(((&amp;b&quot;abc&quot;[..], vec![&amp;b&quot;abc&quot;[..], &amp;b&quot;abc&quot;[..]]))));
-/// assert_eq!(parser(b&quot;\x03123123123&quot;), Err(Err::Error(Error::new(&amp;b&quot;123123123&quot;[..], ErrorKind::Tag))));
+/// assert_eq!(parser(&amp;b"\x02abcabcabc"[..]), Ok(((&amp;b"abc"[..], vec![&amp;b"abc"[..], &amp;b"abc"[..]]))));
+/// assert_eq!(parser(b"\x03123123123"), Err(Err::Error(Error::new(&amp;b"123123123"[..], ErrorKind::Tag))));
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">pub fn </span>length_count&lt;I, O, N, E, F, G&gt;(<span class="kw-2">mut </span>f: F, <span class="kw-2">mut </span>g: G) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, Vec&lt;O&gt;, E&gt;
 <span class="kw">where
   </span>I: Clone,

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/linker.rs`."><title>linker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/linker.rs`."><title>linker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -357,15 +359,15 @@
                 <span class="comment">// TODO: Linker for Windows is missing, see also:
                 // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
                 </span>LinkerType::Internal =&gt; {
-                    <span class="kw">let </span>[platform, target_os] = target.split(<span class="string">&#39;-&#39;</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">1</span>..=<span class="number">2</span>] <span class="kw">else </span>{
+                    <span class="kw">let </span>[platform, target_os] = target.split(<span class="string">'-'</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">1</span>..=<span class="number">2</span>] <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(LinkerError::Target(target.into()));
                     };
                     <span class="kw">match </span>(platform, target_os) {
-                        (<span class="kw">_</span>, <span class="string">&quot;win32&quot;</span>) | (<span class="kw">_</span>, <span class="string">&quot;windows&quot;</span>) | (<span class="string">&quot;win32&quot;</span>, <span class="kw">_</span>) | (<span class="string">&quot;windows&quot;</span>, <span class="kw">_</span>) =&gt; {
+                        (<span class="kw">_</span>, <span class="string">"win32"</span>) | (<span class="kw">_</span>, <span class="string">"windows"</span>) | (<span class="string">"win32"</span>, <span class="kw">_</span>) | (<span class="string">"windows"</span>, <span class="kw">_</span>) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(LinkerError::Target(target_os.into()))
                         }
 
-                        (<span class="kw">_</span>, <span class="string">&quot;darwin&quot;</span>) =&gt; Box::new(CcLinker::new(<span class="string">&quot;clang&quot;</span>)),
+                        (<span class="kw">_</span>, <span class="string">"darwin"</span>) =&gt; Box::new(CcLinker::new(<span class="string">"clang"</span>)),
 
                         <span class="kw">_ </span>=&gt; Box::new(LdLinker::new()),
                     }
@@ -377,25 +379,25 @@
     }
 
     <span class="doccomment">/// Add an object file or static library to linker input
-    </span><span class="kw">pub fn </span>add_obj&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>add_obj&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self </span>{
         <span class="self">self</span>.linker.add_obj(path);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add a library seaBoxh path to look in for libraries
-    </span><span class="kw">pub fn </span>add_lib_path&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>add_lib_path&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self </span>{
         <span class="self">self</span>.linker.add_lib_path(path);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add a library path to look in for libraries
-    </span><span class="kw">pub fn </span>add_lib&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>add_lib&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self </span>{
         <span class="self">self</span>.linker.add_lib(path);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Add path to system root
-    </span><span class="kw">pub fn </span>add_sysroot&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>add_sysroot&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">Self </span>{
         <span class="self">self</span>.linker.add_sysroot(path);
         <span class="self">self
     </span>}
@@ -427,8 +429,8 @@
         <span class="prelude-val">Ok</span>(path)
     }
 
-    <span class="doccomment">/// Check if the path is valid, log an error if it wasn&#39;t
-    </span><span class="kw">fn </span>get_str_from_path&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+    <span class="doccomment">/// Check if the path is valid, log an error if it wasn't
+    </span><span class="kw">fn </span>get_str_from_path&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Path) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
         <span class="kw">let </span>filepath = path.to_str();
         <span class="kw">if </span>filepath.is_none() {
             <span class="self">self</span>.errors.push(LinkerError::Path(path.into()));
@@ -455,21 +457,21 @@
 
     <span class="kw">fn </span>get_build_command(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, LinkerError&gt; {
         <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
-            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">&quot;{e} for linker: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>)))
+            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"{} {}"</span>, linker_location.to_string_lossy(), <span class="self">self</span>.args.join(<span class="string">" "</span>)))
     }
 
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
         <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
-            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">&quot;{e} for linker: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
+            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
 
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Linker command : {}&quot;</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"Linker command : {}"</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
 
         <span class="kw">let </span>status = Command::new(linker_location).args(<span class="kw-2">&amp;</span><span class="self">self</span>.args).status()<span class="question-mark">?</span>;
         <span class="kw">if </span>status.success() {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(LinkerError::Link(<span class="string">&quot;An error occured during linking&quot;</span>.to_string()))
+            <span class="prelude-val">Err</span>(LinkerError::Link(<span class="string">"An error occured during linking"</span>.to_string()))
         }
     }
 }
@@ -490,11 +492,11 @@
     }
 
     <span class="kw">fn </span>get_build_command(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, LinkerError&gt; {
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;ld.lld {}&quot;</span>, <span class="self">self</span>.args.join(<span class="string">&quot; &quot;</span>)))
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"ld.lld {}"</span>, <span class="self">self</span>.args.join(<span class="string">" "</span>)))
     }
 
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Linker arguments : {}&quot;</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"Linker arguments : {}"</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
         lld_rs::link(lld_rs::LldFlavor::Elf, <span class="kw-2">&amp;</span><span class="self">self</span>.args).ok().map_err(LinkerError::Link)
     }
 }
@@ -510,11 +512,11 @@
     }
 
     <span class="kw">fn </span>get_build_command(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, LinkerError&gt; {
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;ld.lld {}&quot;</span>, <span class="self">self</span>.args.lock()<span class="question-mark">?</span>.join(<span class="string">&quot; &quot;</span>)))
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"ld.lld {}"</span>, <span class="self">self</span>.args.lock()<span class="question-mark">?</span>.join(<span class="string">" "</span>)))
     }
 
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-        <span class="macro">println!</span>(<span class="string">&quot;Test Executing build command {}&quot;</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
+        <span class="macro">println!</span>(<span class="string">"Test Executing build command {}"</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -529,31 +531,31 @@
     }
 
     <span class="kw">fn </span>add_lib_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">&quot;-L{path}&quot;</span>));
+        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">"-L{path}"</span>));
     }
 
     <span class="kw">fn </span>add_lib(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">&quot;-l{path}&quot;</span>));
+        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">"-l{path}"</span>));
     }
 
     <span class="kw">fn </span>add_sysroot(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">&quot;--sysroot={path}&quot;</span>));
+        <span class="self">self</span>.add_arg(<span class="macro">format!</span>(<span class="string">"--sysroot={path}"</span>));
     }
 
     <span class="kw">fn </span>build_shared_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="string">&quot;--shared&quot;</span>.into());
-        <span class="self">self</span>.add_arg(<span class="string">&quot;-o&quot;</span>.into());
+        <span class="self">self</span>.add_arg(<span class="string">"--shared"</span>.into());
+        <span class="self">self</span>.add_arg(<span class="string">"-o"</span>.into());
         <span class="self">self</span>.add_arg(path.into());
     }
 
     <span class="kw">fn </span>build_exectuable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="string">&quot;-o&quot;</span>.into());
+        <span class="self">self</span>.add_arg(<span class="string">"-o"</span>.into());
         <span class="self">self</span>.add_arg(path.into());
     }
 
     <span class="kw">fn </span>build_relocatable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.add_arg(<span class="string">&quot;-r&quot;</span>.into()); <span class="comment">// equivalent to --relocatable
-        </span><span class="self">self</span>.add_arg(<span class="string">&quot;-o&quot;</span>.into());
+        <span class="self">self</span>.add_arg(<span class="string">"-r"</span>.into()); <span class="comment">// equivalent to --relocatable
+        </span><span class="self">self</span>.add_arg(<span class="string">"-o"</span>.into());
         <span class="self">self</span>.add_arg(path.into());
     }
 }
@@ -575,15 +577,15 @@
     <span class="kw">fn </span>from(error: LinkerError) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>error {
             LinkerError::Link(e) =&gt; {
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;An error occurred during linking: {e}&quot;</span>)).with_error_code(<span class="string">&quot;E077&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"An error occurred during linking: {e}"</span>)).with_error_code(<span class="string">"E077"</span>)
             }
             LinkerError::Path(path) =&gt; {
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, path.display()))
-                    .with_error_code(<span class="string">&quot;E077&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"path contains invalid UTF-8 characters: {}"</span>, path.display()))
+                    .with_error_code(<span class="string">"E077"</span>)
             }
             LinkerError::Target(tgt) =&gt; {
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {tgt}&quot;</span>))
-                    .with_error_code(<span class="string">&quot;E077&quot;</span>)
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"linker not available for target platform: {tgt}"</span>))
+                    .with_error_code(<span class="string">"E077"</span>)
             }
         }
     }
@@ -602,18 +604,18 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>windows_target_triple_should_result_in_error() {
         <span class="kw">for </span>target <span class="kw">in </span><span class="kw-2">&amp;</span>[
-            <span class="string">&quot;x86_64-pc-windows-gnu&quot;</span>,
-            <span class="string">&quot;x86_64-pc-win32-gnu&quot;</span>,
-            <span class="string">&quot;x86_64-windows-gnu&quot;</span>,
-            <span class="string">&quot;x86_64-win32-gnu&quot;</span>,
-            <span class="string">&quot;aarch64-pc-windows-gnu&quot;</span>,
-            <span class="string">&quot;aarch64-pc-win32-gnu&quot;</span>,
-            <span class="string">&quot;aarch64-windows-gnu&quot;</span>,
-            <span class="string">&quot;aarch64-win32-gnu&quot;</span>,
-            <span class="string">&quot;i686-pc-windows-gnu&quot;</span>,
-            <span class="string">&quot;i686-pc-win32-gnu&quot;</span>,
-            <span class="string">&quot;i686-windows-gnu&quot;</span>,
-            <span class="string">&quot;i686-win32-gnu&quot;</span>,
+            <span class="string">"x86_64-pc-windows-gnu"</span>,
+            <span class="string">"x86_64-pc-win32-gnu"</span>,
+            <span class="string">"x86_64-windows-gnu"</span>,
+            <span class="string">"x86_64-win32-gnu"</span>,
+            <span class="string">"aarch64-pc-windows-gnu"</span>,
+            <span class="string">"aarch64-pc-win32-gnu"</span>,
+            <span class="string">"aarch64-windows-gnu"</span>,
+            <span class="string">"aarch64-win32-gnu"</span>,
+            <span class="string">"i686-pc-windows-gnu"</span>,
+            <span class="string">"i686-pc-win32-gnu"</span>,
+            <span class="string">"i686-windows-gnu"</span>,
+            <span class="string">"i686-win32-gnu"</span>,
         ] {
             <span class="macro">assert!</span>(Linker::new(target, LinkerType::Internal).is_err());
         }
@@ -622,7 +624,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>non_windows_target_triple_should_result_in_ok() {
         <span class="kw">for </span>target <span class="kw">in
-            </span><span class="kw-2">&amp;</span>[<span class="string">&quot;x86_64-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-unknown-linux-gnu&quot;</span>, <span class="string">&quot;aarch64-apple-darwin&quot;</span>]
+            </span><span class="kw-2">&amp;</span>[<span class="string">"x86_64-linux-gnu"</span>, <span class="string">"x86_64-pc-linux-gnu"</span>, <span class="string">"x86_64-unknown-linux-gnu"</span>, <span class="string">"aarch64-apple-darwin"</span>]
         {
             <span class="macro">assert!</span>(Linker::new(target, LinkerType::Internal).is_ok());
         }

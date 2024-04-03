@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/attributes.rs`."><title>attributes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/attributes.rs`."><title>attributes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -325,7 +327,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::types::AnyTypeEnum;
 
 <span class="comment">// SubTypes: Attribute&lt;Enum&gt;, Attribute&lt;String&gt;
-// REVIEW: Should Attributes have a &#39;ctx lifetime?
+// REVIEW: Should Attributes have a 'ctx lifetime?
 </span><span class="doccomment">/// Functions, function parameters, and return types can have `Attribute`s to indicate
 /// how they should be treated by optimizations and code generation.
 </span><span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -374,7 +376,7 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let string_attribute = context.create_string_attribute(&quot;my_key_123&quot;, &quot;my_val&quot;);
+    /// let string_attribute = context.create_string_attribute("my_key_123", "my_val");
     ///
     /// assert!(string_attribute.is_string());
     /// ```
@@ -393,7 +395,7 @@
     /// use inkwell::attributes::Attribute;
     ///
     /// let context = Context::create();
-    /// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);
+    /// let kind_id = Attribute::get_named_enum_kind_id("sret");
     /// let type_attribute = context.create_type_attribute(
     ///     kind_id,
     ///     context.i32_type().into(),
@@ -413,12 +415,12 @@
     /// ```no_run
     /// use inkwell::attributes::Attribute;
     ///
-    /// // This kind id doesn&#39;t exist:
-    /// assert_eq!(Attribute::get_named_enum_kind_id(&quot;foobar&quot;), 0);
+    /// // This kind id doesn't exist:
+    /// assert_eq!(Attribute::get_named_enum_kind_id("foobar"), 0);
     ///
     /// // These are real kind ids:
-    /// assert_eq!(Attribute::get_named_enum_kind_id(&quot;align&quot;), 1);
-    /// assert_eq!(Attribute::get_named_enum_kind_id(&quot;builtin&quot;), 5);
+    /// assert_eq!(Attribute::get_named_enum_kind_id("align"), 1);
+    /// assert_eq!(Attribute::get_named_enum_kind_id("builtin"), 5);
     /// ```
     </span><span class="kw">pub fn </span>get_named_enum_kind_id(name: <span class="kw-2">&amp;</span>str) -&gt; u32 {
         <span class="kw">unsafe </span>{ LLVMGetEnumAttributeKindForName(name.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>::libc::c_char, name.len()) }
@@ -464,7 +466,7 @@
     /// use inkwell::types::AnyType;
     ///
     /// let context = Context::create();
-    /// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);
+    /// let kind_id = Attribute::get_named_enum_kind_id("sret");
     /// let any_type = context.i32_type().as_any_type_enum();
     /// let type_attribute = context.create_type_attribute(
     ///     kind_id,
@@ -529,9 +531,9 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     ///
-    /// assert_eq!(string_attribute.get_string_kind_id().to_str(), Ok(&quot;my_key&quot;));
+    /// assert_eq!(string_attribute.get_string_kind_id().to_str(), Ok("my_key"));
     /// ```
     </span><span class="comment">// TODO: Check if null, return option
     </span><span class="kw">pub fn </span>get_string_kind_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CStr {
@@ -551,9 +553,9 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     ///
-    /// assert_eq!(string_attribute.get_string_value().to_str(), Ok(&quot;my_val&quot;));
+    /// assert_eq!(string_attribute.get_string_value().to_str(), Ok("my_val"));
     /// ```
     </span><span class="kw">pub fn </span>get_string_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CStr {
         <span class="macro">assert!</span>(<span class="self">self</span>.is_string()); <span class="comment">// FIXME: SubTypes
@@ -574,7 +576,7 @@
     /// use inkwell::types::AnyType;
     ///
     /// let context = Context::create();
-    /// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);
+    /// let kind_id = Attribute::get_named_enum_kind_id("sret");
     /// let any_type = context.i32_type().as_any_type_enum();
     /// let type_attribute = context.create_type_attribute(
     ///     kind_id,
@@ -596,9 +598,9 @@
 <span class="doccomment">/// An `AttributeLoc` determines where on a function an attribute is assigned to.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub enum </span>AttributeLoc {
-    <span class="doccomment">/// Assign to the `FunctionValue`&#39;s return type.
+    <span class="doccomment">/// Assign to the `FunctionValue`'s return type.
     </span>Return,
-    <span class="doccomment">/// Assign to one of the `FunctionValue`&#39;s params (0-indexed).
+    <span class="doccomment">/// Assign to one of the `FunctionValue`'s params (0-indexed).
     </span>Param(u32),
     <span class="doccomment">/// Assign to the `FunctionValue` itself.
     </span>Function,
@@ -611,7 +613,7 @@
             AttributeLoc::Param(index) =&gt; {
                 <span class="macro">assert!</span>(
                     index &lt;= u32::max_value() - <span class="number">2</span>,
-                    <span class="string">&quot;Param index must be &lt;= u32::max_value() - 2&quot;
+                    <span class="string">"Param index must be &lt;= u32::max_value() - 2"
                 </span>);
 
                 index + <span class="number">1

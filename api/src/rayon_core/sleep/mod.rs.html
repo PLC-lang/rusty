@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/sleep/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/sleep/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -345,7 +347,7 @@
 ///
 /// [`README.md`] README.md
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Sleep {
-    <span class="doccomment">/// One &quot;sleep state&quot; per worker. Used to track if a worker is sleeping and to have
+    <span class="doccomment">/// One "sleep state" per worker. Used to track if a worker is sleeping and to have
     /// them block.
     </span>worker_sleep_states: Vec&lt;CachePadded&lt;WorkerSleepState&gt;&gt;,
 
@@ -369,7 +371,7 @@
     </span>jobs_counter: JobsEventCounter,
 }
 
-<span class="doccomment">/// The &quot;sleep state&quot; for an individual worker.
+<span class="doccomment">/// The "sleep state" for an individual worker.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>WorkerSleepState {
     <span class="doccomment">/// Set to true when the worker goes to sleep; set to false when
@@ -471,7 +473,7 @@
             </span><span class="macro">debug_assert!</span>(idle_state.jobs_counter.is_sleepy());
             <span class="kw">if </span>counters.jobs_counter() != idle_state.jobs_counter {
                 <span class="comment">// JEC has changed, so a new job was posted, but for some reason
-                // we didn&#39;t see it. We should return to just before the SLEEPY
+                // we didn't see it. We should return to just before the SLEEPY
                 // state so we can do another search and (if we fail to find
                 // work) go back to sleep.
                 </span>idle_state.wake_partly();
@@ -479,7 +481,7 @@
                 <span class="kw">return</span>;
             }
 
-            <span class="comment">// Otherwise, let&#39;s move from IDLE to SLEEPING.
+            <span class="comment">// Otherwise, let's move from IDLE to SLEEPING.
             </span><span class="kw">if </span><span class="self">self</span>.counters.try_add_sleeping_thread(counters) {
                 <span class="kw">break</span>;
             }
@@ -491,20 +493,20 @@
         // deadlock in the very unlikely event that
         //
         // - an external job is being injected while we are sleepy
-        // - that job triggers the rollover over the JEC such that we don&#39;t see it
+        // - that job triggers the rollover over the JEC such that we don't see it
         // - we are the last active worker thread
         </span>std::sync::atomic::fence(Ordering::SeqCst);
         <span class="kw">if </span>has_injected_jobs() {
-            <span class="comment">// If we see an externally injected job, then we have to &#39;wake
-            // ourselves up&#39;. (Ordinarily, `sub_sleeping_thread` is invoked by
+            <span class="comment">// If we see an externally injected job, then we have to 'wake
+            // ourselves up'. (Ordinarily, `sub_sleeping_thread` is invoked by
             // the one that wakes us.)
             </span><span class="self">self</span>.counters.sub_sleeping_thread();
         } <span class="kw">else </span>{
-            <span class="comment">// If we don&#39;t see an injected job (the normal case), then flag
+            <span class="comment">// If we don't see an injected job (the normal case), then flag
             // ourselves as asleep and wait till we are notified.
             //
             // (Note that `is_blocked` is held under a mutex and the mutex was
-            // acquired *before* we incremented the &quot;sleepy counter&quot;. This means
+            // acquired *before* we incremented the "sleepy counter". This means
             // that whomever is coming to wake us will have to wait until we
             // release the mutex in the call to `wait`, so they will see this
             // boolean as true.)
@@ -535,7 +537,7 @@
     /// # Parameters
     ///
     /// - `num_jobs` -- lower bound on number of jobs available for stealing.
-    ///   We&#39;ll try to get at least one thread per job.
+    ///   We'll try to get at least one thread per job.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_injected_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, num_jobs: u32, queue_was_empty: bool) {
         <span class="comment">// This fence is needed to guarantee that threads
@@ -546,7 +548,7 @@
         <span class="self">self</span>.new_jobs(num_jobs, queue_was_empty)
     }
 
-    <span class="doccomment">/// Signals that `num_jobs` new jobs were pushed onto a thread&#39;s
+    <span class="doccomment">/// Signals that `num_jobs` new jobs were pushed onto a thread's
     /// local deque. This function will try to ensure that there are
     /// threads available to process them, waking threads from sleep
     /// if necessary. However, this is not guaranteed: under certain
@@ -557,7 +559,7 @@
     /// # Parameters
     ///
     /// - `num_jobs` -- lower bound on number of jobs available for stealing.
-    ///   We&#39;ll try to get at least one thread per job.
+    ///   We'll try to get at least one thread per job.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_internal_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, num_jobs: u32, queue_was_empty: bool) {
         <span class="self">self</span>.new_jobs(num_jobs, queue_was_empty)
@@ -586,7 +588,7 @@
         <span class="kw">let </span>num_sleepers = num_sleepers <span class="kw">as </span>u32;
 
         <span class="comment">// If the queue is non-empty, then we always wake up a worker
-        // -- clearly the existing idle jobs aren&#39;t enough. Otherwise,
+        // -- clearly the existing idle jobs aren't enough. Otherwise,
         // check to see if we have enough idle workers.
         </span><span class="kw">if </span>!queue_was_empty {
             <span class="kw">let </span>num_to_wake = std::cmp::min(num_jobs, num_sleepers);

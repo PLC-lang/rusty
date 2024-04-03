@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/paths.rs`."><title>paths.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/paths.rs`."><title>paths.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -302,7 +304,7 @@
     }
 
     <span class="doccomment">/// Return an iterator over the underlying vector of path components.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, PathChunk&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'_</span>, PathChunk&gt; {
         <span class="self">self</span>.<span class="number">0</span>.iter()
     }
     <span class="doccomment">/// Take the last pointer chunk.
@@ -339,16 +341,16 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>JSONPointer {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0</span>.is_empty() {
             <span class="kw">for </span>chunk <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
-                f.write_char(<span class="string">&#39;/&#39;</span>)<span class="question-mark">?</span>;
+                f.write_char(<span class="string">'/'</span>)<span class="question-mark">?</span>;
                 <span class="kw">match </span>chunk {
                     PathChunk::Property(value) =&gt; {
                         <span class="kw">for </span>ch <span class="kw">in </span>value.chars() {
                             <span class="kw">match </span>ch {
-                                <span class="string">&#39;/&#39; </span>=&gt; f.write_str(<span class="string">&quot;~1&quot;</span>)<span class="question-mark">?</span>,
-                                <span class="string">&#39;~&#39; </span>=&gt; f.write_str(<span class="string">&quot;~0&quot;</span>)<span class="question-mark">?</span>,
+                                <span class="string">'/' </span>=&gt; f.write_str(<span class="string">"~1"</span>)<span class="question-mark">?</span>,
+                                <span class="string">'~' </span>=&gt; f.write_str(<span class="string">"~0"</span>)<span class="question-mark">?</span>,
                                 <span class="kw">_ </span>=&gt; f.write_char(ch)<span class="question-mark">?</span>,
                             }
                         }
@@ -369,12 +371,12 @@
 /// Example:
 /// ```json
 /// {
-///    &quot;cmd&quot;: [&quot;ls&quot;, &quot;-lh&quot;, &quot;/home&quot;]
+///    "cmd": ["ls", "-lh", "/home"]
 /// }
 /// ```
 ///
-/// To extract &quot;/home&quot; from the JSON object above, we need to take two steps:
-/// 1. Go into property &quot;cmd&quot;. It corresponds to `PathChunk::Property(&quot;cmd&quot;.to_string())`.
+/// To extract "/home" from the JSON object above, we need to take two steps:
+/// 1. Go into property "cmd". It corresponds to `PathChunk::Property("cmd".to_string())`.
 /// 2. Take the 2nd value from the array - `PathChunk::Index(2)`
 ///
 /// The primary purpose of this enum is to avoid converting indexes to strings during validation.
@@ -384,16 +386,16 @@
     <span class="doccomment">/// Index within a JSON array.
     </span>Index(usize),
     <span class="doccomment">/// JSON Schema keyword.
-    </span>Keyword(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    </span>Keyword(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
 }
 
 <span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InstancePath&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InstancePath&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) chunk: <span class="prelude-ty">Option</span>&lt;PathChunk&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) parent: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>InstancePath&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) parent: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>InstancePath&lt;<span class="lifetime">'a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InstancePath&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; InstancePath&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
         InstancePath {
             chunk: <span class="prelude-val">None</span>,
@@ -402,14 +404,14 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, chunk: <span class="kw">impl </span>Into&lt;PathChunk&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, chunk: <span class="kw">impl </span>Into&lt;PathChunk&gt;) -&gt; <span class="self">Self </span>{
         InstancePath {
             chunk: <span class="prelude-val">Some</span>(chunk.into()),
             parent: <span class="prelude-val">Some</span>(<span class="self">self</span>),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_vec(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Vec&lt;PathChunk&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_vec(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; Vec&lt;PathChunk&gt; {
         <span class="comment">// The path capacity should be the average depth so we avoid extra allocations
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = Vec::with_capacity(<span class="number">6</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="self">self</span>;
@@ -436,9 +438,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JSONPointer {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PathChunk;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, PathChunk&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>JSONPointer {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>PathChunk;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>, PathChunk&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.<span class="number">0</span>.iter()
@@ -451,9 +453,9 @@
         PathChunk::Property(value.into_boxed_str())
     }
 }
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; <span class="kw">for </span>PathChunk {
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; <span class="kw">for </span>PathChunk {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
         PathChunk::Keyword(value)
     }
 }
@@ -464,16 +466,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>InstancePath&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>JSONPointer {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>InstancePath&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>JSONPointer {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>InstancePath&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(path: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>InstancePath&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
         JSONPointer(path.to_vec())
     }
 }
 
-<span class="kw">impl </span>From&lt;InstancePath&lt;<span class="lifetime">&#39;_</span>&gt;&gt; <span class="kw">for </span>JSONPointer {
+<span class="kw">impl </span>From&lt;InstancePath&lt;<span class="lifetime">'_</span>&gt;&gt; <span class="kw">for </span>JSONPointer {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(path: InstancePath&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(path: InstancePath&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="self">Self </span>{
         JSONPointer(path.to_vec())
     }
 }
@@ -531,7 +533,7 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>AbsolutePath {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="self">self</span>.<span class="number">0</span>.fmt(f)
     }
 }
@@ -555,10 +557,10 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_pointer_to_string() {
-        <span class="kw">let </span>chunks = [<span class="string">&quot;/&quot;</span>, <span class="string">&quot;~&quot;</span>];
+        <span class="kw">let </span>chunks = [<span class="string">"/"</span>, <span class="string">"~"</span>];
         <span class="kw">let </span>pointer = JSONPointer::from(<span class="kw-2">&amp;</span>chunks[..]).to_string();
-        <span class="macro">assert_eq!</span>(pointer, <span class="string">&quot;/~1/~0&quot;</span>);
-        <span class="kw">let </span>data = <span class="macro">json!</span>({<span class="string">&quot;/&quot;</span>: {<span class="string">&quot;~&quot;</span>: <span class="number">42</span>}});
+        <span class="macro">assert_eq!</span>(pointer, <span class="string">"/~1/~0"</span>);
+        <span class="kw">let </span>data = <span class="macro">json!</span>({<span class="string">"/"</span>: {<span class="string">"~"</span>: <span class="number">42</span>}});
         <span class="macro">assert_eq!</span>(data.pointer(<span class="kw-2">&amp;</span>pointer), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>)))
     }
 }

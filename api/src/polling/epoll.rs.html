@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-3.5.0/src/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="polling"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-3.5.0/src/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../polling/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -497,9 +499,9 @@
 <span class="kw">use </span>std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, RawFd};
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+<span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
 </span><span class="kw">use </span>rustix::event::{eventfd, EventfdFlags};
-<span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+<span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
 </span><span class="kw">use </span>rustix::time::{
     timerfd_create, timerfd_settime, Itimerspec, TimerfdClockId, TimerfdFlags, TimerfdTimerFlags,
     Timespec,
@@ -525,7 +527,7 @@
     <span class="doccomment">/// File descriptor for the timerfd that produces timeouts.
     ///
     /// Redox does not support timerfd.
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
     </span>timer_fd: <span class="prelude-ty">Option</span>&lt;OwnedFd&gt;,
 }
 
@@ -539,7 +541,7 @@
 
         <span class="comment">// Set up notifier and timerfd.
         </span><span class="kw">let </span>notifier = Notifier::new()<span class="question-mark">?</span>;
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
         </span><span class="kw">let </span>timer_fd = timerfd_create(
             TimerfdClockId::Monotonic,
             TimerfdFlags::CLOEXEC | TimerfdFlags::NONBLOCK,
@@ -549,12 +551,12 @@
         <span class="kw">let </span>poller = Poller {
             epoll_fd,
             notifier,
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
             </span>timer_fd,
         };
 
         <span class="kw">unsafe </span>{
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>timer_fd) = poller.timer_fd {
                 poller.add(
                     timer_fd.as_raw_fd(),
@@ -573,7 +575,7 @@
         <span class="macro">tracing::trace!</span>(
             epoll_fd = <span class="question-mark">?</span>poller.epoll_fd.as_raw_fd(),
             notifier = <span class="question-mark">?</span>poller.notifier,
-            <span class="string">&quot;new&quot;</span>,
+            <span class="string">"new"</span>,
         );
         <span class="prelude-val">Ok</span>(poller)
     }
@@ -593,10 +595,10 @@
     /// # Safety
     ///
     /// The `fd` must be a valid file descriptor. The usual condition of remaining registered in
-    /// the `Poller` doesn&#39;t apply to `epoll`.
+    /// the `Poller` doesn't apply to `epoll`.
     </span><span class="kw">pub unsafe fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;add&quot;</span>,
+            <span class="string">"add"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             <span class="question-mark">?</span>fd,
             <span class="question-mark">?</span>ev,
@@ -614,9 +616,9 @@
     }
 
     <span class="doccomment">/// Modifies an existing file descriptor.
-    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>modify(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, ev: Event, mode: PollMode) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;modify&quot;</span>,
+            <span class="string">"modify"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             <span class="question-mark">?</span>fd,
             <span class="question-mark">?</span>ev,
@@ -634,9 +636,9 @@
     }
 
     <span class="doccomment">/// Deletes a file descriptor.
-    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>delete(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;delete&quot;</span>,
+            <span class="string">"delete"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             <span class="question-mark">?</span>fd,
         );
@@ -651,13 +653,13 @@
     </span><span class="attr">#[allow(clippy::needless_update)]
     </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span>Events, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;wait&quot;</span>,
+            <span class="string">"wait"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             <span class="question-mark">?</span>timeout,
         );
         <span class="kw">let </span>_enter = span.enter();
 
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>timer_fd) = <span class="self">self</span>.timer_fd {
             <span class="comment">// Configure the timeout using timerfd.
             </span><span class="kw">let </span>new_val = Itimerspec {
@@ -684,9 +686,9 @@
             )<span class="question-mark">?</span>;
         }
 
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
         </span><span class="kw">let </span>timer_fd = <span class="kw-2">&amp;</span><span class="self">self</span>.timer_fd;
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"redox"</span>)]
         </span><span class="kw">let </span>timer_fd: <span class="prelude-ty">Option</span>&lt;core::convert::Infallible&gt; = <span class="prelude-val">None</span>;
 
         <span class="comment">// Timeout in milliseconds for epoll.
@@ -708,7 +710,7 @@
         <span class="macro">tracing::trace!</span>(
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             res = <span class="question-mark">?</span>events.list.len(),
-            <span class="string">&quot;new events&quot;</span>,
+            <span class="string">"new events"</span>,
         );
 
         <span class="comment">// Clear the notification (if received) and re-register interest in it.
@@ -724,7 +726,7 @@
     <span class="doccomment">/// Sends a notification to wake up the current or next `wait()` call.
     </span><span class="kw">pub fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;notify&quot;</span>,
+            <span class="string">"notify"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             notifier = <span class="question-mark">?</span><span class="self">self</span>.notifier,
         );
@@ -742,7 +744,7 @@
 }
 
 <span class="kw">impl </span>AsFd <span class="kw">for </span>Poller {
-    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.epoll_fd.as_fd()
     }
 }
@@ -750,13 +752,13 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>Poller {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(
-            <span class="string">&quot;drop&quot;</span>,
+            <span class="string">"drop"</span>,
             epoll_fd = <span class="question-mark">?</span><span class="self">self</span>.epoll_fd.as_raw_fd(),
             notifier = <span class="question-mark">?</span><span class="self">self</span>.notifier,
         );
         <span class="kw">let </span>_enter = span.enter();
 
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(timer_fd) = <span class="self">self</span>.timer_fd.take() {
             <span class="kw">let _ </span>= <span class="self">self</span>.delete(timer_fd.as_fd());
         }
@@ -765,7 +767,7 @@
 }
 
 <span class="doccomment">/// `timespec` value that equals zero.
-</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+</span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
 </span><span class="kw">const </span>TS_ZERO: Timespec = <span class="kw">unsafe </span>{ std::mem::transmute([<span class="number">0u8</span>; std::mem::size_of::&lt;Timespec&gt;()]) };
 
 <span class="doccomment">/// Get the EPOLL flags for the interest.
@@ -813,7 +815,7 @@
     }
 
     <span class="doccomment">/// Iterates over I/O events.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.list.iter().map(|ev| {
             <span class="kw">let </span>flags = ev.flags;
             Event {
@@ -887,14 +889,14 @@
 <span class="doccomment">/// The notifier for Linux.
 ///
 /// Certain container runtimes do not expose eventfd to the client, as it relies on the host and
-/// can be used to &quot;escape&quot; the container under certain conditions. Gramine is the prime example,
+/// can be used to "escape" the container under certain conditions. Gramine is the prime example,
 /// see [here](gramine). In this case, fall back to using a pipe.
 ///
 /// [gramine]: https://gramine.readthedocs.io/en/stable/manifest-syntax.html#allowing-eventfd
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">enum </span>Notifier {
     <span class="doccomment">/// The primary notifier, using eventfd.
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
     </span>EventFd(OwnedFd),
 
     <span class="doccomment">/// The fallback notifier, using a pipe.
@@ -911,19 +913,19 @@
     <span class="doccomment">/// Create a new notifier.
     </span><span class="kw">fn </span>new() -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// Skip eventfd for testing if necessary.
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+        </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
         </span>{
             <span class="kw">if </span>!<span class="macro">cfg!</span>(polling_test_epoll_pipe) {
                 <span class="comment">// Try to create an eventfd.
                 </span><span class="kw">match </span>eventfd(<span class="number">0</span>, EventfdFlags::CLOEXEC | EventfdFlags::NONBLOCK) {
                     <span class="prelude-val">Ok</span>(fd) =&gt; {
-                        <span class="macro">tracing::trace!</span>(<span class="string">&quot;created eventfd for notifier&quot;</span>);
+                        <span class="macro">tracing::trace!</span>(<span class="string">"created eventfd for notifier"</span>);
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(Notifier::EventFd(fd));
                     }
 
                     <span class="prelude-val">Err</span>(err) =&gt; {
                         <span class="macro">tracing::warn!</span>(
-                            <span class="string">&quot;eventfd() failed with error ({}), falling back to pipe&quot;</span>,
+                            <span class="string">"eventfd() failed with error ({}), falling back to pipe"</span>,
                             err
                         );
                     }
@@ -946,9 +948,9 @@
     }
 
     <span class="doccomment">/// The file descriptor to register in the poller.
-    </span><span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
             </span>Notifier::EventFd(fd) =&gt; fd.as_fd(),
             Notifier::Pipe {
                 read_pipe: read, ..
@@ -959,7 +961,7 @@
     <span class="doccomment">/// Notify the poller.
     </span><span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
             </span><span class="self">Self</span>::EventFd(fd) =&gt; {
                 <span class="kw">let </span>buf: [u8; <span class="number">8</span>] = <span class="number">1u64</span>.to_ne_bytes();
                 <span class="kw">let _ </span>= write(fd, <span class="kw-2">&amp;</span>buf);
@@ -974,7 +976,7 @@
     <span class="doccomment">/// Clear the notification.
     </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
             </span><span class="self">Self</span>::EventFd(fd) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">8</span>];
                 <span class="kw">let _ </span>= read(fd, <span class="kw-2">&amp;mut </span>buf);

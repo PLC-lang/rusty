@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/./src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/./src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_driver/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -964,186 +966,186 @@
 
 <span class="attr">#[derive(Parser, Debug)]
 #[clap(
-    group = ArgGroup::new(<span class="string">&quot;format&quot;</span>),
-    about = <span class="string">&quot;IEC61131-3 Structured Text compiler powered by Rust &amp; LLVM &quot;</span>,
+    group = ArgGroup::new(<span class="string">"format"</span>),
+    about = <span class="string">"IEC61131-3 Structured Text compiler powered by Rust &amp; LLVM "</span>,
     version,
 )]
 #[clap(propagate_version = <span class="bool-val">true</span>)]
 #[clap(subcommand_negates_reqs = <span class="bool-val">true</span>)]
 #[clap(subcommand_precedence_over_arg = <span class="bool-val">true</span>)]
 </span><span class="kw">pub struct </span>CompileParameters {
-    <span class="attr">#[clap(short, long, global = <span class="bool-val">true</span>, name = <span class="string">&quot;output-file&quot;</span>, help = <span class="string">&quot;Write output to &lt;output-file&gt;&quot;</span>)]
+    <span class="attr">#[clap(short, long, global = <span class="bool-val">true</span>, name = <span class="string">"output-file"</span>, help = <span class="string">"Write output to &lt;output-file&gt;"</span>)]
     </span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
     <span class="attr">#[clap(
-        long = <span class="string">&quot;ir&quot;</span>,
-        group = <span class="string">&quot;format&quot;</span>,
+        long = <span class="string">"ir"</span>,
+        group = <span class="string">"format"</span>,
         global = <span class="bool-val">true</span>,
-        help = <span class="string">&quot;Emit IR (LLVM Intermediate Representation) as output&quot;
+        help = <span class="string">"Emit IR (LLVM Intermediate Representation) as output"
     </span>)]
     </span><span class="kw">pub </span>output_ir: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;shared&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit a shared object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">"shared"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Emit a shared object as output"</span>)]
     </span><span class="kw">pub </span>output_shared_obj: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Equivalent to --shared&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">"pic"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Equivalent to --shared"</span>)]
     </span><span class="kw">pub </span>output_pic_obj: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;no-pic&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit a no PIC shared object&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">"no-pic"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Emit a no PIC shared object"</span>)]
     </span><span class="kw">pub </span>output_no_pic_obj: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;static&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">"static"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Emit an object as output"</span>)]
     </span><span class="kw">pub </span>output_obj_code: bool,
 
-    <span class="attr">#[clap(long = <span class="string">&quot;relocatable&quot;</span>, group = <span class="string">&quot;format&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Emit an object as output&quot;</span>)]
+    <span class="attr">#[clap(long = <span class="string">"relocatable"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Emit an object as output"</span>)]
     </span><span class="kw">pub </span>output_reloc_code: bool,
 
     <span class="attr">#[clap(
-        long = <span class="string">&quot;bc&quot;</span>,
-        group = <span class="string">&quot;format&quot;</span>,
+        long = <span class="string">"bc"</span>,
+        group = <span class="string">"format"</span>,
         global = <span class="bool-val">true</span>,
-        help = <span class="string">&quot;Emit binary IR (binary representation of LLVM-IR) as output&quot;
+        help = <span class="string">"Emit binary IR (binary representation of LLVM-IR) as output"
     </span>)]
     </span><span class="kw">pub </span>output_bit_code: bool,
 
-    <span class="attr">#[clap(short = <span class="string">&#39;c&#39;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Do not link after compiling object code&quot;</span>)]
+    <span class="attr">#[clap(short = <span class="string">'c'</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Do not link after compiling object code"</span>)]
     </span><span class="kw">pub </span>compile_only: bool,
 
-    <span class="attr">#[clap(long, name = <span class="string">&quot;target-triple&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;A target-triple supported by LLVM&quot;</span>)]
+    <span class="attr">#[clap(long, name = <span class="string">"target-triple"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"A target-triple supported by LLVM"</span>)]
     </span><span class="kw">pub </span>target: Vec&lt;Target&gt;,
 
     <span class="attr">#[clap(
         long,
-        name = <span class="string">&quot;encoding&quot;</span>,
-        help = <span class="string">&quot;The file encoding used to read the input-files, as defined by the Encoding Standard&quot;</span>,
+        name = <span class="string">"encoding"</span>,
+        help = <span class="string">"The file encoding used to read the input-files, as defined by the Encoding Standard"</span>,
         global = <span class="bool-val">true</span>,
         parse(try_from_str = parse_encoding),
     )]
-    </span><span class="kw">pub </span>encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
+    </span><span class="kw">pub </span>encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;input-files&quot;</span>,
-        help = <span class="string">&quot;Read input from &lt;input-files&gt;, may be a glob expression like &#39;src/**/*&#39; or a sequence of files&quot;</span>,
+        name = <span class="string">"input-files"</span>,
+        help = <span class="string">"Read input from &lt;input-files&gt;, may be a glob expression like 'src/**/*' or a sequence of files"</span>,
         required = <span class="bool-val">true</span>,
         min_values = <span class="number">1
     </span>)]
     </span><span class="comment">// having a vec allows bash to resolve *.st itself
     </span><span class="kw">pub </span>input: Vec&lt;String&gt;,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;library-path&quot;</span>, long, short = <span class="string">&#39;L&#39;</span>, help = <span class="string">&quot;Search path for libraries, used for linking&quot;</span>)]
+    <span class="attr">#[clap(name = <span class="string">"library-path"</span>, long, short = <span class="string">'L'</span>, help = <span class="string">"Search path for libraries, used for linking"</span>)]
     </span><span class="kw">pub </span>library_paths: Vec&lt;String&gt;,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;library&quot;</span>, long, short = <span class="string">&#39;l&#39;</span>, help = <span class="string">&quot;Library name to link&quot;</span>)]
+    <span class="attr">#[clap(name = <span class="string">"library"</span>, long, short = <span class="string">'l'</span>, help = <span class="string">"Library name to link"</span>)]
     </span><span class="kw">pub </span>libraries: Vec&lt;String&gt;,
 
-    <span class="attr">#[clap(long, name = <span class="string">&quot;sysroot&quot;</span>, global = <span class="bool-val">true</span>, help = <span class="string">&quot;Path to system root, used for linking&quot;</span>)]
+    <span class="attr">#[clap(long, name = <span class="string">"sysroot"</span>, global = <span class="bool-val">true</span>, help = <span class="string">"Path to system root, used for linking"</span>)]
     </span><span class="kw">pub </span>sysroot: Vec&lt;String&gt;,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;include&quot;</span>, long, short = <span class="string">&#39;i&#39;</span>, help = <span class="string">&quot;Include source files for external functions&quot;</span>)]
+    <span class="attr">#[clap(name = <span class="string">"include"</span>, long, short = <span class="string">'i'</span>, help = <span class="string">"Include source files for external functions"</span>)]
     </span><span class="kw">pub </span>includes: Vec&lt;String&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;hardware-conf&quot;</span>,
+        name = <span class="string">"hardware-conf"</span>,
         long,
         global = <span class="bool-val">true</span>,
-        help = <span class="string">&quot;Generate Hardware configuration files to the given location.
+        help = <span class="string">"Generate Hardware configuration files to the given location.
     Format is detected by extenstion.
-    Supported formats : json, toml&quot;</span>,
+    Supported formats : json, toml"</span>,
     parse(try_from_str = validate_config)
     ) ]
     </span><span class="kw">pub </span>hardware_config: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;optimization&quot;</span>,
+        name = <span class="string">"optimization"</span>,
         long,
-        short = <span class="string">&#39;O&#39;</span>,
-        help = <span class="string">&quot;Optimization level&quot;</span>,
+        short = <span class="string">'O'</span>,
+        help = <span class="string">"Optimization level"</span>,
         arg_enum,
-        default_value = <span class="string">&quot;default&quot;</span>,
+        default_value = <span class="string">"default"</span>,
         global = <span class="bool-val">true
     </span>)]
     </span><span class="kw">pub </span>optimization: plc::OptimizationLevel,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;error-format&quot;</span>,
+        name = <span class="string">"error-format"</span>,
         long,
-        help = <span class="string">&quot;Set format for error reporting&quot;</span>,
+        help = <span class="string">"Set format for error reporting"</span>,
         arg_enum,
-        default_value = <span class="string">&quot;rich&quot;</span>,
+        default_value = <span class="string">"rich"</span>,
         global = <span class="bool-val">true
     </span>)]
     </span><span class="kw">pub </span>error_format: ErrorFormat,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;linker&quot;</span>, long, help = <span class="string">&quot;Define a custom (cc compatible) linker command&quot;</span>, global = <span class="bool-val">true</span>)]
+    <span class="attr">#[clap(name = <span class="string">"linker"</span>, long, help = <span class="string">"Define a custom (cc compatible) linker command"</span>, global = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>linker: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;debug&quot;</span>,
+        name = <span class="string">"debug"</span>,
         long,
-        short = <span class="string">&#39;g&#39;</span>,
-        help = <span class="string">&quot;Generate source-level debug information&quot;</span>,
+        short = <span class="string">'g'</span>,
+        help = <span class="string">"Generate source-level debug information"</span>,
         global = <span class="bool-val">true</span>,
-        group = <span class="string">&quot;dbg&quot;
+        group = <span class="string">"dbg"
     </span>)]
     </span><span class="kw">pub </span>generate_debug: bool,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;debug-variables&quot;</span>,
+        name = <span class="string">"debug-variables"</span>,
         long,
-        help = <span class="string">&quot;Generate debug information for global variables&quot;</span>,
+        help = <span class="string">"Generate debug information for global variables"</span>,
         global = <span class="bool-val">true</span>,
-        group = <span class="string">&quot;dbg&quot;
+        group = <span class="string">"dbg"
     </span>)]
     </span><span class="kw">pub </span>generate_varinfo: bool,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;gdwarf&quot;</span>,
+        name = <span class="string">"gdwarf"</span>,
         long,
-        help = <span class="string">&quot;Generate source-level debug information with the specified dwarf version&quot;</span>,
-        value_name = <span class="string">&quot;dwarf version&quot;</span>,
+        help = <span class="string">"Generate source-level debug information with the specified dwarf version"</span>,
+        value_name = <span class="string">"dwarf version"</span>,
         global = <span class="bool-val">true</span>,
-        group = <span class="string">&quot;dbg&quot;</span>,
-        conflicts_with = <span class="string">&quot;debug&quot;</span>,
+        group = <span class="string">"dbg"</span>,
+        conflicts_with = <span class="string">"debug"</span>,
         max_values = <span class="number">1</span>,
-        possible_values = <span class="kw-2">&amp;</span>[<span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;5&quot;</span>]</span>,
+        possible_values = <span class="kw-2">&amp;</span>[<span class="string">"2"</span>, <span class="string">"3"</span>, <span class="string">"4"</span>, <span class="string">"5"</span>]</span>,
     )]
     <span class="kw">pub </span>gdwarf_version: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;gdwarf-variables&quot;</span>,
+        name = <span class="string">"gdwarf-variables"</span>,
         long,
-        help = <span class="string">&quot;Generate debug information for global variables with the specified dwarf version&quot;</span>,
-        value_name = <span class="string">&quot;dwarf version&quot;</span>,
+        help = <span class="string">"Generate debug information for global variables with the specified dwarf version"</span>,
+        value_name = <span class="string">"dwarf version"</span>,
         global = <span class="bool-val">true</span>,
-        group = <span class="string">&quot;dbg&quot;</span>,
-        conflicts_with = <span class="string">&quot;debug-variables&quot;</span>,
+        group = <span class="string">"dbg"</span>,
+        conflicts_with = <span class="string">"debug-variables"</span>,
         max_values = <span class="number">1</span>,
-        possible_values = <span class="kw-2">&amp;</span>[<span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;5&quot;</span>]</span>,
+        possible_values = <span class="kw-2">&amp;</span>[<span class="string">"2"</span>, <span class="string">"3"</span>, <span class="string">"4"</span>, <span class="string">"5"</span>]</span>,
     )]
     <span class="kw">pub </span>gdwarf_varinfo_version: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;threads&quot;</span>,
+        name = <span class="string">"threads"</span>,
         long,
-        short = <span class="string">&#39;j&#39;</span>,
-        help = <span class="string">&quot;Set the number of threads to use for the compilation&quot;</span>,
+        short = <span class="string">'j'</span>,
+        help = <span class="string">"Set the number of threads to use for the compilation"</span>,
         global = <span class="bool-val">true</span>,
         parse(try_from_str = get_parallel_threads)
     )]
     </span><span class="kw">pub </span>threads: <span class="prelude-ty">Option</span>&lt;Threads&gt;,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;error-config&quot;</span>, long, help = <span class="string">&quot;A diagnostics configuration in JSON format&quot;</span>, global = <span class="bool-val">true</span>)]
+    <span class="attr">#[clap(name = <span class="string">"error-config"</span>, long, help = <span class="string">"A diagnostics configuration in JSON format"</span>, global = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>error_config: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
     <span class="attr">#[clap(
-        name = <span class="string">&quot;single-module&quot;</span>,
+        name = <span class="string">"single-module"</span>,
         long,
-        help = <span class="string">&quot;Build the application as a single LLVM module&quot;</span>,
+        help = <span class="string">"Build the application as a single LLVM module"</span>,
         global = <span class="bool-val">true
     </span>)]
     </span><span class="kw">pub </span>single_module: bool,
 
-    <span class="attr">#[clap(name = <span class="string">&quot;check&quot;</span>, long, help = <span class="string">&quot;Check only, do not generate any output&quot;</span>, global = <span class="bool-val">true</span>)]
+    <span class="attr">#[clap(name = <span class="string">"check"</span>, long, help = <span class="string">"Check only, do not generate any output"</span>, global = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>check_only: bool,
 
     <span class="attr">#[clap(subcommand)]
@@ -1167,10 +1169,10 @@
         )]
         </span>build_config: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-        <span class="attr">#[clap(name = <span class="string">&quot;build-location&quot;</span>, long)]
+        <span class="attr">#[clap(name = <span class="string">"build-location"</span>, long)]
         </span>build_location: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-        <span class="attr">#[clap(name = <span class="string">&quot;lib-location&quot;</span>, long)]
+        <span class="attr">#[clap(name = <span class="string">"lib-location"</span>, long)]
         </span>lib_location: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
 
@@ -1185,11 +1187,11 @@
     <span class="doccomment">/// Prints out various configuration options
     </span>Config {
         <span class="attr">#[clap(
-            name = <span class="string">&quot;config-format&quot;</span>,
-            long = <span class="string">&quot;format&quot;</span>,
-            group = <span class="string">&quot;config&quot;</span>,
-            default_value = <span class="string">&quot;json&quot;</span>,
-            help = <span class="string">&quot;Format of the configuration file, if supported&quot;
+            name = <span class="string">"config-format"</span>,
+            long = <span class="string">"format"</span>,
+            group = <span class="string">"config"</span>,
+            default_value = <span class="string">"json"</span>,
+            help = <span class="string">"Format of the configuration file, if supported"
         </span>)]
         </span>format: ConfigFormat,
 
@@ -1204,16 +1206,16 @@
 
     <span class="doccomment">/// Explains an error code
     </span>Explain {
-        <span class="attr">#[clap(help = <span class="string">&quot;Error code to explain, for example `E001`&quot;</span>)]
+        <span class="attr">#[clap(help = <span class="string">"Error code to explain, for example `E001`"</span>)]
         </span>error: String,
     },
 }
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
 </span><span class="kw">pub enum </span>ConfigOption {
-    <span class="attr">#[clap(help = <span class="string">&quot;Prints the plc.json&#39;s schema used for validation&quot;</span>)]
+    <span class="attr">#[clap(help = <span class="string">"Prints the plc.json's schema used for validation"</span>)]
     </span>Schema,
-    <span class="attr">#[clap(help = <span class="string">&quot;Prints the configuration for the project&quot;</span>)]
+    <span class="attr">#[clap(help = <span class="string">"Prints the configuration for the project"</span>)]
     </span>Diagnostics,
 }
 
@@ -1229,15 +1231,15 @@
     }
 }
 
-<span class="kw">fn </span>parse_encoding(encoding: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding, String&gt; {
-    Encoding::for_label(encoding.as_bytes()).ok_or(<span class="macro">format!</span>(<span class="string">&quot;Unknown encoding {encoding}&quot;</span>))
+<span class="kw">fn </span>parse_encoding(encoding: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding, String&gt; {
+    Encoding::for_label(encoding.as_bytes()).ok_or(<span class="macro">format!</span>(<span class="string">"Unknown encoding {encoding}"</span>))
 }
 
 <span class="kw">fn </span>validate_config(config_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, String&gt; {
     <span class="kw">if </span>get_config_format(config_name).is_some() {
         <span class="prelude-val">Ok</span>(config_name.to_string())
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">r#&quot;Cannot identify format type for {config_name}, valid extensions : &quot;json&quot;, &quot;toml&quot;&quot;#</span>))
+        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">r#"Cannot identify format type for {config_name}, valid extensions : "json", "toml""#</span>))
     }
 }
 
@@ -1251,10 +1253,10 @@
 }
 
 <span class="kw">pub fn </span>get_config_format(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigFormat&gt; {
-    <span class="kw">let </span>ext = name.split(<span class="string">&#39;.&#39;</span>).last();
+    <span class="kw">let </span>ext = name.split(<span class="string">'.'</span>).last();
     <span class="kw">match </span>ext {
-        <span class="prelude-val">Some</span>(<span class="string">&quot;json&quot;</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::JSON),
-        <span class="prelude-val">Some</span>(<span class="string">&quot;toml&quot;</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::TOML),
+        <span class="prelude-val">Some</span>(<span class="string">"json"</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::JSON),
+        <span class="prelude-val">Some</span>(<span class="string">"toml"</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::TOML),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
@@ -1266,7 +1268,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>cmd = CompileParameters::command();
                 <span class="prelude-val">Err</span>(cmd.error(
                     ErrorKind::ArgumentConflict,
-                    <span class="string">&quot;There must be at most as many sysroots as there are targets&quot;</span>,
+                    <span class="string">"There must be at most as many sysroots as there are targets"</span>,
                 ))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(result)
@@ -1336,7 +1338,7 @@
     </span><span class="kw">pub fn </span>get_build_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.commands {
             <span class="prelude-val">Some</span>(SubCommands::Build { build_location, .. }) =&gt; {
-                build_location.as_deref().or(<span class="prelude-val">Some</span>(<span class="string">&quot;build&quot;</span>)).map(PathBuf::from)
+                build_location.as_deref().or(<span class="prelude-val">Some</span>(<span class="string">"build"</span>)).map(PathBuf::from)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -1345,7 +1347,7 @@
     <span class="kw">pub fn </span>get_lib_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.commands {
             <span class="prelude-val">Some</span>(SubCommands::Build { build_location, lib_location, .. }) =&gt; {
-                lib_location.as_deref().or(build_location.as_deref()).or(<span class="prelude-val">Some</span>(<span class="string">&quot;build&quot;</span>)).map(PathBuf::from)
+                lib_location.as_deref().or(build_location.as_deref()).or(<span class="prelude-val">Some</span>(<span class="string">"build"</span>)).map(PathBuf::from)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -1400,7 +1402,7 @@
             <span class="kw">let </span>configuration: DiagnosticsConfiguration = serde_json::de::from_str(<span class="kw-2">&amp;</span>error_config)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(configuration))
         } <span class="kw">else </span>{
-            <span class="macro">bail!</span>(<span class="string">&quot;{} does not exist&quot;</span>, config_path.to_string_lossy())
+            <span class="macro">bail!</span>(<span class="string">"{} does not exist"</span>, config_path.to_string_lossy())
         }
     }
 }
@@ -1431,11 +1433,11 @@
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="macro">assert_eq!</span>(e.kind(), expected_error_kind);
             }
-            <span class="prelude-val">Ok</span>(p) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected error, but found none. arguments: {args:?}. params: {p:?}&quot;</span>),
+            <span class="prelude-val">Ok</span>(p) =&gt; <span class="macro">panic!</span>(<span class="string">"expected error, but found none. arguments: {args:?}. params: {p:?}"</span>),
         }
     }
     <span class="macro">macro_rules! </span>vec_of_strings {
-        ($(<span class="macro-nonterminal">$x</span>:expr),<span class="kw-2">*</span>) =&gt; (<span class="kw-2">&amp;</span>[<span class="string">&quot;plc&quot;</span>, $(<span class="macro-nonterminal">$x</span>),<span class="kw-2">*</span>]);
+        ($(<span class="macro-nonterminal">$x</span>:expr),<span class="kw-2">*</span>) =&gt; (<span class="kw-2">&amp;</span>[<span class="string">"plc"</span>, $(<span class="macro-nonterminal">$x</span>),<span class="kw-2">*</span>]);
     }
 
     <span class="attr">#[test]
@@ -1443,137 +1445,137 @@
         <span class="comment">// no arguments
         </span>expect_argument_error(<span class="macro">vec_of_strings!</span>[], ErrorKind::MissingRequiredArgument);
         <span class="comment">// no input file
-        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;--ir&quot;</span>], ErrorKind::MissingRequiredArgument);
+        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">"--ir"</span>], ErrorKind::MissingRequiredArgument);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>multiple_output_formats_results_in_error() {
-        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>], ErrorKind::ArgumentConflict);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--shared"</span>], ErrorKind::ArgumentConflict);
         expect_argument_error(
-            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>],
+            <span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--shared"</span>, <span class="string">"--pic"</span>],
             ErrorKind::ArgumentConflict,
         );
         expect_argument_error(
-            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>, <span class="string">&quot;--bc&quot;</span>],
+            <span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--shared"</span>, <span class="string">"--pic"</span>, <span class="string">"--bc"</span>],
             ErrorKind::ArgumentConflict,
         );
         expect_argument_error(
-            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--relocatable&quot;</span>],
+            <span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--relocatable"</span>],
             ErrorKind::ArgumentConflict,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unknown_arguments_results_in_error() {
-        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--unknown&quot;</span>], ErrorKind::UnknownArgument);
-        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--unknown&quot;</span>], ErrorKind::UnknownArgument);
-        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;-u&quot;</span>], ErrorKind::UnknownArgument);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--unknown"</span>], ErrorKind::UnknownArgument);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--unknown"</span>], ErrorKind::UnknownArgument);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>[<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"-u"</span>], ErrorKind::UnknownArgument);
     }
 
     <span class="comment">//#[test]
     //fn valid_output_files() {
     //    //short -o
     //    let parameters =
-    //        CompileParameters::parse(vec_of_strings!(&quot;input.st&quot;, &quot;--ir&quot;, &quot;-o&quot;, &quot;myout.out&quot;)).unwrap();
-    //    assert_eq!(parameters.output_name(), &quot;myout.out&quot;.to_string());
+    //        CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
+    //    assert_eq!(parameters.output_name(), "myout.out".to_string());
 
     //    //long --output
     //    let parameters =
-    //        CompileParameters::parse(vec_of_strings!(&quot;input.st&quot;, &quot;--ir&quot;, &quot;--output&quot;, &quot;myout2.out&quot;)).unwrap();
-    //    assert_eq!(parameters.output_name(), &quot;myout2.out&quot;.to_string());
+    //        CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--output", "myout2.out")).unwrap();
+    //    assert_eq!(parameters.output_name(), "myout2.out".to_string());
     //}
 
     // #[test]
     // fn test_default_output_names() {
-    //     let parameters = CompileParameters::parse(vec_of_strings!(&quot;alpha.st&quot;, &quot;--ir&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;alpha.ll&quot;.to_string());
+    //     let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
+    //     assert_eq!(parameters.output_name(), "alpha.ll".to_string());
 
-    //     let parameters = CompileParameters::parse(vec_of_strings!(&quot;bravo&quot;, &quot;--shared&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;bravo.so&quot;.to_string());
+    //     let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
+    //     assert_eq!(parameters.output_name(), "bravo.so".to_string());
 
-    //     let parameters = CompileParameters::parse(vec_of_strings!(&quot;examples/charlie.st&quot;, &quot;--pic&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;charlie.so&quot;.to_string());
+    //     let parameters = CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
+    //     assert_eq!(parameters.output_name(), "charlie.so".to_string());
 
     //     let parameters =
-    //         CompileParameters::parse(vec_of_strings!(&quot;examples/test/delta.st&quot;, &quot;--static&quot;, &quot;-c&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;delta.o&quot;.to_string());
+    //         CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c")).unwrap();
+    //     assert_eq!(parameters.output_name(), "delta.o".to_string());
 
-    //     let parameters = CompileParameters::parse(vec_of_strings!(&quot;examples/test/echo&quot;, &quot;--bc&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;echo.bc&quot;.to_string());
+    //     let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
+    //     assert_eq!(parameters.output_name(), "echo.bc".to_string());
 
-    //     let parameters = CompileParameters::parse(vec_of_strings!(&quot;examples/test/echo.st&quot;)).unwrap();
-    //     assert_eq!(parameters.output_name(), &quot;echo&quot;.to_string());
+    //     let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+    //     assert_eq!(parameters.output_name(), "echo".to_string());
     // }
 
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_target_triple() {
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--target&quot;</span>, <span class="string">&quot;x86_64-linux-gnu&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--target"</span>, <span class="string">"x86_64-linux-gnu"</span>)).unwrap();
 
-        <span class="macro">assert_eq!</span>(parameters.target, <span class="macro">vec!</span>[<span class="string">&quot;x86_64-linux-gnu&quot;</span>.into()]);
+        <span class="macro">assert_eq!</span>(parameters.target, <span class="macro">vec!</span>[<span class="string">"x86_64-linux-gnu"</span>.into()]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_optimization_levels() {
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Default);
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;-Onone&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"-Onone"</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::None);
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--optimization&quot;</span>, <span class="string">&quot;none&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--optimization"</span>, <span class="string">"none"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::None);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;-Oless&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"-Oless"</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Less);
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--optimization&quot;</span>, <span class="string">&quot;less&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--optimization"</span>, <span class="string">"less"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Less);
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;-Odefault&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"-Odefault"</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Default);
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--optimization&quot;</span>, <span class="string">&quot;default&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--optimization"</span>, <span class="string">"default"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Default);
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;-Oaggressive&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"-Oaggressive"</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Aggressive);
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--optimization&quot;</span>, <span class="string">&quot;aggressive&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--optimization"</span>, <span class="string">"aggressive"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.optimization, OptimizationLevel::Aggressive);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_format() {
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"alpha.st"</span>, <span class="string">"--ir"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::IR);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;bravo&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"bravo"</span>, <span class="string">"--shared"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::Shared);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;charlie&quot;</span>, <span class="string">&quot;--pic&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"charlie"</span>, <span class="string">"--pic"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::PIC);
 
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/delta.st&quot;</span>, <span class="string">&quot;--static&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"examples/test/delta.st"</span>, <span class="string">"--static"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::Static);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/echo&quot;</span>, <span class="string">&quot;--bc&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"examples/test/echo"</span>, <span class="string">"--bc"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::Bitcode);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/echo.st&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"examples/test/echo.st"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_format_or_default(), FormatOption::Static);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>encoding_resolution() {
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--encoding&quot;</span>, <span class="string">&quot;cp1252&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--encoding"</span>, <span class="string">"cp1252"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.encoding, <span class="prelude-val">Some</span>(encoding_rs::WINDOWS_1252));
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--encoding&quot;</span>, <span class="string">&quot;windows-1252&quot;</span>))
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--encoding"</span>, <span class="string">"windows-1252"</span>))
                 .unwrap();
         <span class="macro">assert_eq!</span>(parameters.encoding, <span class="prelude-val">Some</span>(encoding_rs::WINDOWS_1252));
     }
@@ -1581,14 +1583,14 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_encoding_resolution() {
         expect_argument_error(
-            <span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--encoding&quot;</span>, <span class="string">&quot;invalid&quot;</span>),
+            <span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ir"</span>, <span class="string">"--encoding"</span>, <span class="string">"invalid"</span>),
             ErrorKind::ValueValidation,
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>valid_output_formats() {
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ir"</span>)).unwrap();
         <span class="macro">assert!</span>(parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1596,7 +1598,7 @@
         <span class="macro">assert!</span>(!parameters.output_shared_obj);
         <span class="macro">assert!</span>(!parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--bc&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--bc"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1604,7 +1606,7 @@
         <span class="macro">assert!</span>(!parameters.output_shared_obj);
         <span class="macro">assert!</span>(!parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--static&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--static"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(parameters.output_obj_code);
@@ -1612,7 +1614,7 @@
         <span class="macro">assert!</span>(!parameters.output_shared_obj);
         <span class="macro">assert!</span>(!parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--pic&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--pic"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1620,7 +1622,7 @@
         <span class="macro">assert!</span>(!parameters.output_shared_obj);
         <span class="macro">assert!</span>(!parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--shared"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1628,7 +1630,7 @@
         <span class="macro">assert!</span>(parameters.output_shared_obj);
         <span class="macro">assert!</span>(!parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--relocatable&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--relocatable"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1636,7 +1638,7 @@
         <span class="macro">assert!</span>(!parameters.output_shared_obj);
         <span class="macro">assert!</span>(parameters.output_reloc_code);
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
@@ -1648,38 +1650,38 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>library_path_added() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;input.st&quot;</span>,
-            <span class="string">&quot;--library-path&quot;</span>,
-            <span class="string">&quot;xxx&quot;</span>,
-            <span class="string">&quot;-L&quot;</span>,
-            <span class="string">&quot;test&quot;</span>,
-            <span class="string">&quot;-L.&quot;</span>,
-            <span class="string">&quot;-L/tmp&quot;
+            <span class="string">"input.st"</span>,
+            <span class="string">"--library-path"</span>,
+            <span class="string">"xxx"</span>,
+            <span class="string">"-L"</span>,
+            <span class="string">"test"</span>,
+            <span class="string">"-L."</span>,
+            <span class="string">"-L/tmp"
         </span>))
         .unwrap();
-        <span class="macro">assert_eq!</span>(parameters.library_paths, <span class="macro">vec!</span>[<span class="string">&quot;xxx&quot;</span>, <span class="string">&quot;test&quot;</span>, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;/tmp&quot;</span>]);
+        <span class="macro">assert_eq!</span>(parameters.library_paths, <span class="macro">vec!</span>[<span class="string">"xxx"</span>, <span class="string">"test"</span>, <span class="string">"."</span>, <span class="string">"/tmp"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>libraries_added() {
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;-l&quot;</span>, <span class="string">&quot;test&quot;</span>, <span class="string">&quot;-lc&quot;</span>, <span class="string">&quot;--library&quot;</span>, <span class="string">&quot;xx&quot;</span>))
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"-l"</span>, <span class="string">"test"</span>, <span class="string">"-lc"</span>, <span class="string">"--library"</span>, <span class="string">"xx"</span>))
                 .unwrap();
-        <span class="macro">assert_eq!</span>(parameters.libraries, <span class="macro">vec!</span>[<span class="string">&quot;test&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;xx&quot;</span>]);
+        <span class="macro">assert_eq!</span>(parameters.libraries, <span class="macro">vec!</span>[<span class="string">"test"</span>, <span class="string">"c"</span>, <span class="string">"xx"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cli_supports_version() {
-        <span class="kw">match </span>CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--version&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected version output, but found OK&quot;</span>),
+        <span class="kw">match </span>CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--version"</span>)) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"expected version output, but found OK"</span>),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">assert_eq!</span>(e.kind(), ErrorKind::DisplayVersion),
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cli_supports_help() {
-        <span class="kw">match </span>CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--help&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected help output, but found OK&quot;</span>),
+        <span class="kw">match </span>CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--help"</span>)) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"expected help output, but found OK"</span>),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">assert_eq!</span>(e.kind(), ErrorKind::DisplayHelp),
         }
     }
@@ -1687,48 +1689,48 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>build_subcommand() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;build&quot;</span>,
-            <span class="string">&quot;src/ProjectPlc.json&quot;</span>,
-            <span class="string">&quot;--build-location&quot;</span>,
-            <span class="string">&quot;bin/build&quot;</span>,
-            <span class="string">&quot;--lib-location&quot;</span>,
-            <span class="string">&quot;bin/build/libs&quot;</span>,
-            <span class="string">&quot;--sysroot&quot;</span>,
-            <span class="string">&quot;sysroot1&quot;</span>,
-            <span class="string">&quot;--sysroot&quot;</span>,
-            <span class="string">&quot;sysroot2&quot;</span>,
-            <span class="string">&quot;--target&quot;</span>,
-            <span class="string">&quot;targettest&quot;</span>,
-            <span class="string">&quot;--target&quot;</span>,
-            <span class="string">&quot;othertarget&quot;</span>,
-            <span class="string">&quot;--linker&quot;</span>,
-            <span class="string">&quot;cc&quot;
+            <span class="string">"build"</span>,
+            <span class="string">"src/ProjectPlc.json"</span>,
+            <span class="string">"--build-location"</span>,
+            <span class="string">"bin/build"</span>,
+            <span class="string">"--lib-location"</span>,
+            <span class="string">"bin/build/libs"</span>,
+            <span class="string">"--sysroot"</span>,
+            <span class="string">"sysroot1"</span>,
+            <span class="string">"--sysroot"</span>,
+            <span class="string">"sysroot2"</span>,
+            <span class="string">"--target"</span>,
+            <span class="string">"targettest"</span>,
+            <span class="string">"--target"</span>,
+            <span class="string">"othertarget"</span>,
+            <span class="string">"--linker"</span>,
+            <span class="string">"cc"
         </span>))
         .unwrap();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commands) = parameters.commands {
             <span class="kw">match </span>commands {
                 SubCommands::Build { build_config, build_location, lib_location, .. } =&gt; {
-                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">&quot;src/ProjectPlc.json&quot;</span>.to_string()));
-                    <span class="macro">assert_eq!</span>(build_location, <span class="prelude-val">Some</span>(<span class="string">&quot;bin/build&quot;</span>.to_string()));
-                    <span class="macro">assert_eq!</span>(lib_location, <span class="prelude-val">Some</span>(<span class="string">&quot;bin/build/libs&quot;</span>.to_string()));
+                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">"src/ProjectPlc.json"</span>.to_string()));
+                    <span class="macro">assert_eq!</span>(build_location, <span class="prelude-val">Some</span>(<span class="string">"bin/build"</span>.to_string()));
+                    <span class="macro">assert_eq!</span>(lib_location, <span class="prelude-val">Some</span>(<span class="string">"bin/build/libs"</span>.to_string()));
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected command&quot;</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected command"</span>),
             };
-            <span class="macro">assert_eq!</span>(parameters.sysroot, <span class="macro">vec!</span>[<span class="string">&quot;sysroot1&quot;</span>.to_string(), <span class="string">&quot;sysroot2&quot;</span>.to_string()]);
-            <span class="macro">assert_eq!</span>(parameters.target, <span class="macro">vec!</span>[<span class="string">&quot;targettest&quot;</span>.into(), <span class="string">&quot;othertarget&quot;</span>.into()]);
-            <span class="macro">assert_eq!</span>(parameters.linker, <span class="prelude-val">Some</span>(<span class="string">&quot;cc&quot;</span>.to_string()));
+            <span class="macro">assert_eq!</span>(parameters.sysroot, <span class="macro">vec!</span>[<span class="string">"sysroot1"</span>.to_string(), <span class="string">"sysroot2"</span>.to_string()]);
+            <span class="macro">assert_eq!</span>(parameters.target, <span class="macro">vec!</span>[<span class="string">"targettest"</span>.into(), <span class="string">"othertarget"</span>.into()]);
+            <span class="macro">assert_eq!</span>(parameters.linker, <span class="prelude-val">Some</span>(<span class="string">"cc"</span>.to_string()));
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>check_subcommand() {
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;check&quot;</span>, <span class="string">&quot;src/ProjectPlc.json&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"check"</span>, <span class="string">"src/ProjectPlc.json"</span>)).unwrap();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commands) = parameters.commands {
             <span class="kw">match </span>commands {
                 SubCommands::Check { build_config } =&gt; {
-                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">&quot;src/ProjectPlc.json&quot;</span>.to_string()));
+                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">"src/ProjectPlc.json"</span>.to_string()));
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected command&quot;</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected command"</span>),
             };
         }
     }
@@ -1736,21 +1738,21 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>config_subcommand() {
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;config&quot;</span>, <span class="string">&quot;src/ProjectPlc.json&quot;</span>, <span class="string">&quot;diagnostics&quot;</span>))
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"config"</span>, <span class="string">"src/ProjectPlc.json"</span>, <span class="string">"diagnostics"</span>))
                 .unwrap();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commands) = parameters.commands {
             <span class="kw">match </span>commands {
                 SubCommands::Config { format, option, build_config } =&gt; {
-                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">&quot;src/ProjectPlc.json&quot;</span>.to_string()));
+                    <span class="macro">assert_eq!</span>(build_config, <span class="prelude-val">Some</span>(<span class="string">"src/ProjectPlc.json"</span>.to_string()));
                     <span class="macro">assert_eq!</span>(option, ConfigOption::Diagnostics);
                     <span class="macro">assert_eq!</span>(format, ConfigFormat::JSON)
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected command&quot;</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected command"</span>),
             };
         }
 
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;config&quot;</span>, <span class="string">&quot;--format=toml&quot;</span>, <span class="string">&quot;schema&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"config"</span>, <span class="string">"--format=toml"</span>, <span class="string">"schema"</span>)).unwrap();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commands) = parameters.commands {
             <span class="kw">match </span>commands {
                 SubCommands::Config { format, option, build_config } =&gt; {
@@ -1758,7 +1760,7 @@
                     <span class="macro">assert_eq!</span>(option, ConfigOption::Schema);
                     <span class="macro">assert_eq!</span>(format, ConfigFormat::TOML)
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected command&quot;</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected command"</span>),
             };
         }
     }
@@ -1766,76 +1768,76 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>sysroot_added() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;input.st&quot;</span>,
-            <span class="string">&quot;--target&quot;</span>,
-            <span class="string">&quot;targ&quot;</span>,
-            <span class="string">&quot;--sysroot&quot;</span>,
-            <span class="string">&quot;path/to/sysroot&quot;
+            <span class="string">"input.st"</span>,
+            <span class="string">"--target"</span>,
+            <span class="string">"targ"</span>,
+            <span class="string">"--sysroot"</span>,
+            <span class="string">"path/to/sysroot"
         </span>))
         .unwrap();
-        <span class="macro">assert_eq!</span>(parameters.sysroot, <span class="macro">vec!</span>[<span class="string">&quot;path/to/sysroot&quot;</span>.to_string()]);
+        <span class="macro">assert_eq!</span>(parameters.sysroot, <span class="macro">vec!</span>[<span class="string">"path/to/sysroot"</span>.to_string()]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>include_files_added() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;input.st&quot;</span>,
-            <span class="string">&quot;-i&quot;</span>,
-            <span class="string">&quot;include1&quot;</span>,
-            <span class="string">&quot;-i&quot;</span>,
-            <span class="string">&quot;include2&quot;</span>,
-            <span class="string">&quot;--include&quot;</span>,
-            <span class="string">&quot;include3&quot;
+            <span class="string">"input.st"</span>,
+            <span class="string">"-i"</span>,
+            <span class="string">"include1"</span>,
+            <span class="string">"-i"</span>,
+            <span class="string">"include2"</span>,
+            <span class="string">"--include"</span>,
+            <span class="string">"include3"
         </span>))
         .unwrap();
-        <span class="macro">assert_eq!</span>(parameters.includes, <span class="macro">vec!</span>[<span class="string">&quot;include1&quot;</span>, <span class="string">&quot;include2&quot;</span>, <span class="string">&quot;include3&quot;</span>]);
+        <span class="macro">assert_eq!</span>(parameters.includes, <span class="macro">vec!</span>[<span class="string">"include1"</span>, <span class="string">"include2"</span>, <span class="string">"include3"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>config_option_set() {
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=conf.json&quot;</span>)).unwrap();
-        <span class="macro">assert_eq!</span>(parameters.hardware_config, <span class="prelude-val">Some</span>(<span class="string">&quot;conf.json&quot;</span>.to_string()));
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"foo"</span>, <span class="string">"--hardware-conf=conf.json"</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(parameters.hardware_config, <span class="prelude-val">Some</span>(<span class="string">"conf.json"</span>.to_string()));
         <span class="macro">assert_eq!</span>(parameters.config_format().unwrap(), ConfigFormat::JSON);
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=conf.toml&quot;</span>)).unwrap();
-        <span class="macro">assert_eq!</span>(parameters.hardware_config, <span class="prelude-val">Some</span>(<span class="string">&quot;conf.toml&quot;</span>.to_string()));
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"foo"</span>, <span class="string">"--hardware-conf=conf.toml"</span>)).unwrap();
+        <span class="macro">assert_eq!</span>(parameters.hardware_config, <span class="prelude-val">Some</span>(<span class="string">"conf.toml"</span>.to_string()));
         <span class="macro">assert_eq!</span>(parameters.config_format().unwrap(), ConfigFormat::TOML);
 
-        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=foo&quot;</span>), ErrorKind::ValueValidation);
-        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=conf.foo&quot;</span>), ErrorKind::ValueValidation);
-        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=conf.xml&quot;</span>), ErrorKind::ValueValidation);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">"foo"</span>, <span class="string">"--hardware-conf=foo"</span>), ErrorKind::ValueValidation);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">"foo"</span>, <span class="string">"--hardware-conf=conf.foo"</span>), ErrorKind::ValueValidation);
+        expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">"foo"</span>, <span class="string">"--hardware-conf=conf.xml"</span>), ErrorKind::ValueValidation);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>error_format_default_set() {
         <span class="comment">// make sure the default error format is set
-        </span><span class="kw">let </span>params = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>)).unwrap();
+        </span><span class="kw">let </span>params = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(params.error_format, ErrorFormat::Rich);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>error_format_set() {
         <span class="comment">// set clang as error format
-        </span><span class="kw">let </span>params = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=clang&quot;</span>)).unwrap();
+        </span><span class="kw">let </span>params = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--error-format=clang"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(params.error_format, ErrorFormat::Clang);
         <span class="comment">// set invalid error format
-        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=nothing&quot;</span>), ErrorKind::InvalidValue);
+        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--error-format=nothing"</span>), ErrorKind::InvalidValue);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>target_sysroot_mismatch() {
         <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;build&quot;</span>,
-            <span class="string">&quot;file.json&quot;</span>,
-            <span class="string">&quot;--target&quot;</span>,
-            <span class="string">&quot;x86_64-linux-gnu&quot;</span>,
-            <span class="string">&quot;--sysroot&quot;</span>,
-            <span class="string">&quot;sysroot&quot;</span>,
-            <span class="string">&quot;--sysroot&quot;</span>,
-            <span class="string">&quot;sysroot2&quot;</span>,
-            <span class="string">&quot;--build-location&quot;</span>,
-            <span class="string">&quot;loc&quot;
+            <span class="string">"build"</span>,
+            <span class="string">"file.json"</span>,
+            <span class="string">"--target"</span>,
+            <span class="string">"x86_64-linux-gnu"</span>,
+            <span class="string">"--sysroot"</span>,
+            <span class="string">"sysroot"</span>,
+            <span class="string">"--sysroot"</span>,
+            <span class="string">"sysroot2"</span>,
+            <span class="string">"--build-location"</span>,
+            <span class="string">"loc"
         </span>))
         .unwrap_err();
 
@@ -1844,7 +1846,7 @@
             CompileParameters::command()
                 .error(
                     ErrorKind::ArgumentConflict,
-                    <span class="string">&quot;There must be at most as many sysroots as there are targets&quot;
+                    <span class="string">"There must be at most as many sysroots as there are targets"
                 </span>)
                 .to_string()
         )
@@ -1852,55 +1854,55 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_gdwarf_and_debug_mutually_exclusive() {
-        <span class="macro">assert!</span>(CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--debug&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;2&quot;</span>)).is_err());
-        <span class="macro">assert!</span>(CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;-g&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;4&quot;</span>)).is_err());
+        <span class="macro">assert!</span>(CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--debug"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"2"</span>)).is_err());
+        <span class="macro">assert!</span>(CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"-g"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"4"</span>)).is_err());
         <span class="macro">assert!</span>(CompileParameters::parse(<span class="macro">vec_of_strings!</span>(
-            <span class="string">&quot;input.st&quot;</span>,
-            <span class="string">&quot;--debug-variables&quot;</span>,
-            <span class="string">&quot;--gdwarf-variables&quot;</span>,
-            <span class="string">&quot;3&quot;
+            <span class="string">"input.st"</span>,
+            <span class="string">"--debug-variables"</span>,
+            <span class="string">"--gdwarf-variables"</span>,
+            <span class="string">"3"
         </span>))
         .is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_dwarf_version_override() {
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;2&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"2"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.gdwarf_version, <span class="prelude-val">Some</span>(<span class="number">2</span>));
 
-        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;3&quot;</span>)).unwrap();
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"3"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.gdwarf_version, <span class="prelude-val">Some</span>(<span class="number">3</span>));
 
         <span class="kw">let </span>parameters =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf-variables&quot;</span>, <span class="string">&quot;4&quot;</span>)).unwrap();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf-variables"</span>, <span class="string">"4"</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.gdwarf_varinfo_version, <span class="prelude-val">Some</span>(<span class="number">4</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_dwarf_version() {
-        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;1&quot;</span>)).unwrap_err();
+        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"1"</span>)).unwrap_err();
         <span class="macro">assert_eq!</span>(error.kind(), ErrorKind::InvalidValue);
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>error.info;
-        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">&quot;1&quot;</span>);
+        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">"1"</span>);
 
         <span class="kw">let </span>error =
-            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf-variables&quot;</span>, <span class="string">&quot;99&quot;</span>)).unwrap_err();
+            CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf-variables"</span>, <span class="string">"99"</span>)).unwrap_err();
         <span class="macro">assert_eq!</span>(error.kind(), ErrorKind::InvalidValue);
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>error.info;
-        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">&quot;99&quot;</span>);
+        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">"99"</span>);
 
-        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>, <span class="string">&quot;abc&quot;</span>)).unwrap_err();
+        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf"</span>, <span class="string">"abc"</span>)).unwrap_err();
         <span class="macro">assert_eq!</span>(error.kind(), ErrorKind::InvalidValue);
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>error.info;
-        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">&quot;abc&quot;</span>);
+        <span class="macro">assert_eq!</span>(inner[<span class="number">1</span>], <span class="string">"abc"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>dwarf_version_override_arg_requries_value() {
-        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf&quot;</span>)).unwrap_err();
+        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf"</span>)).unwrap_err();
         <span class="macro">assert_eq!</span>(error.kind(), ErrorKind::EmptyValue);
 
-        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--gdwarf-variables&quot;</span>)).unwrap_err();
+        <span class="kw">let </span>error = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--gdwarf-variables"</span>)).unwrap_err();
         <span class="macro">assert_eq!</span>(error.kind(), ErrorKind::EmptyValue);
     }
 }

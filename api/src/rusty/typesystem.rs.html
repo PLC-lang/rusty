@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/typesystem.rs`."><title>typesystem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/typesystem.rs`."><title>typesystem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1397,10 +1399,10 @@
 <span class="kw">pub const </span>DEFAULT_STRING_LEN: u32 = <span class="number">80</span>;
 
 <span class="comment">// Ranged type check functions names
-</span><span class="kw">pub const </span>RANGE_CHECK_S_FN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CheckRangeSigned&quot;</span>;
-<span class="kw">pub const </span>RANGE_CHECK_LS_FN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CheckLRangeSigned&quot;</span>;
-<span class="kw">pub const </span>RANGE_CHECK_U_FN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CheckRangeUnsigned&quot;</span>;
-<span class="kw">pub const </span>RANGE_CHECK_LU_FN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CheckLRangeUnsigned&quot;</span>;
+</span><span class="kw">pub const </span>RANGE_CHECK_S_FN: <span class="kw-2">&amp;</span>str = <span class="string">"CheckRangeSigned"</span>;
+<span class="kw">pub const </span>RANGE_CHECK_LS_FN: <span class="kw-2">&amp;</span>str = <span class="string">"CheckLRangeSigned"</span>;
+<span class="kw">pub const </span>RANGE_CHECK_U_FN: <span class="kw-2">&amp;</span>str = <span class="string">"CheckRangeUnsigned"</span>;
+<span class="kw">pub const </span>RANGE_CHECK_LU_FN: <span class="kw-2">&amp;</span>str = <span class="string">"CheckLRangeUnsigned"</span>;
 
 <span class="kw">pub type </span>NativeSintType = i8;
 <span class="kw">pub type </span>NativeIntType = i16;
@@ -1427,46 +1429,46 @@
 <span class="kw">pub const </span>DATE_TIME_SIZE: u32 = <span class="number">64</span>;
 <span class="kw">pub const </span>POINTER_SIZE: u32 = NativePointerType::BITS;
 
-<span class="kw">pub const </span>U1_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;__U1&quot;</span>;
+<span class="kw">pub const </span>U1_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"__U1"</span>;
 <span class="doccomment">/// used internally for forced casts to u1
-</span><span class="kw">pub const </span>BOOL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;BOOL&quot;</span>;
-<span class="kw">pub const </span>BYTE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;BYTE&quot;</span>;
-<span class="kw">pub const </span>SINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;SINT&quot;</span>;
-<span class="kw">pub const </span>USINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;USINT&quot;</span>;
-<span class="kw">pub const </span>WORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;WORD&quot;</span>;
-<span class="kw">pub const </span>INT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;INT&quot;</span>;
-<span class="kw">pub const </span>UINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;UINT&quot;</span>;
-<span class="kw">pub const </span>DWORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;DWORD&quot;</span>;
-<span class="kw">pub const </span>DINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;DINT&quot;</span>;
-<span class="kw">pub const </span>UDINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;UDINT&quot;</span>;
-<span class="kw">pub const </span>LWORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LWORD&quot;</span>;
-<span class="kw">pub const </span>LINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LINT&quot;</span>;
-<span class="kw">pub const </span>DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;DATE&quot;</span>;
-<span class="kw">pub const </span>SHORT_DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;D&quot;</span>;
-<span class="kw">pub const </span>LONG_DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LDATE&quot;</span>;
-<span class="kw">pub const </span>LONG_DATE_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LD&quot;</span>;
-<span class="kw">pub const </span>TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;TIME&quot;</span>;
-<span class="kw">pub const </span>SHORT_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;T&quot;</span>;
-<span class="kw">pub const </span>LONG_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LTIME&quot;</span>;
-<span class="kw">pub const </span>LONG_TIME_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LT&quot;</span>;
-<span class="kw">pub const </span>DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;DATE_AND_TIME&quot;</span>;
-<span class="kw">pub const </span>SHORT_DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;DT&quot;</span>;
-<span class="kw">pub const </span>LONG_DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LDATE_AND_TIME&quot;</span>;
-<span class="kw">pub const </span>LONG_DATE_AND_TIME_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LDT&quot;</span>;
-<span class="kw">pub const </span>TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;TIME_OF_DAY&quot;</span>;
-<span class="kw">pub const </span>SHORT_TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;TOD&quot;</span>;
-<span class="kw">pub const </span>LONG_TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LTIME_OF_DAY&quot;</span>;
-<span class="kw">pub const </span>LONG_TIME_OF_DAY_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LTOD&quot;</span>;
-<span class="kw">pub const </span>ULINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;ULINT&quot;</span>;
-<span class="kw">pub const </span>REAL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;REAL&quot;</span>;
-<span class="kw">pub const </span>LREAL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;LREAL&quot;</span>;
-<span class="kw">pub const </span>STRING_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;STRING&quot;</span>;
-<span class="kw">pub const </span>WSTRING_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;WSTRING&quot;</span>;
-<span class="kw">pub const </span>CHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;CHAR&quot;</span>;
-<span class="kw">pub const </span>WCHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;WCHAR&quot;</span>;
-<span class="kw">pub const </span>VOID_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;VOID&quot;</span>;
-<span class="kw">pub const </span>VOID_INTERNAL_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;__VOID&quot;</span>;
-<span class="kw">pub const </span>__VLA_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;__VLA&quot;</span>;
+</span><span class="kw">pub const </span>BOOL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"BOOL"</span>;
+<span class="kw">pub const </span>BYTE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"BYTE"</span>;
+<span class="kw">pub const </span>SINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"SINT"</span>;
+<span class="kw">pub const </span>USINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"USINT"</span>;
+<span class="kw">pub const </span>WORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"WORD"</span>;
+<span class="kw">pub const </span>INT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"INT"</span>;
+<span class="kw">pub const </span>UINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"UINT"</span>;
+<span class="kw">pub const </span>DWORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"DWORD"</span>;
+<span class="kw">pub const </span>DINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"DINT"</span>;
+<span class="kw">pub const </span>UDINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"UDINT"</span>;
+<span class="kw">pub const </span>LWORD_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LWORD"</span>;
+<span class="kw">pub const </span>LINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LINT"</span>;
+<span class="kw">pub const </span>DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"DATE"</span>;
+<span class="kw">pub const </span>SHORT_DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"D"</span>;
+<span class="kw">pub const </span>LONG_DATE_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LDATE"</span>;
+<span class="kw">pub const </span>LONG_DATE_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">"LD"</span>;
+<span class="kw">pub const </span>TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"TIME"</span>;
+<span class="kw">pub const </span>SHORT_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"T"</span>;
+<span class="kw">pub const </span>LONG_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LTIME"</span>;
+<span class="kw">pub const </span>LONG_TIME_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">"LT"</span>;
+<span class="kw">pub const </span>DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"DATE_AND_TIME"</span>;
+<span class="kw">pub const </span>SHORT_DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"DT"</span>;
+<span class="kw">pub const </span>LONG_DATE_AND_TIME_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LDATE_AND_TIME"</span>;
+<span class="kw">pub const </span>LONG_DATE_AND_TIME_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">"LDT"</span>;
+<span class="kw">pub const </span>TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"TIME_OF_DAY"</span>;
+<span class="kw">pub const </span>SHORT_TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"TOD"</span>;
+<span class="kw">pub const </span>LONG_TIME_OF_DAY_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LTIME_OF_DAY"</span>;
+<span class="kw">pub const </span>LONG_TIME_OF_DAY_TYPE_SHORTENED: <span class="kw-2">&amp;</span>str = <span class="string">"LTOD"</span>;
+<span class="kw">pub const </span>ULINT_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"ULINT"</span>;
+<span class="kw">pub const </span>REAL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"REAL"</span>;
+<span class="kw">pub const </span>LREAL_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"LREAL"</span>;
+<span class="kw">pub const </span>STRING_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"STRING"</span>;
+<span class="kw">pub const </span>WSTRING_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"WSTRING"</span>;
+<span class="kw">pub const </span>CHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"CHAR"</span>;
+<span class="kw">pub const </span>WCHAR_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"WCHAR"</span>;
+<span class="kw">pub const </span>VOID_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"VOID"</span>;
+<span class="kw">pub const </span>VOID_INTERNAL_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"__VOID"</span>;
+<span class="kw">pub const </span>__VLA_TYPE: <span class="kw-2">&amp;</span>str = <span class="string">"__VLA"</span>;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -1701,7 +1703,7 @@
 
     <span class="doccomment">/// returns the const expression represented by this TypeSize or None if this TypeSize
     /// is a compile-time literal
-    </span><span class="kw">pub fn </span>as_const_expression&lt;<span class="lifetime">&#39;i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>AstNode&gt; {
+    </span><span class="kw">pub fn </span>as_const_expression&lt;<span class="lifetime">'i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>AstNode&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             TypeSize::LiteralInteger(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             TypeSize::ConstExpression(id) =&gt; index.get_const_expressions().get_constant_statement(id),
@@ -1804,9 +1806,9 @@
             | DataTypeInformation::Alias { name, .. }
             | DataTypeInformation::Enum { name, .. }
             | DataTypeInformation::Generic { name, .. } =&gt; name,
-            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } =&gt; <span class="string">&quot;STRING&quot;</span>,
-            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } =&gt; <span class="string">&quot;WSTRING&quot;</span>,
-            DataTypeInformation::Void =&gt; <span class="string">&quot;VOID&quot;</span>,
+            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } =&gt; <span class="string">"STRING"</span>,
+            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } =&gt; <span class="string">"WSTRING"</span>,
+            DataTypeInformation::Void =&gt; <span class="string">"VOID"</span>,
         }
     }
 
@@ -1993,13 +1995,13 @@
         }
     }
 
-    <span class="doccomment">/// Returns the String encoding&#39;s alignment (character)
+    <span class="doccomment">/// Returns the String encoding's alignment (character)
     </span><span class="kw">pub fn </span>get_string_character_width(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Bytes {
         <span class="kw">let </span>type_layout = index.get_type_layout();
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } =&gt; type_layout.i8,
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } =&gt; type_layout.i16,
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Expected string found {}&quot;</span>, <span class="self">self</span>.get_name()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Expected string found {}"</span>, <span class="self">self</span>.get_name()),
         }
     }
 
@@ -2082,7 +2084,7 @@
     /// For example calling this function on `ARRAY[1..5] OF DINT`, `ARRAY[1..2, 1..5] OF DINT` and
     /// `ARRAY[1..3] OF ARRAY[1..5]` yields `5`, `10` and `15` respectively.
     </span><span class="kw">pub fn </span>get_array_length(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        <span class="kw">fn </span>intrinsic_array_type&lt;<span class="lifetime">&#39;index</span>&gt;(index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;index </span>Index, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;index </span>DataType {
+        <span class="kw">fn </span>intrinsic_array_type&lt;<span class="lifetime">'index</span>&gt;(index: <span class="kw-2">&amp;</span><span class="lifetime">'index </span>Index, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'index </span>DataType {
             <span class="kw">let </span>effective_type = index.get_effective_type_or_void_by_name(name);
 
             <span class="kw">match </span>effective_type.get_type_information() {
@@ -2136,23 +2138,23 @@
     }
 }
 
-<span class="kw">pub trait </span>DataTypeInformationProvider&lt;<span class="lifetime">&#39;a</span>&gt;: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation&gt; {
+<span class="kw">pub trait </span>DataTypeInformationProvider&lt;<span class="lifetime">'a</span>&gt;: Into&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation&gt; {
     <span class="kw">fn </span>get_type_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DataTypeInformation;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DataTypeInformationProvider&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation {
-    <span class="kw">fn </span>get_type_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DataTypeInformationProvider&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation {
+    <span class="kw">fn </span>get_type_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation {
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataType&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataTypeInformation {
-    <span class="kw">fn </span>from(dt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataType) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataType&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation {
+    <span class="kw">fn </span>from(dt: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataType) -&gt; <span class="self">Self </span>{
         dt.get_type_information()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; DataTypeInformationProvider&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DataType {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DataTypeInformationProvider&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataType {
     <span class="kw">fn </span>get_type_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DataTypeInformation {
         DataType::get_type_information(<span class="self">self</span>)
     }
@@ -2168,10 +2170,10 @@
             location: SourceLocation::internal(),
         },
         DataType {
-            name: <span class="string">&quot;__VLA&quot;</span>.into(),
+            name: <span class="string">"__VLA"</span>.into(),
             initial_value: <span class="prelude-val">None</span>,
             information: DataTypeInformation::Struct {
-                name: <span class="string">&quot;VARIABLE LENGTH ARRAY&quot;</span>.to_string(),
+                name: <span class="string">"VARIABLE LENGTH ARRAY"</span>.to_string(),
                 members: <span class="macro">vec!</span>[],
                 source: StructSource::Internal(InternalType::__VLA),
             },
@@ -2587,8 +2589,8 @@
         DataTypeInformation::Float { size, .. } =&gt; size + <span class="number">1000</span>,
         DataTypeInformation::String { size, .. } =&gt; <span class="kw">match </span>size {
             TypeSize::LiteralInteger(size) =&gt; (<span class="kw-2">*</span>size).try_into().unwrap(),
-            TypeSize::ConstExpression(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;String rank with CONSTANTS&quot;</span>),
-            TypeSize::Undetermined =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Strings will never have undetermined size&quot;</span>),
+            TypeSize::ConstExpression(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(<span class="string">"String rank with CONSTANTS"</span>),
+            TypeSize::Undetermined =&gt; <span class="macro">unreachable!</span>(<span class="string">"Strings will never have undetermined size"</span>),
         },
         DataTypeInformation::Enum { referenced_type, .. } =&gt; {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)
@@ -2618,11 +2620,11 @@
         // 2. foo := REF(bar)
         // 3. foo := &amp;bar
         </span>DataTypeInformation::Pointer { .. } =&gt; <span class="kw">match </span>rtype {
-            <span class="comment">// Case 1: ADR(bar) returns a LWORD value, thus check if we&#39;re working with a LWORD
+            <span class="comment">// Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
             </span>DataTypeInformation::Integer { size, .. } =&gt; <span class="kw-2">*</span>size == POINTER_SIZE,
 
             <span class="comment">// Case 2 &amp; 3:
-            // REF(bar) and &amp;bar returns a pointer, thus deduce their inner types and check if they&#39;re equal
+            // REF(bar) and &amp;bar returns a pointer, thus deduce their inner types and check if they're equal
             </span>DataTypeInformation::Pointer { .. } =&gt; {
                 <span class="kw">let </span>ldetails = index.find_elementary_pointer_type(ltype);
                 <span class="kw">let </span>rdetails = index.find_elementary_pointer_type(rtype);
@@ -2647,10 +2649,10 @@
 }
 
 <span class="doccomment">/// Returns the bigger of the two provided types
-</span><span class="kw">pub fn </span>get_bigger_type&lt;<span class="lifetime">&#39;t</span>, T: DataTypeInformationProvider&lt;<span class="lifetime">&#39;t</span>&gt; + std::convert::From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>DataType&gt;&gt;(
+</span><span class="kw">pub fn </span>get_bigger_type&lt;<span class="lifetime">'t</span>, T: DataTypeInformationProvider&lt;<span class="lifetime">'t</span>&gt; + std::convert::From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataType&gt;&gt;(
     left_type: T,
     right_type: T,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Index,
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>Index,
 ) -&gt; T {
     <span class="kw">let </span>lt = left_type.get_type_information();
     <span class="kw">let </span>rt = right_type.get_type_information();
@@ -2685,10 +2687,10 @@
 
 <span class="doccomment">/// returns the signed version of the given data_type if its a signed int-type
 /// returns the original type if it is no signed int-type
-</span><span class="kw">pub fn </span>get_signed_type&lt;<span class="lifetime">&#39;t</span>&gt;(
-    data_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>DataTypeInformation,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Index,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>DataTypeInformation&gt; {
+</span><span class="kw">pub fn </span>get_signed_type&lt;<span class="lifetime">'t</span>&gt;(
+    data_type: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation,
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>Index,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation&gt; {
     <span class="kw">if </span>data_type.is_int() {
         <span class="kw">let </span>signed_type = <span class="kw">match </span>data_type.get_name() {
             BYTE_TYPE =&gt; SINT_TYPE,
@@ -2712,13 +2714,13 @@
  */
 </span><span class="kw">pub fn </span>get_equals_function_name_for(type_name: <span class="kw-2">&amp;</span>str, operator: <span class="kw-2">&amp;</span>Operator) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
     <span class="kw">let </span>suffix = <span class="kw">match </span>operator {
-        Operator::Equal =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;EQUAL&quot;</span>),
-        Operator::Less =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;LESS&quot;</span>),
-        Operator::Greater =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;GREATER&quot;</span>),
+        Operator::Equal =&gt; <span class="prelude-val">Some</span>(<span class="string">"EQUAL"</span>),
+        Operator::Less =&gt; <span class="prelude-val">Some</span>(<span class="string">"LESS"</span>),
+        Operator::Greater =&gt; <span class="prelude-val">Some</span>(<span class="string">"GREATER"</span>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     };
 
-    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">&quot;{type_name}_{suffix}&quot;</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">"{type_name}_{suffix}"</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
 </span>}
 
 <span class="kw">pub fn </span>get_literal_actual_signed_type_name(lit: <span class="kw-2">&amp;</span>AstLiteral, signed: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {

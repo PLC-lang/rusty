@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/float_type.rs`."><title>float_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/float_type.rs`."><title>float_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -313,15 +315,15 @@
 
 <span class="doccomment">/// A `FloatType` is the type of a floating point constant or variable.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-</span><span class="kw">pub struct </span>FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    float_type: Type&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
+    float_type: Type&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create `FloatType` from [`LLVMTypeRef`]
     ///
     /// # Safety
-    /// Undefined behavior, if referenced type isn&#39;t float type
+    /// Undefined behavior, if referenced type isn't float type
     </span><span class="kw">pub unsafe fn </span>new(float_type: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!float_type.is_null());
 
@@ -341,7 +343,7 @@
     /// let f32_type = context.f32_type();
     /// let fn_type = f32_type.fn_type(&amp;[], false);
     /// ```
-    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.fn_type(param_types, is_var_args)
     }
 
@@ -359,7 +361,7 @@
     /// assert_eq!(f32_array_type.len(), 3);
     /// assert_eq!(f32_array_type.get_element_type().into_float_type(), f32_type);
     /// ```
-    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.array_type(size)
     }
 
@@ -377,12 +379,12 @@
     /// assert_eq!(f32_vector_type.get_size(), 3);
     /// assert_eq!(f32_vector_type.get_element_type().into_float_type(), f32_type);
     /// ```
-    </span><span class="kw">pub fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.vec_type(size)
     }
 
     <span class="doccomment">/// Creates a `FloatValue` repesenting a constant value of this `FloatType`.
-    /// It will be automatically assigned this `FloatType`&#39;s `Context`.
+    /// It will be automatically assigned this `FloatType`'s `Context`.
     ///
     /// # Example
     /// ```no_run
@@ -393,7 +395,7 @@
     /// let f32_type = context.f32_type();
     /// let f32_value = f32_type.const_float(42.);
     /// ```
-    </span><span class="kw">pub fn </span>const_float(<span class="self">self</span>, value: f64) -&gt; FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_float(<span class="self">self</span>, value: f64) -&gt; FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatValue::new(LLVMConstReal(<span class="self">self</span>.float_type.ty, value)) }
     }
 
@@ -408,27 +410,27 @@
     ///
     /// let context = Context::create();
     /// let f64_type = context.f64_type();
-    /// let f64_val = f64_type.const_float_from_string(&quot;3.6&quot;);
+    /// let f64_val = f64_type.const_float_from_string("3.6");
     ///
-    /// assert_eq!(f64_val.print_to_string().to_string(), &quot;double 3.600000e+00&quot;);
+    /// assert_eq!(f64_val.print_to_string().to_string(), "double 3.600000e+00");
     ///
-    /// let f64_val = f64_type.const_float_from_string(&quot;3.&quot;);
+    /// let f64_val = f64_type.const_float_from_string("3.");
     ///
-    /// assert_eq!(f64_val.print_to_string().to_string(), &quot;double 3.000000e+00&quot;);
+    /// assert_eq!(f64_val.print_to_string().to_string(), "double 3.000000e+00");
     ///
-    /// let f64_val = f64_type.const_float_from_string(&quot;3&quot;);
+    /// let f64_val = f64_type.const_float_from_string("3");
     ///
-    /// assert_eq!(f64_val.print_to_string().to_string(), &quot;double 3.000000e+00&quot;);
+    /// assert_eq!(f64_val.print_to_string().to_string(), "double 3.000000e+00");
     ///
-    /// let f64_val = f64_type.const_float_from_string(&quot;&quot;);
+    /// let f64_val = f64_type.const_float_from_string("");
     ///
-    /// assert_eq!(f64_val.print_to_string().to_string(), &quot;double 0.000000e+00&quot;);
+    /// assert_eq!(f64_val.print_to_string().to_string(), "double 0.000000e+00");
     ///
-    /// let f64_val = f64_type.const_float_from_string(&quot;3.asd&quot;);
+    /// let f64_val = f64_type.const_float_from_string("3.asd");
     ///
-    /// assert_eq!(f64_val.print_to_string().to_string(), &quot;double 0x7FF0000000000000&quot;);
+    /// assert_eq!(f64_val.print_to_string().to_string(), "double 0x7FF0000000000000");
     /// ```
-    </span><span class="kw">pub fn </span>const_float_from_string(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>str) -&gt; FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_float_from_string(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>str) -&gt; FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{
             FloatValue::new(LLVMConstRealOfStringAndSize(
                 <span class="self">self</span>.as_type_ref(),
@@ -450,9 +452,9 @@
     /// let f32_type = context.f32_type();
     /// let f32_zero = f32_type.const_zero();
     ///
-    /// assert_eq!(f32_zero.print_to_string().to_string(), &quot;float 0.000000e+00&quot;);
+    /// assert_eq!(f32_zero.print_to_string().to_string(), "float 0.000000e+00");
     /// ```
-    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatValue::new(<span class="self">self</span>.float_type.const_zero()) }
     }
 
@@ -467,7 +469,7 @@
     /// let f32_type = context.f32_type();
     /// let f32_type_size = f32_type.size_of();
     /// ```
-    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.size_of().unwrap()
     }
 
@@ -482,7 +484,7 @@
     /// let f32_type = context.f32_type();
     /// let f32_type_alignment = f32_type.get_alignment();
     /// ```
-    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.get_alignment()
     }
 
@@ -498,7 +500,7 @@
     ///
     /// assert_eq!(f32_type.get_context(), context);
     /// ```
-    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.get_context()
     }
 
@@ -515,21 +517,21 @@
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
     /// assert_eq!(f32_ptr_type.get_element_type().into_float_type(), f32_type);
     /// ```
-    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.float_type.ptr_type(address_space)
     }
 
@@ -550,12 +552,12 @@
     ///
     /// assert!(f32_undef.is_undef());
     /// ```
-    </span><span class="kw">pub fn </span>get_undef(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_undef(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatValue::new(<span class="self">self</span>.float_type.get_undef()) }
     }
 
     <span class="doccomment">/// Creates a `GenericValue` for use with `ExecutionEngine`s.
-    </span><span class="kw">pub fn </span>create_generic_value(<span class="self">self</span>, value: f64) -&gt; GenericValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_generic_value(<span class="self">self</span>, value: f64) -&gt; GenericValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ GenericValue::new(LLVMCreateGenericValueOfFloat(<span class="self">self</span>.as_type_ref(), value)) }
     }
 
@@ -573,7 +575,7 @@
     ///
     /// assert!(f32_array.is_const());
     /// ```
-    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[FloatValue&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>values: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             ArrayValue::new(LLVMConstArray(
@@ -585,15 +587,15 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>FloatType&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>FloatType&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_type_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMTypeRef {
         <span class="self">self</span>.float_type.ty
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>FloatType&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>FloatType&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 </code></pre></div></section></main></body></html>

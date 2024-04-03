@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/job.rs`."><title>job.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/job.rs`."><title>job.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -297,9 +299,9 @@
 <span class="doccomment">/// Effectively a Job trait object. Each JobRef **must** be executed
 /// exactly once, or else data may leak.
 ///
-/// Internally, we store the job&#39;s data in a `*const ()` pointer.  The
+/// Internally, we store the job's data in a `*const ()` pointer.  The
 /// true type is something like `*const StackJob&lt;...&gt;`, but we hide
-/// it. We also carry the &quot;execute fn&quot; from the `Job` trait.
+/// it. We also carry the "execute fn" from the `Job` trait.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>JobRef {
     pointer: <span class="kw-2">*const </span>(),
     execute_fn: <span class="kw">unsafe fn</span>(<span class="kw-2">*const </span>()),
@@ -416,7 +418,7 @@
 
     <span class="doccomment">/// Creates a `JobRef` from this job -- note that this hides all
     /// lifetimes, so it is up to you to ensure that this JobRef
-    /// doesn&#39;t outlive any data that it closes over.
+    /// doesn't outlive any data that it closes over.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>into_job_ref(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; JobRef {
         JobRef::new(Box::into_raw(<span class="self">self</span>))
     }
@@ -424,7 +426,7 @@
     <span class="doccomment">/// Creates a static `JobRef` from this job.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>into_static_job_ref(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; JobRef
     <span class="kw">where
-        </span>BODY: <span class="lifetime">&#39;static</span>,
+        </span>BODY: <span class="lifetime">'static</span>,
     {
         <span class="kw">unsafe </span>{ <span class="self">self</span>.into_job_ref() }
     }
@@ -459,7 +461,7 @@
 
     <span class="doccomment">/// Creates a `JobRef` from this job -- note that this hides all
     /// lifetimes, so it is up to you to ensure that this JobRef
-    /// doesn&#39;t outlive any data that it closes over.
+    /// doesn't outlive any data that it closes over.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>as_job_ref(this: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; JobRef {
         JobRef::new(Arc::into_raw(Arc::clone(this)))
     }
@@ -467,7 +469,7 @@
     <span class="doccomment">/// Creates a static `JobRef` from this job.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>as_static_job_ref(this: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) -&gt; JobRef
     <span class="kw">where
-        </span>BODY: <span class="lifetime">&#39;static</span>,
+        </span>BODY: <span class="lifetime">'static</span>,
     {
         <span class="kw">unsafe </span>{ <span class="self">Self</span>::as_job_ref(this) }
     }
@@ -518,7 +520,7 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, job_ref: JobRef) -&gt; JobRef {
         <span class="comment">// A little indirection ensures that spawns are always prioritized in FIFO order.  The
-        // jobs in a thread&#39;s deque may be popped from the back (LIFO) or stolen from the front
+        // jobs in a thread's deque may be popped from the back (LIFO) or stolen from the front
         // (FIFO), but either way they will end up popping from the front of this queue.
         </span><span class="self">self</span>.inner.push(job_ref);
         JobRef::new(<span class="self">self</span>)
@@ -527,12 +529,12 @@
 
 <span class="kw">impl </span>Job <span class="kw">for </span>JobFifo {
     <span class="kw">unsafe fn </span>execute(this: <span class="kw-2">*const </span>()) {
-        <span class="comment">// We &quot;execute&quot; a queue by executing its first job, FIFO.
+        <span class="comment">// We "execute" a queue by executing its first job, FIFO.
         </span><span class="kw">let </span>this = <span class="kw-2">&amp;*</span>(this <span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self</span>);
         <span class="kw">loop </span>{
             <span class="kw">match </span>this.inner.steal() {
                 Steal::Success(job_ref) =&gt; <span class="kw">break </span>job_ref.execute(),
-                Steal::Empty =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIFO is empty&quot;</span>),
+                Steal::Empty =&gt; <span class="macro">panic!</span>(<span class="string">"FIFO is empty"</span>),
                 Steal::Retry =&gt; {}
             }
         }

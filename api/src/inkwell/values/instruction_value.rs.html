@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/instruction_value.rs`."><title>instruction_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/instruction_value.rs`."><title>instruction_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -795,11 +797,11 @@
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Copy, Hash)]
-</span><span class="kw">pub struct </span>InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    instruction_value: Value&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    instruction_value: Value&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; InstructionValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">fn </span>is_a_load_inst(<span class="self">self</span>) -&gt; bool {
         !<span class="kw">unsafe </span>{ LLVMIsALoadInst(<span class="self">self</span>.as_value_ref()) }.is_null()
     }
@@ -840,9 +842,9 @@
     }
 
     <span class="doccomment">/// Set name of the `InstructionValue`.
-    </span><span class="kw">pub fn </span>set_name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>set_name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span><span class="self">self</span>.get_type().is_void_type() {
-            <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot set name of a void-type instruction!&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="string">"Cannot set name of a void-type instruction!"</span>)
         } <span class="kw">else </span>{
             <span class="self">self</span>.instruction_value.set_name(name);
             <span class="prelude-val">Ok</span>(())
@@ -850,7 +852,7 @@
     }
 
     <span class="doccomment">/// Get type of the current InstructionValue
-    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ AnyTypeEnum::new(<span class="self">self</span>.instruction_value.get_type()) }
     }
 
@@ -896,7 +898,7 @@
     // but I doubt LLVM returns null if the parent BB (or grandparent FN)
     // was deleted... Invalid memory is more likely. Cloned IV will have no
     // parent?
-    </span><span class="kw">pub fn </span>get_parent(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_parent(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ BasicBlock::new(LLVMGetInstructionParent(<span class="self">self</span>.as_value_ref())) }
     }
 
@@ -909,18 +911,18 @@
         </span>}
     }
 
-    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>InstructionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="self">self</span>.instruction_value.replace_all_uses_with(other.as_value_ref())
     }
 
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Returns whether or not a memory access instruction is volatile.
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">9.0</span>)]
-    </span><span class="kw">pub fn </span>get_volatile(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-        <span class="comment">// Although cmpxchg and atomicrmw can have volatile, LLVM&#39;s C API
+    </span><span class="kw">pub fn </span>get_volatile(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+        <span class="comment">// Although cmpxchg and atomicrmw can have volatile, LLVM's C API
         // does not export that functionality until 10.0.
         </span><span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load or store.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load or store."</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ LLVMGetVolatile(<span class="self">self</span>.as_value_ref()) } == <span class="number">1</span>)
     }
@@ -928,10 +930,10 @@
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Returns whether or not a memory access instruction is volatile.
     </span><span class="attr">#[llvm_versions(<span class="number">10.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_volatile(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>get_volatile(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() &amp;&amp; !<span class="self">self</span>.is_a_atomicrmw_inst() &amp;&amp; !<span class="self">self</span>.is_a_cmpxchg_inst()
         {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load, store, atomicrmw or cmpxchg.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load, store, atomicrmw or cmpxchg."</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ LLVMGetVolatile(<span class="self">self</span>.as_value_ref()) } == <span class="number">1</span>)
     }
@@ -939,11 +941,11 @@
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Sets whether or not a memory access instruction is volatile.
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">9.0</span>)]
-    </span><span class="kw">pub fn </span>set_volatile(<span class="self">self</span>, volatile: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-        <span class="comment">// Although cmpxchg and atomicrmw can have volatile, LLVM&#39;s C API
+    </span><span class="kw">pub fn </span>set_volatile(<span class="self">self</span>, volatile: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+        <span class="comment">// Although cmpxchg and atomicrmw can have volatile, LLVM's C API
         // does not export that functionality until 10.0.
         </span><span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load or store.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load or store."</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ LLVMSetVolatile(<span class="self">self</span>.as_value_ref(), volatile <span class="kw">as </span>i32) })
     }
@@ -951,10 +953,10 @@
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Sets whether or not a memory access instruction is volatile.
     </span><span class="attr">#[llvm_versions(<span class="number">10.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>set_volatile(<span class="self">self</span>, volatile: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>set_volatile(<span class="self">self</span>, volatile: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() &amp;&amp; !<span class="self">self</span>.is_a_atomicrmw_inst() &amp;&amp; !<span class="self">self</span>.is_a_cmpxchg_inst()
         {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load, store, atomicrmw or cmpxchg.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load, store, atomicrmw or cmpxchg."</span>);
         }
         <span class="kw">unsafe </span>{ LLVMSetVolatile(<span class="self">self</span>.as_value_ref(), volatile <span class="kw">as </span>i32) };
         <span class="prelude-val">Ok</span>(())
@@ -962,28 +964,28 @@
 
     <span class="comment">// SubTypes: Only apply to memory access and alloca instructions
     </span><span class="doccomment">/// Returns alignment on a memory access instruction or alloca.
-    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_a_alloca_inst() &amp;&amp; !<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not an alloca, load or store.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not an alloca, load or store."</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ LLVMGetAlignment(<span class="self">self</span>.as_value_ref()) })
     }
 
     <span class="comment">// SubTypes: Only apply to memory access and alloca instructions
     </span><span class="doccomment">/// Sets alignment on a memory access instruction or alloca.
-    </span><span class="kw">pub fn </span>set_alignment(<span class="self">self</span>, alignment: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm11-0&quot;</span>, feature = <span class="string">&quot;llvm12-0&quot;</span>))]
+    </span><span class="kw">pub fn </span>set_alignment(<span class="self">self</span>, alignment: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+        <span class="attr">#[cfg(any(feature = <span class="string">"llvm11-0"</span>, feature = <span class="string">"llvm12-0"</span>))]
         </span>{
             <span class="kw">if </span>alignment == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Alignment cannot be 0&quot;</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Alignment cannot be 0"</span>);
             }
         }
         <span class="comment">//The alignment = 0 check above covers LLVM &gt;= 11, the != 0 check here keeps older versions compatible
         </span><span class="kw">if </span>!alignment.is_power_of_two() &amp;&amp; alignment != <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Alignment is not a power of 2!&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Alignment is not a power of 2!"</span>);
         }
         <span class="kw">if </span>!<span class="self">self</span>.is_a_alloca_inst() &amp;&amp; !<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not an alloca, load or store.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not an alloca, load or store."</span>);
         }
         <span class="kw">unsafe </span>{ LLVMSetAlignment(<span class="self">self</span>.as_value_ref(), alignment) };
         <span class="prelude-val">Ok</span>(())
@@ -991,31 +993,31 @@
 
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Returns atomic ordering on a memory access instruction.
-    </span><span class="kw">pub fn </span>get_atomic_ordering(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AtomicOrdering, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>get_atomic_ordering(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AtomicOrdering, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load or store.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load or store."</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ LLVMGetOrdering(<span class="self">self</span>.as_value_ref()) }.into())
     }
 
     <span class="comment">// SubTypes: Only apply to memory access instructions
     </span><span class="doccomment">/// Sets atomic ordering on a memory access instruction.
-    </span><span class="kw">pub fn </span>set_atomic_ordering(<span class="self">self</span>, ordering: AtomicOrdering) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>set_atomic_ordering(<span class="self">self</span>, ordering: AtomicOrdering) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="comment">// Although fence and atomicrmw both have an ordering, the LLVM C API
         // does not support them. The cmpxchg instruction has two orderings and
         // does not work with this API.
         </span><span class="kw">if </span>!<span class="self">self</span>.is_a_load_inst() &amp;&amp; !<span class="self">self</span>.is_a_store_inst() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load or store instruction.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Value is not a load or store instruction."</span>);
         }
         <span class="kw">match </span>ordering {
             AtomicOrdering::Release <span class="kw">if </span><span class="self">self</span>.is_a_load_inst() =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The release ordering is not valid on load instructions.&quot;</span>)
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The release ordering is not valid on load instructions."</span>)
             },
             AtomicOrdering::AcquireRelease =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The acq_rel ordering is not valid on load or store instructions.&quot;</span>)
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The acq_rel ordering is not valid on load or store instructions."</span>)
             },
             AtomicOrdering::Acquire <span class="kw">if </span><span class="self">self</span>.is_a_store_inst() =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;The acquire ordering is not valid on store instructions.&quot;</span>)
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"The acquire ordering is not valid on store instructions."</span>)
             },
             <span class="kw">_ </span>=&gt; {},
         };
@@ -1033,15 +1035,15 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ivs&quot;);
+    /// let module = context.create_module("ivs");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[f32_ptr_type.into()], false);
     ///
-    /// let function = module.add_function(&quot;take_f32_ptr&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("take_f32_ptr", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -1059,8 +1061,8 @@
     /// will generate LLVM IR roughly like (varying slightly across LLVM versions):
     ///
     /// ```ir
-    /// ; ModuleID = &#39;ivs&#39;
-    /// source_filename = &quot;ivs&quot;
+    /// ; ModuleID = 'ivs'
+    /// source_filename = "ivs"
     ///
     /// define void @take_f32_ptr(float* %0) {
     /// entry:
@@ -1093,15 +1095,15 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ivs&quot;);
+    /// let module = context.create_module("ivs");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[f32_ptr_type.into()], false);
     ///
-    /// let function = module.add_function(&quot;take_f32_ptr&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("take_f32_ptr", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -1124,8 +1126,8 @@
     /// will generate LLVM IR roughly like (varying slightly across LLVM versions):
     ///
     /// ```ir
-    /// ; ModuleID = &#39;ivs&#39;
-    /// source_filename = &quot;ivs&quot;
+    /// ; ModuleID = 'ivs'
+    /// source_filename = "ivs"
     ///
     /// define void @take_f32_ptr(float* %0) {
     /// entry:
@@ -1144,7 +1146,7 @@
     /// 3) Function call has two: i8 pointer %1 argument, and the free function itself
     /// 4) Void return has zero: void is not a value and does not count as an operand
     /// even though the return instruction can take values.
-    </span><span class="kw">pub fn </span>get_operand(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;Either&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;, BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_operand(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;Either&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;, BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt;&gt; {
         <span class="kw">let </span>num_operands = <span class="self">self</span>.get_num_operands();
 
         <span class="kw">if </span>index &gt;= num_operands {
@@ -1162,7 +1164,7 @@
         <span class="kw">if </span>is_basic_block {
             <span class="kw">let </span>bb = <span class="kw">unsafe </span>{ BasicBlock::new(LLVMValueAsBasicBlock(operand)) };
 
-            <span class="prelude-val">Some</span>(Right(bb.expect(<span class="string">&quot;BasicBlock should always be valid&quot;</span>)))
+            <span class="prelude-val">Some</span>(Right(bb.expect(<span class="string">"BasicBlock should always be valid"</span>)))
         } <span class="kw">else </span>{
             <span class="prelude-val">Some</span>(Left(<span class="kw">unsafe </span>{ BasicValueEnum::new(operand) }))
         }
@@ -1176,15 +1178,15 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ivs&quot;);
+    /// let module = context.create_module("ivs");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[f32_ptr_type.into()], false);
     ///
-    /// let function = module.add_function(&quot;take_f32_ptr&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("take_f32_ptr", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -1199,7 +1201,7 @@
     ///
     /// assert_eq!(free_instruction.get_operand(0).unwrap().left().unwrap(), f32_val);
     /// ```
-    </span><span class="kw">pub fn </span>set_operand&lt;BV: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="self">self</span>, index: u32, val: BV) -&gt; bool {
+    </span><span class="kw">pub fn </span>set_operand&lt;BV: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="self">self</span>, index: u32, val: BV) -&gt; bool {
         <span class="kw">let </span>num_operands = <span class="self">self</span>.get_num_operands();
 
         <span class="kw">if </span>index &gt;= num_operands {
@@ -1219,15 +1221,15 @@
     /// use inkwell::values::BasicValue;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ivs&quot;);
+    /// let module = context.create_module("ivs");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[f32_ptr_type.into()], false);
     ///
-    /// let function = module.add_function(&quot;take_f32_ptr&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("take_f32_ptr", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -1239,7 +1241,7 @@
     ///
     /// assert_eq!(store_instruction.get_operand_use(1), arg1.get_first_use());
     /// ```
-    </span><span class="kw">pub fn </span>get_operand_use(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_operand_use(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>num_operands = <span class="self">self</span>.get_num_operands();
 
         <span class="kw">if </span>index &gt;= num_operands {
@@ -1265,15 +1267,15 @@
     /// use inkwell::values::BasicValue;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;ivs&quot;);
+    /// let module = context.create_module("ivs");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let f32_type = context.f32_type();
     /// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());
     /// let fn_type = void_type.fn_type(&amp;[f32_ptr_type.into()], false);
     ///
-    /// let function = module.add_function(&quot;take_f32_ptr&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(function, &quot;entry&quot;);
+    /// let function = module.add_function("take_f32_ptr", fn_type, None);
+    /// let basic_block = context.append_basic_block(function, "entry");
     ///
     /// builder.position_at_end(basic_block);
     ///
@@ -1285,7 +1287,7 @@
     ///
     /// assert!(arg1.get_first_use().is_some());
     /// ```
-    </span><span class="kw">pub fn </span>get_first_use(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_first_use(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueUse&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="self">self</span>.instruction_value.get_first_use()
     }
 
@@ -1297,7 +1299,7 @@
     /// If the instruction is not an `ICmp`, this returns None.
     </span><span class="kw">pub fn </span>get_icmp_predicate(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntPredicate&gt; {
         <span class="comment">// REVIEW: this call to get_opcode() can be inefficient;
-        // what happens if we don&#39;t perform this check, and just call
+        // what happens if we don't perform this check, and just call
         // LLVMGetICmpPredicate() regardless?
         </span><span class="kw">if </span><span class="self">self</span>.get_opcode() == InstructionOpcode::ICmp {
             <span class="kw">let </span>pred = <span class="kw">unsafe </span>{ LLVMGetICmpPredicate(<span class="self">self</span>.as_value_ref()) };
@@ -1315,7 +1317,7 @@
     /// If the instruction is not an `FCmp`, this returns None.
     </span><span class="kw">pub fn </span>get_fcmp_predicate(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FloatPredicate&gt; {
         <span class="comment">// REVIEW: this call to get_opcode() can be inefficient;
-        // what happens if we don&#39;t perform this check, and just call
+        // what happens if we don't perform this check, and just call
         // LLVMGetFCmpPredicate() regardless?
         </span><span class="kw">if </span><span class="self">self</span>.get_opcode() == InstructionOpcode::FCmp {
             <span class="kw">let </span>pred = <span class="kw">unsafe </span>{ LLVMGetFCmpPredicate(<span class="self">self</span>.as_value_ref()) };
@@ -1332,7 +1334,7 @@
 
     <span class="doccomment">/// Gets the `MetadataValue` associated with this `Instruction` at a specific
     /// `kind_id`.
-    </span><span class="kw">pub fn </span>get_metadata(<span class="self">self</span>, kind_id: u32) -&gt; <span class="prelude-ty">Option</span>&lt;MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_metadata(<span class="self">self</span>, kind_id: u32) -&gt; <span class="prelude-ty">Option</span>&lt;MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>metadata_value = <span class="kw">unsafe </span>{ LLVMGetMetadata(<span class="self">self</span>.instruction_value.value, kind_id) };
 
         <span class="kw">if </span>metadata_value.is_null() {
@@ -1344,9 +1346,9 @@
 
     <span class="doccomment">/// Determines whether or not this `Instruction` has any associated metadata
     /// `kind_id`.
-    </span><span class="kw">pub fn </span>set_metadata(<span class="self">self</span>, metadata: MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, kind_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>set_metadata(<span class="self">self</span>, metadata: MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;, kind_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!metadata.is_node() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"metadata is expected to be a node."</span>);
         }
 
         <span class="kw">unsafe </span>{
@@ -1357,7 +1359,7 @@
     }
 }
 
-<span class="kw">impl </span>Clone <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Clone <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Creates a clone of this `InstructionValue`, and returns it.
     /// The clone will have no parent, and no name.
     </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -1365,15 +1367,15 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_value_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMValueRef {
         <span class="self">self</span>.instruction_value.value
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>InstructionValue&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/fn_value.rs`."><title>fn_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/fn_value.rs`."><title>fn_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -620,11 +622,11 @@
 <span class="kw">use </span><span class="kw">crate</span>::values::{BasicValueEnum, GlobalValue, Value};
 
 <span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-</span><span class="kw">pub struct </span>FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    fn_value: Value&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>FunctionValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    fn_value: Value&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; FunctionValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(value: LLVMValueRef) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>value.is_null() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -670,7 +672,7 @@
         code != <span class="number">1
     </span>}
 
-    <span class="comment">// REVIEW: If there&#39;s a demand, could easily create a module.get_functions() -&gt; Iterator
+    <span class="comment">// REVIEW: If there's a demand, could easily create a module.get_functions() -&gt; Iterator
     </span><span class="kw">pub fn </span>get_next_function(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetNextFunction(<span class="self">self</span>.as_value_ref())) }
     }
@@ -679,7 +681,7 @@
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetPreviousFunction(<span class="self">self</span>.as_value_ref())) }
     }
 
-    <span class="kw">pub fn </span>get_first_param(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_first_param(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>param = <span class="kw">unsafe </span>{ LLVMGetFirstParam(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>param.is_null() {
@@ -689,7 +691,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(BasicValueEnum::new(param)) }
     }
 
-    <span class="kw">pub fn </span>get_last_param(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_last_param(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>param = <span class="kw">unsafe </span>{ LLVMGetLastParam(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>param.is_null() {
@@ -699,11 +701,11 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(BasicValueEnum::new(param)) }
     }
 
-    <span class="kw">pub fn </span>get_first_basic_block(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_first_basic_block(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ BasicBlock::new(LLVMGetFirstBasicBlock(<span class="self">self</span>.as_value_ref())) }
     }
 
-    <span class="kw">pub fn </span>get_nth_param(<span class="self">self</span>, nth: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_nth_param(<span class="self">self</span>, nth: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>count = <span class="self">self</span>.count_params();
 
         <span class="kw">if </span>nth + <span class="number">1 </span>&gt; count {
@@ -721,7 +723,7 @@
         <span class="kw">unsafe </span>{ LLVMCountBasicBlocks(<span class="self">self</span>.as_value_ref()) }
     }
 
-    <span class="kw">pub fn </span>get_basic_blocks(<span class="self">self</span>) -&gt; Vec&lt;BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_basic_blocks(<span class="self">self</span>) -&gt; Vec&lt;BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>count = <span class="self">self</span>.count_basic_blocks();
         <span class="kw">let </span><span class="kw-2">mut </span>raw_vec: Vec&lt;LLVMBasicBlockRef&gt; = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">let </span>ptr = raw_vec.as_mut_ptr();
@@ -740,7 +742,7 @@
             .collect()
     }
 
-    <span class="kw">pub fn </span>get_param_iter(<span class="self">self</span>) -&gt; ParamValueIter&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>get_param_iter(<span class="self">self</span>) -&gt; ParamValueIter&lt;<span class="lifetime">'ctx</span>&gt; {
         ParamValueIter {
             param_iter_value: <span class="self">self</span>.fn_value.value,
             start: <span class="bool-val">true</span>,
@@ -748,7 +750,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_params(<span class="self">self</span>) -&gt; Vec&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_params(<span class="self">self</span>) -&gt; Vec&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>count = <span class="self">self</span>.count_params();
         <span class="kw">let </span><span class="kw-2">mut </span>raw_vec: Vec&lt;LLVMValueRef&gt; = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">let </span>ptr = raw_vec.as_mut_ptr();
@@ -764,7 +766,7 @@
         raw_vec.iter().map(|val| <span class="kw">unsafe </span>{ BasicValueEnum::new(<span class="kw-2">*</span>val) }).collect()
     }
 
-    <span class="kw">pub fn </span>get_last_basic_block(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_last_basic_block(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ BasicBlock::new(LLVMGetLastBasicBlock(<span class="self">self</span>.fn_value.value)) }
     }
 
@@ -789,7 +791,7 @@
     }
 
     <span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">7.0</span>)]
-    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">use </span><span class="kw">crate</span>::types::PointerType;
 
         <span class="kw">let </span>ptr_type = <span class="kw">unsafe </span>{ PointerType::new(<span class="self">self</span>.fn_value.get_type()) };
@@ -798,7 +800,7 @@
     }
 
     <span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FunctionType::new(llvm_sys::core::LLVMGlobalGetValueType(<span class="self">self</span>.as_value_ref())) }
     }
 
@@ -809,7 +811,7 @@
         <span class="kw">unsafe </span>{ LLVMHasPersonalityFn(<span class="self">self</span>.as_value_ref()) == <span class="number">1 </span>}
     }
 
-    <span class="kw">pub fn </span>get_personality_function(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_personality_function(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="comment">// This prevents a segfault when not having a pfn
         </span><span class="kw">if </span>!<span class="self">self</span>.has_personality_function() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -818,7 +820,7 @@
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetPersonalityFn(<span class="self">self</span>.as_value_ref())) }
     }
 
-    <span class="kw">pub fn </span>set_personality_function(<span class="self">self</span>, personality_fn: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>set_personality_function(<span class="self">self</span>, personality_fn: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMSetPersonalityFn(<span class="self">self</span>.as_value_ref(), personality_fn.as_value_ref()) }
     }
 
@@ -844,7 +846,7 @@
         <span class="kw">unsafe </span>{ LLVMSetGC(<span class="self">self</span>.as_value_ref(), c_string.as_ptr()) }
     }
 
-    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="self">self</span>.fn_value.replace_all_uses_with(other.as_value_ref())
     }
 
@@ -857,11 +859,11 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     /// let enum_attribute = context.create_enum_attribute(1, 1);
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, string_attribute);
@@ -880,11 +882,11 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     /// let enum_attribute = context.create_enum_attribute(1, 1);
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, string_attribute);
@@ -905,11 +907,11 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     /// let enum_attribute = context.create_enum_attribute(1, 1);
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, string_attribute);
@@ -957,14 +959,14 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, string_attribute);
-    /// fn_value.remove_string_attribute(AttributeLoc::Return, &quot;my_key&quot;);
+    /// fn_value.remove_string_attribute(AttributeLoc::Return, "my_key");
     /// ```
     </span><span class="kw">pub fn </span>remove_string_attribute(<span class="self">self</span>, loc: AttributeLoc, key: <span class="kw-2">&amp;</span>str) {
         <span class="kw">unsafe </span>{
@@ -986,10 +988,10 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     /// let enum_attribute = context.create_enum_attribute(1, 1);
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, enum_attribute);
@@ -1008,10 +1010,10 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     /// let enum_attribute = context.create_enum_attribute(1, 1);
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, enum_attribute);
@@ -1038,15 +1040,15 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let string_attribute = context.create_string_attribute(&quot;my_key&quot;, &quot;my_val&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let string_attribute = context.create_string_attribute("my_key", "my_val");
     ///
     /// fn_value.add_attribute(AttributeLoc::Return, string_attribute);
     ///
-    /// assert_eq!(fn_value.get_string_attribute(AttributeLoc::Return, &quot;my_key&quot;), Some(string_attribute));
+    /// assert_eq!(fn_value.get_string_attribute(AttributeLoc::Return, "my_key"), Some(string_attribute));
     /// ```
     </span><span class="comment">// SubTypes: -&gt; Option&lt;Attribute&lt;String&gt;&gt;
     </span><span class="kw">pub fn </span>get_string_attribute(<span class="self">self</span>, loc: AttributeLoc, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Attribute&gt; {
@@ -1075,19 +1077,19 @@
     <span class="doccomment">/// Gets the `GlobalValue` version of this `FunctionValue`. This allows
     /// you to further inspect its global properties or even convert it to
     /// a `PointerValue`.
-    </span><span class="kw">pub fn </span>as_global_value(<span class="self">self</span>) -&gt; GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>as_global_value(<span class="self">self</span>) -&gt; GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ GlobalValue::new(<span class="self">self</span>.as_value_ref()) }
     }
 
     <span class="doccomment">/// Set the debug info descriptor
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>set_subprogram(<span class="self">self</span>, subprogram: DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    </span><span class="kw">pub fn </span>set_subprogram(<span class="self">self</span>, subprogram: DISubprogram&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMSetSubprogram(<span class="self">self</span>.as_value_ref(), subprogram.metadata_ref) }
     }
 
     <span class="doccomment">/// Get the debug info descriptor
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_subprogram(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DISubprogram&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_subprogram(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DISubprogram&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>metadata_ref = <span class="kw">unsafe </span>{ LLVMGetSubprogram(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>metadata_ref.is_null() {
@@ -1111,19 +1113,19 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_value_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMValueRef {
         <span class="self">self</span>.fn_value.value
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>llvm_value = <span class="self">self</span>.print_to_string();
         <span class="kw">let </span>llvm_type = <span class="self">self</span>.get_type();
@@ -1131,26 +1133,26 @@
         <span class="kw">let </span>is_const = <span class="kw">unsafe </span>{ LLVMIsConstant(<span class="self">self</span>.fn_value.value) == <span class="number">1 </span>};
         <span class="kw">let </span>is_null = <span class="self">self</span>.is_null();
 
-        f.debug_struct(<span class="string">&quot;FunctionValue&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span>name)
-            .field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_value_ref())
-            .field(<span class="string">&quot;is_const&quot;</span>, <span class="kw-2">&amp;</span>is_const)
-            .field(<span class="string">&quot;is_null&quot;</span>, <span class="kw-2">&amp;</span>is_null)
-            .field(<span class="string">&quot;llvm_value&quot;</span>, <span class="kw-2">&amp;</span>llvm_value)
-            .field(<span class="string">&quot;llvm_type&quot;</span>, <span class="kw-2">&amp;</span>llvm_type.print_to_string())
+        f.debug_struct(<span class="string">"FunctionValue"</span>)
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span>name)
+            .field(<span class="string">"address"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_value_ref())
+            .field(<span class="string">"is_const"</span>, <span class="kw-2">&amp;</span>is_const)
+            .field(<span class="string">"is_null"</span>, <span class="kw-2">&amp;</span>is_null)
+            .field(<span class="string">"llvm_value"</span>, <span class="kw-2">&amp;</span>llvm_value)
+            .field(<span class="string">"llvm_type"</span>, <span class="kw-2">&amp;</span>llvm_type.print_to_string())
             .finish()
     }
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ParamValueIter&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>ParamValueIter&lt;<span class="lifetime">'ctx</span>&gt; {
     param_iter_value: LLVMValueRef,
     start: bool,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>()&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>()&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Iterator <span class="kw">for </span>ParamValueIter&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">type </span>Item = BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Iterator <span class="kw">for </span>ParamValueIter&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">type </span>Item = BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if </span><span class="self">self</span>.start {

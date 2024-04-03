@@ -1,5 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="   "><title>generational_arena - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="generational_arena" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../generational_arena/index.html">generational_arena</a><span class="version">0.2.9</span></h2></div><div class="sidebar-elems"><ul class="block">
-            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">generational_arena</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/generational_arena/lib.rs.html#1-1367">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://docs.rs/generational-arena/"><img src="https://docs.rs/generational-arena/badge.svg" alt="" /></a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="   "><title>generational_arena - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="generational_arena" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-4c98445ec4002617.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../generational_arena/index.html">generational_arena</a><span class="version">0.2.9</span></h2></div><div class="sidebar-elems"><ul class="block">
+            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../generational_arena/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">generational_arena</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/generational_arena/lib.rs.html#1-1367">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://docs.rs/generational-arena/"><img src="https://docs.rs/generational-arena/badge.svg" alt="" /></a>
 <a href="https://crates.io/crates/generational-arena"><img src="https://img.shields.io/crates/v/generational-arena.svg" alt="" /></a>
 <a href="https://crates.io/crates/generational-arena"><img src="https://img.shields.io/crates/d/generational-arena.svg" alt="" /></a>
 <a href="https://github.com/fitzgen/generational-arena/actions/workflows/rust.yml"><img src="https://github.com/fitzgen/generational-arena/actions/workflows/rust.yml/badge.svg" alt="" /></a></p>
@@ -10,7 +11,7 @@ indices.</p>
 2018</a>, where these ideas (and many
 more!) were presented in the context of an Entity-Component-System for games
 programming.</p>
-<h3 id="what-why"><a href="#what-why">What? Why?</a></h3>
+<h3 id="what-why"><a class="doc-anchor" href="#what-why">§</a>What? Why?</h3>
 <p>Imagine you are working with a graph and you want to add and delete individual
 nodes at a time, or you are writing a game and its world consists of many
 inter-referencing objects with dynamic lifetimes that depend on user
@@ -60,7 +61,7 @@ the generation at the time when the element was inserted, then we can solve the
 aforementioned ABA problem. When indexing into the collection, if the index
 pair’s generation does not match the generation of the element at that index,
 then the operation fails.</p>
-<h3 id="features"><a href="#features">Features</a></h3>
+<h3 id="features"><a class="doc-anchor" href="#features">§</a>Features</h3>
 <ul>
 <li>Zero <code>unsafe</code></li>
 <li>Well tested, including quickchecks</li>
@@ -68,7 +69,7 @@ then the operation fails.</p>
 <li>All the trait implementations you expect: <code>IntoIterator</code>, <code>FromIterator</code>,
 <code>Extend</code>, etc…</li>
 </ul>
-<h3 id="usage"><a href="#usage">Usage</a></h3>
+<h3 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h3>
 <p>First, add <code>generational-arena</code> to your <code>Cargo.toml</code>:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 generational-arena = &quot;0.2&quot;
@@ -82,27 +83,27 @@ generational-arena = &quot;0.2&quot;
 <span class="kw">let </span><span class="kw-2">mut </span>arena = Arena::new();
 
 <span class="comment">// Insert some elements into the arena.
-</span><span class="kw">let </span>rza = arena.insert(<span class="string">&quot;Robert Fitzgerald Diggs&quot;</span>);
-<span class="kw">let </span>gza = arena.insert(<span class="string">&quot;Gary Grice&quot;</span>);
-<span class="kw">let </span>bill = arena.insert(<span class="string">&quot;Bill Gates&quot;</span>);
+</span><span class="kw">let </span>rza = arena.insert(<span class="string">"Robert Fitzgerald Diggs"</span>);
+<span class="kw">let </span>gza = arena.insert(<span class="string">"Gary Grice"</span>);
+<span class="kw">let </span>bill = arena.insert(<span class="string">"Bill Gates"</span>);
 
 <span class="comment">// Inserted elements can be accessed infallibly via indexing (and missing
 // entries will panic).
-</span><span class="macro">assert_eq!</span>(arena[rza], <span class="string">&quot;Robert Fitzgerald Diggs&quot;</span>);
+</span><span class="macro">assert_eq!</span>(arena[rza], <span class="string">"Robert Fitzgerald Diggs"</span>);
 
 <span class="comment">// Alternatively, the `get` and `get_mut` methods provide fallible lookup.
 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(genius) = arena.get(gza) {
-    <span class="macro">println!</span>(<span class="string">&quot;The gza gza genius: {}&quot;</span>, genius);
+    <span class="macro">println!</span>(<span class="string">"The gza gza genius: {}"</span>, genius);
 }
 <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = arena.get_mut(bill) {
-    <span class="kw-2">*</span>val = <span class="string">&quot;Bill Gates doesn&#39;t belong in this set...&quot;</span>;
+    <span class="kw-2">*</span>val = <span class="string">"Bill Gates doesn't belong in this set..."</span>;
 }
 
 <span class="comment">// We can remove elements.
 </span>arena.remove(bill);
 
 <span class="comment">// Insert a new one.
-</span><span class="kw">let </span>murray = arena.insert(<span class="string">&quot;Bill Murray&quot;</span>);
+</span><span class="kw">let </span>murray = arena.insert(<span class="string">"Bill Murray"</span>);
 
 <span class="comment">// The arena does not contain `bill` anymore, but it does contain `murray`, even
 // though they are almost certainly at the same index within the arena in
@@ -112,15 +113,15 @@ generational-arena = &quot;0.2&quot;
 
 <span class="comment">// Iterate over everything inside the arena.
 </span><span class="kw">for </span>(idx, value) <span class="kw">in </span><span class="kw-2">&amp;</span>arena {
-    <span class="macro">println!</span>(<span class="string">&quot;{:?} is at {:?}&quot;</span>, value, idx);
+    <span class="macro">println!</span>(<span class="string">"{:?} is at {:?}"</span>, value, idx);
 }</code></pre></div>
-<h3 id="no_std"><a href="#no_std"><code>no_std</code></a></h3>
+<h3 id="no_std"><a class="doc-anchor" href="#no_std">§</a><code>no_std</code></h3>
 <p>To enable <code>no_std</code> compatibility, disable the on-by-default “std” feature.</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 generational-arena = { version = &quot;0.2&quot;, default-features = false }
-</code></pre></div><h4 id="serialization-and-deserialization-with-serde"><a href="#serialization-and-deserialization-with-serde">Serialization and Deserialization with <code>serde</code></a></h4>
+</code></pre></div><h4 id="serialization-and-deserialization-with-serde"><a class="doc-anchor" href="#serialization-and-deserialization-with-serde">§</a>Serialization and Deserialization with <a href="https://crates.io/crates/serde"><code>serde</code></a></h4>
 <p>To enable serialization/deserialization support, enable the “serde” feature.</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 generational-arena = { version = &quot;0.2&quot;, features = [&quot;serde&quot;] }
-</code></pre></div></div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Arena.html" title="struct generational_arena::Arena">Arena</a></div><div class="desc docblock-short">The <code>Arena</code> allows inserting and removing elements that are referred to by
+</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Arena.html" title="struct generational_arena::Arena">Arena</a></div><div class="desc docblock-short">The <code>Arena</code> allows inserting and removing elements that are referred to by
 <code>Index</code>.</div></li><li><div class="item-name"><a class="struct" href="struct.Drain.html" title="struct generational_arena::Drain">Drain</a></div><div class="desc docblock-short">An iterator that removes elements from the arena.</div></li><li><div class="item-name"><a class="struct" href="struct.Index.html" title="struct generational_arena::Index">Index</a></div><div class="desc docblock-short">An index (and generation) into an <code>Arena</code>.</div></li><li><div class="item-name"><a class="struct" href="struct.IntoIter.html" title="struct generational_arena::IntoIter">IntoIter</a></div><div class="desc docblock-short">An iterator over the elements in an arena.</div></li><li><div class="item-name"><a class="struct" href="struct.Iter.html" title="struct generational_arena::Iter">Iter</a></div><div class="desc docblock-short">An iterator over shared references to the elements in an arena.</div></li><li><div class="item-name"><a class="struct" href="struct.IterMut.html" title="struct generational_arena::IterMut">IterMut</a></div><div class="desc docblock-short">An iterator over exclusive references to elements in this arena.</div></li></ul></section></div></main></body></html>

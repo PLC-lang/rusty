@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/vdso.rs`."><title>vdso.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/vdso.rs`."><title>vdso.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -321,7 +323,7 @@
 //! # Safety
 //!
 //! Parsing the vDSO involves a lot of raw pointer manipulation. This
-//! implementation follows Linux&#39;s reference implementation, and adds several
+//! implementation follows Linux's reference implementation, and adds several
 //! additional safety checks.
 </span><span class="attr">#![allow(unsafe_code)]
 
@@ -374,7 +376,7 @@
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>hdr = <span class="kw">super</span>::param::auxv::sysinfo_ehdr();
 
-        <span class="comment">// If the platform doesn&#39;t provide a `AT_SYSINFO_EHDR`, we can&#39;t locate
+        <span class="comment">// If the platform doesn't provide a `AT_SYSINFO_EHDR`, we can't locate
         // the vDSO.
         </span><span class="kw">if </span>hdr.is_null() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -405,7 +407,7 @@
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..hdr.e_phnum {
             <span class="kw">let </span>phdr = <span class="kw-2">&amp;*</span>pt.add(i <span class="kw">as </span>usize);
             <span class="kw">if </span>phdr.p_flags &amp; PF_W != <span class="number">0 </span>{
-                <span class="comment">// Don&#39;t trust any vDSO that claims to be loading writable
+                <span class="comment">// Don't trust any vDSO that claims to be loading writable
                 // segments into memory.
                 </span><span class="kw">return </span><span class="prelude-val">None</span>;
             }
@@ -419,7 +421,7 @@
                 vdso.load_end = vdso.base_plus(phdr.p_offset.checked_add(phdr.p_memsz)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
                 vdso.pv_offset = phdr.p_offset.wrapping_sub(phdr.p_vaddr);
             } <span class="kw">else if </span>phdr.p_type == PT_DYNAMIC {
-                <span class="comment">// If `p_offset` is zero, it&#39;s more likely that we&#39;re looking
+                <span class="comment">// If `p_offset` is zero, it's more likely that we're looking
                 // at memory that has been zeroed than that the kernel has
                 // somehow aliased the `Ehdr` and the `Elf_Dyn` array.
                 </span><span class="kw">if </span>phdr.p_offset &lt; size_of::&lt;Elf_Ehdr&gt;() {
@@ -430,7 +432,7 @@
                     </span>.as_ptr();
                 num_dyn = phdr.p_memsz / size_of::&lt;Elf_Dyn&gt;();
             } <span class="kw">else if </span>phdr.p_type == PT_INTERP || phdr.p_type == PT_GNU_RELRO {
-                <span class="comment">// Don&#39;t trust any ELF image that has an “interpreter” or
+                <span class="comment">// Don't trust any ELF image that has an “interpreter” or
                 // that uses RELRO, which is likely to be a user ELF image
                 // rather and not the kernel vDSO.
                 </span><span class="kw">return </span><span class="prelude-val">None</span>;
@@ -502,7 +504,7 @@
         </span>vdso.bucket = hash.add(<span class="number">2</span>);
         vdso.chain = hash.add(vdso.nbucket <span class="kw">as </span>usize + <span class="number">2</span>);
 
-        <span class="comment">// That&#39;s all we need.
+        <span class="comment">// That's all we need.
         </span><span class="prelude-val">Some</span>(vdso)
     }
 }
@@ -510,7 +512,7 @@
 <span class="kw">impl </span>Vdso {
     <span class="doccomment">/// Parse the vDSO.
     ///
-    /// Returns `None` if the vDSO can&#39;t be located or if it doesn&#39;t conform to
+    /// Returns `None` if the vDSO can't be located or if it doesn't conform to
     /// our expectations.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -526,18 +528,18 @@
         <span class="comment">// This is a helper function to check if the version indexed by
         // ver matches name (which hashes to hash).
         //
-        // The version definition table is a mess, and I don&#39;t know how
+        // The version definition table is a mess, and I don't know how
         // to do this in better than linear time without allocating memory
-        // to build an index. I also don&#39;t know why the table has
+        // to build an index. I also don't know why the table has
         // variable size entries in the first place.
         //
-        // For added fun, I can&#39;t find a comprehensible specification of how
+        // For added fun, I can't find a comprehensible specification of how
         // to parse all the weird flags in the table.
         //
         // So I just parse the whole table every time.
 
         // First step: find the version definition
-        </span>ver &amp;= <span class="number">0x7fff</span>; <span class="comment">// Apparently bit 15 means &quot;hidden&quot;
+        </span>ver &amp;= <span class="number">0x7fff</span>; <span class="comment">// Apparently bit 15 means "hidden"
         </span><span class="kw">let </span><span class="kw-2">mut </span>def = <span class="self">self</span>.verdef;
         <span class="kw">loop </span>{
             <span class="kw">if </span>(<span class="kw-2">*</span>def).vd_version != VER_DEF_CURRENT {
@@ -580,7 +582,7 @@
 
                 <span class="comment">// Check for a defined global or weak function w/ right name.
                 //
-                // The reference parser in Linux&#39;s parse_vdso.c requires
+                // The reference parser in Linux's parse_vdso.c requires
                 // symbols to have type `STT_FUNC`, but on powerpc64, the vDSO
                 // uses `STT_NOTYPE`, so allow that too.
                 </span><span class="kw">if </span>(ELF_ST_TYPE(sym.st_info) != STT_FUNC &amp;&amp;

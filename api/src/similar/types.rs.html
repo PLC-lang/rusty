@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -510,9 +512,9 @@
 <span class="doccomment">/// An enum representing a diffing algorithm.
 </span><span class="attr">#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
 #[cfg_attr(
-    feature = <span class="string">&quot;serde&quot;</span>,
+    feature = <span class="string">"serde"</span>,
     derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = <span class="string">&quot;snake_case&quot;</span>)
+    serde(rename_all = <span class="string">"snake_case"</span>)
 )]
 </span><span class="kw">pub enum </span>Algorithm {
     <span class="doccomment">/// Picks the myers algorithm from [`crate::algorithms::myers`]
@@ -533,9 +535,9 @@
 <span class="doccomment">/// The tag of a change.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Ord, PartialOrd)]
 #[cfg_attr(
-    feature = <span class="string">&quot;serde&quot;</span>,
+    feature = <span class="string">"serde"</span>,
     derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = <span class="string">&quot;snake_case&quot;</span>)
+    serde(rename_all = <span class="string">"snake_case"</span>)
 )]
 </span><span class="kw">pub enum </span>ChangeTag {
     <span class="doccomment">/// The change indicates equality (not a change)
@@ -550,11 +552,11 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;{}&quot;</span>,
+            <span class="string">"{}"</span>,
             <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
-                ChangeTag::Equal =&gt; <span class="string">&#39; &#39;</span>,
-                ChangeTag::Delete =&gt; <span class="string">&#39;-&#39;</span>,
-                ChangeTag::Insert =&gt; <span class="string">&#39;+&#39;</span>,
+                ChangeTag::Equal =&gt; <span class="string">' '</span>,
+                ChangeTag::Delete =&gt; <span class="string">'-'</span>,
+                ChangeTag::Insert =&gt; <span class="string">'+'</span>,
             }
         )
     }
@@ -565,13 +567,13 @@
 /// This type is returned from [`DiffOp::iter_changes`] and
 /// [`TextDiff::iter_changes`](crate::text::TextDiff::iter_changes).
 ///
-/// It exists so that it&#39;s more convenient to work with textual differences as
+/// It exists so that it's more convenient to work with textual differences as
 /// the underlying [`DiffOp`] encodes a group of changes.
 ///
 /// This type has additional methods that are only available for types
 /// implementing [`DiffableStr`](crate::text::DiffableStr).
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Ord, PartialOrd)]
-#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize))]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(serde::Serialize))]
 </span><span class="kw">pub struct </span>Change&lt;T&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) tag: ChangeTag,
     <span class="kw">pub</span>(<span class="kw">crate</span>) old_index: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -600,7 +602,7 @@
     ///
     /// Depending on the type of the underlying [`crate::text::DiffableStr`]
     /// this value is more or less useful.  If you always want to have a utf-8
-    /// string it&#39;s best to use the [`Change::as_str`] and
+    /// string it's best to use the [`Change::as_str`] and
     /// [`Change::to_string_lossy`] methods.
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; T {
         <span class="self">self</span>.value.clone()
@@ -622,9 +624,9 @@
 /// This is used by [`Capture`](crate::algorithms::Capture).
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 #[cfg_attr(
-    feature = <span class="string">&quot;serde&quot;</span>,
+    feature = <span class="string">"serde"</span>,
     derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = <span class="string">&quot;snake_case&quot;</span>, tag = <span class="string">&quot;op&quot;</span>)
+    serde(rename_all = <span class="string">"snake_case"</span>, tag = <span class="string">"op"</span>)
 )]
 </span><span class="kw">pub enum </span>DiffOp {
     <span class="doccomment">/// A segment is equal (see [`DiffHook::equal`])
@@ -670,9 +672,9 @@
 <span class="doccomment">/// The tag of a diff operation.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Ord, PartialOrd)]
 #[cfg_attr(
-    feature = <span class="string">&quot;serde&quot;</span>,
+    feature = <span class="string">"serde"</span>,
     derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = <span class="string">&quot;snake_case&quot;</span>)
+    serde(rename_all = <span class="string">"snake_case"</span>)
 )]
 </span><span class="kw">pub enum </span>DiffTag {
     <span class="doccomment">/// The diff op encodes an equal segment.
@@ -788,8 +790,8 @@
     /// ```rust
     /// use similar::{ChangeTag, Algorithm};
     /// use similar::capture_diff_slices;
-    /// let old = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];
-    /// let new = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;blah&quot;];
+    /// let old = vec!["foo", "bar", "baz"];
+    /// let new = vec!["foo", "bar", "blah"];
     /// let ops = capture_diff_slices(Algorithm::Myers, &amp;old, &amp;new);
     /// let changes: Vec&lt;_&gt; = ops
     ///     .iter()
@@ -797,17 +799,17 @@
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     /// assert_eq!(changes, vec![
-    ///     (ChangeTag::Equal, &quot;foo&quot;),
-    ///     (ChangeTag::Equal, &quot;bar&quot;),
-    ///     (ChangeTag::Delete, &quot;baz&quot;),
-    ///     (ChangeTag::Insert, &quot;blah&quot;),
+    ///     (ChangeTag::Equal, "foo"),
+    ///     (ChangeTag::Equal, "bar"),
+    ///     (ChangeTag::Delete, "baz"),
+    ///     (ChangeTag::Insert, "blah"),
     /// ]);
     /// ```
-    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">&#39;lookup</span>, Old, New, T&gt;(
+    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">'lookup</span>, Old, New, T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;lookup </span>Old,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;lookup </span>New,
-    ) -&gt; ChangesIter&lt;<span class="lifetime">&#39;lookup</span>, Old, New, T&gt;
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'lookup </span>Old,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'lookup </span>New,
+    ) -&gt; ChangesIter&lt;<span class="lifetime">'lookup</span>, Old, New, T&gt;
     <span class="kw">where
         </span>Old: Index&lt;usize, Output = T&gt; + <span class="question-mark">?</span>Sized,
         New: Index&lt;usize, Output = T&gt; + <span class="question-mark">?</span>Sized,
@@ -826,26 +828,26 @@
     /// ```rust
     /// use similar::{ChangeTag, Algorithm};
     /// use similar::capture_diff_slices;
-    /// let old = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];
-    /// let new = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;blah&quot;];
+    /// let old = vec!["foo", "bar", "baz"];
+    /// let new = vec!["foo", "bar", "blah"];
     /// let ops = capture_diff_slices(Algorithm::Myers, &amp;old, &amp;new);
     /// let changes: Vec&lt;_&gt; = ops.iter().flat_map(|x| x.iter_slices(&amp;old, &amp;new)).collect();
     /// assert_eq!(changes, vec![
-    ///     (ChangeTag::Equal, &amp;[&quot;foo&quot;, &quot;bar&quot;][..]),
-    ///     (ChangeTag::Delete, &amp;[&quot;baz&quot;][..]),
-    ///     (ChangeTag::Insert, &amp;[&quot;blah&quot;][..]),
+    ///     (ChangeTag::Equal, &amp;["foo", "bar"][..]),
+    ///     (ChangeTag::Delete, &amp;["baz"][..]),
+    ///     (ChangeTag::Insert, &amp;["blah"][..]),
     /// ]);
     /// ```
     ///
-    /// Due to lifetime restrictions it&#39;s currently impossible for the
+    /// Due to lifetime restrictions it's currently impossible for the
     /// returned slices to outlive the lookup.
-    </span><span class="kw">pub fn </span>iter_slices&lt;<span class="lifetime">&#39;lookup</span>, Old, New, T&gt;(
+    </span><span class="kw">pub fn </span>iter_slices&lt;<span class="lifetime">'lookup</span>, Old, New, T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;lookup </span>Old,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;lookup </span>New,
-    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;lookup </span>T)&gt;
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'lookup </span>Old,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'lookup </span>New,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'lookup </span>T)&gt;
     <span class="kw">where
-        </span>T: <span class="lifetime">&#39;lookup </span>+ <span class="question-mark">?</span>Sized,
+        </span>T: <span class="lifetime">'lookup </span>+ <span class="question-mark">?</span>Sized,
         Old: Index&lt;Range&lt;usize&gt;, Output = T&gt; + <span class="question-mark">?</span>Sized,
         New: Index&lt;Range&lt;usize&gt;, Output = T&gt; + <span class="question-mark">?</span>Sized,
     {
@@ -961,7 +963,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;text&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"text"</span>)]
 </span><span class="kw">mod </span>text_additions {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::text::DiffableStr;
@@ -970,14 +972,14 @@
     <span class="doccomment">/// The text interface can produce changes over [`DiffableStr`] implementing
     /// values.  As those are generic interfaces for different types of strings
     /// utility methods to make working with standard rust strings more enjoyable.
-    </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>T&gt; {
+    </span><span class="kw">impl</span>&lt;<span class="lifetime">'s</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>T&gt; {
         <span class="doccomment">/// Returns the value as string if it is utf-8.
-        </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str&gt; {
+        </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; {
             T::as_str(<span class="self">self</span>.value)
         }
 
         <span class="doccomment">/// Returns the value (lossy) decoded as utf-8 string.
-        </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;s</span>, str&gt; {
+        </span><span class="kw">pub fn </span>to_string_lossy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'s</span>, str&gt; {
             T::to_string_lossy(<span class="self">self</span>.value)
         }
 
@@ -991,13 +993,13 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>T&gt; {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'s</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; fmt::Display <span class="kw">for </span>Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>T&gt; {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{}{}&quot;</span>,
+                <span class="string">"{}{}"</span>,
                 <span class="self">self</span>.to_string_lossy(),
-                <span class="kw">if </span><span class="self">self</span>.missing_newline() { <span class="string">&quot;\n&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
+                <span class="kw">if </span><span class="self">self</span>.missing_newline() { <span class="string">"\n" </span>} <span class="kw">else </span>{ <span class="string">"" </span>}
             )
         }
     }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/registry.rs`."><title>registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-core-1.12.1/src/registry.rs`."><title>registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rayon_core/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1051,12 +1053,12 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ThreadBuilder {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;ThreadBuilder&quot;</span>)
-            .field(<span class="string">&quot;pool&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.registry.id())
-            .field(<span class="string">&quot;index&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
-            .field(<span class="string">&quot;stack_size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.stack_size)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"ThreadBuilder"</span>)
+            .field(<span class="string">"pool"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.registry.id())
+            .field(<span class="string">"index"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
+            .field(<span class="string">"stack_size"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.stack_size)
             .finish()
     }
 }
@@ -1064,7 +1066,7 @@
 <span class="doccomment">/// Generalized trait for spawning a thread in the `Registry`.
 ///
 /// This trait is pub-in-private -- E0445 forces us to make it public,
-/// but we don&#39;t actually want to expose these details in the API.
+/// but we don't actually want to expose these details in the API.
 </span><span class="kw">pub trait </span>ThreadSpawn {
     <span class="macro">private_decl! </span>{}
 
@@ -1073,10 +1075,10 @@
     </span><span class="kw">fn </span>spawn(<span class="kw-2">&amp;mut </span><span class="self">self</span>, thread: ThreadBuilder) -&gt; io::Result&lt;()&gt;;
 }
 
-<span class="doccomment">/// Spawns a thread in the &quot;normal&quot; way with `std::thread::Builder`.
+<span class="doccomment">/// Spawns a thread in the "normal" way with `std::thread::Builder`.
 ///
 /// This type is pub-in-private -- E0445 forces us to make it public,
-/// but we don&#39;t actually want to expose these details in the API.
+/// but we don't actually want to expose these details in the API.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>DefaultSpawn;
 
@@ -1096,10 +1098,10 @@
     }
 }
 
-<span class="doccomment">/// Spawns a thread with a user&#39;s custom callback.
+<span class="doccomment">/// Spawns a thread with a user's custom callback.
 ///
 /// This type is pub-in-private -- E0445 forces us to make it public,
-/// but we don&#39;t actually want to expose these details in the API.
+/// but we don't actually want to expose these details in the API.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>CustomSpawn&lt;F&gt;(F);
 
@@ -1140,8 +1142,8 @@
     //   gets released.
     // - if this is a user-created thread-pool, then so long as the thread-pool
     //   exists, it holds a reference.
-    // - when we inject a &quot;blocking job&quot; into the registry with `ThreadPool::install()`,
-    //   no adjustment is needed; the `ThreadPool` holds the reference, and since we won&#39;t
+    // - when we inject a "blocking job" into the registry with `ThreadPool::install()`,
+    //   no adjustment is needed; the `ThreadPool` holds the reference, and since we won't
     //   return until the blocking job is complete, that ref will continue to be held.
     // - when `join()` or `scope()` is invoked, similarly, no adjustments are needed.
     //   These are always owned by some other job (e.g., one injected by `ThreadPool::install()`)
@@ -1158,17 +1160,17 @@
 <span class="doccomment">/// Starts the worker threads (if that has not already happened). If
 /// initialization has not already occurred, use the default
 /// configuration.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>global_registry() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Arc&lt;Registry&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>global_registry() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Arc&lt;Registry&gt; {
     set_global_registry(default_global_registry)
         .or_else(|err| <span class="kw">unsafe </span>{ THE_REGISTRY.as_ref().ok_or(err) })
-        .expect(<span class="string">&quot;The global thread pool has not been initialized.&quot;</span>)
+        .expect(<span class="string">"The global thread pool has not been initialized."</span>)
 }
 
 <span class="doccomment">/// Starts the worker threads (if that has not already happened) with
 /// the given builder.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>init_global_registry&lt;S&gt;(
     builder: ThreadPoolBuilder&lt;S&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Arc&lt;Registry&gt;, ThreadPoolBuildError&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Arc&lt;Registry&gt;, ThreadPoolBuildError&gt;
 <span class="kw">where
     </span>S: ThreadSpawn,
 {
@@ -1177,7 +1179,7 @@
 
 <span class="doccomment">/// Starts the worker threads (if that has not already happened)
 /// by creating a registry with the given callback.
-</span><span class="kw">fn </span>set_global_registry&lt;F&gt;(registry: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Arc&lt;Registry&gt;, ThreadPoolBuildError&gt;
+</span><span class="kw">fn </span>set_global_registry&lt;F&gt;(registry: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Arc&lt;Registry&gt;, ThreadPoolBuildError&gt;
 <span class="kw">where
     </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Registry&gt;, ThreadPoolBuildError&gt;,
 {
@@ -1196,12 +1198,12 @@
 <span class="kw">fn </span>default_global_registry() -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Registry&gt;, ThreadPoolBuildError&gt; {
     <span class="kw">let </span>result = Registry::new(ThreadPoolBuilder::new());
 
-    <span class="comment">// If we&#39;re running in an environment that doesn&#39;t support threads at all, we can fall back to
-    // using the current thread alone. This is crude, and probably won&#39;t work for non-blocking
+    <span class="comment">// If we're running in an environment that doesn't support threads at all, we can fall back to
+    // using the current thread alone. This is crude, and probably won't work for non-blocking
     // calls like `spawn` or `broadcast_spawn`, but a lot of stuff does work fine.
     //
     // Notably, this allows current WebAssembly targets to work even though their threading support
-    // is stubbed out, and we won&#39;t have to change anything if they do add real threading.
+    // is stubbed out, and we won't have to change anything if they do add real threading.
     </span><span class="kw">let </span>unsupported = <span class="macro">matches!</span>(<span class="kw-2">&amp;</span>result, <span class="prelude-val">Err</span>(e) <span class="kw">if </span>e.is_unsupported());
     <span class="kw">if </span>unsupported &amp;&amp; WorkerThread::current().is_null() {
         <span class="kw">let </span>builder = ThreadPoolBuilder::new().num_threads(<span class="number">1</span>).use_current_thread();
@@ -1214,9 +1216,9 @@
     result
 }
 
-<span class="kw">struct </span>Terminator&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;Registry&gt;);
+<span class="kw">struct </span>Terminator&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Arc&lt;Registry&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>Terminator&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Drop <span class="kw">for </span>Terminator&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.<span class="number">0</span>.terminate()
     }
@@ -1285,7 +1287,7 @@
                         ErrorKind::CurrentThreadAlreadyInPool,
                     ));
                 }
-                <span class="comment">// Rather than starting a new thread, we&#39;re just taking over the current thread
+                <span class="comment">// Rather than starting a new thread, we're just taking over the current thread
                 // *without* running the main loop, so we can still return from here.
                 // The WorkerThread is leaked, but we never shutdown the global pool anyway.
                 </span><span class="kw">let </span>worker_thread = Box::into_raw(Box::new(WorkerThread::from(thread)));
@@ -1334,7 +1336,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns the current `WorkerThread` if it&#39;s part of this `Registry`.
+    <span class="doccomment">/// Returns the current `WorkerThread` if it's part of this `Registry`.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>WorkerThread&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>worker = WorkerThread::current().as_ref()<span class="question-mark">?</span>;
@@ -1373,7 +1375,7 @@
     <span class="doccomment">/// Waits for the worker threads to get up and running.  This is
     /// meant to be used for benchmarking purposes, primarily, so that
     /// you can get more consistent numbers by having everything
-    /// &quot;ready to go&quot;.
+    /// "ready to go".
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>wait_until_primed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">for </span>info <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.thread_infos {
             info.primed.wait();
@@ -1409,7 +1411,7 @@
         }
     }
 
-    <span class="doccomment">/// Push a job into the &quot;external jobs&quot; queue; it will be taken by
+    <span class="doccomment">/// Push a job into the "external jobs" queue; it will be taken by
     /// whatever worker has nothing to do. Use this if you know that
     /// you are not on a worker of this registry.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inject(<span class="kw-2">&amp;</span><span class="self">self</span>, injected_job: JobRef) {
@@ -1421,7 +1423,7 @@
         </span><span class="macro">debug_assert_ne!</span>(
             <span class="self">self</span>.terminate_count.load(Ordering::Acquire),
             <span class="number">0</span>,
-            <span class="string">&quot;inject() sees state.terminate as true&quot;
+            <span class="string">"inject() sees state.terminate as true"
         </span>);
 
         <span class="kw">let </span>queue_was_empty = <span class="self">self</span>.injected_jobs.is_empty();
@@ -1444,7 +1446,7 @@
         }
     }
 
-    <span class="doccomment">/// Push a job into each thread&#39;s own &quot;external jobs&quot; queue; it will be
+    <span class="doccomment">/// Push a job into each thread's own "external jobs" queue; it will be
     /// executed only on that thread, when it has nothing else to do locally,
     /// before it tries to steal other work.
     ///
@@ -1462,7 +1464,7 @@
             </span><span class="macro">debug_assert_ne!</span>(
                 <span class="self">self</span>.terminate_count.load(Ordering::Acquire),
                 <span class="number">0</span>,
-                <span class="string">&quot;inject_broadcast() sees state.terminate as true&quot;
+                <span class="string">"inject_broadcast() sees state.terminate as true"
             </span>);
 
             <span class="macro">assert_eq!</span>(broadcasts.len(), injected_jobs.len());
@@ -1493,7 +1495,7 @@
                 <span class="self">self</span>.in_worker_cross(<span class="kw-2">&amp;*</span>worker_thread, op)
             } <span class="kw">else </span>{
                 <span class="comment">// Perfectly valid to give them a `&amp;T`: this is the
-                // current thread, so we know the data structure won&#39;t be
+                // current thread, so we know the data structure won't be
                 // invalidated until we return.
                 </span>op(<span class="kw-2">&amp;*</span>worker_thread, <span class="bool-val">false</span>)
             }
@@ -1509,7 +1511,7 @@
         <span class="macro">thread_local!</span>(<span class="kw">static </span>LOCK_LATCH: LockLatch = LockLatch::new());
 
         LOCK_LATCH.with(|l| {
-            <span class="comment">// This thread isn&#39;t a member of *any* thread pool, so just block.
+            <span class="comment">// This thread isn't a member of *any* thread pool, so just block.
             </span><span class="macro">debug_assert!</span>(WorkerThread::current().is_null());
             <span class="kw">let </span>job = StackJob::new(
                 |injected| {
@@ -1571,10 +1573,10 @@
     /// when finished.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>increment_terminate_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>previous = <span class="self">self</span>.terminate_count.fetch_add(<span class="number">1</span>, Ordering::AcqRel);
-        <span class="macro">debug_assert!</span>(previous != <span class="number">0</span>, <span class="string">&quot;registry ref count incremented from zero&quot;</span>);
+        <span class="macro">debug_assert!</span>(previous != <span class="number">0</span>, <span class="string">"registry ref count incremented from zero"</span>);
         <span class="macro">assert!</span>(
             previous != std::usize::MAX,
-            <span class="string">&quot;overflow in registry ref count&quot;
+            <span class="string">"overflow in registry ref count"
         </span>);
     }
 
@@ -1589,7 +1591,7 @@
         }
     }
 
-    <span class="doccomment">/// Notify the worker that the latch they are sleeping on has been &quot;set&quot;.
+    <span class="doccomment">/// Notify the worker that the latch they are sleeping on has been "set".
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>notify_worker_latch_is_set(<span class="kw-2">&amp;</span><span class="self">self</span>, target_worker_index: usize) {
         <span class="self">self</span>.sleep.notify_worker_latch_is_set(target_worker_index);
     }
@@ -1612,11 +1614,11 @@
 
     <span class="doccomment">/// The latch used to signal that terminated has been requested.
     /// This latch is *set* by the `terminate` method on the
-    /// `Registry`, once the registry&#39;s main &quot;terminate&quot; counter
+    /// `Registry`, once the registry's main "terminate" counter
     /// reaches zero.
     </span>terminate: OnceLatch,
 
-    <span class="doccomment">/// the &quot;stealer&quot; half of the worker&#39;s deque
+    <span class="doccomment">/// the "stealer" half of the worker's deque
     </span>stealer: Stealer&lt;JobRef&gt;,
 }
 
@@ -1635,10 +1637,10 @@
 /// WorkerThread identifiers
 
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>WorkerThread {
-    <span class="doccomment">/// the &quot;worker&quot; half of our local deque
+    <span class="doccomment">/// the "worker" half of our local deque
     </span>worker: Worker&lt;JobRef&gt;,
 
-    <span class="doccomment">/// the &quot;stealer&quot; half of the worker&#39;s broadcast deque
+    <span class="doccomment">/// the "stealer" half of the worker's broadcast deque
     </span>stealer: Stealer&lt;JobRef&gt;,
 
     <span class="doccomment">/// local queue used for `spawn_fifo` indirection
@@ -1731,7 +1733,7 @@
         <span class="self">self</span>.worker.is_empty()
     }
 
-    <span class="doccomment">/// Attempts to obtain a &quot;local&quot; job -- typically this means
+    <span class="doccomment">/// Attempts to obtain a "local" job -- typically this means
     /// popping from the top of the stack, though if we are configured
     /// for breadth-first execution, it would mean dequeuing from the
     /// bottom.
@@ -1775,7 +1777,7 @@
         // accesses, which would be *very bad*
         </span><span class="kw">let </span>abort_guard = unwind::AbortIfPanic;
 
-        <span class="lifetime">&#39;outer</span>: <span class="kw">while </span>!latch.probe() {
+        <span class="lifetime">'outer</span>: <span class="kw">while </span>!latch.probe() {
             <span class="comment">// Check for local work *before* we start marking ourself idle,
             // especially to avoid modifying shared sleep state.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(job) = <span class="self">self</span>.take_local_job() {
@@ -1789,7 +1791,7 @@
                     <span class="self">self</span>.registry.sleep.work_found();
                     <span class="self">self</span>.execute(job);
                     <span class="comment">// The job might have injected local work, so go back to the outer loop.
-                    </span><span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
+                    </span><span class="kw">continue </span><span class="lifetime">'outer</span>;
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.registry
                         .sleep
@@ -1797,7 +1799,7 @@
                 }
             }
 
-            <span class="comment">// If we were sleepy, we are not anymore. We &quot;found work&quot; --
+            <span class="comment">// If we were sleepy, we are not anymore. We "found work" --
             // whatever the surrounding thread was doing before it had to wait.
             </span><span class="self">self</span>.registry.sleep.work_found();
             <span class="kw">break</span>;
@@ -1861,7 +1863,7 @@
     /// This should only be done as a last resort, when there is no
     /// local work to do.
     </span><span class="kw">fn </span>steal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JobRef&gt; {
-        <span class="comment">// we only steal when we don&#39;t have any work to do locally
+        <span class="comment">// we only steal when we don't have any work to do locally
         </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.local_deque_is_empty());
 
         <span class="comment">// otherwise, try to steal
@@ -1924,7 +1926,7 @@
     <span class="comment">// Inform a user callback that we exited a thread.
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>handler) = registry.exit_handler {
         registry.catch_unwind(|| handler(index));
-        <span class="comment">// We&#39;re already exiting the thread, there&#39;s nothing else to do.
+        <span class="comment">// We're already exiting the thread, there's nothing else to do.
     </span>}
 }
 
@@ -1942,7 +1944,7 @@
         <span class="kw">let </span>owner_thread = WorkerThread::current();
         <span class="kw">if </span>!owner_thread.is_null() {
             <span class="comment">// Perfectly valid to give them a `&amp;T`: this is the
-            // current thread, so we know the data structure won&#39;t be
+            // current thread, so we know the data structure won't be
             // invalidated until we return.
             </span>op(<span class="kw-2">&amp;*</span>owner_thread, <span class="bool-val">false</span>)
         } <span class="kw">else </span>{
@@ -1952,7 +1954,7 @@
 }
 
 <span class="doccomment">/// [xorshift*] is a fast pseudorandom number generator which will
-/// even tolerate weak seeding, as long as it&#39;s not zero.
+/// even tolerate weak seeding, as long as it's not zero.
 ///
 /// [xorshift*]: https://en.wikipedia.org/wiki/Xorshift#xorshift*
 </span><span class="kw">struct </span>XorShift64Star {

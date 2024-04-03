@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/algorithms/myers.rs`."><title>myers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/algorithms/myers.rs`."><title>myers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -442,7 +444,7 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Myers&#39; diff algorithm.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Myers' diff algorithm.
 //!
 //! * time: `O((N+M)D)`
 //! * space `O(N+M)`
@@ -455,7 +457,7 @@
 //!
 //! # Heuristics
 //!
-//! At present this implementation of Myers&#39; does not implement any more advanced
+//! At present this implementation of Myers' does not implement any more advanced
 //! heuristics that would solve some pathological cases.  For instance passing two
 //! large and completely distinct sequences to the algorithm will make it spin
 //! without making reasonable progress.  Currently the only protection in the
@@ -469,7 +471,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::algorithms::utils::{common_prefix_len, common_suffix_len, is_empty_range};
 <span class="kw">use </span><span class="kw">crate</span>::algorithms::DiffHook;
 
-<span class="doccomment">/// Myers&#39; diff algorithm.
+<span class="doccomment">/// Myers' diff algorithm.
 ///
 /// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
 </span><span class="kw">pub fn </span>diff&lt;Old, New, D&gt;(
@@ -488,7 +490,7 @@
     diff_deadline(d, old, old_range, new, new_range, <span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// Myers&#39; diff algorithm with deadline.
+<span class="doccomment">/// Myers' diff algorithm with deadline.
 ///
 /// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
 ///
@@ -527,10 +529,10 @@
 /// where `V[k]` contains the row index of the endpoint of the furthest reaching
 /// path in diagonal `k`.
 ///
-/// We can&#39;t use a traditional Vec to represent `V` since we use `k` as an index
+/// We can't use a traditional Vec to represent `V` since we use `k` as an index
 /// and it can take on negative values. So instead `V` is represented as a
 /// light-weight wrapper around a Vec plus an `offset` which is the maximum value
-/// `k` can take on in order to map negative `k`&#39;s back to a value &gt;= 0.
+/// `k` can take on in order to map negative `k`'s back to a value &gt;= 0.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>V {
     offset: isize,
@@ -565,7 +567,7 @@
 }
 
 <span class="kw">fn </span>max_d(len1: usize, len2: usize) -&gt; usize {
-    <span class="comment">// XXX look into reducing the need to have the additional &#39;+ 1&#39;
+    <span class="comment">// XXX look into reducing the need to have the additional '+ 1'
     </span>(len1 + len2 + <span class="number">1</span>) / <span class="number">2 </span>+ <span class="number">1
 </span>}
 
@@ -577,14 +579,14 @@
 <span class="doccomment">/// A `Snake` is a sequence of diagonal edges in the edit graph.  Normally
 /// a snake has a start end end point (and it is possible for a snake to have
 /// a length of zero, meaning the start and end points are the same) however
-/// we do not need the end point which is why it&#39;s not implemented here.
+/// we do not need the end point which is why it's not implemented here.
 ///
 /// The divide part of a divide-and-conquer strategy. A D-path has D+1 snakes
 /// some of which may be empty. The divide step requires finding the ceil(D/2) +
 /// 1 or middle snake of an optimal D-path. The idea for doing so is to
 /// simultaneously run the basic algorithm in both the forward and reverse
 /// directions until furthest reaching forward and reverse paths starting at
-/// opposing corners &#39;overlap&#39;.
+/// opposing corners 'overlap'.
 </span><span class="kw">fn </span>find_middle_snake&lt;Old, New&gt;(
     old: <span class="kw-2">&amp;</span>Old,
     old_range: Range&lt;usize&gt;,
@@ -655,7 +657,7 @@
             // odd and when there is a reciprocal k line coming from the other
             // direction.
             </span><span class="kw">if </span>odd &amp;&amp; (k - delta).abs() &lt;= (d - <span class="number">1</span>) {
-                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n
+                <span class="comment">// TODO optimize this so we don't have to compare against n
                 </span><span class="kw">if </span>vf[k] + vb[-(k - delta)] &gt;= n {
                     <span class="comment">// Return the snake
                     </span><span class="kw">return </span><span class="prelude-val">Some</span>((x0 + old_range.start, y0 + new_range.start));
@@ -688,7 +690,7 @@
             </span>vb[k] = x;
 
             <span class="kw">if </span>!odd &amp;&amp; (k - delta).abs() &lt;= d {
-                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n
+                <span class="comment">// TODO optimize this so we don't have to compare against n
                 </span><span class="kw">if </span>vb[k] + vf[-(k - delta)] &gt;= n {
                     <span class="comment">// Return the snake
                     </span><span class="kw">return </span><span class="prelude-val">Some</span>((n - x + old_range.start, m - y + new_range.start));
@@ -696,7 +698,7 @@
             }
         }
 
-        <span class="comment">// TODO: Maybe there&#39;s an opportunity to optimize and bail early?
+        <span class="comment">// TODO: Maybe there's an opportunity to optimize and bail early?
     </span>}
 
     <span class="comment">// deadline reached
@@ -778,8 +780,8 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_find_middle_snake() {
-    <span class="kw">let </span>a = <span class="kw-2">&amp;</span><span class="string">b&quot;ABCABBA&quot;</span>[..];
-    <span class="kw">let </span>b = <span class="kw-2">&amp;</span><span class="string">b&quot;CBABAC&quot;</span>[..];
+    <span class="kw">let </span>a = <span class="kw-2">&amp;</span><span class="string">b"ABCABBA"</span>[..];
+    <span class="kw">let </span>b = <span class="kw-2">&amp;</span><span class="string">b"CBABAC"</span>[..];
     <span class="kw">let </span>max_d = max_d(a.len(), b.len());
     <span class="kw">let </span><span class="kw-2">mut </span>vf = V::new(max_d);
     <span class="kw">let </span><span class="kw-2">mut </span>vb = V::new(max_d);
@@ -830,9 +832,9 @@
     b[<span class="number">50</span>] = <span class="number">99</span>;
     b[<span class="number">25</span>] = <span class="number">99</span>;
 
-    <span class="kw">struct </span>SlowIndex&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[usize]);
+    <span class="kw">struct </span>SlowIndex&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[usize]);
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>SlowIndex&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>SlowIndex&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">type </span>Output = usize;
 
         <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
@@ -844,7 +846,7 @@
     <span class="kw">let </span>slow_a = SlowIndex(<span class="kw-2">&amp;</span>a);
     <span class="kw">let </span>slow_b = SlowIndex(<span class="kw-2">&amp;</span>b);
 
-    <span class="comment">// don&#39;t give it enough time to do anything interesting
+    <span class="comment">// don't give it enough time to do anything interesting
     </span><span class="kw">let </span><span class="kw-2">mut </span>d = <span class="kw">crate</span>::algorithms::Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
     diff_deadline(
         <span class="kw-2">&amp;mut </span>d,

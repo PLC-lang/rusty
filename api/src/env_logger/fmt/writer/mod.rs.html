@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.2/src/fmt/writer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../env_logger/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="env_logger"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.2/src/fmt/writer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../env_logger/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -307,7 +309,7 @@
     <span class="doccomment">/// Logs will be sent to standard error.
     </span>Stderr,
     <span class="doccomment">/// Logs will be sent to a custom pipe.
-    </span>Pipe(Box&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">&#39;static</span>&gt;),
+    </span>Pipe(Box&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">'static</span>&gt;),
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Target {
@@ -317,14 +319,14 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Target {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;{}&quot;</span>,
+            <span class="string">"{}"</span>,
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Stdout =&gt; <span class="string">&quot;stdout&quot;</span>,
-                <span class="self">Self</span>::Stderr =&gt; <span class="string">&quot;stderr&quot;</span>,
-                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
+                <span class="self">Self</span>::Stdout =&gt; <span class="string">"stdout"</span>,
+                <span class="self">Self</span>::Stderr =&gt; <span class="string">"stderr"</span>,
+                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">"pipe"</span>,
             }
         )
     }
@@ -345,7 +347,7 @@
     <span class="doccomment">/// Logs will be printed to standard error.
     </span>PrintStderr,
     <span class="doccomment">/// Logs will be sent to a custom pipe.
-    </span>Pipe(Box&lt;Mutex&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">&#39;static</span>&gt;&gt;),
+    </span>Pipe(Box&lt;Mutex&lt;<span class="kw">dyn </span>io::Write + Send + <span class="lifetime">'static</span>&gt;&gt;),
 }
 
 <span class="kw">impl </span>WritableTarget {
@@ -360,14 +362,14 @@
                 stream.write_all(buf)<span class="question-mark">?</span>;
                 stream.flush()<span class="question-mark">?</span>;
             }
-            WritableTarget::PrintStdout =&gt; <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, String::from_utf8_lossy(buf)),
+            WritableTarget::PrintStdout =&gt; <span class="macro">print!</span>(<span class="string">"{}"</span>, String::from_utf8_lossy(buf)),
             WritableTarget::WriteStderr =&gt; {
                 <span class="kw">let </span>stream = std::io::stderr();
                 <span class="kw">let </span><span class="kw-2">mut </span>stream = stream.lock();
                 stream.write_all(buf)<span class="question-mark">?</span>;
                 stream.flush()<span class="question-mark">?</span>;
             }
-            WritableTarget::PrintStderr =&gt; <span class="macro">eprint!</span>(<span class="string">&quot;{}&quot;</span>, String::from_utf8_lossy(buf)),
+            WritableTarget::PrintStderr =&gt; <span class="macro">eprint!</span>(<span class="string">"{}"</span>, String::from_utf8_lossy(buf)),
             <span class="comment">// Safety: If the target type is `Pipe`, `target_pipe` will always be non-empty.
             </span>WritableTarget::Pipe(pipe) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>stream = pipe.lock().unwrap();
@@ -381,16 +383,16 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>WritableTarget {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;{}&quot;</span>,
+            <span class="string">"{}"</span>,
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::WriteStdout =&gt; <span class="string">&quot;stdout&quot;</span>,
-                <span class="self">Self</span>::PrintStdout =&gt; <span class="string">&quot;stdout&quot;</span>,
-                <span class="self">Self</span>::WriteStderr =&gt; <span class="string">&quot;stderr&quot;</span>,
-                <span class="self">Self</span>::PrintStderr =&gt; <span class="string">&quot;stderr&quot;</span>,
-                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">&quot;pipe&quot;</span>,
+                <span class="self">Self</span>::WriteStdout =&gt; <span class="string">"stdout"</span>,
+                <span class="self">Self</span>::PrintStdout =&gt; <span class="string">"stdout"</span>,
+                <span class="self">Self</span>::WriteStderr =&gt; <span class="string">"stderr"</span>,
+                <span class="self">Self</span>::PrintStderr =&gt; <span class="string">"stderr"</span>,
+                <span class="self">Self</span>::Pipe(<span class="kw">_</span>) =&gt; <span class="string">"pipe"</span>,
             }
         )
     }
@@ -398,7 +400,7 @@
 <span class="doccomment">/// Whether or not to print styles to the target.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub enum </span>WriteStyle {
-    <span class="doccomment">/// Try to print styles, but don&#39;t force the issue.
+    <span class="doccomment">/// Try to print styles, but don't force the issue.
     </span>Auto,
     <span class="doccomment">/// Try very hard to print styles.
     </span>Always,
@@ -412,7 +414,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
 </span><span class="kw">impl </span>WriteStyle {
     <span class="kw">fn </span>into_color_choice(<span class="self">self</span>) -&gt; ::termcolor::ColorChoice {
         <span class="kw">match </span><span class="self">self </span>{
@@ -444,7 +446,7 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Writer {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Writer&quot;</span>).finish()
+        f.debug_struct(<span class="string">"Writer"</span>).finish()
     }
 }
 
@@ -500,7 +502,7 @@
 
     <span class="doccomment">/// Build a terminal writer.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Writer {
-        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">&quot;attempt to re-use consumed builder&quot;</span>);
+        <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">"attempt to re-use consumed builder"</span>);
         <span class="self">self</span>.built = <span class="bool-val">true</span>;
 
         <span class="kw">let </span>color_choice = <span class="kw">match </span><span class="self">self</span>.write_style {
@@ -541,9 +543,9 @@
 
 <span class="kw">fn </span>parse_write_style(spec: <span class="kw-2">&amp;</span>str) -&gt; WriteStyle {
     <span class="kw">match </span>spec {
-        <span class="string">&quot;auto&quot; </span>=&gt; WriteStyle::Auto,
-        <span class="string">&quot;always&quot; </span>=&gt; WriteStyle::Always,
-        <span class="string">&quot;never&quot; </span>=&gt; WriteStyle::Never,
+        <span class="string">"auto" </span>=&gt; WriteStyle::Auto,
+        <span class="string">"always" </span>=&gt; WriteStyle::Always,
+        <span class="string">"never" </span>=&gt; WriteStyle::Never,
         <span class="kw">_ </span>=&gt; Default::default(),
     }
 }
@@ -555,9 +557,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_write_style_valid() {
         <span class="kw">let </span>inputs = <span class="macro">vec!</span>[
-            (<span class="string">&quot;auto&quot;</span>, WriteStyle::Auto),
-            (<span class="string">&quot;always&quot;</span>, WriteStyle::Always),
-            (<span class="string">&quot;never&quot;</span>, WriteStyle::Never),
+            (<span class="string">"auto"</span>, WriteStyle::Auto),
+            (<span class="string">"always"</span>, WriteStyle::Always),
+            (<span class="string">"never"</span>, WriteStyle::Never),
         ];
 
         <span class="kw">for </span>(input, expected) <span class="kw">in </span>inputs {
@@ -567,7 +569,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>parse_write_style_invalid() {
-        <span class="kw">let </span>inputs = <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>, <span class="string">&quot;NEVER!!&quot;</span>];
+        <span class="kw">let </span>inputs = <span class="macro">vec!</span>[<span class="string">""</span>, <span class="string">"true"</span>, <span class="string">"false"</span>, <span class="string">"NEVER!!"</span>];
 
         <span class="kw">for </span>input <span class="kw">in </span>inputs {
             <span class="macro">assert_eq!</span>(WriteStyle::Auto, parse_write_style(input));

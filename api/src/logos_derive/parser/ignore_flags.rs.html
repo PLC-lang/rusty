@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/parser/ignore_flags.rs`."><title>ignore_flags.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../logos_derive/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos_derive"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/parser/ignore_flags.rs`."><title>ignore_flags.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../logos_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -524,19 +526,19 @@
     <span class="doccomment">/// Parses an identifier an enables it for `self`.
     ///
     /// Valid inputs are (that produces `true`):
-    /// * `&quot;case&quot;` (incompatible with `&quot;ascii_case&quot;`)
-    /// * `&quot;ascii_case&quot;` (incompatible with `&quot;case&quot;`)
+    /// * `"case"` (incompatible with `"ascii_case"`)
+    /// * `"ascii_case"` (incompatible with `"case"`)
     ///
     /// An error causes this function to return `false` and emits an error to
     /// the given `Parser`.
     </span><span class="kw">fn </span>parse_ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: Ident, parser: <span class="kw-2">&amp;mut </span>Parser) -&gt; bool {
         <span class="kw">match </span>ident.to_string().as_str() {
-            <span class="string">&quot;case&quot; </span>=&gt; {
+            <span class="string">"case" </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::IgnoreAsciiCase) {
                     parser.err(
-                        <span class="string">&quot;\
-                        The flag \&quot;case\&quot; cannot be used along with \&quot;ascii_case\&quot;\
-                        &quot;</span>,
+                        <span class="string">"\
+                        The flag \"case\" cannot be used along with \"ascii_case\"\
+                        "</span>,
                         ident.span(),
                     );
                     <span class="bool-val">false
@@ -545,12 +547,12 @@
                     <span class="bool-val">true
                 </span>}
             }
-            <span class="string">&quot;ascii_case&quot; </span>=&gt; {
+            <span class="string">"ascii_case" </span>=&gt; {
                 <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::IgnoreCase) {
                     parser.err(
-                        <span class="string">&quot;\
-                        The flag \&quot;ascii_case\&quot; cannot be used along with \&quot;case\&quot;\
-                        &quot;</span>,
+                        <span class="string">"\
+                        The flag \"ascii_case\" cannot be used along with \"case\"\
+                        "</span>,
                         ident.span(),
                     );
                     <span class="bool-val">false
@@ -562,11 +564,11 @@
             unknown =&gt; {
                 parser.err(
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;\
+                        <span class="string">"\
                         Unknown flag: {}\n\
                         \n\
                         Expected one of: case, ascii_case\
-                        &quot;</span>,
+                        "</span>,
                         unknown
                     ),
                     ident.span(),
@@ -577,7 +579,7 @@
     }
 
     <span class="kw">pub fn </span>parse_group(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Ident, tokens: TokenStream, parser: <span class="kw-2">&amp;mut </span>Parser) {
-        <span class="comment">// Little finite state machine to parse &quot;&lt;flag&gt;(,&lt;flag&gt;)*,?&quot;
+        <span class="comment">// Little finite state machine to parse "&lt;flag&gt;(,&lt;flag&gt;)*,?"
 
         // FSM description for future maintenance
         // 0: Initial state
@@ -607,25 +609,25 @@
                     }
                     <span class="kw">_ </span>=&gt; {
                         parser.err(
-                            <span class="string">&quot;\
+                            <span class="string">"\
                             Invalid ignore flag\n\
                             \n\
                             Expected one of: case, ascii_case\
-                            &quot;</span>,
+                            "</span>,
                             name.span(),
                         );
                         <span class="kw">return</span>;
                     }
                 },
                 <span class="number">1 </span>=&gt; <span class="kw">match </span>tokens.next() {
-                    <span class="prelude-val">Some</span>(tt) <span class="kw">if </span>is_punct(<span class="kw-2">&amp;</span>tt, <span class="string">&#39;,&#39;</span>) =&gt; <span class="number">2</span>,
+                    <span class="prelude-val">Some</span>(tt) <span class="kw">if </span>is_punct(<span class="kw-2">&amp;</span>tt, <span class="string">','</span>) =&gt; <span class="number">2</span>,
                     <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
                     <span class="prelude-val">Some</span>(unexpected_tt) =&gt; {
                         parser.err(
                             <span class="macro">format!</span>(
-                                <span class="string">&quot;\
+                                <span class="string">"\
                                 Unexpected token: {:?}\
-                                &quot;</span>,
+                                "</span>,
                                 unexpected_tt.to_string(),
                             ),
                             unexpected_tt.span(),
@@ -645,9 +647,9 @@
                     <span class="prelude-val">Some</span>(unexpected_tt) =&gt; {
                         parser.err(
                             <span class="macro">format!</span>(
-                                <span class="string">&quot;\
+                                <span class="string">"\
                                 Unexpected token: {:?}\
-                                &quot;</span>,
+                                "</span>,
                                 unexpected_tt.to_string(),
                             ),
                             unexpected_tt.span(),
@@ -655,7 +657,7 @@
                         <span class="kw">return</span>;
                     }
                 },
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Internal Error: invalid state ({})&quot;</span>, state),
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Internal Error: invalid state ({})"</span>, state),
             }
         }
     }
@@ -691,12 +693,12 @@
 
     <span class="kw">impl </span>MakeAsciiCaseInsensitive <span class="kw">for </span>u8 {
         <span class="kw">fn </span>make_ascii_case_insensitive(<span class="self">self</span>) -&gt; Mir {
-            <span class="kw">if </span><span class="string">b&#39;a&#39; </span>&lt;= <span class="self">self </span>&amp;&amp; <span class="self">self </span>&lt;= <span class="string">b&#39;z&#39; </span>{
+            <span class="kw">if </span><span class="string">b'a' </span>&lt;= <span class="self">self </span>&amp;&amp; <span class="self">self </span>&lt;= <span class="string">b'z' </span>{
                 Mir::Alternation(<span class="macro">vec!</span>[
                     Mir::Literal(hir::Literal::Byte(<span class="self">self </span>- <span class="number">32</span>)),
                     Mir::Literal(hir::Literal::Byte(<span class="self">self</span>)),
                 ])
-            } <span class="kw">else if </span><span class="string">b&#39;A&#39; </span>&lt;= <span class="self">self </span>&amp;&amp; <span class="self">self </span>&lt;= <span class="string">b&#39;Z&#39; </span>{
+            } <span class="kw">else if </span><span class="string">b'A' </span>&lt;= <span class="self">self </span>&amp;&amp; <span class="self">self </span>&lt;= <span class="string">b'Z' </span>{
                 Mir::Alternation(<span class="macro">vec!</span>[
                     Mir::Literal(hir::Literal::Byte(<span class="self">self</span>)),
                     Mir::Literal(hir::Literal::Byte(<span class="self">self </span>+ <span class="number">32</span>)),
@@ -758,18 +760,18 @@
 
                 <span class="kw">match </span>(make_ascii(range.start()), make_ascii(range.end())) {
                     (<span class="prelude-val">Some</span>(start), <span class="prelude-val">Some</span>(end)) =&gt; {
-                        <span class="kw">if </span>overlaps(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;z&#39;</span>, start, end) {
-                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b&#39;a&#39;</span>);
-                            <span class="kw">let </span>upper = cmp::min(end, <span class="string">b&#39;z&#39;</span>);
+                        <span class="kw">if </span>overlaps(<span class="string">b'a'</span>, <span class="string">b'z'</span>, start, end) {
+                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b'a'</span>);
+                            <span class="kw">let </span>upper = cmp::min(end, <span class="string">b'z'</span>);
                             ranges.push(hir::ClassUnicodeRange::new(
                                 (lower - <span class="number">32</span>) <span class="kw">as </span>char,
                                 (upper - <span class="number">32</span>) <span class="kw">as </span>char,
                             ))
                         }
 
-                        <span class="kw">if </span>overlaps(<span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;Z&#39;</span>, start, end) {
-                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b&#39;A&#39;</span>);
-                            <span class="kw">let </span>upper = cmp::min(end, <span class="string">b&#39;Z&#39;</span>);
+                        <span class="kw">if </span>overlaps(<span class="string">b'A'</span>, <span class="string">b'Z'</span>, start, end) {
+                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b'A'</span>);
+                            <span class="kw">let </span>upper = cmp::min(end, <span class="string">b'Z'</span>);
                             ranges.push(hir::ClassUnicodeRange::new(
                                 (lower + <span class="number">32</span>) <span class="kw">as </span>char,
                                 (upper + <span class="number">32</span>) <span class="kw">as </span>char,
@@ -777,14 +779,14 @@
                         }
                     }
                     (<span class="prelude-val">Some</span>(start), <span class="prelude-val">None</span>) =&gt; {
-                        <span class="kw">if </span>overlaps(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;z&#39;</span>, start, <span class="string">b&#39;z&#39;</span>) {
-                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b&#39;a&#39;</span>);
-                            ranges.push(hir::ClassUnicodeRange::new((lower - <span class="number">32</span>) <span class="kw">as </span>char, <span class="string">&#39;Z&#39;</span>))
+                        <span class="kw">if </span>overlaps(<span class="string">b'a'</span>, <span class="string">b'z'</span>, start, <span class="string">b'z'</span>) {
+                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b'a'</span>);
+                            ranges.push(hir::ClassUnicodeRange::new((lower - <span class="number">32</span>) <span class="kw">as </span>char, <span class="string">'Z'</span>))
                         }
 
-                        <span class="kw">if </span>overlaps(<span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;Z&#39;</span>, start, <span class="string">b&#39;Z&#39;</span>) {
-                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b&#39;A&#39;</span>);
-                            ranges.push(hir::ClassUnicodeRange::new((lower + <span class="number">32</span>) <span class="kw">as </span>char, <span class="string">&#39;Z&#39;</span>))
+                        <span class="kw">if </span>overlaps(<span class="string">b'A'</span>, <span class="string">b'Z'</span>, start, <span class="string">b'Z'</span>) {
+                            <span class="kw">let </span>lower = cmp::max(start, <span class="string">b'A'</span>);
+                            ranges.push(hir::ClassUnicodeRange::new((lower + <span class="number">32</span>) <span class="kw">as </span>char, <span class="string">'Z'</span>))
                         }
                     }
                     <span class="kw">_ </span>=&gt; (),
@@ -864,103 +866,103 @@
             <span class="kw">if let </span>Mir::Class(Class::Unicode(result)) = class.make_ascii_case_insensitive() {
                 <span class="macro">assert_eq!</span>(result, expected);
             } <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;Not a unicode class&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Not a unicode class"</span>);
             };
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>no_letters_left() {
-            assert_range(<span class="string">&#39; &#39;</span>, <span class="string">&#39;+&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39; &#39;</span>, <span class="string">&#39;+&#39;</span>)]);
+            assert_range(<span class="string">' '</span>, <span class="string">'+'</span>, <span class="kw-2">&amp;</span>[(<span class="string">' '</span>, <span class="string">'+'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>no_letters_right() {
-            assert_range(<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>)]);
+            assert_range(<span class="string">'{'</span>, <span class="string">'~'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'{'</span>, <span class="string">'~'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>no_letters_middle() {
-            assert_range(<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>)]);
+            assert_range(<span class="string">'['</span>, <span class="string">'`'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'['</span>, <span class="string">'`'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>lowercase_left_edge() {
-            assert_range(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;d&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;d&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;D&#39;</span>)]);
+            assert_range(<span class="string">'a'</span>, <span class="string">'d'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'a'</span>, <span class="string">'d'</span>), (<span class="string">'A'</span>, <span class="string">'D'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>lowercase_right_edge() {
-            assert_range(<span class="string">&#39;r&#39;</span>, <span class="string">&#39;z&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;r&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;R&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'r'</span>, <span class="string">'z'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'r'</span>, <span class="string">'z'</span>), (<span class="string">'R'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>lowercase_total() {
-            assert_range(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'a'</span>, <span class="string">'z'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'a'</span>, <span class="string">'z'</span>), (<span class="string">'A'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>uppercase_left_edge() {
-            assert_range(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;D&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;d&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;D&#39;</span>)]);
+            assert_range(<span class="string">'A'</span>, <span class="string">'D'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'a'</span>, <span class="string">'d'</span>), (<span class="string">'A'</span>, <span class="string">'D'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>uppercase_right_edge() {
-            assert_range(<span class="string">&#39;R&#39;</span>, <span class="string">&#39;Z&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;r&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;R&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'R'</span>, <span class="string">'Z'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'r'</span>, <span class="string">'z'</span>), (<span class="string">'R'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>uppercase_total() {
-            assert_range(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'A'</span>, <span class="string">'Z'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'a'</span>, <span class="string">'z'</span>), (<span class="string">'A'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>lowercase_cross_left() {
-            assert_range(<span class="string">&#39;[&#39;</span>, <span class="string">&#39;h&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;[&#39;</span>, <span class="string">&#39;h&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;H&#39;</span>)]);
+            assert_range(<span class="string">'['</span>, <span class="string">'h'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'['</span>, <span class="string">'h'</span>), (<span class="string">'A'</span>, <span class="string">'H'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>lowercase_cross_right() {
-            assert_range(<span class="string">&#39;d&#39;</span>, <span class="string">&#39;}&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;d&#39;</span>, <span class="string">&#39;}&#39;</span>), (<span class="string">&#39;D&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'d'</span>, <span class="string">'}'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'d'</span>, <span class="string">'}'</span>), (<span class="string">'D'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>uppercase_cross_left() {
-            assert_range(<span class="string">&#39;;&#39;</span>, <span class="string">&#39;H&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;;&#39;</span>, <span class="string">&#39;H&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;h&#39;</span>)]);
+            assert_range(<span class="string">';'</span>, <span class="string">'H'</span>, <span class="kw-2">&amp;</span>[(<span class="string">';'</span>, <span class="string">'H'</span>), (<span class="string">'a'</span>, <span class="string">'h'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>uppercase_cross_right() {
-            assert_range(<span class="string">&#39;T&#39;</span>, <span class="string">&#39;]&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;t&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;T&#39;</span>, <span class="string">&#39;]&#39;</span>)]);
+            assert_range(<span class="string">'T'</span>, <span class="string">']'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'t'</span>, <span class="string">'z'</span>), (<span class="string">'T'</span>, <span class="string">']'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>cross_both() {
-            assert_range(<span class="string">&#39;X&#39;</span>, <span class="string">&#39;c&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;X&#39;</span>, <span class="string">&#39;c&#39;</span>), (<span class="string">&#39;x&#39;</span>, <span class="string">&#39;z&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;C&#39;</span>)]);
+            assert_range(<span class="string">'X'</span>, <span class="string">'c'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'X'</span>, <span class="string">'c'</span>), (<span class="string">'x'</span>, <span class="string">'z'</span>), (<span class="string">'A'</span>, <span class="string">'C'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>all_letters() {
-            assert_range(<span class="string">&#39;+&#39;</span>, <span class="string">&#39;|&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;+&#39;</span>, <span class="string">&#39;|&#39;</span>)]);
+            assert_range(<span class="string">'+'</span>, <span class="string">'|'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'+'</span>, <span class="string">'|'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>oob_all_letters() {
-            assert_range(<span class="string">&#39;#&#39;</span>, <span class="string">&#39;é&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;#&#39;</span>, <span class="string">&#39;é&#39;</span>)]);
+            assert_range(<span class="string">'#'</span>, <span class="string">'é'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'#'</span>, <span class="string">'é'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>oob_from_uppercase() {
-            assert_range(<span class="string">&#39;Q&#39;</span>, <span class="string">&#39;é&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;é&#39;</span>)]);
+            assert_range(<span class="string">'Q'</span>, <span class="string">'é'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'A'</span>, <span class="string">'é'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>oob_from_lowercase() {
-            assert_range(<span class="string">&#39;q&#39;</span>, <span class="string">&#39;é&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;q&#39;</span>, <span class="string">&#39;é&#39;</span>), (<span class="string">&#39;Q&#39;</span>, <span class="string">&#39;Z&#39;</span>)]);
+            assert_range(<span class="string">'q'</span>, <span class="string">'é'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'q'</span>, <span class="string">'é'</span>), (<span class="string">'Q'</span>, <span class="string">'Z'</span>)]);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>oob_no_letters() {
-            assert_range(<span class="string">&#39;|&#39;</span>, <span class="string">&#39;é&#39;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&#39;|&#39;</span>, <span class="string">&#39;é&#39;</span>)]);
+            assert_range(<span class="string">'|'</span>, <span class="string">'é'</span>, <span class="kw-2">&amp;</span>[(<span class="string">'|'</span>, <span class="string">'é'</span>)]);
         }
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/views.rs`."><title>views.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/codespan-reporting-0.11.1/src/term/views.rs`."><title>views.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="codespan_reporting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../codespan_reporting/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -494,49 +496,49 @@
 }
 
 <span class="doccomment">/// Output a richly formatted diagnostic, with source code previews.
-</span><span class="kw">pub struct </span>RichDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, <span class="lifetime">&#39;config</span>, FileId&gt; {
-    diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>Diagnostic&lt;FileId&gt;,
-    config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Config,
+</span><span class="kw">pub struct </span>RichDiagnostic&lt;<span class="lifetime">'diagnostic</span>, <span class="lifetime">'config</span>, FileId&gt; {
+    diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>Diagnostic&lt;FileId&gt;,
+    config: <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Config,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diagnostic</span>, <span class="lifetime">&#39;config</span>, FileId&gt; RichDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, <span class="lifetime">&#39;config</span>, FileId&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'diagnostic</span>, <span class="lifetime">'config</span>, FileId&gt; RichDiagnostic&lt;<span class="lifetime">'diagnostic</span>, <span class="lifetime">'config</span>, FileId&gt;
 <span class="kw">where
     </span>FileId: Copy + PartialEq,
 {
     <span class="kw">pub fn </span>new(
-        diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>Diagnostic&lt;FileId&gt;,
-        config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;config </span>Config,
-    ) -&gt; RichDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, <span class="lifetime">&#39;config</span>, FileId&gt; {
+        diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>Diagnostic&lt;FileId&gt;,
+        config: <span class="kw-2">&amp;</span><span class="lifetime">'config </span>Config,
+    ) -&gt; RichDiagnostic&lt;<span class="lifetime">'diagnostic</span>, <span class="lifetime">'config</span>, FileId&gt; {
         RichDiagnostic { diagnostic, config }
     }
 
-    <span class="kw">pub fn </span>render&lt;<span class="lifetime">&#39;files</span>&gt;(
+    <span class="kw">pub fn </span>render&lt;<span class="lifetime">'files</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        files: <span class="kw-2">&amp;</span><span class="lifetime">&#39;files </span><span class="kw">impl </span>Files&lt;<span class="lifetime">&#39;files</span>, FileId = FileId&gt;,
-        renderer: <span class="kw-2">&amp;mut </span>Renderer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+        files: <span class="kw-2">&amp;</span><span class="lifetime">'files </span><span class="kw">impl </span>Files&lt;<span class="lifetime">'files</span>, FileId = FileId&gt;,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
-        </span>FileId: <span class="lifetime">&#39;files</span>,
+        </span>FileId: <span class="lifetime">'files</span>,
     {
         <span class="kw">use </span>std::collections::BTreeMap;
 
-        <span class="kw">struct </span>LabeledFile&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; {
+        <span class="kw">struct </span>LabeledFile&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; {
             file_id: FileId,
             start: usize,
             name: String,
             location: Location,
             num_multi_labels: usize,
-            lines: BTreeMap&lt;usize, Line&lt;<span class="lifetime">&#39;diagnostic</span>&gt;&gt;,
+            lines: BTreeMap&lt;usize, Line&lt;<span class="lifetime">'diagnostic</span>&gt;&gt;,
             max_label_style: LabelStyle,
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; LabeledFile&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; LabeledFile&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; {
             <span class="kw">fn </span>get_or_insert_line(
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 line_index: usize,
                 line_range: Range&lt;usize&gt;,
                 line_number: usize,
-            ) -&gt; <span class="kw-2">&amp;mut </span>Line&lt;<span class="lifetime">&#39;diagnostic</span>&gt; {
+            ) -&gt; <span class="kw-2">&amp;mut </span>Line&lt;<span class="lifetime">'diagnostic</span>&gt; {
                 <span class="self">self</span>.lines.entry(line_index).or_insert_with(|| Line {
                     range: line_range,
                     number: line_number,
@@ -548,17 +550,17 @@
             }
         }
 
-        <span class="kw">struct </span>Line&lt;<span class="lifetime">&#39;diagnostic</span>&gt; {
+        <span class="kw">struct </span>Line&lt;<span class="lifetime">'diagnostic</span>&gt; {
             number: usize,
             range: std::ops::Range&lt;usize&gt;,
             <span class="comment">// TODO: How do we reuse these allocations?
-            </span>single_labels: Vec&lt;SingleLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt;&gt;,
-            multi_labels: Vec&lt;(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">&#39;diagnostic</span>&gt;)&gt;,
+            </span>single_labels: Vec&lt;SingleLabel&lt;<span class="lifetime">'diagnostic</span>&gt;&gt;,
+            multi_labels: Vec&lt;(usize, LabelStyle, MultiLabel&lt;<span class="lifetime">'diagnostic</span>&gt;)&gt;,
             must_render: bool,
         }
 
         <span class="comment">// TODO: Make this data structure external, to allow for allocation reuse
-        </span><span class="kw">let </span><span class="kw-2">mut </span>labeled_files = Vec::&lt;LabeledFile&lt;<span class="lifetime">&#39;_</span>, <span class="kw">_</span>&gt;&gt;::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>labeled_files = Vec::&lt;LabeledFile&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>&gt;&gt;::new();
         <span class="comment">// Keep track of the outer padding to use when rendering the
         // snippets of source code.
         </span><span class="kw">let </span><span class="kw-2">mut </span>outer_padding = <span class="number">0</span>;
@@ -609,7 +611,7 @@
                     <span class="comment">// this unwrap should never fail because we just pushed an element
                     </span>labeled_files
                         .last_mut()
-                        .expect(<span class="string">&quot;just pushed an element that disappeared&quot;</span>)
+                        .expect(<span class="string">"just pushed an element that disappeared"</span>)
                 }
             };
 
@@ -617,7 +619,7 @@
                 <span class="comment">// Single line
                 //
                 // ```text
-                // 2 │ (+ test &quot;&quot;)
+                // 2 │ (+ test "")
                 //   │         ^^ expected `Int` but found `String`
                 // ```
                 </span><span class="kw">let </span>label_start = label.range.start - start_line_range.start;
@@ -635,7 +637,7 @@
                 <span class="comment">// Ensure that the single line labels are lexicographically
                 // sorted by the range of source code that they cover.
                 </span><span class="kw">let </span>index = <span class="kw">match </span>line.single_labels.binary_search_by(|(<span class="kw">_</span>, range, <span class="kw">_</span>)| {
-                    <span class="comment">// `Range&lt;usize&gt;` doesn&#39;t implement `Ord`, so convert to `(usize, usize)`
+                    <span class="comment">// `Range&lt;usize&gt;` doesn't implement `Ord`, so convert to `(usize, usize)`
                     // to piggyback off its lexicographic comparison implementation.
                     </span>(range.start, range.end).cmp(<span class="kw-2">&amp;</span>(label_start, label_end))
                 }) {
@@ -656,9 +658,9 @@
                 // ```text
                 // 4 │   fizz₁ num = case (mod num 5) (mod num 3) of
                 //   │ ╭─────────────^
-                // 5 │ │     0 0 =&gt; &quot;FizzBuzz&quot;
-                // 6 │ │     0 _ =&gt; &quot;Fizz&quot;
-                // 7 │ │     _ 0 =&gt; &quot;Buzz&quot;
+                // 5 │ │     0 0 =&gt; "FizzBuzz"
+                // 6 │ │     0 _ =&gt; "Fizz"
+                // 7 │ │     _ 0 =&gt; "Buzz"
                 // 8 │ │     _ _ =&gt; num
                 //   │ ╰──────────────^ `case` clauses have incompatible types
                 // ```
@@ -687,9 +689,9 @@
                 <span class="comment">// Marked lines
                 //
                 // ```text
-                // 5 │ │     0 0 =&gt; &quot;FizzBuzz&quot;
-                // 6 │ │     0 _ =&gt; &quot;Fizz&quot;
-                // 7 │ │     _ 0 =&gt; &quot;Buzz&quot;
+                // 5 │ │     0 0 =&gt; "FizzBuzz"
+                // 6 │ │     0 _ =&gt; "Fizz"
+                // 7 │ │     _ 0 =&gt; "Buzz"
                 // ```
                 </span><span class="kw">for </span>line_index <span class="kw">in </span>(start_line_index + <span class="number">1</span>)..end_line_index {
                     <span class="kw">let </span>line_range = files.line_range(label.file_id, line_index)<span class="question-mark">?</span>;
@@ -753,7 +755,7 @@
         // ```text
         //   ┌─ test:2:9
         //   │
-        // 2 │ (+ test &quot;&quot;)
+        // 2 │ (+ test "")
         //   │         ^^ expected `Int` but found `String`
         //   │
         // ```
@@ -849,7 +851,7 @@
             <span class="comment">// Check to see if we should render a trailing border after the
             // final line of the snippet.
             </span><span class="kw">if </span>labeled_files.peek().is_none() &amp;&amp; <span class="self">self</span>.diagnostic.notes.is_empty() {
-                <span class="comment">// We don&#39;t render a border if we are at the final newline
+                <span class="comment">// We don't render a border if we are at the final newline
                 // without trailing notes, because it would end up looking too
                 // spaced-out in combination with the final new line.
             </span>} <span class="kw">else </span>{
@@ -877,32 +879,32 @@
 }
 
 <span class="doccomment">/// Output a short diagnostic, with a line number, severity, and message.
-</span><span class="kw">pub struct </span>ShortDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; {
-    diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>Diagnostic&lt;FileId&gt;,
+</span><span class="kw">pub struct </span>ShortDiagnostic&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; {
+    diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>Diagnostic&lt;FileId&gt;,
     show_notes: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; ShortDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; ShortDiagnostic&lt;<span class="lifetime">'diagnostic</span>, FileId&gt;
 <span class="kw">where
     </span>FileId: Copy + PartialEq,
 {
     <span class="kw">pub fn </span>new(
-        diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">&#39;diagnostic </span>Diagnostic&lt;FileId&gt;,
+        diagnostic: <span class="kw-2">&amp;</span><span class="lifetime">'diagnostic </span>Diagnostic&lt;FileId&gt;,
         show_notes: bool,
-    ) -&gt; ShortDiagnostic&lt;<span class="lifetime">&#39;diagnostic</span>, FileId&gt; {
+    ) -&gt; ShortDiagnostic&lt;<span class="lifetime">'diagnostic</span>, FileId&gt; {
         ShortDiagnostic {
             diagnostic,
             show_notes,
         }
     }
 
-    <span class="kw">pub fn </span>render&lt;<span class="lifetime">&#39;files</span>&gt;(
+    <span class="kw">pub fn </span>render&lt;<span class="lifetime">'files</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        files: <span class="kw-2">&amp;</span><span class="lifetime">&#39;files </span><span class="kw">impl </span>Files&lt;<span class="lifetime">&#39;files</span>, FileId = FileId&gt;,
-        renderer: <span class="kw-2">&amp;mut </span>Renderer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
+        files: <span class="kw-2">&amp;</span><span class="lifetime">'files </span><span class="kw">impl </span>Files&lt;<span class="lifetime">'files</span>, FileId = FileId&gt;,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
-        </span>FileId: <span class="lifetime">&#39;files</span>,
+        </span>FileId: <span class="lifetime">'files</span>,
     {
         <span class="comment">// Located headers
         //

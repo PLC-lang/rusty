@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell_internals-0.8.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell_internals" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell_internals-0.8.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell_internals" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell_internals/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -630,8 +632,8 @@
 
 <span class="comment">// This array should match the LLVM features in the top level Cargo manifest
 </span><span class="kw">const </span>FEATURE_VERSIONS: [<span class="kw-2">&amp;</span>str; <span class="number">13</span>] = [
-    <span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>,
-    <span class="string">&quot;llvm14-0&quot;</span>, <span class="string">&quot;llvm15-0&quot;</span>, <span class="string">&quot;llvm16-0&quot;</span>,
+    <span class="string">"llvm4-0"</span>, <span class="string">"llvm5-0"</span>, <span class="string">"llvm6-0"</span>, <span class="string">"llvm7-0"</span>, <span class="string">"llvm8-0"</span>, <span class="string">"llvm9-0"</span>, <span class="string">"llvm10-0"</span>, <span class="string">"llvm11-0"</span>, <span class="string">"llvm12-0"</span>, <span class="string">"llvm13-0"</span>,
+    <span class="string">"llvm14-0"</span>, <span class="string">"llvm15-0"</span>, <span class="string">"llvm16-0"</span>,
 ];
 
 <span class="doccomment">/// Gets the index of the feature version that represents `latest`
@@ -645,14 +647,14 @@
     <span class="kw">match </span>features.iter().position(|<span class="kw-2">&amp;</span>s| s == feat) {
         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::new(
             span,
-            <span class="macro">format!</span>(<span class="string">&quot;Invalid feature version: {}, not defined&quot;</span>, feature),
+            <span class="macro">format!</span>(<span class="string">"Invalid feature version: {}, not defined"</span>, feature),
         )),
         <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(index),
     }
 }
 
 <span class="doccomment">/// Gets a vector of feature versions represented by the given VersionType
-</span><span class="kw">fn </span>get_features(vt: VersionType) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;&gt; {
+</span><span class="kw">fn </span>get_features(vt: VersionType) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;&gt; {
     <span class="kw">let </span>features = FEATURE_VERSIONS;
     <span class="kw">let </span>latest = get_latest_feature_index(<span class="kw-2">&amp;</span>features);
     <span class="kw">match </span>vt {
@@ -673,7 +675,7 @@
             <span class="kw">let </span>end_index = get_feature_index(<span class="kw-2">&amp;</span>features, end_feature, end_span)<span class="question-mark">?</span>;
             <span class="kw">if </span>end_index &lt; start_index {
                 <span class="kw">let </span>message = <span class="macro">format!</span>(
-                    <span class="string">&quot;Invalid version range: {} must be greater than or equal to {}&quot;</span>,
+                    <span class="string">"Invalid version range: {} must be greater than or equal to {}"</span>,
                     start, end
                 );
                 <span class="prelude-val">Err</span>(Error::new(end_span, message))
@@ -686,7 +688,7 @@
             <span class="kw">let </span>index = get_feature_index(<span class="kw-2">&amp;</span>features, feature, span)<span class="question-mark">?</span>;
             <span class="kw">if </span>latest == index {
                 <span class="kw">let </span>message = <span class="macro">format!</span>(
-                    <span class="string">&quot;Invalid version range: {}..latest produces an empty feature set&quot;</span>,
+                    <span class="string">"Invalid version range: {}..latest produces an empty feature set"</span>,
                     version
                 );
                 <span class="prelude-val">Err</span>(Error::new(span, message))
@@ -703,13 +705,13 @@
             <span class="kw">match </span>end_index.cmp(<span class="kw-2">&amp;</span>start_index) {
                 std::cmp::Ordering::Equal =&gt; {
                     <span class="kw">let </span>message = <span class="macro">format!</span>(
-                        <span class="string">&quot;Invalid version range: {}..{} produces an empty feature set&quot;</span>,
+                        <span class="string">"Invalid version range: {}..{} produces an empty feature set"</span>,
                         start, end
                     );
                     <span class="prelude-val">Err</span>(Error::new(start_span, message))
                 },
                 std::cmp::Ordering::Less =&gt; {
-                    <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">&quot;Invalid version range: {} must be greater than {}&quot;</span>, start, end);
+                    <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Invalid version range: {} must be greater than {}"</span>, start, end);
                     <span class="prelude-val">Err</span>(Error::new(end_span, message))
                 },
 
@@ -724,7 +726,7 @@
 </span><span class="kw">fn </span>f64_to_feature_string(float: f64) -&gt; String {
     <span class="kw">let </span>int = float <span class="kw">as </span>u64;
 
-    <span class="macro">format!</span>(<span class="string">&quot;llvm{}-{}&quot;</span>, int, (float * <span class="number">10.</span>) % <span class="number">10.</span>)
+    <span class="macro">format!</span>(<span class="string">"llvm{}-{}"</span>, int, (float * <span class="number">10.</span>) % <span class="number">10.</span>)
 }
 
 <span class="doccomment">/// This struct defines the type of version expressions parsable by `llvm_versions`
@@ -744,7 +746,7 @@
         </span><span class="kw">if </span>lookahead.peek(LitFloat) {
             <span class="kw">let </span>from = input.parse::&lt;LitFloat&gt;().unwrap();
             <span class="kw">let </span>from_val = from.base10_parse().unwrap();
-            <span class="comment">// If that&#39;s the end of the input, this was a specific version string
+            <span class="comment">// If that's the end of the input, this was a specific version string
             </span><span class="kw">if </span>input.is_empty() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(VersionType::Specific(from_val, from.span()));
             }
@@ -756,10 +758,10 @@
                 <span class="kw">let </span>lookahead = input.lookahead1();
                 <span class="kw">if </span>lookahead.peek(Ident) {
                     <span class="kw">let </span>to = input.parse::&lt;Ident&gt;().unwrap();
-                    <span class="kw">if </span>to == <span class="string">&quot;latest&quot; </span>{
+                    <span class="kw">if </span>to == <span class="string">"latest" </span>{
                         <span class="prelude-val">Ok</span>(VersionType::InclusiveRangeToLatest(from_val, from.span()))
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(Error::new(to.span(), <span class="string">&quot;expected `latest` or `X.Y`&quot;</span>))
+                        <span class="prelude-val">Err</span>(Error::new(to.span(), <span class="string">"expected `latest` or `X.Y`"</span>))
                     }
                 } <span class="kw">else if </span>lookahead.peek(LitFloat) {
                     <span class="kw">let </span>to = input.parse::&lt;LitFloat&gt;().unwrap();
@@ -776,10 +778,10 @@
                 <span class="kw">let </span>lookahead = input.lookahead1();
                 <span class="kw">if </span>lookahead.peek(Ident) {
                     <span class="kw">let </span>to = input.parse::&lt;Ident&gt;().unwrap();
-                    <span class="kw">if </span>to == <span class="string">&quot;latest&quot; </span>{
+                    <span class="kw">if </span>to == <span class="string">"latest" </span>{
                         <span class="prelude-val">Ok</span>(VersionType::ExclusiveRangeToLatest(from_val, from.span()))
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(Error::new(to.span(), <span class="string">&quot;expected `latest` or `X.Y`&quot;</span>))
+                        <span class="prelude-val">Err</span>(Error::new(to.span(), <span class="string">"expected `latest` or `X.Y`"</span>))
                     }
                 } <span class="kw">else if </span>lookahead.peek(LitFloat) {
                     <span class="kw">let </span>to = input.parse::&lt;LitFloat&gt;().unwrap();
@@ -811,7 +813,7 @@
 
 <span class="doccomment">/// Handler for parsing of TokenStreams from macro input
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">struct </span>FeatureSet(std::vec::IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;, <span class="prelude-ty">Option</span>&lt;Error&gt;);
+</span><span class="kw">struct </span>FeatureSet(std::vec::IntoIter&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;, <span class="prelude-ty">Option</span>&lt;Error&gt;);
 <span class="kw">impl </span>Default <span class="kw">for </span>FeatureSet {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="comment">// Default to all versions
@@ -827,7 +829,7 @@
     }
 }
 <span class="kw">impl </span>Iterator <span class="kw">for </span>FeatureSet {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.<span class="number">0</span>.next()
@@ -853,13 +855,13 @@
     }
 
     <span class="kw">fn </span>expand_llvm_versions_attr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, attr: <span class="kw-2">&amp;</span>Attribute) -&gt; Attribute {
-        <span class="comment">// Make no modifications if we&#39;ve generated an error
+        <span class="comment">// Make no modifications if we've generated an error
         </span><span class="kw">if </span><span class="self">self</span>.has_error() {
             <span class="kw">return </span>attr.clone();
         }
 
-        <span class="comment">// If this isn&#39;t an llvm_versions attribute, skip it
-        </span><span class="kw">if </span>!attr.path().is_ident(<span class="string">&quot;llvm_versions&quot;</span>) {
+        <span class="comment">// If this isn't an llvm_versions attribute, skip it
+        </span><span class="kw">if </span>!attr.path().is_ident(<span class="string">"llvm_versions"</span>) {
             <span class="kw">return </span>attr.clone();
         }
 
@@ -871,7 +873,7 @@
                 </span>}
             },
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="comment">// We&#39;ve hit an error, but we can&#39;t break out yet,
+                <span class="comment">// We've hit an error, but we can't break out yet,
                 // so we set the error in the FeatureSet state and
                 // avoid any further modifications until we can produce
                 // the error
@@ -943,7 +945,7 @@
 
     <span class="comment">// Add nightly only doc cfgs to improve documentation on nightly builds
     // such as our own hosted docs.
-    </span><span class="kw">let </span>doc = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;nightly&quot;</span>) {
+    </span><span class="kw">let </span>doc = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"nightly"</span>) {
         <span class="kw">let </span>features2 = features.clone();
         <span class="macro">quote! </span>{
             <span class="attr">#[doc(cfg(any(#(feature = #features2),<span class="kw-2">*</span>)))]
@@ -999,9 +1001,9 @@
 <span class="kw">impl </span>EnumVariant {
     <span class="kw">fn </span>new(variant: <span class="kw-2">&amp;</span>Variant) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>rust_variant = variant.ident.clone();
-        <span class="kw">let </span>llvm_variant = Ident::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;LLVM{}&quot;</span>, rust_variant), variant.span());
+        <span class="kw">let </span>llvm_variant = Ident::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"LLVM{}"</span>, rust_variant), variant.span());
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = variant.attrs.clone();
-        attrs.retain(|attr| !attr.path().is_ident(<span class="string">&quot;llvm_variant&quot;</span>));
+        attrs.retain(|attr| !attr.path().is_ident(<span class="string">"llvm_variant"</span>));
         <span class="self">Self </span>{
             llvm_variant,
             rust_variant,
@@ -1013,7 +1015,7 @@
         <span class="kw">let </span>rust_variant = variant.ident.clone();
         llvm_variant.set_span(rust_variant.span());
         <span class="kw">let </span><span class="kw-2">mut </span>attrs = variant.attrs.clone();
-        attrs.retain(|attr| !attr.path().is_ident(<span class="string">&quot;llvm_variant&quot;</span>));
+        attrs.retain(|attr| !attr.path().is_ident(<span class="string">"llvm_variant"</span>));
         <span class="self">Self </span>{
             llvm_variant,
             rust_variant,
@@ -1035,7 +1037,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::slice::Iter&lt;<span class="lifetime">&#39;_</span>, EnumVariant&gt; {
+    </span><span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::slice::Iter&lt;<span class="lifetime">'_</span>, EnumVariant&gt; {
         <span class="self">self</span>.variants.iter()
     }
 
@@ -1062,7 +1064,7 @@
         }
 
         <span class="comment">// Check for llvm_variant
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = variant.attrs.iter().find(|attr| attr.path().is_ident(<span class="string">&quot;llvm_variant&quot;</span>)) {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = variant.attrs.iter().find(|attr| attr.path().is_ident(<span class="string">"llvm_variant"</span>)) {
             <span class="comment">// Extract attribute meta
             </span><span class="kw">if let </span>Meta::List(meta) = <span class="kw-2">&amp;</span>attr.meta {
                 <span class="comment">// We should only have one element
@@ -1071,13 +1073,13 @@
                     <span class="self">self</span>.variants
                         .push(EnumVariant::with_name(<span class="kw-2">&amp;</span>variant, name.get_ident().unwrap().clone()));
                     <span class="comment">// Strip the llvm_variant attribute from the final AST
-                    </span>variant.attrs.retain(|attr| !attr.path().is_ident(<span class="string">&quot;llvm_variant&quot;</span>));
+                    </span>variant.attrs.retain(|attr| !attr.path().is_ident(<span class="string">"llvm_variant"</span>));
                     <span class="kw">return </span>variant;
                 }
             }
 
             <span class="comment">// If at any point we fall through to here, it is the same basic issue, invalid format
-            </span><span class="self">self</span>.set_error(<span class="string">&quot;expected #[llvm_variant(VARIANT_NAME)]&quot;</span>, attr.span());
+            </span><span class="self">self</span>.set_error(<span class="string">"expected #[llvm_variant(VARIANT_NAME)]"</span>, attr.span());
             <span class="kw">return </span>variant;
         }
 
@@ -1119,7 +1121,7 @@
 /// a few expectations around the LLVM and Rust enums:
 ///
 /// - Both enums have the same number of variants
-/// - The name of the LLVM variant can be derived by appending &#39;LLVM&#39; to the Rust variant
+/// - The name of the LLVM variant can be derived by appending 'LLVM' to the Rust variant
 ///
 /// The latter can be worked around manually with `#[llvm_variant]` if desired.
 ///
@@ -1158,7 +1160,7 @@
         </span><span class="kw">let </span>src_attrs: Vec&lt;<span class="kw">_</span>&gt; = variant
             .attrs
             .iter()
-            .filter(|<span class="kw-2">&amp;</span>attr| !attr.meta.path().is_ident(<span class="string">&quot;doc&quot;</span>))
+            .filter(|<span class="kw-2">&amp;</span>attr| !attr.meta.path().is_ident(<span class="string">"doc"</span>))
             .collect();
         <span class="kw">let </span>src_ty = llvm_ty.clone();
         <span class="kw">let </span>dst_variant = variant.rust_variant.clone();
@@ -1185,7 +1187,7 @@
         </span><span class="kw">let </span>src_attrs: Vec&lt;<span class="kw">_</span>&gt; = variant
             .attrs
             .iter()
-            .filter(|<span class="kw-2">&amp;</span>attr| !attr.meta.path().is_ident(<span class="string">&quot;doc&quot;</span>))
+            .filter(|<span class="kw-2">&amp;</span>attr| !attr.meta.path().is_ident(<span class="string">"doc"</span>))
             .collect();
         <span class="kw">let </span>src_ty = llvm_enum_type.name.clone();
         <span class="kw">let </span>dst_variant = variant.llvm_variant.clone();

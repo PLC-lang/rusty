@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/llvm_typesystem.rs`."><title>llvm_typesystem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/llvm_typesystem.rs`."><title>llvm_typesystem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -411,7 +413,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>cast_if_needed;
 
-<span class="kw">pub fn </span>get_llvm_int_type&lt;<span class="lifetime">&#39;a</span>&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Context, size: u32, name: <span class="kw-2">&amp;</span>str) -&gt; IntType&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">pub fn </span>get_llvm_int_type&lt;<span class="lifetime">'a</span>&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Context, size: u32, name: <span class="kw-2">&amp;</span>str) -&gt; IntType&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">match </span>size {
         <span class="number">1 </span>=&gt; context.bool_type(),
         <span class="number">8 </span>=&gt; context.i8_type(),
@@ -419,15 +421,15 @@
         <span class="number">32 </span>=&gt; context.i32_type(),
         <span class="number">64 </span>=&gt; context.i64_type(),
         <span class="number">128 </span>=&gt; context.i128_type(),
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid size for type : &#39;{name}&#39; at {size}&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Invalid size for type : '{name}' at {size}"</span>),
     }
 }
 
-<span class="kw">pub fn </span>get_llvm_float_type&lt;<span class="lifetime">&#39;a</span>&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Context, size: u32, name: <span class="kw-2">&amp;</span>str) -&gt; FloatType&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">pub fn </span>get_llvm_float_type&lt;<span class="lifetime">'a</span>&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Context, size: u32, name: <span class="kw-2">&amp;</span>str) -&gt; FloatType&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">match </span>size {
         <span class="number">32 </span>=&gt; context.f32_type(),
         <span class="number">64 </span>=&gt; context.f64_type(),
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid size for type : &#39;{name}&#39; at {size}&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Invalid size for type : '{name}' at {size}"</span>),
     }
 }
 
@@ -445,35 +447,35 @@
 /// - `target_type` the expected target type of the value
 /// - `value_type` the current type of the given value
 /// - `value` the value to (maybe) cast
-</span><span class="kw">pub fn </span>cast&lt;<span class="lifetime">&#39;ctx</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub fn </span>cast&lt;<span class="lifetime">'ctx</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ctx</span>&gt;,
     index: <span class="kw-2">&amp;</span>Index,
-    llvm_type_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    llvm_type_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;,
     target_type: <span class="kw-2">&amp;</span>DataType,
     value_type: <span class="kw-2">&amp;</span>DataType,
-    value: BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    value: BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;,
     annotation: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;,
-) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     value.cast(<span class="kw-2">&amp;</span>CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
 }
 
-<span class="kw">struct </span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; {
-    llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>Index,
-    llvm_type_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-    value_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>DataTypeInformation,
-    target_type: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>DataTypeInformation,
-    annotation: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>StatementAnnotation&gt;,
+<span class="kw">struct </span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; {
+    llvm: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>Llvm&lt;<span class="lifetime">'ctx</span>&gt;,
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>Index,
+    llvm_type_index: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;,
+    value_type: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>DataTypeInformation,
+    target_type: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>DataTypeInformation,
+    annotation: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'cast </span>StatementAnnotation&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; {
     <span class="kw">fn </span>new(
-        llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>Llvm&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>Index,
-        llvm_type_index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        llvm: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>Llvm&lt;<span class="lifetime">'ctx</span>&gt;,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>Index,
+        llvm_type_index: <span class="kw-2">&amp;</span><span class="lifetime">'cast </span>LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;,
         value_type: <span class="kw-2">&amp;</span>DataType,
         target_type: <span class="kw-2">&amp;</span>DataType,
-        annotation: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;cast </span>StatementAnnotation&gt;,
+        annotation: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'cast </span>StatementAnnotation&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         <span class="kw">let </span>value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
@@ -490,20 +492,20 @@
     }
 }
 
-<span class="kw">trait </span>Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; {
-    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">trait </span>Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; {
+    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;;
 }
 
-<span class="kw">trait </span>Promotable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; {
-    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">trait </span>Promotable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; {
+    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;;
 }
 
-<span class="kw">trait </span>Truncatable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; {
-    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">trait </span>Truncatable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; {
+    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             BasicValueEnum::IntValue(val) =&gt; val.cast(cast_data),
             BasicValueEnum::FloatValue(val) =&gt; val.cast(cast_data),
@@ -514,12 +516,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
         <span class="kw">match </span>cast_data.target_type {
             DataTypeInformation::Integer { .. } =&gt; {
-                <span class="comment">//its important to use the real type&#39;s size here, because we may have an i1 which is annotated as BOOL (8 bit)
+                <span class="comment">//its important to use the real type's size here, because we may have an i1 which is annotated as BOOL (8 bit)
                 </span><span class="kw">let </span>rsize = <span class="self">self</span>.get_type().get_bit_width();
                 <span class="kw">if </span>lsize &lt; rsize {
                     <span class="comment">//Truncate
@@ -530,11 +532,11 @@
                 }
             }
             DataTypeInformation::Float { .. } =&gt; {
-                <span class="kw">let </span>float_type = get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">&quot;Float&quot;</span>);
+                <span class="kw">let </span>float_type = get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">"Float"</span>);
                 <span class="kw">if </span>cast_data.value_type.is_signed_int() {
-                    cast_data.llvm.builder.build_signed_int_to_float(<span class="self">self</span>, float_type, <span class="string">&quot;&quot;</span>).into()
+                    cast_data.llvm.builder.build_signed_int_to_float(<span class="self">self</span>, float_type, <span class="string">""</span>).into()
                 } <span class="kw">else </span>{
-                    cast_data.llvm.builder.build_unsigned_int_to_float(<span class="self">self</span>, float_type, <span class="string">&quot;&quot;</span>).into()
+                    cast_data.llvm.builder.build_unsigned_int_to_float(<span class="self">self</span>, float_type, <span class="string">""</span>).into()
                 }
             }
             DataTypeInformation::Pointer { .. } =&gt; {
@@ -542,20 +544,20 @@
                     cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
                 <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(
-                        <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                        <span class="string">"Target type of cast instruction does not exist: {}"</span>,
                         cast_data.target_type.get_name()
                     )
                 };
 
-                cast_data.llvm.builder.build_int_to_ptr(<span class="self">self</span>, associated_type.into_pointer_type(), <span class="string">&quot;&quot;</span>).into()
+                cast_data.llvm.builder.build_int_to_ptr(<span class="self">self</span>, associated_type.into_pointer_type(), <span class="string">""</span>).into()
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot cast integer value to {}&quot;</span>, cast_data.target_type.get_name()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Cannot cast integer value to {}"</span>, cast_data.target_type.get_name()),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>rsize = <span class="kw-2">&amp;</span>cast_data.value_type.get_size_in_bits(cast_data.index);
         <span class="kw">match </span>cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } =&gt; {
@@ -566,38 +568,38 @@
                 }
             }
             DataTypeInformation::Integer { signed, size: lsize, .. } =&gt; {
-                <span class="kw">let </span>int_type = get_llvm_int_type(cast_data.llvm.context, <span class="kw-2">*</span>lsize, <span class="string">&quot;Integer&quot;</span>);
+                <span class="kw">let </span>int_type = get_llvm_int_type(cast_data.llvm.context, <span class="kw-2">*</span>lsize, <span class="string">"Integer"</span>);
                 <span class="kw">if </span><span class="kw-2">*</span>signed {
-                    cast_data.llvm.builder.build_float_to_signed_int(<span class="self">self</span>, int_type, <span class="string">&quot;&quot;</span>).into()
+                    cast_data.llvm.builder.build_float_to_signed_int(<span class="self">self</span>, int_type, <span class="string">""</span>).into()
                 } <span class="kw">else </span>{
-                    cast_data.llvm.builder.build_float_to_unsigned_int(<span class="self">self</span>, int_type, <span class="string">&quot;&quot;</span>).into()
+                    cast_data.llvm.builder.build_float_to_unsigned_int(<span class="self">self</span>, int_type, <span class="string">""</span>).into()
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot cast floating-point value to {}&quot;</span>, cast_data.target_type.get_name()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Cannot cast floating-point value to {}"</span>, cast_data.target_type.get_name()),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span>cast_data.target_type {
             DataTypeInformation::Integer { size: lsize, .. } =&gt; cast_data
                 .llvm
                 .builder
-                .build_ptr_to_int(<span class="self">self</span>, get_llvm_int_type(cast_data.llvm.context, <span class="kw-2">*</span>lsize, <span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>)
+                .build_ptr_to_int(<span class="self">self</span>, get_llvm_int_type(cast_data.llvm.context, <span class="kw-2">*</span>lsize, <span class="string">""</span>), <span class="string">""</span>)
                 .into(),
             DataTypeInformation::Pointer { .. } =&gt; {
                 <span class="kw">let </span><span class="prelude-val">Ok</span>(target_ptr_type) =
                     cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
                 <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(
-                        <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                        <span class="string">"Target type of cast instruction does not exist: {}"</span>,
                         cast_data.target_type.get_name()
                     )
                 };
                 <span class="kw">if </span>BasicValueEnum::from(<span class="self">self</span>).get_type() != target_ptr_type {
                     <span class="comment">// bit-cast necessary
-                    </span>cast_data.llvm.builder.build_bitcast(<span class="self">self</span>, target_ptr_type, <span class="string">&quot;&quot;</span>)
+                    </span>cast_data.llvm.builder.build_bitcast(<span class="self">self</span>, target_ptr_type, <span class="string">""</span>)
                 } <span class="kw">else </span>{
                     <span class="comment">//this is ok, no cast required
                     </span><span class="self">self</span>.into()
@@ -608,22 +610,22 @@
                 ..
             } =&gt; {
                 <span class="comment">// we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                </span><span class="kw">let </span>struct_val = cast_data.llvm.builder.build_load(<span class="self">self</span>, <span class="string">&quot;auto_deref&quot;</span>).cast(cast_data);
+                </span><span class="kw">let </span>struct_val = cast_data.llvm.builder.build_load(<span class="self">self</span>, <span class="string">"auto_deref"</span>).cast(cast_data);
 
                 <span class="comment">// create a pointer to the generated StructValue
-                </span><span class="kw">let </span>struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), <span class="string">&quot;vla_struct_ptr&quot;</span>);
+                </span><span class="kw">let </span>struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), <span class="string">"vla_struct_ptr"</span>);
                 cast_data.llvm.builder.build_store(struct_ptr, struct_val);
                 struct_ptr.into()
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot cast pointer value to {}&quot;</span>, cast_data.target_type.get_name()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Cannot cast pointer value to {}"</span>, cast_data.target_type.get_name()),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Castable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Generates a fat pointer struct for an array if the target type is a VLA,
     /// otherwise returns the value as is.
-    </span><span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if </span>!cast_data.target_type.is_vla() {
             <span class="kw">return </span><span class="self">self</span>.into();
         }
@@ -634,33 +636,33 @@
             cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
         <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(
-                <span class="string">&quot;Target type of cast instruction does not exist: {}&quot;</span>,
+                <span class="string">"Target type of cast instruction does not exist: {}"</span>,
                 cast_data.target_type.get_name()
             )
         };
 
         <span class="comment">// Get array annotation from parent POU and get pointer to array
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Undefined reference: {}&quot;</span>, cast_data.value_type.get_name())
+            <span class="macro">unreachable!</span>(<span class="string">"Undefined reference: {}"</span>, cast_data.value_type.get_name())
         };
         <span class="kw">let </span>array_pointer = cast_data
             .llvm_type_index
             .find_loaded_associated_variable_value(qualified_name.as_str())
-            .unwrap_or_else(|| <span class="macro">unreachable!</span>(<span class="string">&quot;passed array must be in the llvm index&quot;</span>));
+            .unwrap_or_else(|| <span class="macro">unreachable!</span>(<span class="string">"passed array must be in the llvm index"</span>));
 
         <span class="comment">// gep into the original array. the resulting address will be stored in the VLA struct
-        </span><span class="kw">let </span>arr_gep = <span class="kw">unsafe </span>{ builder.build_in_bounds_gep(array_pointer, <span class="kw-2">&amp;</span>[zero, zero], <span class="string">&quot;outer_arr_gep&quot;</span>) };
+        </span><span class="kw">let </span>arr_gep = <span class="kw">unsafe </span>{ builder.build_in_bounds_gep(array_pointer, <span class="kw-2">&amp;</span>[zero, zero], <span class="string">"outer_arr_gep"</span>) };
 
         <span class="comment">// -- Generate struct &amp; arr_ptr --
         </span><span class="kw">let </span>ty = associated_type.into_struct_type();
-        <span class="kw">let </span>vla_struct = builder.build_alloca(ty, <span class="string">&quot;vla_struct&quot;</span>);
+        <span class="kw">let </span>vla_struct = builder.build_alloca(ty, <span class="string">"vla_struct"</span>);
 
-        <span class="kw">let </span><span class="prelude-val">Ok</span>(vla_arr_ptr) = builder.build_struct_gep(vla_struct, <span class="number">0</span>, <span class="string">&quot;vla_array_gep&quot;</span>) <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Must have a valid, GEP-able fat-pointer struct at this stage&quot;</span>)
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(vla_arr_ptr) = builder.build_struct_gep(vla_struct, <span class="number">0</span>, <span class="string">"vla_array_gep"</span>) <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">"Must have a valid, GEP-able fat-pointer struct at this stage"</span>)
         };
 
-        <span class="kw">let </span><span class="prelude-val">Ok</span>(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, <span class="number">1</span>, <span class="string">&quot;vla_dimensions_gep&quot;</span>) <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Must have a valid, GEP-able fat-pointer struct at this stage&quot;</span>)
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, <span class="number">1</span>, <span class="string">"vla_dimensions_gep"</span>) <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">"Must have a valid, GEP-able fat-pointer struct at this stage"</span>)
         };
 
         <span class="comment">// -- Generate dimensions --
@@ -679,52 +681,52 @@
 
         builder.build_store(vla_arr_ptr, arr_gep);
 
-        builder.build_load(vla_struct, <span class="string">&quot;&quot;</span>)
+        builder.build_load(vla_struct, <span class="string">""</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Promotable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-        <span class="kw">let </span>llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, <span class="string">&quot;Integer&quot;</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Promotable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
+        <span class="kw">let </span>llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, <span class="string">"Integer"</span>);
         <span class="kw">if </span>cast_data.value_type.is_signed_int() {
-            cast_data.llvm.builder.build_int_s_extend_or_bit_cast(<span class="self">self</span>, llvm_int_type, <span class="string">&quot;&quot;</span>)
+            cast_data.llvm.builder.build_int_s_extend_or_bit_cast(<span class="self">self</span>, llvm_int_type, <span class="string">""</span>)
         } <span class="kw">else </span>{
-            cast_data.llvm.builder.build_int_z_extend_or_bit_cast(<span class="self">self</span>, llvm_int_type, <span class="string">&quot;&quot;</span>)
+            cast_data.llvm.builder.build_int_z_extend_or_bit_cast(<span class="self">self</span>, llvm_int_type, <span class="string">""</span>)
         }
         .into()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Promotable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Promotable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>promote(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         cast_data
             .llvm
             .builder
-            .build_float_ext(<span class="self">self</span>, get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">&quot;Float&quot;</span>), <span class="string">&quot;&quot;</span>)
+            .build_float_ext(<span class="self">self</span>, get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">"Float"</span>), <span class="string">""</span>)
             .into()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Truncatable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Truncatable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         cast_data
             .llvm
             .builder
             .build_int_truncate_or_bit_cast(
                 <span class="self">self</span>,
-                get_llvm_int_type(cast_data.llvm.context, lsize, <span class="string">&quot;Integer&quot;</span>),
-                <span class="string">&quot;&quot;</span>,
+                get_llvm_int_type(cast_data.llvm.context, lsize, <span class="string">"Integer"</span>),
+                <span class="string">""</span>,
             )
             .into()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; Truncatable&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Truncatable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>truncate(<span class="self">self</span>, lsize: u32, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         cast_data
             .llvm
             .builder
-            .build_float_trunc(<span class="self">self</span>, get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">&quot;Float&quot;</span>), <span class="string">&quot;&quot;</span>)
+            .build_float_trunc(<span class="self">self</span>, get_llvm_float_type(cast_data.llvm.context, lsize, <span class="string">"Float"</span>), <span class="string">""</span>)
             .into()
     }
 }

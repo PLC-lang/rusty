@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/rwlock/futures.rs`."><title>futures.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_lock/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_lock"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/rwlock/futures.rs`."><title>futures.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -495,45 +497,45 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::read`].
-    </span><span class="kw">pub struct </span>Read&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(ReadInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>Read&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(ReadInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockReadGuard&lt;<span class="lifetime">'a</span>, T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::read`].
-    </span><span class="kw">struct </span>ReadInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw read lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>ReadInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw read lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawRead&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawRead&lt;<span class="lifetime">'a</span>&gt;,
 
         <span class="comment">// Pointer to the value protected by the lock. Covariant in `T`.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">*const </span>T,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>ReadInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>ReadInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>ReadInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>ReadInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; Read&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; Read&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawRead&lt;<span class="lifetime">&#39;x</span>&gt;, value: <span class="kw-2">*const </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawRead&lt;<span class="lifetime">'x</span>&gt;, value: <span class="kw-2">*const </span>T) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(ReadInner { raw, value })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Read&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Read { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"Read { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>ReadInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>ReadInner&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockReadGuard&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -550,45 +552,45 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::read_arc`].
-    </span><span class="kw">pub struct </span>ReadArc&lt;<span class="lifetime">&#39;a</span>, T&gt;(ReadArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockReadGuardArc&lt;T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>ReadArc&lt;<span class="lifetime">'a</span>, T&gt;(ReadArcInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockReadGuardArc&lt;T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::read_arc`].
-    </span><span class="kw">struct </span>ReadArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-        <span class="comment">// Raw read lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>ReadArcInner&lt;<span class="lifetime">'a</span>, T&gt; {
+        <span class="comment">// Raw read lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawRead&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawRead&lt;<span class="lifetime">'a</span>&gt;,
 
         <span class="comment">// FIXME: Could be covariant in T
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Send <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Sync <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Send <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Sync <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T&gt; ReadArc&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T&gt; ReadArc&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawRead&lt;<span class="lifetime">&#39;x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawRead&lt;<span class="lifetime">'x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(ReadArcInner { raw, lock })
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>ReadArc&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>ReadArc&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;ReadArc { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"ReadArc { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; EventListenerFuture <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; EventListenerFuture <span class="kw">for </span>ReadArcInner&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = RwLockReadGuardArc&lt;T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -603,19 +605,19 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::upgradable_read`].
-    </span><span class="kw">pub struct </span>UpgradableRead&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(
-        UpgradableReadInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;
+    </span><span class="kw">pub struct </span>UpgradableRead&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(
+        UpgradableReadInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockUpgradableReadGuard&lt;<span class="lifetime">'a</span>, T&gt;
     );
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::upgradable_read`].
-    </span><span class="kw">struct </span>UpgradableReadInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw upgradable read lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>UpgradableReadInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw upgradable read lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgradableRead&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgradableRead&lt;<span class="lifetime">'a</span>&gt;,
 
         <span class="comment">// Pointer to the value protected by the lock. Invariant in `T`
         // as the upgradable lock could provide write access.
@@ -623,28 +625,28 @@
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; UpgradableRead&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; UpgradableRead&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgradableRead&lt;<span class="lifetime">&#39;x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgradableRead&lt;<span class="lifetime">'x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(UpgradableReadInner { raw, value })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableRead&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;UpgradableRead { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"UpgradableRead { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockUpgradableReadGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradableReadInner&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockUpgradableReadGuard&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -661,46 +663,46 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::upgradable_read_arc`].
-    </span><span class="kw">pub struct </span>UpgradableReadArc&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(
-        UpgradableReadArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockUpgradableReadGuardArc&lt;T&gt;
+    </span><span class="kw">pub struct </span>UpgradableReadArc&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(
+        UpgradableReadArcInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockUpgradableReadGuardArc&lt;T&gt;
     );
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::upgradable_read_arc`].
-    </span><span class="kw">struct </span>UpgradableReadArcInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw upgradable read lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>UpgradableReadArcInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw upgradable read lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgradableRead&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgradableRead&lt;<span class="lifetime">'a</span>&gt;,
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
+        <span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; UpgradableReadArc&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; UpgradableReadArc&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgradableRead&lt;<span class="lifetime">&#39;x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgradableRead&lt;<span class="lifetime">'x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(UpgradableReadArcInner { raw, lock })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableReadArc&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradableReadArc&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;UpgradableReadArc { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"UpgradableReadArc { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradableReadArcInner&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = RwLockUpgradableReadGuardArc&lt;T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -715,45 +717,45 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::write`].
-    </span><span class="kw">pub struct </span>Write&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(WriteInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>Write&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(WriteInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockWriteGuard&lt;<span class="lifetime">'a</span>, T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::write`].
-    </span><span class="kw">struct </span>WriteInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw write lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>WriteInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw write lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawWrite&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawWrite&lt;<span class="lifetime">'a</span>&gt;,
 
         <span class="comment">// Pointer to the value protected by the lock. Invariant in `T`.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">*mut </span>T,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>WriteInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>WriteInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>WriteInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>WriteInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; Write&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; Write&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawWrite&lt;<span class="lifetime">&#39;x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawWrite&lt;<span class="lifetime">'x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(WriteInner { raw, value })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Write&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Write { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"Write { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>WriteInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>WriteInner&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -770,44 +772,44 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::write_arc`].
-    </span><span class="kw">pub struct </span>WriteArc&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(WriteArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockWriteGuardArc&lt;T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>WriteArc&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(WriteArcInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockWriteGuardArc&lt;T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLock::write_arc`].
-    </span><span class="kw">struct </span>WriteArcInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw write lock acquisition future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>WriteArcInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw write lock acquisition future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawWrite&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawWrite&lt;<span class="lifetime">'a</span>&gt;,
 
-        <span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
+        <span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Arc&lt;RwLock&lt;T&gt;&gt;,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; WriteArc&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; WriteArc&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawWrite&lt;<span class="lifetime">&#39;x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawWrite&lt;<span class="lifetime">'x</span>&gt;, lock: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>Arc&lt;RwLock&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(WriteArcInner { raw, lock })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>WriteArc&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>WriteArc&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;WriteArc { .. }&quot;</span>)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"WriteArc { .. }"</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>WriteArcInner&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = RwLockWriteGuardArc&lt;T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -823,45 +825,45 @@
 
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuard::upgrade`].
-    </span><span class="kw">pub struct </span>Upgrade&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt;(UpgradeInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="kw">pub struct </span>Upgrade&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(UpgradeInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; RwLockWriteGuard&lt;<span class="lifetime">'a</span>, T&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuard::upgrade`].
-    </span><span class="kw">struct </span>UpgradeInner&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw read lock upgrade future, doesn&#39;t depend on `T`.
+    </span><span class="kw">struct </span>UpgradeInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
+        <span class="comment">// Raw read lock upgrade future, doesn't depend on `T`.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgrade&lt;<span class="lifetime">&#39;a</span>&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: RawUpgrade&lt;<span class="lifetime">'a</span>&gt;,
 
         <span class="comment">// Pointer to the value protected by the lock. Invariant in `T`.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">*mut </span>T,
     }
 }
 
-<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">&#39;_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Send <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Sync + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">'_</span>, T&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; Upgrade&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; Upgrade&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgrade&lt;<span class="lifetime">&#39;x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(raw: RawUpgrade&lt;<span class="lifetime">'x</span>&gt;, value: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(UpgradeInner { raw, value })
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Upgrade&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>Upgrade&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Upgrade&quot;</span>).finish()
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Upgrade"</span>).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; EventListenerFuture <span class="kw">for </span>UpgradeInner&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Output = RwLockWriteGuard&lt;<span class="lifetime">'a</span>, T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -879,25 +881,25 @@
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuardArc::upgrade`].
     </span><span class="kw">pub struct </span>UpgradeArc&lt;T: <span class="question-mark">?</span>Sized&gt;(UpgradeArcInner&lt;T&gt; =&gt; RwLockWriteGuardArc&lt;T&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project_lite::pin_project! </span>{
     <span class="doccomment">/// The future returned by [`RwLockUpgradableReadGuardArc::upgrade`].
     </span><span class="kw">struct </span>UpgradeArcInner&lt;T: <span class="question-mark">?</span>Sized&gt; {
-        <span class="comment">// Raw read lock upgrade future, doesn&#39;t depend on `T`.
-        // `&#39;static` is a lie, this field is actually referencing the
+        <span class="comment">// Raw read lock upgrade future, doesn't depend on `T`.
+        // `'static` is a lie, this field is actually referencing the
         // `Arc` data. But since this struct also stores said `Arc`, we know
         // this value will be alive as long as the struct is.
         //
         // Yes, one field of the `ArcUpgrade` struct is referencing another.
         // Such self-references are usually not sound without pinning.
         // However, in this case, there is an indirection via the heap;
-        // moving the `ArcUpgrade` won&#39;t move the heap allocation of the `Arc`,
-        // so the reference inside `RawUpgrade` isn&#39;t invalidated.
+        // moving the `ArcUpgrade` won't move the heap allocation of the `Arc`,
+        // so the reference inside `RawUpgrade` isn't invalidated.
         </span><span class="attr">#[pin]
-        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: ManuallyDrop&lt;RawUpgrade&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw: ManuallyDrop&lt;RawUpgrade&lt;<span class="lifetime">'static</span>&gt;&gt;,
 
         <span class="comment">// Pointer to the value protected by the lock. Invariant in `T`.
         </span><span class="kw">pub</span>(<span class="kw">super</span>) lock: ManuallyDrop&lt;Arc&lt;RwLock&lt;T&gt;&gt;&gt;,
@@ -923,7 +925,7 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; UpgradeArc&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>new(
-        raw: ManuallyDrop&lt;RawUpgrade&lt;<span class="lifetime">&#39;static</span>&gt;&gt;,
+        raw: ManuallyDrop&lt;RawUpgrade&lt;<span class="lifetime">'static</span>&gt;&gt;,
         lock: ManuallyDrop&lt;Arc&lt;RwLock&lt;T&gt;&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::_new(UpgradeArcInner { raw, lock })
@@ -932,8 +934,8 @@
 
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; fmt::Debug <span class="kw">for </span>UpgradeArc&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;ArcUpgrade&quot;</span>).finish()
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"ArcUpgrade"</span>).finish()
     }
 }
 
@@ -941,7 +943,7 @@
     <span class="kw">type </span>Output = RwLockWriteGuardArc&lt;T&gt;;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,

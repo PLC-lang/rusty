@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -772,7 +774,7 @@
 <span class="kw">use crate</span>::{backend, io};
 <span class="kw">use </span>backend::fd::{AsFd, BorrowedFd};
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::net::xdp::SocketAddrXdp;
 <span class="kw">pub use </span><span class="kw">crate</span>::net::{AddressFamily, Protocol, Shutdown, SocketFlags, SocketType};
 <span class="attr">#[cfg(unix)]
@@ -788,7 +790,7 @@
 /// [`SocketFlags::NONBLOCK`], use [`socket_with`].
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -800,7 +802,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#socket
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#socket
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/socket.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/socket.2.html
@@ -831,7 +833,7 @@
 /// operand.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -843,7 +845,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#socket
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#socket
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/socket.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/socket.2.html
@@ -854,7 +856,7 @@
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=socket&amp;section=2
 /// [illumos]: https://illumos.org/man/3SOCKET/socket
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Creating-a-Socket.html
-</span><span class="attr">#[doc(alias(<span class="string">&quot;socket&quot;</span>))]
+</span><span class="attr">#[doc(alias(<span class="string">"socket"</span>))]
 #[inline]
 </span><span class="kw">pub fn </span>socket_with(
     domain: AddressFamily,
@@ -868,7 +870,7 @@
 <span class="doccomment">/// `bind(sockfd, addr)`—Binds a socket to an IP address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -880,7 +882,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/bind.2.html
@@ -895,7 +897,7 @@
     _bind(sockfd.as_fd(), addr)
 }
 
-<span class="kw">fn </span>_bind(sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>_bind(sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; io::Result&lt;()&gt; {
     <span class="kw">match </span>addr {
         SocketAddr::V4(v4) =&gt; backend::net::syscalls::bind_v4(sockfd, v4),
         SocketAddr::V6(v6) =&gt; backend::net::syscalls::bind_v6(sockfd, v6),
@@ -905,7 +907,7 @@
 <span class="doccomment">/// `bind(sockfd, addr)`—Binds a socket to an address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -917,7 +919,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/bind.2.html
@@ -928,18 +930,18 @@
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=bind&amp;section=2
 /// [illumos]: https://illumos.org/man/3SOCKET/bind
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Setting-Address.html
-</span><span class="attr">#[doc(alias = <span class="string">&quot;bind&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"bind"</span>)]
 </span><span class="kw">pub fn </span>bind_any&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
     _bind_any(sockfd.as_fd(), addr)
 }
 
-<span class="kw">fn </span>_bind_any(sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>_bind_any(sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
     <span class="kw">match </span>addr {
         SocketAddrAny::V4(v4) =&gt; backend::net::syscalls::bind_v4(sockfd, v4),
         SocketAddrAny::V6(v6) =&gt; backend::net::syscalls::bind_v6(sockfd, v6),
         <span class="attr">#[cfg(unix)]
         </span>SocketAddrAny::Unix(unix) =&gt; backend::net::syscalls::bind_unix(sockfd, unix),
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span>SocketAddrAny::Xdp(xdp) =&gt; backend::net::syscalls::bind_xdp(sockfd, xdp),
     }
 }
@@ -948,7 +950,7 @@
 /// IPv4 address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -960,7 +962,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/bind.2.html
@@ -972,7 +974,7 @@
 /// [illumos]: https://illumos.org/man/3SOCKET/bind
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Setting-Address.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;bind&quot;</span>)]
+#[doc(alias = <span class="string">"bind"</span>)]
 </span><span class="kw">pub fn </span>bind_v4&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::bind_v4(sockfd.as_fd(), addr)
 }
@@ -981,7 +983,7 @@
 /// IPv6 address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -993,7 +995,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/bind.2.html
@@ -1005,7 +1007,7 @@
 /// [illumos]: https://illumos.org/man/3SOCKET/bind
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Setting-Address.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;bind&quot;</span>)]
+#[doc(alias = <span class="string">"bind"</span>)]
 </span><span class="kw">pub fn </span>bind_v6&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::bind_v6(sockfd.as_fd(), addr)
 }
@@ -1014,7 +1016,7 @@
 /// Unix-domain address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1026,7 +1028,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#bind
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/bind.2.html
@@ -1039,7 +1041,7 @@
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Setting-Address.html
 </span><span class="attr">#[cfg(unix)]
 #[inline]
-#[doc(alias = <span class="string">&quot;bind&quot;</span>)]
+#[doc(alias = <span class="string">"bind"</span>)]
 </span><span class="kw">pub fn </span>bind_unix&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::bind_unix(sockfd.as_fd(), addr)
 }
@@ -1050,9 +1052,9 @@
 ///  - [Linux]
 ///
 /// [Linux]: https://man7.org/linux/man-pages/man2/bind.2.html
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 #[inline]
-#[doc(alias = <span class="string">&quot;bind&quot;</span>)]
+#[doc(alias = <span class="string">"bind"</span>)]
 </span><span class="kw">pub fn </span>bind_xdp&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrXdp) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::bind_xdp(sockfd.as_fd(), addr)
 }
@@ -1064,7 +1066,7 @@
 /// `Errno::INPROGRESS`.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1076,7 +1078,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1092,7 +1094,7 @@
     _connect(sockfd.as_fd(), addr)
 }
 
-<span class="kw">fn </span>_connect(sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>_connect(sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddr) -&gt; io::Result&lt;()&gt; {
     <span class="kw">match </span>addr {
         SocketAddr::V4(v4) =&gt; backend::net::syscalls::connect_v4(sockfd, v4),
         SocketAddr::V6(v6) =&gt; backend::net::syscalls::connect_v6(sockfd, v6),
@@ -1102,7 +1104,7 @@
 <span class="doccomment">/// `connect(sockfd, addr)`—Initiates a connection.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1114,7 +1116,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1125,18 +1127,18 @@
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=connect&amp;section=2
 /// [illumos]: https://illumos.org/man/3SOCKET/connect
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Connecting.html
-</span><span class="attr">#[doc(alias = <span class="string">&quot;connect&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"connect"</span>)]
 </span><span class="kw">pub fn </span>connect_any&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
     _connect_any(sockfd.as_fd(), addr)
 }
 
-<span class="kw">fn </span>_connect_any(sockfd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
+<span class="kw">fn </span>_connect_any(sockfd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;, addr: <span class="kw-2">&amp;</span>SocketAddrAny) -&gt; io::Result&lt;()&gt; {
     <span class="kw">match </span>addr {
         SocketAddrAny::V4(v4) =&gt; backend::net::syscalls::connect_v4(sockfd, v4),
         SocketAddrAny::V6(v6) =&gt; backend::net::syscalls::connect_v6(sockfd, v6),
         <span class="attr">#[cfg(unix)]
         </span>SocketAddrAny::Unix(unix) =&gt; backend::net::syscalls::connect_unix(sockfd, unix),
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span>SocketAddrAny::Xdp(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Errno::OPNOTSUPP),
     }
 }
@@ -1145,7 +1147,7 @@
 /// connection to an IPv4 address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1157,7 +1159,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1169,7 +1171,7 @@
 /// [illumos]: https://illumos.org/man/3SOCKET/connect
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Connecting.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;connect&quot;</span>)]
+#[doc(alias = <span class="string">"connect"</span>)]
 </span><span class="kw">pub fn </span>connect_v4&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrV4) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::connect_v4(sockfd.as_fd(), addr)
 }
@@ -1178,7 +1180,7 @@
 /// connection to an IPv6 address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1190,7 +1192,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1202,7 +1204,7 @@
 /// [illumos]: https://illumos.org/man/3SOCKET/connect
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Connecting.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;connect&quot;</span>)]
+#[doc(alias = <span class="string">"connect"</span>)]
 </span><span class="kw">pub fn </span>connect_v6&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrV6) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::connect_v6(sockfd.as_fd(), addr)
 }
@@ -1211,7 +1213,7 @@
 /// connection to a Unix-domain address.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1223,7 +1225,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1236,19 +1238,19 @@
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Connecting.html
 </span><span class="attr">#[cfg(unix)]
 #[inline]
-#[doc(alias = <span class="string">&quot;connect&quot;</span>)]
+#[doc(alias = <span class="string">"connect"</span>)]
 </span><span class="kw">pub fn </span>connect_unix&lt;Fd: AsFd&gt;(sockfd: Fd, addr: <span class="kw-2">&amp;</span>SocketAddrUnix) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::connect_unix(sockfd.as_fd(), addr)
 }
 
 <span class="doccomment">/// `connect(sockfd, {.sa_family = AF_UNSPEC}, sizeof(struct sockaddr))`
-/// — Dissolve the socket&#39;s association.
+/// — Dissolve the socket's association.
 ///
 /// On UDP sockets, BSD platforms report [`Errno::AFNOSUPPORT`] or
 /// [`Errno::INVAL`] even if the disconnect was successful.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1260,7 +1262,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#connect
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/connect.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/connect.2.html
@@ -1274,7 +1276,7 @@
 /// [`Errno::AFNOSUPPORT`]: io::Errno::AFNOSUPPORT
 /// [`Errno::INVAL`]: io::Errno::INVAL
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;connect&quot;</span>)]
+#[doc(alias = <span class="string">"connect"</span>)]
 </span><span class="kw">pub fn </span>connect_unspec&lt;Fd: AsFd&gt;(sockfd: Fd) -&gt; io::Result&lt;()&gt; {
     backend::net::syscalls::connect_unspec(sockfd.as_fd())
 }
@@ -1282,7 +1284,7 @@
 <span class="doccomment">/// `listen(fd, backlog)`—Enables listening for incoming connections.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1294,7 +1296,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#listen
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#listen
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/listen.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/listen.2.html
@@ -1319,7 +1321,7 @@
 /// be unexpectedly allocated on other threads or in libraries.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1331,7 +1333,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#acceptthank-you-for-calling-port-3490.
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#acceptthank-you-for-calling-port-3490.
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/accept.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/accept.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/accept.2.html
@@ -1374,7 +1376,7 @@
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=accept4&amp;section=2
 /// [illumos]: https://illumos.org/man/3SOCKET/accept4
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;accept4&quot;</span>)]
+#[doc(alias = <span class="string">"accept4"</span>)]
 </span><span class="kw">pub fn </span>accept_with&lt;Fd: AsFd&gt;(sockfd: Fd, flags: SocketFlags) -&gt; io::Result&lt;OwnedFd&gt; {
     backend::net::syscalls::accept_with(sockfd.as_fd(), flags)
 }
@@ -1382,10 +1384,10 @@
 <span class="doccomment">/// `accept(fd, &amp;addr, &amp;len)`—Accepts an incoming connection and returns the
 /// peer address.
 ///
-/// Use [`accept`] if the peer address isn&#39;t needed.
+/// Use [`accept`] if the peer address isn't needed.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1397,7 +1399,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#acceptthank-you-for-calling-port-3490.
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#acceptthank-you-for-calling-port-3490.
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/accept.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/accept.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/accept.2.html
@@ -1409,7 +1411,7 @@
 /// [illumos]: https://illumos.org/man/3SOCKET/accept
 /// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Accepting-Connections.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;accept&quot;</span>)]
+#[doc(alias = <span class="string">"accept"</span>)]
 </span><span class="kw">pub fn </span>acceptfrom&lt;Fd: AsFd&gt;(sockfd: Fd) -&gt; io::Result&lt;(OwnedFd, <span class="prelude-ty">Option</span>&lt;SocketAddrAny&gt;)&gt; {
     backend::net::syscalls::acceptfrom(sockfd.as_fd())
 }
@@ -1417,7 +1419,7 @@
 <span class="doccomment">/// `accept4(fd, &amp;addr, &amp;len, flags)`—Accepts an incoming connection and
 /// returns the peer address, with flags.
 ///
-/// Use [`accept_with`] if the peer address isn&#39;t needed.
+/// Use [`accept_with`] if the peer address isn't needed.
 ///
 /// `acceptfrom_with` is the same as [`acceptfrom`] but adds an additional
 /// flags operand.
@@ -1437,7 +1439,7 @@
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=accept4&amp;section=2
 /// [illumos]: https://illumos.org/man/3SOCKET/accept4
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;accept4&quot;</span>)]
+#[doc(alias = <span class="string">"accept4"</span>)]
 </span><span class="kw">pub fn </span>acceptfrom_with&lt;Fd: AsFd&gt;(
     sockfd: Fd,
     flags: SocketFlags,
@@ -1448,7 +1450,7 @@
 <span class="doccomment">/// `shutdown(fd, how)`—Closes the read and/or write sides of a stream.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1460,7 +1462,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#close-and-shutdownget-outta-my-face
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#close-and-shutdownget-outta-my-face
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/shutdown.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/shutdown.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/shutdown.2.html
@@ -1509,7 +1511,7 @@
 /// to.
 ///
 /// # References
-///  - [Beej&#39;s Guide to Network Programming]
+///  - [Beej's Guide to Network Programming]
 ///  - [POSIX]
 ///  - [Linux]
 ///  - [Apple]
@@ -1521,7 +1523,7 @@
 ///  - [illumos]
 ///  - [glibc]
 ///
-/// [Beej&#39;s Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#getpeernamewho-are-you
+/// [Beej's Guide to Network Programming]: https://beej.us/guide/bgnet/html/split/system-calls-or-bust.html#getpeernamewho-are-you
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpeername.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/getpeername.2.html
 /// [Apple]: https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/getpeername.2.html

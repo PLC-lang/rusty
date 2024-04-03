@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/iso8601-0.6.1/src/parsers.rs`."><title>parsers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iso8601" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/iso8601-0.6.1/src/parsers.rs`."><title>parsers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iso8601" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../iso8601/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -421,10 +423,10 @@
         <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Error(Error::new(i, nom::error::ErrorKind::Eof)));
     }
 
-    <span class="kw">let </span>s = str::from_utf8(digits).expect(<span class="string">&quot;Invalid data, expected UTF-8 string&quot;</span>);
+    <span class="kw">let </span>s = str::from_utf8(digits).expect(<span class="string">"Invalid data, expected UTF-8 string"</span>);
     <span class="kw">let </span>res = s
         .parse()
-        .expect(<span class="string">&quot;Invalid string, expected ASCII representation of a number&quot;</span>);
+        .expect(<span class="string">"Invalid string, expected ASCII representation of a number"</span>);
 
     <span class="prelude-val">Ok</span>((i, res))
 }
@@ -432,10 +434,10 @@
 <span class="kw">fn </span>take_n_digits(i: <span class="kw-2">&amp;</span>[u8], n: usize) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
     <span class="kw">let </span>(i, digits) = take_while_m_n(n, n, is_digit)(i)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>s = str::from_utf8(digits).expect(<span class="string">&quot;Invalid data, expected UTF-8 string&quot;</span>);
+    <span class="kw">let </span>s = str::from_utf8(digits).expect(<span class="string">"Invalid data, expected UTF-8 string"</span>);
     <span class="kw">let </span>res = s
         .parse()
-        .expect(<span class="string">&quot;Invalid string, expected ASCII representation of a number&quot;</span>);
+        .expect(<span class="string">"Invalid string, expected ASCII representation of a number"</span>);
 
     <span class="prelude-val">Ok</span>((i, res))
 }
@@ -455,8 +457,8 @@
 }
 
 <span class="kw">fn </span>sign(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], i32&gt; {
-    map(alt((tag(<span class="string">b&quot;-&quot;</span>), tag(<span class="string">b&quot;+&quot;</span>))), |s: <span class="kw-2">&amp;</span>[u8]| <span class="kw">match </span>s {
-        <span class="string">b&quot;-&quot; </span>=&gt; -<span class="number">1</span>,
+    map(alt((tag(<span class="string">b"-"</span>), tag(<span class="string">b"+"</span>))), |s: <span class="kw-2">&amp;</span>[u8]| <span class="kw">match </span>s {
+        <span class="string">b"-" </span>=&gt; -<span class="number">1</span>,
         <span class="kw">_ </span>=&gt; <span class="number">1</span>,
     })(i)
 }
@@ -504,9 +506,9 @@
     map(
         tuple((
             date_year,      <span class="comment">// YYYY
-            </span>opt(tag(<span class="string">b&quot;-&quot;</span>)), <span class="comment">// -
+            </span>opt(tag(<span class="string">b"-"</span>)), <span class="comment">// -
             </span>date_month,     <span class="comment">// MM
-            </span>opt(tag(<span class="string">b&quot;-&quot;</span>)), <span class="comment">// -
+            </span>opt(tag(<span class="string">b"-"</span>)), <span class="comment">// -
             </span>date_day,       <span class="comment">//DD
         </span>)),
         |(year, <span class="kw">_</span>, month, <span class="kw">_</span>, day)| Date::YMD { year, month, day },
@@ -516,19 +518,19 @@
 <span class="comment">// YYYY-DDD
 </span><span class="kw">fn </span>date_ordinal(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], Date&gt; {
     map(
-        separated_pair(date_year, opt(tag(<span class="string">b&quot;-&quot;</span>)), date_ord_day),
+        separated_pair(date_year, opt(tag(<span class="string">b"-"</span>)), date_ord_day),
         |(year, ddd)| Date::Ordinal { year, ddd },
     )(i)
 }
 
-<span class="comment">// YYYY-&quot;W&quot;WW-D
+<span class="comment">// YYYY-"W"WW-D
 </span><span class="kw">fn </span>date_iso_week(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], Date&gt; {
     map(
         tuple((
             date_year,                          <span class="comment">// y
-            </span>tuple((opt(tag(<span class="string">b&quot;-&quot;</span>)), tag(<span class="string">b&quot;W&quot;</span>))), <span class="comment">// [-]W
+            </span>tuple((opt(tag(<span class="string">b"-"</span>)), tag(<span class="string">b"W"</span>))), <span class="comment">// [-]W
             </span>date_week,                          <span class="comment">// w
-            </span>opt(tag(<span class="string">b&quot;-&quot;</span>)),                     <span class="comment">// [-]
+            </span>opt(tag(<span class="string">b"-"</span>)),                     <span class="comment">// [-]
             </span>date_week_day,                      <span class="comment">// d
         </span>)),
         |(year, <span class="kw">_</span>, ww, <span class="kw">_</span>, d)| Date::Week { year, ww, d },
@@ -561,7 +563,7 @@
 
 <span class="comment">// Converts the fractional part if-any of a number of seconds to milliseconds
 // truncating towards zero if there are more than three digits.
-// e.g. &quot;&quot; -&gt; 0, &quot;1&quot; -&gt; 100, &quot;12&quot; -&gt; 120, &quot;123&quot; -&gt; 123, &quot;1234&quot; -&gt; 123
+// e.g. "" -&gt; 0, "1" -&gt; 100, "12" -&gt; 120, "123" -&gt; 123, "1234" -&gt; 123
 </span><span class="kw">fn </span>fraction_millisecond(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
     <span class="kw">let </span>(i, <span class="kw-2">mut </span>digits) = take_while(is_digit)(i)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>l = digits.len();
@@ -570,7 +572,7 @@
     }
     <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="number">0</span>;
     <span class="kw">if </span>l &gt; <span class="number">0 </span>{
-        <span class="kw">let </span>digits = str::from_utf8(digits).unwrap(); <span class="comment">// This can&#39;t panic, `digits` will only include digits.
+        <span class="kw">let </span>digits = str::from_utf8(digits).unwrap(); <span class="comment">// This can't panic, `digits` will only include digits.
         </span>result = digits.parse().unwrap();
     }
     <span class="kw">while </span>l &lt; <span class="number">3 </span>{
@@ -588,10 +590,10 @@
     map(
         tuple((
             time_hour,                                         <span class="comment">// HH
-            </span>opt(tag(<span class="string">b&quot;:&quot;</span>)),                                    <span class="comment">// :
+            </span>opt(tag(<span class="string">b":"</span>)),                                    <span class="comment">// :
             </span>time_minute,                                       <span class="comment">// MM
-            </span>opt(preceded(opt(tag(<span class="string">b&quot;:&quot;</span>)), time_second)),        <span class="comment">// [SS]
-            </span>opt(preceded(one_of(<span class="string">&quot;,.&quot;</span>), fraction_millisecond)), <span class="comment">// [.(m*)]
+            </span>opt(preceded(opt(tag(<span class="string">b":"</span>)), time_second)),        <span class="comment">// [SS]
+            </span>opt(preceded(one_of(<span class="string">",."</span>), fraction_millisecond)), <span class="comment">// [.(m*)]
             </span>opt(alt((timezone_hour, timezone_utc))),           <span class="comment">// [(Z|+...|-...)]
         </span>)),
         |(h, <span class="kw">_</span>, m, s, ms, z)| {
@@ -611,13 +613,13 @@
 
 <span class="kw">fn </span>timezone_hour(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], (i32, i32)&gt; {
     map(
-        tuple((sign, time_hour, opt(preceded(opt(tag(<span class="string">b&quot;:&quot;</span>)), time_minute)))),
+        tuple((sign, time_hour, opt(preceded(opt(tag(<span class="string">b":"</span>)), time_minute)))),
         |(s, h, m)| (s * (h <span class="kw">as </span>i32), s * (m.unwrap_or(<span class="number">0</span>) <span class="kw">as </span>i32)),
     )(i)
 }
 
 <span class="kw">fn </span>timezone_utc(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], (i32, i32)&gt; {
-    map(tag(<span class="string">b&quot;Z&quot;</span>), |<span class="kw">_</span>| (<span class="number">0</span>, <span class="number">0</span>))(i)
+    map(tag(<span class="string">b"Z"</span>), |<span class="kw">_</span>| (<span class="number">0</span>, <span class="number">0</span>))(i)
 }
 
 <span class="doccomment">/// Parses a datetime string.
@@ -626,58 +628,58 @@
 </span><span class="comment">// Full ISO8601 datetime
 </span><span class="kw">pub fn </span>parse_datetime(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], DateTime&gt; {
     map(
-        separated_pair(parse_date, tag(<span class="string">b&quot;T&quot;</span>), parse_time),
+        separated_pair(parse_date, tag(<span class="string">b"T"</span>), parse_time),
         |(d, t)| DateTime { date: d, time: t },
     )(i)
 }
 
 <span class="comment">// DURATION
 
-</span><span class="doccomment">///    dur-year          = 1*DIGIT &quot;Y&quot; [dur-month]
+</span><span class="doccomment">///    dur-year          = 1*DIGIT "Y" [dur-month]
 </span><span class="kw">fn </span>duration_year(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;Y&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"Y"</span>))(i)
 }
 
-<span class="doccomment">///    dur-month         = 1*DIGIT &quot;M&quot; [dur-day]
+<span class="doccomment">///    dur-month         = 1*DIGIT "M" [dur-day]
 </span><span class="kw">fn </span>duration_month(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;M&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"M"</span>))(i)
 }
 
-<span class="doccomment">///    dur-week          = 1*DIGIT &quot;W&quot;
+<span class="doccomment">///    dur-week          = 1*DIGIT "W"
 </span><span class="kw">fn </span>duration_week(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;W&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"W"</span>))(i)
 }
 
-<span class="comment">//    dur-day           = 1*DIGIT &quot;D&quot;
+<span class="comment">//    dur-day           = 1*DIGIT "D"
 </span><span class="kw">fn </span>duration_day(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;D&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"D"</span>))(i)
 }
 
-<span class="doccomment">///    dur-hour          = 1*DIGIT &quot;H&quot; [dur-minute]
-///    dur-time          = &quot;T&quot; (dur-hour / dur-minute / dur-second)
+<span class="doccomment">///    dur-hour          = 1*DIGIT "H" [dur-minute]
+///    dur-time          = "T" (dur-hour / dur-minute / dur-second)
 </span><span class="kw">fn </span>duration_hour(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;H&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"H"</span>))(i)
 }
 
-<span class="doccomment">///    dur-minute        = 1*DIGIT &quot;M&quot; [dur-second]
+<span class="doccomment">///    dur-minute        = 1*DIGIT "M" [dur-second]
 </span><span class="kw">fn </span>duration_minute(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;M&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"M"</span>))(i)
 }
 
-<span class="comment">////    dur-second        = 1*DIGIT &quot;S&quot;
+<span class="comment">////    dur-second        = 1*DIGIT "S"
 </span><span class="kw">fn </span>duration_second(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], u32&gt; {
-    terminated(take_digits, tag(<span class="string">b&quot;S&quot;</span>))(i)
+    terminated(take_digits, tag(<span class="string">b"S"</span>))(i)
 }
 
-<span class="doccomment">///    dur-second-ext    = 1*DIGIT (,|.) 1*DIGIT &quot;S&quot;
+<span class="doccomment">///    dur-second-ext    = 1*DIGIT (,|.) 1*DIGIT "S"
 </span><span class="kw">fn </span>duration_second_and_millisecond(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], (u32, u32)&gt; {
     alt((
         <span class="comment">// no milliseconds
         </span>map(duration_second, |m| (m, <span class="number">0</span>)),
         terminated(
             <span class="comment">// with milliseconds
-            </span>separated_pair(take_digits, one_of(<span class="string">&quot;,.&quot;</span>), fraction_millisecond),
-            tag(<span class="string">b&quot;S&quot;</span>),
+            </span>separated_pair(take_digits, one_of(<span class="string">",."</span>), fraction_millisecond),
+            tag(<span class="string">b"S"</span>),
         ),
     ))(i)
 }
@@ -700,12 +702,12 @@
 <span class="kw">fn </span>duration_ymdhms(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], Duration&gt; {
     map_res(
         preceded(
-            tag(<span class="string">b&quot;P&quot;</span>),
+            tag(<span class="string">b"P"</span>),
             tuple((
                 opt(duration_year),
                 opt(duration_month),
                 opt(duration_day),
-                opt(preceded(tag(<span class="string">b&quot;T&quot;</span>), duration_time)),
+                opt(preceded(tag(<span class="string">b"T"</span>), duration_time)),
             )),
         ),
         |(y, mo, d, time)| {
@@ -730,7 +732,7 @@
 }
 
 <span class="kw">fn </span>duration_weeks(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], Duration&gt; {
-    map(preceded(tag(<span class="string">b&quot;P&quot;</span>), duration_week), Duration::Weeks)(i)
+    map(preceded(tag(<span class="string">b"P"</span>), duration_week), Duration::Weeks)(i)
 }
 
 <span class="comment">// YYYY, no sign
@@ -741,14 +743,14 @@
 <span class="kw">fn </span>duration_datetime(i: <span class="kw-2">&amp;</span>[u8]) -&gt; IResult&lt;<span class="kw-2">&amp;</span>[u8], Duration&gt; {
     map(
         preceded(
-            tuple((tag(<span class="string">b&quot;P&quot;</span>), not(sign))),
+            tuple((tag(<span class="string">b"P"</span>), not(sign))),
             tuple((
                 duration_datetime_year,
-                opt(tag(<span class="string">b&quot;-&quot;</span>)),
+                opt(tag(<span class="string">b"-"</span>)),
                 date_month,
-                opt(tag(<span class="string">b&quot;-&quot;</span>)),
+                opt(tag(<span class="string">b"-"</span>)),
                 date_day,
-                tag(<span class="string">b&quot;T&quot;</span>),
+                tag(<span class="string">b"T"</span>),
                 parse_time,
             )),
         ),

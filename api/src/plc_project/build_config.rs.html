@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_project/src/build_config.rs`."><title>build_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_project" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_project/src/build_config.rs`."><title>build_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_project" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_project/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -424,13 +426,13 @@
     <span class="kw">pub </span>path: PathBuf,
     <span class="kw">pub </span>package: LinkageInfo,
     <span class="kw">pub </span>include_path: Vec&lt;PathBuf&gt;,
-    <span class="attr">#[serde(default = <span class="string">&quot;default_targets&quot;</span>)]
+    <span class="attr">#[serde(default = <span class="string">"default_targets"</span>)]
     </span><span class="kw">pub </span>architectures: Vec&lt;Target&gt;,
 }
 
 <span class="doccomment">/// Targets to use if no other targets have been defined
 </span><span class="kw">fn </span>default_targets() -&gt; Vec&lt;Target&gt; {
-    <span class="macro">vec!</span>[<span class="string">&quot;x86_64-linux-gnu&quot;</span>.into(), <span class="string">&quot;aarch64-linux-gnu&quot;</span>.into()]
+    <span class="macro">vec!</span>[<span class="string">"x86_64-linux-gnu"</span>.into(), <span class="string">"aarch64-linux-gnu"</span>.into()]
 }
 
 <span class="attr">#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
@@ -449,18 +451,18 @@
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>compile_type: FormatOption,
     <span class="attr">#[serde(default)]
-    #[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    #[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>libraries: Vec&lt;LibraryConfig&gt;,
     <span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>package_commands: Vec&lt;String&gt;,
     <span class="attr">#[serde(default)]
-    #[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    #[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>version: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="attr">#[serde(default)]
-    #[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
-    #[serde(alias = <span class="string">&quot;format-version&quot;</span>)]
+    #[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
+    #[serde(alias = <span class="string">"format-version"</span>)]
     </span><span class="kw">pub </span>format_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
@@ -489,32 +491,32 @@
     }
 
     <span class="kw">fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>schema = <span class="macro">include_str!</span>(<span class="string">&quot;../schema/plc-json.schema&quot;</span>);
-        <span class="kw">let </span>schema_obj = serde_json::from_str(schema).expect(<span class="string">&quot;A valid schema&quot;</span>);
-        <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema_obj).expect(<span class="string">&quot;A valid schema&quot;</span>);
+        <span class="kw">let </span>schema = <span class="macro">include_str!</span>(<span class="string">"../schema/plc-json.schema"</span>);
+        <span class="kw">let </span>schema_obj = serde_json::from_str(schema).expect(<span class="string">"A valid schema"</span>);
+        <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema_obj).expect(<span class="string">"A valid schema"</span>);
         <span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="self">self</span>);
         compiled.validate(<span class="kw-2">&amp;</span>instance).map_err(|errors| {
-            <span class="kw">let </span><span class="kw-2">mut </span>message = String::from(<span class="string">&quot;plc.json could not be validated due to the following errors:\n&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>message = String::from(<span class="string">"plc.json could not be validated due to the following errors:\n"</span>);
             <span class="kw">for </span>err <span class="kw">in </span>errors {
                 <span class="kw">let </span>prefix = <span class="kw">match </span>err.kind {
                     jsonschema::error::ValidationErrorKind::MinItems { .. } =&gt; {
-                        err.instance_path.to_string().replace(<span class="string">&#39;/&#39;</span>, <span class="string">&quot;&quot;</span>)
+                        err.instance_path.to_string().replace(<span class="string">'/'</span>, <span class="string">""</span>)
                     }
-                    <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>.into(),
+                    <span class="kw">_ </span>=&gt; <span class="string">""</span>.into(),
                 };
-                message.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{prefix}{err}\n&quot;</span>));
+                message.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{prefix}{err}\n"</span>));
             }
 
             <span class="comment">// XXX: jsonschema does not provide error messages with location info
-            </span>Diagnostic::new(message).with_error_code(<span class="string">&quot;E088&quot;</span>)
+            </span>Diagnostic::new(message).with_error_code(<span class="string">"E088"</span>)
         })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="comment">//TODO: I don&#39;t think this belongs here
+<span class="comment">//TODO: I don't think this belongs here
 </span><span class="kw">fn </span>resolve_environment_variables(to_replace: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
-    <span class="kw">let </span>pattern = Regex::new(<span class="string">r&quot;\$(\w+)&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>pattern = Regex::new(<span class="string">r"\$(\w+)"</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>result = pattern.replace_all(to_replace, |it: <span class="kw-2">&amp;</span>Captures| {
         <span class="kw">let </span>original = it.get(<span class="number">0</span>).map(|it| it.as_str().to_string()).unwrap();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(var) = it.get(<span class="number">1</span>).map(|it| it.as_str()) {
@@ -523,7 +525,7 @@
             original
         }
     });
-    <span class="prelude-val">Ok</span>(result.replace(<span class="string">&#39;\\&#39;</span>, <span class="string">r&quot;\\&quot;</span>))
+    <span class="prelude-val">Ok</span>(result.replace(<span class="string">'\\'</span>, <span class="string">r"\\"</span>))
 }
 
 <span class="attr">#[cfg(test)]
@@ -538,170 +540,170 @@
     <span class="kw">use </span><span class="kw">super</span>::LibraryConfig;
     <span class="kw">use super</span>::{LinkageInfo, ProjectConfig};
 
-    <span class="kw">const </span>SIMPLE_PROGRAM: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>SIMPLE_PROGRAM: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [
-            &quot;simple_program.st&quot;
+        "name": "MyProject",
+        "files" : [
+            "simple_program.st"
         ],
-        &quot;compile_type&quot; : &quot;Shared&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;,
-        &quot;libraries&quot; : [
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "libraries" : [
             {
-                &quot;name&quot; : &quot;copy&quot;,
-                &quot;path&quot; : &quot;libs/&quot;,
-                &quot;package&quot; : &quot;Copy&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "copy",
+                "path" : "libs/",
+                "package" : "Copy",
+                "include_path" : [
+                    "simple_program.st"
                 ]
             },
             {
-                &quot;name&quot; : &quot;nocopy&quot;,
-                &quot;path&quot; : &quot;libs/&quot;,
-                &quot;package&quot; : &quot;System&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "nocopy",
+                "path" : "libs/",
+                "package" : "System",
+                "include_path" : [
+                    "simple_program.st"
                 ]
             },
             {
-                &quot;name&quot; : &quot;static&quot;,
-                &quot;path&quot; : &quot;libs/&quot;,
-                &quot;package&quot; : &quot;Static&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "static",
+                "path" : "libs/",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
                 ]
             },
             {
-                &quot;name&quot; : &quot;withTargets&quot;,
-                &quot;path&quot; : &quot;libs/&quot;,
-                &quot;package&quot; : &quot;Static&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "withTargets",
+                "path" : "libs/",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
                 ],
-                &quot;architectures&quot;: [&quot;myArch&quot;, &quot;myArch2&quot;]
+                "architectures": ["myArch", "myArch2"]
             }
         ]
     }
-&quot;#</span>;
+"#</span>;
 
-    <span class="kw">const </span>ADDITIONAL_UNKNOWN_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>ADDITIONAL_UNKNOWN_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [
-            &quot;file.st&quot;
+        "name": "MyProject",
+        "files" : [
+            "file.st"
             ],
-        &quot;compile_type&quot; : &quot;Shared&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;,
-        &quot;additional_field&quot; : &quot;should give an error&quot;
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "additional_field" : "should give an error"
     }
-&quot;#</span>;
+"#</span>;
 
-    <span class="kw">const </span>NO_FILES_SPECIFIED: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>NO_FILES_SPECIFIED: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [],
-        &quot;compile_type&quot; : &quot;Shared&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;
+        "name": "MyProject",
+        "files" : [],
+        "compile_type" : "Shared",
+        "output": "proj.so"
     }
-    &quot;#</span>;
+    "#</span>;
 
-    <span class="kw">const </span>INVALID_ENUM_VARIANTS: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>INVALID_ENUM_VARIANTS: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [
-            &quot;simple_program.st&quot;
+        "name": "MyProject",
+        "files" : [
+            "simple_program.st"
         ],
-        &quot;compile_type&quot; : &quot;Interpreted&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;,
-        &quot;libraries&quot; : [
+        "compile_type" : "Interpreted",
+        "output": "proj.so",
+        "libraries" : [
             {
-                &quot;name&quot; : &quot;static&quot;,
-                &quot;path&quot; : &quot;libs/&quot;,
-                &quot;package&quot; : &quot;Opened&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "static",
+                "path" : "libs/",
+                "package" : "Opened",
+                "include_path" : [
+                    "simple_program.st"
                 ]
             }
         ]
     }
-&quot;#</span>;
+"#</span>;
 
-    <span class="kw">const </span>MISSING_REQUIRED_LIBRARY_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>MISSING_REQUIRED_LIBRARY_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [
-            &quot;simple_program.st&quot;
+        "name": "MyProject",
+        "files" : [
+            "simple_program.st"
         ],
-        &quot;compile_type&quot; : &quot;Shared&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;,
-        &quot;libraries&quot; : [
+        "compile_type" : "Shared",
+        "output": "proj.so",
+        "libraries" : [
             {
-                &quot;name&quot; : &quot;static&quot;,
-                &quot;package&quot; : &quot;Static&quot;,
-                &quot;include_path&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "static",
+                "package" : "Static",
+                "include_path" : [
+                    "simple_program.st"
                 ]
             }
         ]
     }
-&quot;#</span>;
+"#</span>;
 
-    <span class="kw">const </span>MISSING_REQUIRED_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>MISSING_REQUIRED_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#"
         {
-            &quot;files&quot; : [
-                &quot;simple_program.st&quot;
+            "files" : [
+                "simple_program.st"
             ]
         }
-    &quot;#</span>;
+    "#</span>;
 
-    <span class="kw">const </span>OPTIONAL_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#&quot;
+    <span class="kw">const </span>OPTIONAL_PROPERTIES: <span class="kw-2">&amp;</span>str = <span class="string">r#"
     {
-        &quot;version&quot;: &quot;0.1&quot;,
-        &quot;format-version&quot;: &quot;0.2&quot;,
-        &quot;name&quot;: &quot;MyProject&quot;,
-        &quot;files&quot; : [
-            &quot;file.st&quot;
+        "version": "0.1",
+        "format-version": "0.2",
+        "name": "MyProject",
+        "files" : [
+            "file.st"
             ],
-        &quot;compile_type&quot; : &quot;Shared&quot;,
-        &quot;output&quot;: &quot;proj.so&quot;
+        "compile_type" : "Shared",
+        "output": "proj.so"
     }
-&quot;#</span>;
+"#</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>check_build_struct_from_file() {
         <span class="kw">let </span>test_project = ProjectConfig {
-            name: <span class="string">&quot;MyProject&quot;</span>.to_string(),
-            files: <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;simple_program.st&quot;</span>)],
+            name: <span class="string">"MyProject"</span>.to_string(),
+            files: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"simple_program.st"</span>)],
             compile_type: FormatOption::Shared,
-            output: <span class="prelude-val">Some</span>(String::from(<span class="string">&quot;proj.so&quot;</span>)),
+            output: <span class="prelude-val">Some</span>(String::from(<span class="string">"proj.so"</span>)),
             libraries: <span class="macro">vec!</span>[
                 LibraryConfig {
-                    name: String::from(<span class="string">&quot;copy&quot;</span>),
-                    path: PathBuf::from(<span class="string">&quot;libs/&quot;</span>),
+                    name: String::from(<span class="string">"copy"</span>),
+                    path: PathBuf::from(<span class="string">"libs/"</span>),
                     package: LinkageInfo::Copy,
-                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;simple_program.st&quot;</span>)],
+                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"simple_program.st"</span>)],
                     architectures: default_targets(),
                 },
                 LibraryConfig {
-                    name: String::from(<span class="string">&quot;nocopy&quot;</span>),
-                    path: PathBuf::from(<span class="string">&quot;libs/&quot;</span>),
+                    name: String::from(<span class="string">"nocopy"</span>),
+                    path: PathBuf::from(<span class="string">"libs/"</span>),
                     package: LinkageInfo::System,
-                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;simple_program.st&quot;</span>)],
+                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"simple_program.st"</span>)],
                     architectures: default_targets(),
                 },
                 LibraryConfig {
-                    name: String::from(<span class="string">&quot;static&quot;</span>),
-                    path: PathBuf::from(<span class="string">&quot;libs/&quot;</span>),
+                    name: String::from(<span class="string">"static"</span>),
+                    path: PathBuf::from(<span class="string">"libs/"</span>),
                     package: LinkageInfo::Static,
-                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;simple_program.st&quot;</span>)],
+                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"simple_program.st"</span>)],
                     architectures: default_targets(),
                 },
                 LibraryConfig {
-                    name: String::from(<span class="string">&quot;withTargets&quot;</span>),
-                    path: PathBuf::from(<span class="string">&quot;libs/&quot;</span>),
+                    name: String::from(<span class="string">"withTargets"</span>),
+                    path: PathBuf::from(<span class="string">"libs/"</span>),
                     package: LinkageInfo::Static,
-                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;simple_program.st&quot;</span>)],
-                    architectures: <span class="macro">vec!</span>[<span class="string">&quot;myArch&quot;</span>.into(), <span class="string">&quot;myArch2&quot;</span>.into()],
+                    include_path: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"simple_program.st"</span>)],
+                    architectures: <span class="macro">vec!</span>[<span class="string">"myArch"</span>.into(), <span class="string">"myArch2"</span>.into()],
                 },
             ],
             package_commands: <span class="macro">vec!</span>[],
@@ -729,23 +731,23 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>project_creation_resolves_environment_vars() {
         <span class="comment">//Add env
-        </span>env::set_var(<span class="string">&quot;test_var&quot;</span>, <span class="string">&quot;test_value&quot;</span>);
+        </span>env::set_var(<span class="string">"test_var"</span>, <span class="string">"test_value"</span>);
         <span class="kw">let </span>proj = ProjectConfig::try_parse(
-            <span class="string">r#&quot;
+            <span class="string">r#"
             {
-                &quot;name&quot; : &quot;$test_var&quot;,
-                &quot;files&quot; : [
-                    &quot;simple_program.st&quot;
+                "name" : "$test_var",
+                "files" : [
+                    "simple_program.st"
                 ],
-                &quot;compile_type&quot; : &quot;Shared&quot;,
-                &quot;output&quot;: &quot;proj.so&quot;
+                "compile_type" : "Shared",
+                "output": "proj.so"
             }
-        &quot;#
+        "#
             </span>.into(),
         )
         .unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;test_value&quot;</span>, <span class="kw-2">&amp;</span>proj.name);
+        <span class="macro">assert_eq!</span>(<span class="string">"test_value"</span>, <span class="kw-2">&amp;</span>proj.name);
     }
 
     <span class="attr">#[test]
@@ -758,7 +760,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_with_additional_fields_reports_unexpected_fields() {
         <span class="kw">let </span><span class="prelude-val">Err</span>(diag) = ProjectConfig::try_parse(ADDITIONAL_UNKNOWN_PROPERTIES.into()) <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;expected errors&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"expected errors"</span>)
         };
 
         <span class="macro">assert_snapshot!</span>(diag.to_string())
@@ -767,7 +769,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_with_invalid_enum_variants_reports_error() {
         <span class="kw">let </span><span class="prelude-val">Err</span>(diag) = ProjectConfig::try_parse(INVALID_ENUM_VARIANTS.into()) <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;expected errors&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"expected errors"</span>)
         };
 
         <span class="macro">assert_snapshot!</span>(diag.to_string())
@@ -778,13 +780,13 @@
         <span class="comment">// missing name and compile_type
         //XXX: only the first error found is reported by both serde and jsonschema
         </span><span class="kw">let </span><span class="prelude-val">Err</span>(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_PROPERTIES.into()) <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;expected errors&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"expected errors"</span>)
         };
         <span class="macro">assert_snapshot!</span>(diag.to_string());
 
         <span class="comment">// missing library path
         </span><span class="kw">let </span><span class="prelude-val">Err</span>(diag) = ProjectConfig::try_parse(MISSING_REQUIRED_LIBRARY_PROPERTIES.into()) <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;expected errors&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"expected errors"</span>)
         };
         <span class="macro">assert_snapshot!</span>(diag.to_string())
     }
@@ -792,7 +794,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_with_empty_files_array_reports_error() {
         <span class="kw">let </span><span class="prelude-val">Err</span>(diag) = ProjectConfig::try_parse(NO_FILES_SPECIFIED.into()) <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;expected errors&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"expected errors"</span>)
         };
 
         <span class="macro">assert_snapshot!</span>(diag.to_string())
@@ -801,8 +803,8 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_with_optional_properties_is_valid() {
         <span class="kw">match </span>ProjectConfig::try_parse(OPTIONAL_PROPERTIES.into()) {
-            <span class="prelude-val">Ok</span>(cfg) =&gt; <span class="macro">assert_snapshot!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:#?}&quot;</span>, cfg)),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected ProjectConfig to be OK, got \n {err}&quot;</span>),
+            <span class="prelude-val">Ok</span>(cfg) =&gt; <span class="macro">assert_snapshot!</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:#?}"</span>, cfg)),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">panic!</span>(<span class="string">"expected ProjectConfig to be OK, got \n {err}"</span>),
         };
     }
 }

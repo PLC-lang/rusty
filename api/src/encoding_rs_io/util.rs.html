@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/encoding_rs_io-0.1.7/src/util.rs`."><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/encoding_rs_io-0.1.7/src/util.rs`."><title>util.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="encoding_rs_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../encoding_rs_io/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -495,10 +497,10 @@
     /// decoder, and return the number of bytes consumed in `src` and the
     /// number of bytes written to this transcoder.
     ///
-    /// The results of transcoding can be read using the TinyTranscoder&#39;s
+    /// The results of transcoding can be read using the TinyTranscoder's
     /// `io::Read` implementation.
     ///
-    /// If `last` is true, then this signals to the decoder that we&#39;ve reached
+    /// If `last` is true, then this signals to the decoder that we've reached
     /// EOF and `src` must be empty. Otherwise, if `last` is false, then
     /// `src` must be non-empty. Violating either of these constraits will
     /// cause a panic.
@@ -512,9 +514,9 @@
         src: <span class="kw-2">&amp;</span>[u8],
         last: bool,
     ) -&gt; (usize, usize) {
-        <span class="macro">assert!</span>(<span class="self">self</span>.as_slice().is_empty(), <span class="string">&quot;transcoder has unconsumed bytes&quot;</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.as_slice().is_empty(), <span class="string">"transcoder has unconsumed bytes"</span>);
         <span class="kw">if </span>last {
-            <span class="macro">assert!</span>(src.is_empty(), <span class="string">&quot;src must be empty when last==true&quot;</span>);
+            <span class="macro">assert!</span>(src.is_empty(), <span class="string">"src must be empty when last==true"</span>);
         }
         <span class="kw">let </span>(res, nin, nout, <span class="kw">_</span>) =
             decoder.decode_to_utf8(src, <span class="kw-2">&amp;mut </span><span class="self">self</span>.partial[..], last);
@@ -522,7 +524,7 @@
             <span class="macro">assert_eq!</span>(
                 res,
                 CoderResult::InputEmpty,
-                <span class="string">&quot;input should be exhausted&quot;</span>,
+                <span class="string">"input should be exhausted"</span>,
             );
         }
         <span class="self">self</span>.pos = <span class="number">0</span>;
@@ -587,7 +589,7 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(bom);
         }
         <span class="comment">// If the underlying reader fails or panics, make sure we set at least
-        // an empty BOM so that we don&#39;t end up here again..
+        // an empty BOM so that we don't end up here again..
         </span><span class="self">self</span>.bom = <span class="prelude-val">Some</span>(PossibleBom::new());
 
         <span class="comment">// OK, try to read the BOM.
@@ -603,9 +605,9 @@
         <span class="kw">if </span><span class="self">self</span>.nread &lt; <span class="number">3 </span>{
             <span class="kw">let </span>bom = <span class="self">self</span>.peek_bom()<span class="question-mark">?</span>;
 
-            <span class="comment">// If we don&#39;t have a valid BOM (e.g., no encoding for it), then
+            <span class="comment">// If we don't have a valid BOM (e.g., no encoding for it), then
             // we always pass through the first 3 bytes. Otherwise, if we have
-            // a valid BOM, we only pass it thru if we don&#39;t want to strip it.
+            // a valid BOM, we only pass it thru if we don't want to strip it.
             </span><span class="kw">let </span>bom = bom.as_slice(!<span class="self">self</span>.strip);
             <span class="kw">if </span><span class="self">self</span>.nread &lt; bom.len() {
                 <span class="kw">let </span>rest = <span class="kw-2">&amp;</span>bom[<span class="self">self</span>.nread..];
@@ -647,9 +649,9 @@
         <span class="kw">let </span>slice = <span class="kw-2">&amp;</span><span class="self">self</span>.bytes[<span class="number">0</span>..<span class="self">self</span>.len];
         <span class="kw">if </span>bom || slice.len() &lt;= <span class="number">1 </span>{
             slice
-        } <span class="kw">else if </span><span class="kw-2">&amp;</span>slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;\xFF\xFE&quot; </span>|| <span class="kw-2">&amp;</span>slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b&quot;\xFE\xFF&quot; </span>{
+        } <span class="kw">else if </span><span class="kw-2">&amp;</span>slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b"\xFF\xFE" </span>|| <span class="kw-2">&amp;</span>slice[<span class="number">0</span>..<span class="number">2</span>] == <span class="string">b"\xFE\xFF" </span>{
             <span class="kw-2">&amp;</span>slice[<span class="number">2</span>..]
-        } <span class="kw">else if </span>slice == <span class="string">b&quot;\xEF\xBB\xBF&quot; </span>{
+        } <span class="kw">else if </span>slice == <span class="string">b"\xEF\xBB\xBF" </span>{
             <span class="kw-2">&amp;</span>[]
         } <span class="kw">else </span>{
             slice
@@ -658,7 +660,7 @@
 
     <span class="doccomment">/// If this is a valid UTF-8 or UTF-16 BOM, return its corresponding
     /// encoding. Otherwise, return `None`.
-    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt; {
+    </span><span class="kw">pub fn </span>encoding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding&gt; {
         <span class="kw">let </span>bom = <span class="self">self</span>.as_slice(<span class="bool-val">true</span>);
         <span class="kw">if </span>bom.len() &lt; <span class="number">3 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -701,9 +703,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>tiny_utf16_normal() {
-        <span class="kw">let </span>enc = Encoding::for_label(<span class="string">b&quot;utf-16le&quot;</span>).unwrap();
+        <span class="kw">let </span>enc = Encoding::for_label(<span class="string">b"utf-16le"</span>).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>dec = enc.new_decoder_with_bom_removal();
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="kw-2">&amp;</span><span class="string">b&quot;f\x00o\x00o\x00b\x00a\x00r\x00b\x00a\x00z\x00&quot;</span>[..];
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="kw-2">&amp;</span><span class="string">b"f\x00o\x00o\x00b\x00a\x00r\x00b\x00a\x00z\x00"</span>[..];
         <span class="kw">let </span><span class="kw-2">mut </span>tiny = TinyTranscoder::new();
         <span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0u8</span>; <span class="number">1</span>];
 
@@ -713,19 +715,19 @@
         bytes = <span class="kw-2">&amp;</span>bytes[nin..];
 
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;f&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'f'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;o&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'o'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;o&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'o'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;b&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'b'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;a&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'a'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;r&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'r'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;b&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'b'</span>; <span class="number">1</span>]);
 
         <span class="kw">let </span>(nin, nout) = tiny.transcode(<span class="kw-2">&amp;mut </span>dec, bytes, <span class="bool-val">false</span>);
         <span class="macro">assert_eq!</span>(nin, <span class="number">4</span>);
@@ -733,9 +735,9 @@
         bytes = <span class="kw-2">&amp;</span>bytes[nin..];
 
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;a&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'a'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;z&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'z'</span>; <span class="number">1</span>]);
 
         <span class="kw">let </span>(nin, nout) = tiny.transcode(<span class="kw-2">&amp;mut </span>dec, bytes, <span class="bool-val">true</span>);
         <span class="macro">assert_eq!</span>(nin, <span class="number">0</span>);
@@ -746,9 +748,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>tiny_utf16_invalid() {
-        <span class="kw">let </span>enc = Encoding::for_label(<span class="string">b&quot;utf-16le&quot;</span>).unwrap();
+        <span class="kw">let </span>enc = Encoding::for_label(<span class="string">b"utf-16le"</span>).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>dec = enc.new_decoder_with_bom_removal();
-        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="kw-2">&amp;</span><span class="string">b&quot;\x00&quot;</span>[..];
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes = <span class="kw-2">&amp;</span><span class="string">b"\x00"</span>[..];
         <span class="kw">let </span><span class="kw-2">mut </span>tiny = TinyTranscoder::new();
         <span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0u8</span>; <span class="number">1</span>];
 
@@ -763,11 +765,11 @@
         <span class="macro">assert_eq!</span>(nout, <span class="number">3</span>);
 
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;\xEF&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'\xEF'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;\xBF&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'\xBF'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b&#39;\xBD&#39;</span>; <span class="number">1</span>]);
+        <span class="macro">assert_eq!</span>(tmp, [<span class="string">b'\xBD'</span>; <span class="number">1</span>]);
         <span class="macro">assert_eq!</span>(tiny.read(<span class="kw-2">&amp;mut </span>tmp).unwrap(), <span class="number">0</span>);
     }
 
@@ -868,16 +870,16 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>peeker_without_bom() {
-        <span class="kw">let </span>buf = [<span class="string">b&#39;\xEF&#39;</span>, <span class="string">b&#39;\xBB&#39;</span>, <span class="string">b&#39;\xBF&#39;</span>, <span class="string">b&#39;a&#39;</span>];
+        <span class="kw">let </span>buf = [<span class="string">b'\xEF'</span>, <span class="string">b'\xBB'</span>, <span class="string">b'\xBF'</span>, <span class="string">b'a'</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>peeker = BomPeeker::without_bom(<span class="kw-2">&amp;</span>buf[..]);
         <span class="macro">assert_eq!</span>(
-            PossibleBom { bytes: [<span class="string">b&#39;\xEF&#39;</span>, <span class="string">b&#39;\xBB&#39;</span>, <span class="string">b&#39;\xBF&#39;</span>], len: <span class="number">3 </span>},
+            PossibleBom { bytes: [<span class="string">b'\xEF'</span>, <span class="string">b'\xBB'</span>, <span class="string">b'\xBF'</span>], len: <span class="number">3 </span>},
             peeker.peek_bom().unwrap()
         );
 
         <span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0</span>; <span class="number">100</span>];
         <span class="macro">assert_eq!</span>(<span class="number">1</span>, peeker.read(<span class="kw-2">&amp;mut </span>tmp).unwrap());
-        <span class="macro">assert_eq!</span>(<span class="string">b&#39;a&#39;</span>, tmp[<span class="number">0</span>]);
+        <span class="macro">assert_eq!</span>(<span class="string">b'a'</span>, tmp[<span class="number">0</span>]);
         <span class="macro">assert_eq!</span>(<span class="number">0</span>, peeker.read(<span class="kw-2">&amp;mut </span>tmp).unwrap());
     }
 

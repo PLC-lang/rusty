@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/stream/stream/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="async_std"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/stream/stream/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../async_std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2455,13 +2457,13 @@
 
 <span class="kw">pub use </span>futures_core::stream::Stream <span class="kw">as </span>Stream;
 
-<span class="attr">#[doc = <span class="string">r#&quot;
+<span class="attr">#[doc = <span class="string">r#"
     Extension methods for [`Stream`].
 
     [`Stream`]: ../stream/trait.Stream.html
-&quot;#</span>]
+"#</span>]
 </span><span class="kw">pub trait </span>StreamExt: Stream {
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Advances the stream and returns the next value.
 
         Returns [`None`] when iteration is finished. Individual stream implementations may
@@ -2485,15 +2487,15 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; NextFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    "#</span>]
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; NextFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
         NextFuture { stream: <span class="self">self </span>}
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that yields its first `n` elements.
 
         # Examples
@@ -2512,7 +2514,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>take(<span class="self">self</span>, n: usize) -&gt; Take&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2520,7 +2522,7 @@
         Take::new(<span class="self">self</span>, n)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that yields elements based on a predicate.
 
         # Examples
@@ -2540,7 +2542,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>take_while&lt;P&gt;(<span class="self">self</span>, predicate: P) -&gt; TakeWhile&lt;<span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2549,7 +2551,7 @@
         TakeWhile::new(<span class="self">self</span>, predicate)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Limit the amount of items yielded per timeslice in a stream.
 
         This stream does not drop any items, but will only limit the rate at which items pass through.
@@ -2580,9 +2582,9 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>throttle(<span class="self">self</span>, d: Duration) -&gt; Throttle&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2590,7 +2592,7 @@
         Throttle::new(<span class="self">self</span>, d)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that yields each `step`th element.
 
         # Panics
@@ -2618,7 +2620,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>step_by(<span class="self">self</span>, step: usize) -&gt; StepBy&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2626,7 +2628,7 @@
         StepBy::new(<span class="self">self</span>, step)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Takes two streams and creates a new stream over both in sequence.
 
         # Examples
@@ -2652,7 +2654,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>chain&lt;U&gt;(<span class="self">self</span>, other: U) -&gt; Chain&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2661,7 +2663,7 @@
         Chain::new(<span class="self">self</span>, other)
     }
 
-        <span class="attr">#[doc = <span class="string">r#&quot;
+        <span class="attr">#[doc = <span class="string">r#"
         Creates an stream which copies all of its elements.
 
         # Examples
@@ -2686,17 +2688,17 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
+    "#</span>]
+    </span><span class="kw">fn </span>cloned&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Cloned&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
-        T: Clone + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
+        T: Clone + <span class="lifetime">'a</span>,
     {
         Cloned::new(<span class="self">self</span>)
     }
 
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates an stream which copies all of its elements.
 
         # Examples
@@ -2719,16 +2721,16 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
+    "#</span>]
+    </span><span class="kw">fn </span>copied&lt;<span class="lifetime">'a</span>, T&gt;(<span class="self">self</span>) -&gt; Copied&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
-        T: Copy + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Stream&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
+        T: Copy + <span class="lifetime">'a</span>,
     {
         Copied::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that yields the provided values infinitely and in order.
 
         # Examples
@@ -2751,7 +2753,7 @@
         #
         # })
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>cycle(<span class="self">self</span>) -&gt; Cycle&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Clone + Sized,
@@ -2759,8 +2761,8 @@
         Cycle::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
-        Creates a stream that gives the current element&#39;s count as well as the next value.
+    <span class="attr">#[doc = <span class="string">r#"
+        Creates a stream that gives the current element's count as well as the next value.
 
         # Overflow behaviour.
 
@@ -2774,17 +2776,17 @@
         use async_std::prelude::*;
         use async_std::stream;
 
-        let s = stream::from_iter(vec![&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]);
+        let s = stream::from_iter(vec!['a', 'b', 'c']);
         let mut s = s.enumerate();
 
-        assert_eq!(s.next().await, Some((0, &#39;a&#39;)));
-        assert_eq!(s.next().await, Some((1, &#39;b&#39;)));
-        assert_eq!(s.next().await, Some((2, &#39;c&#39;)));
+        assert_eq!(s.next().await, Some((0, 'a')));
+        assert_eq!(s.next().await, Some((1, 'b')));
+        assert_eq!(s.next().await, Some((2, 'c')));
         assert_eq!(s.next().await, None);
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>enumerate(<span class="self">self</span>) -&gt; Enumerate&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2792,7 +2794,7 @@
         Enumerate::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that is delayed before it starts yielding items.
 
         # Examples
@@ -2823,9 +2825,9 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(any(feature = <span class="string">&quot;unstable&quot;</span>, feature = <span class="string">&quot;docs&quot;</span>))]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(any(feature = <span class="string">"unstable"</span>, feature = <span class="string">"docs"</span>))]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>delay(<span class="self">self</span>, dur: std::time::Duration) -&gt; Delay&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2833,7 +2835,7 @@
         Delay::new(<span class="self">self</span>, dur)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Takes a closure and creates a stream that calls that closure on every element of this stream.
 
         # Examples
@@ -2855,7 +2857,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>map&lt;B, F&gt;(<span class="self">self</span>, f: F) -&gt; Map&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2864,7 +2866,7 @@
         Map::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         A combinator that does something with each element in the stream, passing the value
         on.
 
@@ -2881,9 +2883,9 @@
         let s = stream::from_iter(vec![1, 2, 3, 4, 5]);
 
         let sum = s
-           .inspect(|x| println!(&quot;about to filter {}&quot;, x))
+           .inspect(|x| println!("about to filter {}", x))
            .filter(|x| x % 2 == 0)
-           .inspect(|x| println!(&quot;made it through filter: {}&quot;, x))
+           .inspect(|x| println!("made it through filter: {}", x))
            .fold(0, |sum, i| sum + i)
            .await;
 
@@ -2891,7 +2893,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>inspect&lt;F&gt;(<span class="self">self</span>, f: F) -&gt; Inspect&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2900,7 +2902,7 @@
         Inspect::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the last element of the stream.
 
         # Examples
@@ -2935,7 +2937,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>last(
         <span class="self">self</span>,
     ) -&gt; LastFuture&lt;<span class="self">Self</span>, <span class="self">Self</span>::Item&gt;
@@ -2945,7 +2947,7 @@
         LastFuture::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream which ends after the first `None`.
 
         After a stream returns `None`, future calls may or may not yield `Some(T)` again.
@@ -2967,7 +2969,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>fuse(<span class="self">self</span>) -&gt; Fuse&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -2975,7 +2977,7 @@
         Fuse::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a stream that uses a predicate to determine if an element should be yielded.
 
         # Examples
@@ -2997,7 +2999,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>filter&lt;P&gt;(<span class="self">self</span>, predicate: P) -&gt; Filter&lt;<span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -3006,7 +3008,7 @@
         Filter::new(<span class="self">self</span>, predicate)
     }
 
-    <span class="attr">#[doc= <span class="string">r#&quot;
+    <span class="attr">#[doc= <span class="string">r#"
         Creates an stream that works like map, but flattens nested structure.
 
         # Examples
@@ -3019,12 +3021,12 @@
         use async_std::prelude::*;
         use async_std::stream;
 
-        let words = stream::from_iter(&amp;[&quot;alpha&quot;, &quot;beta&quot;, &quot;gamma&quot;]);
+        let words = stream::from_iter(&amp;["alpha", "beta", "gamma"]);
 
         let merged: String = words
             .flat_map(|s| stream::from_iter(s.chars()))
             .collect().await;
-            assert_eq!(merged, &quot;alphabetagamma&quot;);
+            assert_eq!(merged, "alphabetagamma");
 
         let d3 = stream::from_iter(&amp;[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]);
         let d1: Vec&lt;_&gt; = d3
@@ -3035,9 +3037,9 @@
         assert_eq!(d1, [&amp;1, &amp;2, &amp;3, &amp;4, &amp;5, &amp;6, &amp;7, &amp;8]);
         # });
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>flat_map&lt;U, F&gt;(<span class="self">self</span>, f: F) -&gt; FlatMap&lt;<span class="self">Self</span>, U, F&gt;
         <span class="kw">where
             </span><span class="self">Self</span>: Sized,
@@ -3047,7 +3049,7 @@
         FlatMap::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates an stream that flattens nested structure.
 
         # Examples
@@ -3069,9 +3071,9 @@
         assert_eq!(v, vec![1,2,3,4,5,6]);
 
         # });
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>flatten(<span class="self">self</span>) -&gt; Flatten&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -3080,7 +3082,7 @@
         Flatten::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Both filters and maps a stream.
 
         # Examples
@@ -3094,7 +3096,7 @@
         use async_std::prelude::*;
         use async_std::stream;
 
-        let s = stream::from_iter(vec![&quot;1&quot;, &quot;lol&quot;, &quot;3&quot;, &quot;NaN&quot;, &quot;5&quot;]);
+        let s = stream::from_iter(vec!["1", "lol", "3", "NaN", "5"]);
 
         let mut parsed = s.filter_map(|a| a.parse::&lt;u32&gt;().ok());
 
@@ -3112,7 +3114,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>filter_map&lt;B, F&gt;(<span class="self">self</span>, f: F) -&gt; FilterMap&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -3121,7 +3123,7 @@
         FilterMap::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the minimum value with respect to the
         specified key function. If several elements are equally minimum,
         the first element is returned. If the stream is empty, `None` is returned.
@@ -3144,7 +3146,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>min_by_key&lt;B, F&gt;(
         <span class="self">self</span>,
         key_by: F,
@@ -3157,7 +3159,7 @@
         MinByKeyFuture::new(<span class="self">self</span>, key_by)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the maximum value with respect to the
         specified key function. If several elements are equally maximum,
         the first element is returned. If the stream is empty, `None` is returned.
@@ -3180,7 +3182,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>max_by_key&lt;B, F&gt;(
         <span class="self">self</span>,
         key_by: F,
@@ -3193,7 +3195,7 @@
         MaxByKeyFuture::new(<span class="self">self</span>, key_by)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the minimum value with respect to the
         specified comparison function. If several elements are equally minimum,
         the first element is returned. If the stream is empty, `None` is returned.
@@ -3219,7 +3221,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>min_by&lt;F&gt;(
         <span class="self">self</span>,
         compare: F,
@@ -3231,7 +3233,7 @@
         MinByFuture::new(<span class="self">self</span>, compare)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the maximum value. If several elements are equally maximum,
         the first element is returned. If the stream is empty, `None` is returned.
 
@@ -3253,7 +3255,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>max(
         <span class="self">self</span>,
     ) -&gt; MaxFuture&lt;<span class="self">Self</span>, <span class="self">Self</span>::Item&gt;
@@ -3264,7 +3266,7 @@
         MaxFuture::new(<span class="self">self</span>)
     }
 
-            <span class="attr">#[doc = <span class="string">r#&quot;
+            <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the minimum value. If several elements are equally minimum,
         the first element is returned. If the stream is empty, `None` is returned.
 
@@ -3286,7 +3288,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>min(
         <span class="self">self</span>,
     ) -&gt; MinFuture&lt;<span class="self">Self</span>, <span class="self">Self</span>::Item&gt;
@@ -3297,7 +3299,7 @@
         MinFuture::new(<span class="self">self</span>)
     }
 
-     <span class="attr">#[doc = <span class="string">r#&quot;
+     <span class="attr">#[doc = <span class="string">r#"
         Returns the element that gives the maximum value with respect to the
         specified comparison function. If several elements are equally maximum,
         the first element is returned. If the stream is empty, `None` is returned.
@@ -3323,7 +3325,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>max_by&lt;F&gt;(
         <span class="self">self</span>,
         compare: F,
@@ -3335,7 +3337,7 @@
         MaxByFuture::new(<span class="self">self</span>, compare)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Returns the nth element of the stream.
 
         # Examples
@@ -3387,18 +3389,18 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>nth(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         n: usize,
-    ) -&gt; NthFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt;
+    ) -&gt; NthFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
     {
         NthFuture::new(<span class="self">self</span>, n)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Tests if every element of the stream matches a predicate.
 
         `all()` takes a closure that returns `true` or `false`. It applies
@@ -3442,12 +3444,12 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     #[inline]
     </span><span class="kw">fn </span>all&lt;F&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; AllFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F, <span class="self">Self</span>::Item&gt;
+    ) -&gt; AllFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F, <span class="self">Self</span>::Item&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -3455,7 +3457,7 @@
         AllFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Searches for an element in a stream that satisfies a predicate.
 
         # Examples
@@ -3492,11 +3494,11 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>find&lt;P&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         p: P,
-    ) -&gt; FindFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    ) -&gt; FindFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         P: FnMut(<span class="kw-2">&amp;</span><span class="self">Self</span>::Item) -&gt; bool,
@@ -3504,7 +3506,7 @@
         FindFuture::new(<span class="self">self</span>, p)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Applies function to the elements of stream and returns the first non-none result.
 
         ```
@@ -3513,18 +3515,18 @@
         use async_std::prelude::*;
         use async_std::stream;
 
-        let mut s = stream::from_iter(vec![&quot;lol&quot;, &quot;NaN&quot;, &quot;2&quot;, &quot;5&quot;]);
+        let mut s = stream::from_iter(vec!["lol", "NaN", "2", "5"]);
         let first_number = s.find_map(|s| s.parse().ok()).await;
 
         assert_eq!(first_number, Some(2));
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>find_map&lt;F, B&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; FindMapFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
+    ) -&gt; FindMapFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt;,
@@ -3532,7 +3534,7 @@
         FindMapFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         A combinator that applies a function to every element in a stream
         producing a single, final value.
 
@@ -3553,7 +3555,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>fold&lt;B, F&gt;(
         <span class="self">self</span>,
         init: B,
@@ -3566,7 +3568,7 @@
         FoldFuture::new(<span class="self">self</span>, init, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         A combinator that applies a function to every element in a stream
         creating two collections from it.
 
@@ -3589,9 +3591,9 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>partition&lt;B, F&gt;(
         <span class="self">self</span>,
         f: F,
@@ -3604,7 +3606,7 @@
         PartitionFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Call a closure on each element of the stream.
 
         # Examples
@@ -3627,7 +3629,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>for_each&lt;F&gt;(
         <span class="self">self</span>,
         f: F,
@@ -3639,7 +3641,7 @@
         ForEachFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Tests if any element of the stream matches a predicate.
 
         `any()` takes a closure that returns `true` or `false`. It applies
@@ -3682,12 +3684,12 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     #[inline]
     </span><span class="kw">fn </span>any&lt;F&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; AnyFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F, <span class="self">Self</span>::Item&gt;
+    ) -&gt; AnyFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F, <span class="self">Self</span>::Item&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -3695,7 +3697,7 @@
         AnyFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Borrows an stream, rather than consuming it.
 
         This is useful to allow applying stream adaptors while still retaining ownership of the original stream.
@@ -3716,11 +3718,11 @@
 
         assert_eq!(sum, 6);
 
-        // if we try to use stream again, it won&#39;t work. The following line
+        // if we try to use stream again, it won't work. The following line
         // gives error: use of moved value: `stream`
         // assert_eq!(stream.next(), None);
 
-        // let&#39;s try that again
+        // let's try that again
         let a = vec![1isize, 2, 3];
 
         let mut stream = stream::from_iter(a);
@@ -3736,14 +3738,14 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>by_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self
     </span>}
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         A stream adaptor similar to [`fold`] that holds internal state and produces a new
         stream.
 
@@ -3778,7 +3780,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     #[inline]
     </span><span class="kw">fn </span>scan&lt;St, B, F&gt;(<span class="self">self</span>, initial_state: St, f: F) -&gt; Scan&lt;<span class="self">Self</span>, St, F&gt;
     <span class="kw">where
@@ -3788,13 +3790,13 @@
         Scan::new(<span class="self">self</span>, initial_state, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Combinator that `skip`s elements based on a predicate.
 
         Takes a closure argument. It will call this closure on every element in
         the stream and ignore elements until it returns `false`.
 
-        After `false` is returned, `SkipWhile`&#39;s job is over and all further
+        After `false` is returned, `SkipWhile`'s job is over and all further
         elements in the strem are yielded.
 
         ## Examples
@@ -3814,7 +3816,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>skip_while&lt;P&gt;(<span class="self">self</span>, predicate: P) -&gt; SkipWhile&lt;<span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -3823,7 +3825,7 @@
         SkipWhile::new(<span class="self">self</span>, predicate)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Creates a combinator that skips the first `n` elements.
 
         ## Examples
@@ -3842,7 +3844,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>skip(<span class="self">self</span>, n: usize) -&gt; Skip&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -3850,7 +3852,7 @@
         Skip::new(<span class="self">self</span>, n)
     }
 
-    <span class="attr">#[doc=<span class="string">r#&quot;
+    <span class="attr">#[doc=<span class="string">r#"
         Await a stream or times out after a duration of time.
 
         If you want to await an I/O future consider using
@@ -3881,9 +3883,9 @@
         #
         # Ok(()) }) }
         ```
-    &quot;#</span>]
-    #[cfg(any(feature = <span class="string">&quot;unstable&quot;</span>, feature = <span class="string">&quot;docs&quot;</span>))]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(any(feature = <span class="string">"unstable"</span>, feature = <span class="string">"docs"</span>))]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>timeout(<span class="self">self</span>, dur: Duration) -&gt; Timeout&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Stream + Sized,
@@ -3891,7 +3893,7 @@
         Timeout::new(<span class="self">self</span>, dur)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         A combinator that applies a function as long as it returns successfully, producing a single, final value.
         Immediately returns the error when the function returns unsuccessfully.
 
@@ -3910,20 +3912,20 @@
             if (acc+v) % 2 == 1 {
                 Ok(v+3)
             } else {
-                Err(&quot;fail&quot;)
+                Err("fail")
             }
         }).await;
 
-        assert_eq!(sum, Err(&quot;fail&quot;));
+        assert_eq!(sum, Err("fail"));
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>try_fold&lt;B, F, T, E&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         init: T,
         f: F,
-    ) -&gt; TryFoldFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F, T&gt;
+    ) -&gt; TryFoldFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F, T&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         F: FnMut(B, <span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
@@ -3931,7 +3933,7 @@
         TryFoldFuture::new(<span class="self">self</span>, init, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Applies a falliable function to each element in a stream, stopping at first error and returning it.
 
         # Examples
@@ -3951,7 +3953,7 @@
                 tx.clone().send(v).unwrap();
                 Ok(())
             } else {
-                Err(&quot;even&quot;)
+                Err("even")
             }
         });
 
@@ -3960,15 +3962,15 @@
         let values: Vec&lt;_&gt; = rx.iter().collect();
 
         assert_eq!(values, vec![1]);
-        assert_eq!(res, Err(&quot;even&quot;));
+        assert_eq!(res, Err("even"));
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>try_for_each&lt;F, E&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: F,
-    ) -&gt; TryForEachFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, F&gt;
+    ) -&gt; TryForEachFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         F: FnMut(<span class="self">Self</span>::Item) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt;,
@@ -3976,8 +3978,8 @@
         TryForEachFuture::new(<span class="self">self</span>, f)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
-        &#39;Zips up&#39; two streams into a single stream of pairs.
+    <span class="attr">#[doc = <span class="string">r#"
+        'Zips up' two streams into a single stream of pairs.
 
         `zip()` returns a new stream that will iterate over two other streams, returning a
         tuple where the first element comes from the first stream, and the second element
@@ -4011,7 +4013,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     #[inline]
     </span><span class="kw">fn </span>zip&lt;U&gt;(<span class="self">self</span>, other: U) -&gt; Zip&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
@@ -4021,7 +4023,7 @@
         Zip::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Converts an stream of pairs into a pair of containers.
 
         `unzip()` consumes an entire stream of pairs, producing two collections: one from the left elements of the pairs, and one from the right elements.
@@ -4047,9 +4049,9 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>unzip&lt;A, B, FromA, FromB&gt;(<span class="self">self</span>) -&gt; UnzipFuture&lt;<span class="self">Self</span>, FromA, FromB&gt;
     <span class="kw">where
     </span>FromA: Default + Extend&lt;A&gt;,
@@ -4059,7 +4061,7 @@
         UnzipFuture::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Transforms a stream into a collection.
 
         `collect()` can take anything streamable, and turn it into a relevant
@@ -4071,10 +4073,10 @@
         do a bunch of transformations, and then `collect()` at the end.
 
         Because `collect()` is so general, it can cause problems with type
-        inference. As such, `collect()` is one of the few times you&#39;ll see
-        the syntax affectionately known as the &#39;turbofish&#39;: `::&lt;&gt;`. This
+        inference. As such, `collect()` is one of the few times you'll see
+        the syntax affectionately known as the 'turbofish': `::&lt;&gt;`. This
         helps the inference algorithm understand specifically which collection
-        you&#39;re trying to collect into.
+        you're trying to collect into.
 
         # Examples
 
@@ -4109,24 +4111,24 @@
         ```
 
         [`into_stream`]: trait.IntoStream.html#tymethod.into_stream
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
-    </span><span class="kw">fn </span>collect&lt;<span class="lifetime">&#39;a</span>, B&gt;(
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
+    </span><span class="kw">fn </span>collect&lt;<span class="lifetime">'a</span>, B&gt;(
         <span class="self">self</span>,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = B&gt; + <span class="lifetime">&#39;a </span>+ Send&gt;&gt;
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = B&gt; + <span class="lifetime">'a </span>+ Send&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + <span class="lifetime">&#39;a </span>+ Send,
+        </span><span class="self">Self</span>: Sized + <span class="lifetime">'a </span>+ Send,
         B: FromStream&lt;<span class="self">Self</span>::Item&gt;,
         <span class="self">Self</span>::Item: Send,
     {
         FromStream::from_stream(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Combines multiple streams into a single stream of all their outputs.
 
-        Items are yielded as soon as they&#39;re received, and the stream continues yield until
+        Items are yielded as soon as they're received, and the stream continues yield until
         both streams have been exhausted. The output ordering between streams is not guaranteed.
 
         # Examples
@@ -4147,9 +4149,9 @@
         assert_eq!(&amp;lst, &amp;[1u8, 2u8, 3u8]);
         # });
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>merge&lt;U&gt;(<span class="self">self</span>, other: U) -&gt; Merge&lt;<span class="self">Self</span>, U&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -4158,7 +4160,7 @@
         Merge::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Lexicographically compares the elements of this `Stream` with those
         of another.
 
@@ -4184,7 +4186,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>partial_cmp&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4197,7 +4199,7 @@
         PartialCmpFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Searches for an element in a Stream that satisfies a predicate, returning
         its index.
 
@@ -4224,11 +4226,11 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>position&lt;P&gt;(
        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
        predicate: P,
-    ) -&gt; PositionFuture&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>, P&gt;
+    ) -&gt; PositionFuture&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>, P&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin + Sized,
         P: FnMut(<span class="self">Self</span>::Item) -&gt; bool,
@@ -4236,9 +4238,9 @@
         PositionFuture::new(<span class="self">self</span>, predicate)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Lexicographically compares the elements of this `Stream` with those
-        of another using &#39;Ord&#39;.
+        of another using 'Ord'.
 
         # Examples
 
@@ -4262,7 +4264,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>cmp&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4275,7 +4277,7 @@
         CmpFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Counts the number of elements in the stream.
 
         # Examples
@@ -4294,9 +4296,9 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
     </span><span class="kw">fn </span>count(<span class="self">self</span>) -&gt; CountFuture&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -4304,7 +4306,7 @@
         CountFuture::new(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         not equal to those of another.
 
@@ -4328,7 +4330,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>ne&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4341,7 +4343,7 @@
         NeFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         greater than or equal to those of another.
 
@@ -4365,7 +4367,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>ge&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4378,7 +4380,7 @@
         GeFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         equal to those of another.
 
@@ -4402,7 +4404,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>eq&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4415,7 +4417,7 @@
         EqFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         greater than those of another.
 
@@ -4439,7 +4441,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>gt&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4452,7 +4454,7 @@
         GtFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         less or equal to those of another.
 
@@ -4476,7 +4478,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>le&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4489,7 +4491,7 @@
         LeFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Determines if the elements of this `Stream` are lexicographically
         less than those of another.
 
@@ -4513,7 +4515,7 @@
         #
         # }) }
         ```
-    &quot;#</span>]
+    "#</span>]
     </span><span class="kw">fn </span>lt&lt;S&gt;(
        <span class="self">self</span>,
        other: S
@@ -4526,7 +4528,7 @@
         LtFuture::new(<span class="self">self</span>, other)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Sums the elements of a stream.
 
         Takes each element, adds them together, and returns the result.
@@ -4556,20 +4558,20 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
-    </span><span class="kw">fn </span>sum&lt;<span class="lifetime">&#39;a</span>, S&gt;(
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
+    </span><span class="kw">fn </span>sum&lt;<span class="lifetime">'a</span>, S&gt;(
         <span class="self">self</span>,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = S&gt; + <span class="lifetime">&#39;a</span>&gt;&gt;
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = S&gt; + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Stream&lt;Item = S&gt; + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Stream&lt;Item = S&gt; + <span class="lifetime">'a</span>,
         S: Sum&lt;<span class="self">Self</span>::Item&gt;,
     {
         Sum::sum(<span class="self">self</span>)
     }
 
-    <span class="attr">#[doc = <span class="string">r#&quot;
+    <span class="attr">#[doc = <span class="string">r#"
         Multiplies all elements of the stream.
 
         An empty stream returns the one value of the type.
@@ -4602,14 +4604,14 @@
         #
         # }) }
         ```
-    &quot;#</span>]
-    #[cfg(feature = <span class="string">&quot;unstable&quot;</span>)]
-    #[cfg_attr(feature = <span class="string">&quot;docs&quot;</span>, doc(cfg(unstable)))]
-    </span><span class="kw">fn </span>product&lt;<span class="lifetime">&#39;a</span>, P&gt;(
+    "#</span>]
+    #[cfg(feature = <span class="string">"unstable"</span>)]
+    #[cfg_attr(feature = <span class="string">"docs"</span>, doc(cfg(unstable)))]
+    </span><span class="kw">fn </span>product&lt;<span class="lifetime">'a</span>, P&gt;(
         <span class="self">self</span>,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = P&gt; + <span class="lifetime">&#39;a</span>&gt;&gt;
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = P&gt; + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Stream&lt;Item = P&gt; + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Stream&lt;Item = P&gt; + <span class="lifetime">'a</span>,
         P: Product,
     {
         Product::product(<span class="self">self</span>)

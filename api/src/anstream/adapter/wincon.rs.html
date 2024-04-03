@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.13/src/adapter/wincon.rs`."><title>wincon.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstream-0.6.13/src/adapter/wincon.rs`."><title>wincon.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../anstream/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -395,7 +397,7 @@
     }
 
     <span class="doccomment">/// Strip the next segment of data
-    </span><span class="kw">pub fn </span>extract_next&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8]) -&gt; WinconBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
+    </span><span class="kw">pub fn </span>extract_next&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8]) -&gt; WinconBytesIter&lt;<span class="lifetime">'s</span>&gt; {
         <span class="self">self</span>.capture.reset();
         <span class="self">self</span>.capture.printable.reserve(bytes.len());
         WinconBytesIter {
@@ -408,13 +410,13 @@
 
 <span class="doccomment">/// See [`WinconBytes`]
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>WinconBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
-    bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u8],
-    parser: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>anstyle_parse::Parser,
-    capture: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>WinconCapture,
+</span><span class="kw">pub struct </span>WinconBytesIter&lt;<span class="lifetime">'s</span>&gt; {
+    bytes: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u8],
+    parser: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>anstyle_parse::Parser,
+    capture: <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>WinconCapture,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>WinconBytesIter&lt;<span class="lifetime">&#39;s</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>WinconBytesIter&lt;<span class="lifetime">'s</span>&gt; {
     <span class="kw">type </span>Item = (anstyle::Style, String);
 
     <span class="attr">#[inline]
@@ -483,7 +485,7 @@
         <span class="kw">if </span>ignore {
             <span class="kw">return</span>;
         }
-        <span class="kw">if </span>action != <span class="string">b&#39;m&#39; </span>{
+        <span class="kw">if </span>action != <span class="string">b'm' </span>{
             <span class="kw">return</span>;
         }
 
@@ -691,44 +693,44 @@
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">let </span><span class="kw-2">mut </span>state = WinconBytes::new();
         <span class="kw">let </span>actual = state.extract_next(input.as_bytes()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <span class="macro">assert_eq!</span>(expected, actual, <span class="string">&quot;{input:?}&quot;</span>);
+        <span class="macro">assert_eq!</span>(expected, actual, <span class="string">"{input:?}"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>start() {
-        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">&quot;{} world!&quot;</span>, <span class="string">&quot;Hello&quot;</span>.green().on_red());
+        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">"{} world!"</span>, <span class="string">"Hello"</span>.green().on_red());
         <span class="kw">let </span>expected = <span class="macro">vec!</span>[
             (
                 anstyle::AnsiColor::Green.on(anstyle::AnsiColor::Red),
-                <span class="string">&quot;Hello&quot;</span>,
+                <span class="string">"Hello"</span>,
             ),
-            (anstyle::Style::default(), <span class="string">&quot; world!&quot;</span>),
+            (anstyle::Style::default(), <span class="string">" world!"</span>),
         ];
         verify(<span class="kw-2">&amp;</span>input, expected);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>middle() {
-        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">&quot;Hello {}!&quot;</span>, <span class="string">&quot;world&quot;</span>.green().on_red());
+        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">"Hello {}!"</span>, <span class="string">"world"</span>.green().on_red());
         <span class="kw">let </span>expected = <span class="macro">vec!</span>[
-            (anstyle::Style::default(), <span class="string">&quot;Hello &quot;</span>),
+            (anstyle::Style::default(), <span class="string">"Hello "</span>),
             (
                 anstyle::AnsiColor::Green.on(anstyle::AnsiColor::Red),
-                <span class="string">&quot;world&quot;</span>,
+                <span class="string">"world"</span>,
             ),
-            (anstyle::Style::default(), <span class="string">&quot;!&quot;</span>),
+            (anstyle::Style::default(), <span class="string">"!"</span>),
         ];
         verify(<span class="kw-2">&amp;</span>input, expected);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>end() {
-        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">&quot;Hello {}&quot;</span>, <span class="string">&quot;world!&quot;</span>.green().on_red());
+        <span class="kw">let </span>input = <span class="macro">format!</span>(<span class="string">"Hello {}"</span>, <span class="string">"world!"</span>.green().on_red());
         <span class="kw">let </span>expected = <span class="macro">vec!</span>[
-            (anstyle::Style::default(), <span class="string">&quot;Hello &quot;</span>),
+            (anstyle::Style::default(), <span class="string">"Hello "</span>),
             (
                 anstyle::AnsiColor::Green.on(anstyle::AnsiColor::Red),
-                <span class="string">&quot;world!&quot;</span>,
+                <span class="string">"world!"</span>,
             ),
         ];
         verify(<span class="kw-2">&amp;</span>input, expected);
@@ -736,15 +738,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ansi256_colors() {
-        <span class="comment">// termcolor only supports &quot;brights&quot; via these
+        <span class="comment">// termcolor only supports "brights" via these
         </span><span class="kw">let </span>input = <span class="macro">format!</span>(
-            <span class="string">&quot;Hello {}!&quot;</span>,
-            <span class="string">&quot;world&quot;</span>.color(owo_colors::XtermColors::UserBrightYellow)
+            <span class="string">"Hello {}!"</span>,
+            <span class="string">"world"</span>.color(owo_colors::XtermColors::UserBrightYellow)
         );
         <span class="kw">let </span>expected = <span class="macro">vec!</span>[
-            (anstyle::Style::default(), <span class="string">&quot;Hello &quot;</span>),
-            (anstyle::Ansi256Color(<span class="number">11</span>).on_default(), <span class="string">&quot;world&quot;</span>),
-            (anstyle::Style::default(), <span class="string">&quot;!&quot;</span>),
+            (anstyle::Style::default(), <span class="string">"Hello "</span>),
+            (anstyle::Ansi256Color(<span class="number">11</span>).on_default(), <span class="string">"world"</span>),
+            (anstyle::Style::default(), <span class="string">"!"</span>),
         ];
         verify(<span class="kw-2">&amp;</span>input, expected);
     }
@@ -752,7 +754,7 @@
     <span class="macro">proptest! </span>{
         <span class="attr">#[test]
         #[cfg_attr(miri, ignore)]  </span><span class="comment">// See https://github.com/AltSysrq/proptest/issues/253
-        </span><span class="kw">fn </span>wincon_no_escapes(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) {
+        </span><span class="kw">fn </span>wincon_no_escapes(s <span class="kw">in </span><span class="string">"\\PC*"</span>) {
             <span class="kw">let </span>expected = <span class="kw">if </span>s.is_empty() {
                 <span class="macro">vec!</span>[]
             } <span class="kw">else </span>{

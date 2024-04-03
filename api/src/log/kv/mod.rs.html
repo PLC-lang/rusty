@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/log-0.4.21/src/kv/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../log/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="log"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/log-0.4.21/src/kv/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../log/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -270,7 +272,7 @@
 //!
 //! ```toml
 //! [dependencies.log]
-//! features = [&quot;kv&quot;]
+//! features = ["kv"]
 //! ```
 //!
 //! # Structured logging in `log`
@@ -291,7 +293,7 @@
 //!
 //! ```
 //! # use log::info;
-//! info!(a = 1; &quot;Something of interest&quot;);
+//! info!(a = 1; "Something of interest");
 //! ```
 //!
 //! Key-values support the same shorthand identifer syntax as `format_args`:
@@ -300,16 +302,16 @@
 //! # use log::info;
 //! let a = 1;
 //!
-//! info!(a; &quot;Something of interest&quot;);
+//! info!(a; "Something of interest");
 //! ```
 //!
 //! Values are capturing using the [`ToValue`] trait by default. To capture a value
-//! using a different trait implementation, use a modifier after its key. Here&#39;s how
+//! using a different trait implementation, use a modifier after its key. Here's how
 //! the same example can capture `a` using its `Debug` implementation instead:
 //!
 //! ```
 //! # use log::info;
-//! info!(a:? = 1; &quot;Something of interest&quot;);
+//! info!(a:? = 1; "Something of interest");
 //! ```
 //!
 //! The following capturing modifiers are supported:
@@ -331,11 +333,11 @@
 //! ```
 //! # fn main() -&gt; Result&lt;(), log::kv::Error&gt; {
 //! use log::kv::{Source, Key, Value};
-//! # let record = log::Record::builder().key_values(&amp;[(&quot;a&quot;, 1)]).build();
+//! # let record = log::Record::builder().key_values(&amp;[("a", 1)]).build();
 //!
-//! // info!(a = 1; &quot;Something of interest&quot;);
+//! // info!(a = 1; "Something of interest");
 //!
-//! let a: Value = record.key_values().get(Key::from(&quot;a&quot;)).unwrap();
+//! let a: Value = record.key_values().get(Key::from("a")).unwrap();
 //! assert_eq!(1, a.to_i64().unwrap());
 //! # Ok(())
 //! # }
@@ -349,10 +351,10 @@
 //!
 //! use log::kv::{self, Source, Key, Value, VisitSource};
 //!
-//! struct Collect&lt;&#39;kvs&gt;(BTreeMap&lt;Key&lt;&#39;kvs&gt;, Value&lt;&#39;kvs&gt;&gt;);
+//! struct Collect&lt;'kvs&gt;(BTreeMap&lt;Key&lt;'kvs&gt;, Value&lt;'kvs&gt;&gt;);
 //!
-//! impl&lt;&#39;kvs&gt; VisitSource&lt;&#39;kvs&gt; for Collect&lt;&#39;kvs&gt; {
-//!     fn visit_pair(&amp;mut self, key: Key&lt;&#39;kvs&gt;, value: Value&lt;&#39;kvs&gt;) -&gt; Result&lt;(), kv::Error&gt; {
+//! impl&lt;'kvs&gt; VisitSource&lt;'kvs&gt; for Collect&lt;'kvs&gt; {
+//!     fn visit_pair(&amp;mut self, key: Key&lt;'kvs&gt;, value: Value&lt;'kvs&gt;) -&gt; Result&lt;(), kv::Error&gt; {
 //!         self.0.insert(key, value);
 //!
 //!         Ok(())
@@ -361,15 +363,15 @@
 //!
 //! let mut visitor = Collect(BTreeMap::new());
 //!
-//! # let record = log::Record::builder().key_values(&amp;[(&quot;a&quot;, 1), (&quot;b&quot;, 2), (&quot;c&quot;, 3)]).build();
-//! // info!(a = 1, b = 2, c = 3; &quot;Something of interest&quot;);
+//! # let record = log::Record::builder().key_values(&amp;[("a", 1), ("b", 2), ("c", 3)]).build();
+//! // info!(a = 1, b = 2, c = 3; "Something of interest");
 //!
 //! record.key_values().visit(&amp;mut visitor)?;
 //!
 //! let collected = visitor.0;
 //!
 //! assert_eq!(
-//!     vec![&quot;a&quot;, &quot;b&quot;, &quot;c&quot;],
+//!     vec!["a", "b", "c"],
 //!     collected
 //!         .keys()
 //!         .map(|k| k.as_str())
@@ -384,11 +386,11 @@
 //! ```
 //! # fn main() -&gt; Result&lt;(), log::kv::Error&gt; {
 //! use log::kv::{Source, Key};
-//! # let record = log::Record::builder().key_values(&amp;[(&quot;a&quot;, 1)]).build();
+//! # let record = log::Record::builder().key_values(&amp;[("a", 1)]).build();
 //!
-//! // info!(a = 1; &quot;Something of interest&quot;);
+//! // info!(a = 1; "Something of interest");
 //!
-//! let a = record.key_values().get(Key::from(&quot;a&quot;)).unwrap();
+//! let a = record.key_values().get(Key::from("a")).unwrap();
 //!
 //! assert_eq!(1, a.to_i64().unwrap());
 //! # Ok(())
@@ -401,11 +403,11 @@
 //! ```
 //! # fn main() -&gt; Result&lt;(), log::kv::Error&gt; {
 //! use log::kv::{self, Source, Key, VisitValue};
-//! # let record = log::Record::builder().key_values(&amp;[(&quot;a&quot;, 1)]).build();
+//! # let record = log::Record::builder().key_values(&amp;[("a", 1)]).build();
 //!
 //! struct IsNumeric(bool);
 //!
-//! impl&lt;&#39;kvs&gt; VisitValue&lt;&#39;kvs&gt; for IsNumeric {
+//! impl&lt;'kvs&gt; VisitValue&lt;'kvs&gt; for IsNumeric {
 //!     fn visit_any(&amp;mut self, _value: kv::Value) -&gt; Result&lt;(), kv::Error&gt; {
 //!         self.0 = false;
 //!         Ok(())
@@ -437,9 +439,9 @@
 //!     }
 //! }
 //!
-//! // info!(a = 1; &quot;Something of interest&quot;);
+//! // info!(a = 1; "Something of interest");
 //!
-//! let a = record.key_values().get(Key::from(&quot;a&quot;)).unwrap();
+//! let a = record.key_values().get(Key::from("a")).unwrap();
 //!
 //! let mut visitor = IsNumeric(false);
 //!
@@ -456,32 +458,32 @@
 //!
 //! ```
 //! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-//! # #[cfg(feature = &quot;serde&quot;)]
+//! # #[cfg(feature = "serde")]
 //! # {
 //! # use log::kv::Key;
 //! #[derive(serde::Serialize)]
 //! struct Data {
 //!     a: i32, b: bool,
-//!     c: &amp;&#39;static str,
+//!     c: &amp;'static str,
 //! }
 //!
-//! let data = Data { a: 1, b: true, c: &quot;Some data&quot; };
+//! let data = Data { a: 1, b: true, c: "Some data" };
 //!
-//! # let source = [(&quot;a&quot;, log::kv::Value::from_serde(&amp;data))];
+//! # let source = [("a", log::kv::Value::from_serde(&amp;data))];
 //! # let record = log::Record::builder().key_values(&amp;source).build();
-//! // info!(a = data; &quot;Something of interest&quot;);
+//! // info!(a = data; "Something of interest");
 //!
-//! let a = record.key_values().get(Key::from(&quot;a&quot;)).unwrap();
+//! let a = record.key_values().get(Key::from("a")).unwrap();
 //!
-//! assert_eq!(&quot;{\&quot;a\&quot;:1,\&quot;b\&quot;:true,\&quot;c\&quot;:\&quot;Some data\&quot;}&quot;, serde_json::to_string(&amp;a)?);
+//! assert_eq!("{\"a\":1,\"b\":true,\"c\":\"Some data\"}", serde_json::to_string(&amp;a)?);
 //! # }
 //! # Ok(())
 //! # }
 //! ```
 //!
 //! The choice of serialization framework depends on the needs of the consumer.
-//! If you&#39;re in a no-std environment, you can use `sval`. In other cases, you can use `serde`.
-//! Log producers and log consumers don&#39;t need to agree on the serialization framework.
+//! If you're in a no-std environment, you can use `sval`. In other cases, you can use `serde`.
+//! Log producers and log consumers don't need to agree on the serialization framework.
 //! A value can be captured using its `serde::Serialize` implementation and still be serialized
 //! through `sval` without losing any structure or data.
 //!
@@ -494,26 +496,26 @@
 //! struct Data {
 //!     a: i32,
 //!     b: bool,
-//!     c: &amp;&#39;static str,
+//!     c: &amp;'static str,
 //! }
 //!
-//! let data = Data { a: 1, b: true, c: &quot;Some data&quot; };
+//! let data = Data { a: 1, b: true, c: "Some data" };
 //!
-//! # let source = [(&quot;a&quot;, log::kv::Value::from_debug(&amp;data))];
+//! # let source = [("a", log::kv::Value::from_debug(&amp;data))];
 //! # let record = log::Record::builder().key_values(&amp;source).build();
-//! // info!(a = data; &quot;Something of interest&quot;);
+//! // info!(a = data; "Something of interest");
 //!
-//! let a = record.key_values().get(Key::from(&quot;a&quot;)).unwrap();
+//! let a = record.key_values().get(Key::from("a")).unwrap();
 //!
-//! assert_eq!(&quot;Data { a: 1, b: true, c: \&quot;Some data\&quot; }&quot;, format!(&quot;{a:?}&quot;));
+//! assert_eq!("Data { a: 1, b: true, c: \"Some data\" }", format!("{a:?}"));
 //! ```
 
 </span><span class="kw">mod </span>error;
 <span class="kw">mod </span>key;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;kv_unstable&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"kv_unstable"</span>))]
 </span><span class="kw">mod </span>source;
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;kv_unstable&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"kv_unstable"</span>))]
 </span><span class="kw">mod </span>value;
 
 <span class="kw">pub use </span><span class="self">self</span>::error::Error;
@@ -521,11 +523,11 @@
 <span class="kw">pub use </span><span class="self">self</span>::source::{Source, VisitSource};
 <span class="kw">pub use </span><span class="self">self</span>::value::{ToValue, Value, VisitValue};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;kv_unstable&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"kv_unstable"</span>)]
 </span><span class="kw">pub mod </span>source;
-<span class="attr">#[cfg(feature = <span class="string">&quot;kv_unstable&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"kv_unstable"</span>)]
 </span><span class="kw">pub mod </span>value;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;kv_unstable&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"kv_unstable"</span>)]
 </span><span class="kw">pub use </span><span class="self">self</span>::source::Visitor;
 </code></pre></div></section></main></body></html>

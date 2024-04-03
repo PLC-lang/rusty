@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/fs/file.rs`."><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="async_std"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/fs/file.rs`."><title>file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../async_std/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -954,8 +956,8 @@
 /// use async_std::fs::File;
 /// use async_std::prelude::*;
 ///
-/// let mut file = File::create(&quot;a.txt&quot;).await?;
-/// file.write_all(b&quot;Hello, world!&quot;).await?;
+/// let mut file = File::create("a.txt").await?;
+/// file.write_all(b"Hello, world!").await?;
 /// #
 /// # Ok(()) }) }
 /// ```
@@ -968,7 +970,7 @@
 /// use async_std::fs::File;
 /// use async_std::prelude::*;
 ///
-/// let mut file = File::open(&quot;a.txt&quot;).await?;
+/// let mut file = File::open("a.txt").await?;
 /// let mut contents = Vec::new();
 /// file.read_to_end(&amp;mut contents).await?;
 /// #
@@ -1024,14 +1026,14 @@
     /// #
     /// use async_std::fs::File;
     ///
-    /// let file = File::open(&quot;a.txt&quot;).await?;
+    /// let file = File::open("a.txt").await?;
     /// #
     /// # Ok(()) }) }
     /// ```
     </span><span class="kw">pub async fn </span>open&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;File&gt; {
         <span class="kw">let </span>path = path.as_ref().to_owned();
         <span class="kw">let </span>file = spawn_blocking(<span class="kw">move </span>|| {
-            std::fs::File::open(<span class="kw-2">&amp;</span>path).context(|| <span class="macro">format!</span>(<span class="string">&quot;could not open `{}`&quot;</span>, path.display()))
+            std::fs::File::open(<span class="kw-2">&amp;</span>path).context(|| <span class="macro">format!</span>(<span class="string">"could not open `{}`"</span>, path.display()))
         })
         .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(File::new(file, <span class="bool-val">true</span>))
@@ -1047,7 +1049,7 @@
     ///
     /// An error will be returned in the following situations:
     ///
-    /// * The file&#39;s parent directory does not exist.
+    /// * The file's parent directory does not exist.
     /// * The current process lacks permissions to write to the file.
     /// * Some other I/O error occurred.
     ///
@@ -1062,7 +1064,7 @@
     /// #
     /// use async_std::fs::File;
     ///
-    /// let file = File::create(&quot;a.txt&quot;).await?;
+    /// let file = File::create("a.txt").await?;
     /// #
     /// # Ok(()) }) }
     /// ```
@@ -1090,8 +1092,8 @@
     /// use async_std::fs::File;
     /// use async_std::prelude::*;
     ///
-    /// let mut file = File::create(&quot;a.txt&quot;).await?;
-    /// file.write_all(b&quot;Hello, world!&quot;).await?;
+    /// let mut file = File::create("a.txt").await?;
+    /// file.write_all(b"Hello, world!").await?;
     /// file.sync_all().await?;
     /// #
     /// # Ok(()) }) }
@@ -1111,7 +1113,7 @@
     ///
     /// This is similar to [`sync_all`], except that file metadata may not be synchronized.
     ///
-    /// This is intended for use cases that must synchronize the contents of the file, but don&#39;t
+    /// This is intended for use cases that must synchronize the contents of the file, but don't
     /// need the file metadata synchronized to disk.
     ///
     /// Note that some platforms may simply implement this in terms of [`sync_all`].
@@ -1126,8 +1128,8 @@
     /// use async_std::fs::File;
     /// use async_std::prelude::*;
     ///
-    /// let mut file = File::create(&quot;a.txt&quot;).await?;
-    /// file.write_all(b&quot;Hello, world!&quot;).await?;
+    /// let mut file = File::create("a.txt").await?;
+    /// file.write_all(b"Hello, world!").await?;
     /// file.sync_data().await?;
     /// #
     /// # Ok(()) }) }
@@ -1149,7 +1151,7 @@
     /// greater than the current file size, then the file will be extended to `size` and have all
     /// intermediate data filled with zeros.
     ///
-    /// The file&#39;s cursor stays at the same position, even if the cursor ends up being past the end
+    /// The file's cursor stays at the same position, even if the cursor ends up being past the end
     /// of the file after this operation.
     ///
     /// # Examples
@@ -1159,7 +1161,7 @@
     /// #
     /// use async_std::fs::File;
     ///
-    /// let file = File::create(&quot;a.txt&quot;).await?;
+    /// let file = File::create("a.txt").await?;
     /// file.set_len(10).await?;
     /// #
     /// # Ok(()) }) }
@@ -1176,7 +1178,7 @@
         spawn_blocking(<span class="kw">move </span>|| state.file.set_len(size)).<span class="kw">await
     </span>}
 
-    <span class="doccomment">/// Reads the file&#39;s metadata.
+    <span class="doccomment">/// Reads the file's metadata.
     ///
     /// # Examples
     ///
@@ -1185,7 +1187,7 @@
     /// #
     /// use async_std::fs::File;
     ///
-    /// let file = File::open(&quot;a.txt&quot;).await?;
+    /// let file = File::open("a.txt").await?;
     /// let metadata = file.metadata().await?;
     /// #
     /// # Ok(()) }) }
@@ -1211,7 +1213,7 @@
     /// #
     /// use async_std::fs::File;
     ///
-    /// let file = File::create(&quot;a.txt&quot;).await?;
+    /// let file = File::create("a.txt").await?;
     ///
     /// let mut perms = file.metadata().await?.permissions();
     /// perms.set_readonly(true);
@@ -1230,13 +1232,13 @@
         <span class="comment">// We need to flush the file on drop. Unfortunately, that is not possible to do in a
         // non-blocking fashion, but our only other option here is losing data remaining in the
         // write cache. Good task schedulers should be resilient to occasional blocking hiccups in
-        // file destructors so we don&#39;t expect this to be a common problem in practice.
+        // file destructors so we don't expect this to be a common problem in practice.
         </span><span class="kw">let _ </span>= futures_lite::future::block_on(<span class="self">self</span>.flush());
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>File {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="self">self</span>.file.fmt(f)
     }
 }
@@ -1244,7 +1246,7 @@
 <span class="kw">impl </span>Read <span class="kw">for </span>File {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut &amp;*</span><span class="self">self</span>).poll_read(cx, buf)
@@ -1254,7 +1256,7 @@
 <span class="kw">impl </span>Read <span class="kw">for </span><span class="kw-2">&amp;</span>File {
     <span class="kw">fn </span>poll_read(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;mut </span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">let </span>state = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.lock.poll_lock(cx));
@@ -1265,17 +1267,17 @@
 <span class="kw">impl </span>Write <span class="kw">for </span>File {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut &amp;*</span><span class="self">self</span>).poll_write(cx, buf)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut &amp;*</span><span class="self">self</span>).poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut &amp;*</span><span class="self">self</span>).poll_close(cx)
     }
 }
@@ -1283,19 +1285,19 @@
 <span class="kw">impl </span>Write <span class="kw">for </span><span class="kw-2">&amp;</span>File {
     <span class="kw">fn </span>poll_write(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="kw">let </span>state = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.lock.poll_lock(cx));
         state.poll_write(cx, buf)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">let </span>state = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.lock.poll_lock(cx));
         state.poll_flush(cx).map(|res| res.map(drop))
     }
 
-    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         <span class="kw">let </span>state = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.lock.poll_lock(cx));
         state.poll_close(cx)
     }
@@ -1304,7 +1306,7 @@
 <span class="kw">impl </span>Seek <span class="kw">for </span>File {
     <span class="kw">fn </span>poll_seek(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut &amp;*</span><span class="self">self</span>).poll_seek(cx, pos)
@@ -1314,7 +1316,7 @@
 <span class="kw">impl </span>Seek <span class="kw">for </span><span class="kw-2">&amp;</span>File {
     <span class="kw">fn </span>poll_seek(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         pos: SeekFrom,
     ) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
         <span class="kw">let </span>state = <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.lock.poll_lock(cx));
@@ -1348,7 +1350,7 @@
             <span class="kw">let </span>file = <span class="self">self</span>.file.clone();
             drop(<span class="self">self</span>);
             Arc::try_unwrap(file)
-                .expect(<span class="string">&quot;cannot acquire ownership of the file handle after drop&quot;</span>)
+                .expect(<span class="string">"cannot acquire ownership of the file handle after drop"</span>)
                 .into_raw_fd()
         }
     }
@@ -1374,7 +1376,7 @@
             <span class="kw">let </span>file = <span class="self">self</span>.file.clone();
             drop(<span class="self">self</span>);
             Arc::try_unwrap(file)
-                .expect(<span class="string">&quot;cannot acquire ownership of the file handle after drop&quot;</span>)
+                .expect(<span class="string">"cannot acquire ownership of the file handle after drop"</span>)
                 .into_raw_handle()
         }
     }
@@ -1416,7 +1418,7 @@
     }
 
     <span class="doccomment">/// Attempts to acquire the lock.
-    </span><span class="kw">fn </span>poll_lock(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;LockGuard&lt;T&gt;&gt; {
+    </span><span class="kw">fn </span>poll_lock(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;LockGuard&lt;T&gt;&gt; {
         <span class="comment">// Try acquiring the lock.
         </span><span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.locked.swap(<span class="bool-val">true</span>, Ordering::Acquire) {
             <span class="comment">// Lock the list of wakers.
@@ -1449,7 +1451,7 @@
     <span class="doccomment">/// Registers a task interested in acquiring the lock.
     ///
     /// When this lock guard gets dropped, all registered tasks will be woken up.
-    </span><span class="kw">fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">'_</span>&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>list = <span class="self">self</span>.<span class="number">0</span>.wakers.lock().unwrap();
 
         <span class="kw">if </span>list.iter().all(|w| !w.will_wake(cx.waker())) {
@@ -1521,7 +1523,7 @@
 
     <span class="doccomment">/// Set to `true` if the file is flushed.
     ///
-    /// When a file is flushed, the write cache and the inner file&#39;s buffer are empty.
+    /// When a file is flushed, the write cache and the inner file's buffer are empty.
     </span>is_flushed: bool,
 
     <span class="doccomment">/// The last read error that came from an async operation.
@@ -1533,9 +1535,9 @@
 
 <span class="kw">impl </span>LockGuard&lt;State&gt; {
     <span class="doccomment">/// Seeks to a new position in the file.
-    </span><span class="kw">fn </span>poll_seek(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, pos: SeekFrom) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
-        <span class="comment">// If this operation doesn&#39;t move the cursor, then poll the current position inside the
-        // file. This call should not block because it doesn&#39;t touch the actual file on disk.
+    </span><span class="kw">fn </span>poll_seek(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, pos: SeekFrom) -&gt; Poll&lt;io::Result&lt;u64&gt;&gt; {
+        <span class="comment">// If this operation doesn't move the cursor, then poll the current position inside the
+        // file. This call should not block because it doesn't touch the actual file on disk.
         </span><span class="kw">if </span>pos == SeekFrom::Current(<span class="number">0</span>) {
             <span class="comment">// Poll the internal file cursor.
             </span><span class="kw">let </span>internal = (<span class="kw-2">&amp;*</span><span class="self">self</span>.file).seek(SeekFrom::Current(<span class="number">0</span>))<span class="question-mark">?</span>;
@@ -1573,12 +1575,12 @@
         <span class="self">self </span>= <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.poll_flush(cx))<span class="question-mark">?</span>;
 
         <span class="comment">// Seek to the new position. This call should not block because it only changes the
-        // internal offset into the file and doesn&#39;t touch the actual file on disk.
+        // internal offset into the file and doesn't touch the actual file on disk.
         </span>Poll::Ready((<span class="kw-2">&amp;*</span><span class="self">self</span>.file).seek(pos))
     }
 
     <span class="doccomment">/// Reads some bytes from the file into a buffer.
-    </span><span class="kw">fn </span>poll_read(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+    </span><span class="kw">fn </span>poll_read(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="comment">// If an async operation has left a read error, return it now.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="self">self</span>.last_read_err.take() {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err));
@@ -1591,7 +1593,7 @@
                 </span><span class="kw">let </span>available = <span class="self">self</span>.cache.len() - start;
 
                 <span class="comment">// If there is cached unconsumed data or if the cache is empty, we can read from
-                // it. Empty cache in reading mode indicates that the last operation didn&#39;t read
+                // it. Empty cache in reading mode indicates that the last operation didn't read
                 // any bytes, i.e. it reached the end of the file.
                 </span><span class="kw">if </span>available &gt; <span class="number">0 </span>|| <span class="self">self</span>.cache.is_empty() {
                     <span class="comment">// Copy data from the cache into the buffer.
@@ -1605,7 +1607,7 @@
                 }
             }
             Mode::Writing =&gt; {
-                <span class="comment">// If we&#39;re in writing mode, flush the write cache.
+                <span class="comment">// If we're in writing mode, flush the write cache.
                 </span><span class="self">self </span>= <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.poll_flush(cx))<span class="question-mark">?</span>;
             }
         }
@@ -1619,7 +1621,7 @@
             <span class="self">self</span>.cache.set_len(buf.len());
         }
 
-        <span class="comment">// Register current task&#39;s interest in the file lock.
+        <span class="comment">// Register current task's interest in the file lock.
         </span><span class="self">self</span>.register(cx);
 
         <span class="comment">// Start a read operation asynchronously.
@@ -1652,9 +1654,9 @@
 
     <span class="doccomment">/// Invalidates the read cache.
     ///
-    /// This method will also move the internal file&#39;s cursor backwards by the number of unconsumed
+    /// This method will also move the internal file's cursor backwards by the number of unconsumed
     /// bytes in the read cache.
-    </span><span class="kw">fn </span>poll_unread(<span class="kw-2">mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">fn </span>poll_unread(<span class="kw-2">mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.mode {
             Mode::Idle | Mode::Writing =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>)),
             Mode::Reading(start) =&gt; {
@@ -1663,7 +1665,7 @@
 
                 <span class="kw">if </span>n &gt; <span class="number">0 </span>{
                     <span class="comment">// Seek `n` bytes backwards. This call should not block because it only changes
-                    // the internal offset into the file and doesn&#39;t touch the actual file on disk.
+                    // the internal offset into the file and doesn't touch the actual file on disk.
                     //
                     // We ignore errors here because special files like `/dev/random` are not
                     // seekable.
@@ -1680,13 +1682,13 @@
     }
 
     <span class="doccomment">/// Writes some data from a buffer into the file.
-    </span><span class="kw">fn </span>poll_write(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+    </span><span class="kw">fn </span>poll_write(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         <span class="comment">// If an async operation has left a write error, return it now.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="self">self</span>.last_write_err.take() {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err));
         }
 
-        <span class="comment">// If we&#39;re in reading mode, invalidate the read buffer.
+        <span class="comment">// If we're in reading mode, invalidate the read buffer.
         </span><span class="self">self </span>= <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.poll_unread(cx))<span class="question-mark">?</span>;
 
         <span class="comment">// If necessary, grow the cache to have as much capacity as `buf`.
@@ -1715,14 +1717,14 @@
             <span class="self">self</span>.mode = Mode::Writing;
             Poll::Ready(<span class="prelude-val">Ok</span>(n))
         } <span class="kw">else </span>{
-            <span class="comment">// Drain the write cache because it&#39;s full.
+            <span class="comment">// Drain the write cache because it's full.
             </span><span class="macro">futures_core::ready!</span>(<span class="self">self</span>.poll_drain(cx))<span class="question-mark">?</span>;
             Poll::Pending
         }
     }
 
     <span class="doccomment">/// Drains the write cache.
-    </span><span class="kw">fn </span>poll_drain(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">fn </span>poll_drain(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="comment">// If an async operation has left a write error, return it now.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="self">self</span>.last_write_err.take() {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err));
@@ -1731,7 +1733,7 @@
         <span class="kw">match </span><span class="self">self</span>.mode {
             Mode::Idle | Mode::Reading(..) =&gt; Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>)),
             Mode::Writing =&gt; {
-                <span class="comment">// Register current task&#39;s interest in the file lock.
+                <span class="comment">// Register current task's interest in the file lock.
                 </span><span class="self">self</span>.register(cx);
 
                 <span class="comment">// Start a write operation asynchronously.
@@ -1755,7 +1757,7 @@
     }
 
     <span class="doccomment">/// Flushes the write cache into the file.
-    </span><span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
+    </span><span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="comment">// If the file is already in flushed state, return.
         </span><span class="kw">if </span><span class="self">self</span>.is_flushed {
             <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="self">self</span>));
@@ -1764,7 +1766,7 @@
         <span class="comment">// If there is data in the write cache, drain it.
         </span><span class="self">self </span>= <span class="macro">futures_core::ready!</span>(<span class="self">self</span>.poll_drain(cx))<span class="question-mark">?</span>;
 
-        <span class="comment">// Register current task&#39;s interest in the file lock.
+        <span class="comment">// Register current task's interest in the file lock.
         </span><span class="self">self</span>.register(cx);
 
         <span class="comment">// Start a flush operation asynchronously.
@@ -1784,9 +1786,9 @@
         Poll::Pending
     }
 
-    <span class="comment">// This function does nothing because we&#39;re not sure about `AsyncWrite::poll_close()`&#39;s exact
+    <span class="comment">// This function does nothing because we're not sure about `AsyncWrite::poll_close()`'s exact
     // semantics nor whether it will stay in the `AsyncWrite` trait.
-    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    </span><span class="kw">fn </span>poll_close(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 }
@@ -1821,12 +1823,12 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>async_file_create_error () {
-        <span class="kw">let </span>file_name = Path::new(<span class="string">&quot;/tmp/does_not_exist/test&quot;</span>);
+        <span class="kw">let </span>file_name = Path::new(<span class="string">"/tmp/does_not_exist/test"</span>);
         <span class="kw">let </span>expect = std::fs::File::create(file_name).unwrap_err();
 
         <span class="kw">crate</span>::task::block_on(<span class="kw">async move </span>{
             <span class="kw">let </span>actual = File::create(file_name).<span class="kw">await</span>.unwrap_err();
-            <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, expect), <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, actual));     
+            <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{}"</span>, expect), <span class="macro">format!</span>(<span class="string">"{}"</span>, actual));     
         })
     }
 }

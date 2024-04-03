@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/process/wait.rs`."><title>wait.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/process/wait.rs`."><title>wait.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -367,7 +369,7 @@
 <span class="kw">use crate</span>::{backend, io};
 <span class="kw">use </span>bitflags::bitflags;
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::fd::BorrowedFd;
 
 <span class="attr">#[cfg(linux_raw)]
@@ -393,7 +395,7 @@
     }
 }
 
-<span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+<span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>)))]
 </span><span class="macro">bitflags! </span>{
     <span class="doccomment">/// Options for modifying the behavior of [`waitid`].
     </span><span class="attr">#[repr(transparent)]
@@ -495,10 +497,10 @@
 <span class="doccomment">/// The status of a process after calling [`waitid`].
 </span><span class="attr">#[derive(Clone, Copy)]
 #[repr(transparent)]
-#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>)))]
 </span><span class="kw">pub struct </span>WaitidStatus(<span class="kw">pub</span>(<span class="kw">crate</span>) backend::c::siginfo_t);
 
-<span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+<span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>)))]
 </span><span class="kw">impl </span>WaitidStatus {
     <span class="doccomment">/// Returns whether the process is currently stopped.
     </span><span class="attr">#[inline]
@@ -541,7 +543,7 @@
     <span class="doccomment">/// Returns the number of the signal that stopped the process, if the
     /// process was stopped by a signal.
     </span><span class="attr">#[inline]
-    #[cfg(not(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>)))]
+    #[cfg(not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"netbsd"</span>)))]
     </span><span class="kw">pub fn </span>stopping_signal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">if </span><span class="self">self</span>.stopped() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.si_status() <span class="kw">as _</span>)
@@ -553,7 +555,7 @@
     <span class="doccomment">/// Returns the number of the signal that trapped the process, if the
     /// process was trapped by a signal.
     </span><span class="attr">#[inline]
-    #[cfg(not(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>)))]
+    #[cfg(not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"netbsd"</span>)))]
     </span><span class="kw">pub fn </span>trapping_signal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">if </span><span class="self">self</span>.trapped() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.si_status() <span class="kw">as _</span>)
@@ -565,7 +567,7 @@
     <span class="doccomment">/// Returns the exit status number returned by the process, if it exited
     /// normally.
     </span><span class="attr">#[inline]
-    #[cfg(not(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>)))]
+    #[cfg(not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"netbsd"</span>)))]
     </span><span class="kw">pub fn </span>exit_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">if </span><span class="self">self</span>.exited() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.si_status() <span class="kw">as _</span>)
@@ -577,7 +579,7 @@
     <span class="doccomment">/// Returns the number of the signal that terminated the process, if the
     /// process was terminated by a signal.
     </span><span class="attr">#[inline]
-    #[cfg(not(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>)))]
+    #[cfg(not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"netbsd"</span>)))]
     </span><span class="kw">pub fn </span>terminating_signal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="kw">if </span><span class="self">self</span>.killed() || <span class="self">self</span>.dumped() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.si_status() <span class="kw">as _</span>)
@@ -602,7 +604,7 @@
         <span class="self">self</span>.<span class="number">0</span>.si_code
     }
 
-    <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>)))]
+    <span class="attr">#[cfg(not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"netbsd"</span>)))]
     #[allow(unsafe_code)]
     </span><span class="kw">fn </span>si_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; backend::c::c_int {
         <span class="comment">// SAFETY: POSIX [specifies] that the `siginfo_t` returned by a
@@ -614,31 +616,31 @@
 }
 
 <span class="doccomment">/// The identifier to wait on in a call to [`waitid`].
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>)))]
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-</span><span class="kw">pub enum </span>WaitId&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>WaitId&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Wait on all processes.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;P_ALL&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"P_ALL"</span>)]
     </span>All,
 
     <span class="doccomment">/// Wait for a specific process ID.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;P_PID&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"P_PID"</span>)]
     </span>Pid(Pid),
 
-    <span class="doccomment">/// Wait for a specific process group ID, or the calling process&#39; group ID.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;P_PGID&quot;</span>)]
+    <span class="doccomment">/// Wait for a specific process group ID, or the calling process' group ID.
+    </span><span class="attr">#[doc(alias = <span class="string">"P_PGID"</span>)]
     </span>Pgid(<span class="prelude-ty">Option</span>&lt;Pid&gt;),
 
     <span class="doccomment">/// Wait for a specific process file descriptor.
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-    #[doc(alias = <span class="string">&quot;P_PIDFD&quot;</span>)]
-    </span>PidFd(BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;),
+    </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+    #[doc(alias = <span class="string">"P_PIDFD"</span>)]
+    </span>PidFd(BorrowedFd&lt;<span class="lifetime">'a</span>&gt;),
 
     <span class="doccomment">/// Eat the lifetime for non-Linux platforms.
     </span><span class="attr">#[doc(hidden)]
-    #[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
-    </span>__EatLifetime(core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;),
+    #[cfg(not(target_os = <span class="string">"linux"</span>))]
+    </span>__EatLifetime(core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>()&gt;),
 }
 
 <span class="doccomment">/// `waitpid(pid, waitopts)`—Wait for a specific process to change state.
@@ -651,7 +653,7 @@
 /// On Success, returns the status of the selected process.
 ///
 /// If `NOHANG` was specified in the options, and the selected child process
-/// didn&#39;t change state, returns `None`.
+/// didn't change state, returns `None`.
 ///
 /// # Bugs
 ///
@@ -669,7 +671,7 @@
 ///
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/waitpid.2.html
-</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))]
+</span><span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
 #[inline]
 </span><span class="kw">pub fn </span>waitpid(pid: <span class="prelude-ty">Option</span>&lt;Pid&gt;, waitopts: WaitOptions) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;WaitStatus&gt;&gt; {
     <span class="prelude-val">Ok</span>(backend::process::syscalls::waitpid(pid, waitopts)<span class="question-mark">?</span>.map(|(<span class="kw">_</span>, status)| status))
@@ -691,7 +693,7 @@
 ///
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/waitpid.2.html
-</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))]
+</span><span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
 #[inline]
 </span><span class="kw">pub fn </span>waitpgid(pgid: Pid, waitopts: WaitOptions) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;WaitStatus&gt;&gt; {
     <span class="prelude-val">Ok</span>(backend::process::syscalls::waitpgid(pgid, waitopts)<span class="question-mark">?</span>.map(|(<span class="kw">_</span>, status)| status))
@@ -704,7 +706,7 @@
 /// the status of said process.
 ///
 /// If `NOHANG` was specified in the options, and the selected child process
-/// didn&#39;t change state, returns `None`.
+/// didn't change state, returns `None`.
 ///
 /// # References
 ///  - [POSIX]
@@ -712,7 +714,7 @@
 ///
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/wait.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/waitpid.2.html
-</span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;wasi&quot;</span>))]
+</span><span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
 #[inline]
 </span><span class="kw">pub fn </span>wait(waitopts: WaitOptions) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;(Pid, WaitStatus)&gt;&gt; {
     backend::process::syscalls::wait(waitopts)
@@ -720,10 +722,10 @@
 
 <span class="doccomment">/// `waitid(_, _, _, opts)`—Wait for the specified child process to change
 /// state.
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;wasi&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"openbsd"</span>, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>)))]
 #[inline]
-</span><span class="kw">pub fn </span>waitid&lt;<span class="lifetime">&#39;a</span>&gt;(
-    id: <span class="kw">impl </span>Into&lt;WaitId&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+</span><span class="kw">pub fn </span>waitid&lt;<span class="lifetime">'a</span>&gt;(
+    id: <span class="kw">impl </span>Into&lt;WaitId&lt;<span class="lifetime">'a</span>&gt;&gt;,
     options: WaitidOptions,
 ) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;WaitidStatus&gt;&gt; {
     backend::process::syscalls::waitid(id.into(), options)

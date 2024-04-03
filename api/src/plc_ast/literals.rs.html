@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_ast/src/literals.rs`."><title>literals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_ast/src/literals.rs`."><title>literals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../plc_ast/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -425,12 +427,12 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i64, String&gt; {
     NaiveDate::from_ymd_opt(year, month, day)
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
+        .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"</span>))
         .and_then(|date_time| {
             date_time
                 .and_utc()
                 .timestamp_nanos_opt()
-                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}&quot;</span>))
+                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"</span>))
         })
 }
 
@@ -557,16 +559,16 @@
 
     <span class="kw">pub fn </span>get_literal_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
-            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">true</span>, .. }) =&gt; <span class="macro">format!</span>(<span class="string">r#&quot;&quot;{value}&quot;&quot;#</span>),
-            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">false</span>, .. }) =&gt; <span class="macro">format!</span>(<span class="string">r#&quot;&#39;{value}&#39;&quot;#</span>),
+            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">true</span>, .. }) =&gt; <span class="macro">format!</span>(<span class="string">r#""{value}""#</span>),
+            AstLiteral::String(StringValue { value, is_wide: <span class="bool-val">false</span>, .. }) =&gt; <span class="macro">format!</span>(<span class="string">r#"'{value}'"#</span>),
             AstLiteral::Bool(value) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{value}"</span>)
             }
             AstLiteral::Integer(value) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{value}"</span>)
             }
             AstLiteral::Real(value) =&gt; value.clone(),
-            <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{self:#?}&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">"{self:#?}"</span>),
         }
     }
 
@@ -599,51 +601,51 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>AstLiteral {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            AstLiteral::Null =&gt; f.debug_struct(<span class="string">&quot;LiteralNull&quot;</span>).finish(),
-            AstLiteral::Integer(value) =&gt; f.debug_struct(<span class="string">&quot;LiteralInteger&quot;</span>).field(<span class="string">&quot;value&quot;</span>, value).finish(),
+            AstLiteral::Null =&gt; f.debug_struct(<span class="string">"LiteralNull"</span>).finish(),
+            AstLiteral::Integer(value) =&gt; f.debug_struct(<span class="string">"LiteralInteger"</span>).field(<span class="string">"value"</span>, value).finish(),
             AstLiteral::Date(Date { year, month, day, .. }) =&gt; f
-                .debug_struct(<span class="string">&quot;LiteralDate&quot;</span>)
-                .field(<span class="string">&quot;year&quot;</span>, year)
-                .field(<span class="string">&quot;month&quot;</span>, month)
-                .field(<span class="string">&quot;day&quot;</span>, day)
+                .debug_struct(<span class="string">"LiteralDate"</span>)
+                .field(<span class="string">"year"</span>, year)
+                .field(<span class="string">"month"</span>, month)
+                .field(<span class="string">"day"</span>, day)
                 .finish(),
             AstLiteral::DateAndTime(DateAndTime { year, month, day, hour, min, sec, nano, .. }) =&gt; f
-                .debug_struct(<span class="string">&quot;LiteralDateAndTime&quot;</span>)
-                .field(<span class="string">&quot;year&quot;</span>, year)
-                .field(<span class="string">&quot;month&quot;</span>, month)
-                .field(<span class="string">&quot;day&quot;</span>, day)
-                .field(<span class="string">&quot;hour&quot;</span>, hour)
-                .field(<span class="string">&quot;min&quot;</span>, min)
-                .field(<span class="string">&quot;sec&quot;</span>, sec)
-                .field(<span class="string">&quot;nano&quot;</span>, nano)
+                .debug_struct(<span class="string">"LiteralDateAndTime"</span>)
+                .field(<span class="string">"year"</span>, year)
+                .field(<span class="string">"month"</span>, month)
+                .field(<span class="string">"day"</span>, day)
+                .field(<span class="string">"hour"</span>, hour)
+                .field(<span class="string">"min"</span>, min)
+                .field(<span class="string">"sec"</span>, sec)
+                .field(<span class="string">"nano"</span>, nano)
                 .finish(),
             AstLiteral::TimeOfDay(TimeOfDay { hour, min, sec, nano, .. }) =&gt; f
-                .debug_struct(<span class="string">&quot;LiteralTimeOfDay&quot;</span>)
-                .field(<span class="string">&quot;hour&quot;</span>, hour)
-                .field(<span class="string">&quot;min&quot;</span>, min)
-                .field(<span class="string">&quot;sec&quot;</span>, sec)
-                .field(<span class="string">&quot;nano&quot;</span>, nano)
+                .debug_struct(<span class="string">"LiteralTimeOfDay"</span>)
+                .field(<span class="string">"hour"</span>, hour)
+                .field(<span class="string">"min"</span>, min)
+                .field(<span class="string">"sec"</span>, sec)
+                .field(<span class="string">"nano"</span>, nano)
                 .finish(),
             AstLiteral::Time(Time { day, hour, min, sec, milli, micro, nano, negative, .. }) =&gt; f
-                .debug_struct(<span class="string">&quot;LiteralTime&quot;</span>)
-                .field(<span class="string">&quot;day&quot;</span>, day)
-                .field(<span class="string">&quot;hour&quot;</span>, hour)
-                .field(<span class="string">&quot;min&quot;</span>, min)
-                .field(<span class="string">&quot;sec&quot;</span>, sec)
-                .field(<span class="string">&quot;milli&quot;</span>, milli)
-                .field(<span class="string">&quot;micro&quot;</span>, micro)
-                .field(<span class="string">&quot;nano&quot;</span>, nano)
-                .field(<span class="string">&quot;negative&quot;</span>, negative)
+                .debug_struct(<span class="string">"LiteralTime"</span>)
+                .field(<span class="string">"day"</span>, day)
+                .field(<span class="string">"hour"</span>, hour)
+                .field(<span class="string">"min"</span>, min)
+                .field(<span class="string">"sec"</span>, sec)
+                .field(<span class="string">"milli"</span>, milli)
+                .field(<span class="string">"micro"</span>, micro)
+                .field(<span class="string">"nano"</span>, nano)
+                .field(<span class="string">"negative"</span>, negative)
                 .finish(),
-            AstLiteral::Real(value) =&gt; f.debug_struct(<span class="string">&quot;LiteralReal&quot;</span>).field(<span class="string">&quot;value&quot;</span>, value).finish(),
-            AstLiteral::Bool(value) =&gt; f.debug_struct(<span class="string">&quot;LiteralBool&quot;</span>).field(<span class="string">&quot;value&quot;</span>, value).finish(),
+            AstLiteral::Real(value) =&gt; f.debug_struct(<span class="string">"LiteralReal"</span>).field(<span class="string">"value"</span>, value).finish(),
+            AstLiteral::Bool(value) =&gt; f.debug_struct(<span class="string">"LiteralBool"</span>).field(<span class="string">"value"</span>, value).finish(),
             AstLiteral::String(StringValue { value, is_wide, .. }) =&gt; {
-                f.debug_struct(<span class="string">&quot;LiteralString&quot;</span>).field(<span class="string">&quot;value&quot;</span>, value).field(<span class="string">&quot;is_wide&quot;</span>, is_wide).finish()
+                f.debug_struct(<span class="string">"LiteralString"</span>).field(<span class="string">"value"</span>, value).field(<span class="string">"is_wide"</span>, is_wide).finish()
             }
             AstLiteral::Array(Array { elements, .. }) =&gt; {
-                f.debug_struct(<span class="string">&quot;LiteralArray&quot;</span>).field(<span class="string">&quot;elements&quot;</span>, elements).finish()
+                f.debug_struct(<span class="string">"LiteralArray"</span>).field(<span class="string">"elements"</span>, elements).finish()
             }
         }
     }

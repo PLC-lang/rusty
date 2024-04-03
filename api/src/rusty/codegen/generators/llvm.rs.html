@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/llvm.rs`."><title>llvm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/llvm.rs`."><title>llvm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -319,9 +321,9 @@
 <span class="kw">use </span><span class="kw">super</span>::ADDRESS_SPACE_GENERIC;
 
 <span class="doccomment">/// Holds dependencies required to generate IR-code
-</span><span class="kw">pub struct </span>Llvm&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Context,
-    <span class="kw">pub </span>builder: Builder&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>Llvm&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub </span>context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Context,
+    <span class="kw">pub </span>builder: Builder&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">pub trait </span>GlobalValueExt {
@@ -331,7 +333,7 @@
     <span class="kw">fn </span>set_initial_value(<span class="self">self</span>, initial_value: <span class="prelude-ty">Option</span>&lt;BasicValueEnum&gt;, data_type: BasicTypeEnum) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; GlobalValueExt <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">&#39;ink</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; GlobalValueExt <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="kw">fn </span>make_constant(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set_constant(<span class="bool-val">true</span>);
         <span class="self">self</span>.set_unnamed_addr(<span class="bool-val">true</span>);
@@ -359,9 +361,9 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Llvm&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Llvm&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// constructs a new LLVM struct
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Context, builder: Builder&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Llvm&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Context, builder: Builder&lt;<span class="lifetime">'a</span>&gt;) -&gt; Llvm&lt;<span class="lifetime">'a</span>&gt; {
         Llvm { context, builder }
     }
 
@@ -370,24 +372,24 @@
     ///
     /// - `module` the compilation module to add the variable
     /// - `name` the name of the global variable
-    /// - `data_type` the variable&#39;s datatype
+    /// - `data_type` the variable's datatype
     /// - `initial_value` an optional initial value of the global variable
     </span><span class="kw">pub fn </span>create_global_variable(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;a</span>&gt;,
+        module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'a</span>&gt;,
         name: <span class="kw-2">&amp;</span>str,
-        data_type: BasicTypeEnum&lt;<span class="lifetime">&#39;a</span>&gt;,
-    ) -&gt; GlobalValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+        data_type: BasicTypeEnum&lt;<span class="lifetime">'a</span>&gt;,
+    ) -&gt; GlobalValue&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>global = module.add_global(data_type, <span class="prelude-val">None</span>, name);
         global.set_thread_local_mode(<span class="prelude-val">None</span>);
         global
     }
 
-    <span class="doccomment">/// creates a local variable at the builder&#39;s location
+    <span class="doccomment">/// creates a local variable at the builder's location
     ///
     /// - `name` the name of the local variable
-    /// - `data_type` the variable&#39;s datatype
-    </span><span class="kw">pub fn </span>create_local_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, data_type: <span class="kw-2">&amp;</span>BasicTypeEnum&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; PointerValue&lt;<span class="lifetime">&#39;a</span>&gt; {
+    /// - `data_type` the variable's datatype
+    </span><span class="kw">pub fn </span>create_local_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, data_type: <span class="kw-2">&amp;</span>BasicTypeEnum&lt;<span class="lifetime">'a</span>&gt;) -&gt; PointerValue&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.builder.build_alloca(<span class="kw-2">*</span>data_type, name)
     }
 
@@ -396,9 +398,9 @@
     ///
     /// - `global_value` the value to set the initializer on
     /// - `variable_type` the data_type of the variable to initialize
-    </span><span class="kw">fn </span>set_const_zero_initializer&lt;<span class="lifetime">&#39;ctx</span>&gt;(
-        global_value: <span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;,
-        variable_type: BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span><span class="kw">fn </span>set_const_zero_initializer&lt;<span class="lifetime">'ctx</span>&gt;(
+        global_value: <span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;,
+        variable_type: BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;,
     ) {
         <span class="kw">if </span>variable_type.is_int_type() {
             global_value.set_initializer(<span class="kw-2">&amp;</span>variable_type.into_int_type().const_zero());
@@ -410,15 +412,15 @@
     <span class="doccomment">/// loads a value from the given array into a variable with the given name
     ///
     /// - `pointer_to_array_instance` a pointer to an array to load the value from
-    /// - `access_sequence` a sequence of IntValue&#39;s used to access the array. For multi-dimensional arrays
+    /// - `access_sequence` a sequence of IntValue's used to access the array. For multi-dimensional arrays
     ///    you may provide multiple accessors
     /// - `name` the name of the resulting variable
     </span><span class="kw">pub fn </span>load_array_element(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pointer_to_array_instance: PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;,
-        accessor_sequence: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;a</span>&gt;],
+        pointer_to_array_instance: PointerValue&lt;<span class="lifetime">'a</span>&gt;,
+        accessor_sequence: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'a</span>&gt;],
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">unsafe </span>{ <span class="prelude-val">Ok</span>(<span class="self">self</span>.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) }
     }
 
@@ -430,14 +432,14 @@
     /// - `offset` the location in case of a Diagnostic
     </span><span class="kw">pub fn </span>get_member_pointer_from_struct(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        pointer_to_struct_instance: PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;,
+        pointer_to_struct_instance: PointerValue&lt;<span class="lifetime">'a</span>&gt;,
         member_index: u32,
         name: <span class="kw-2">&amp;</span>str,
         offset: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|<span class="kw">_</span>| {
             Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Cannot generate qualified reference for {name:}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Cannot generate qualified reference for {name:}"</span>),
                 offset.clone(),
             )
         })
@@ -445,21 +447,21 @@
 
     <span class="doccomment">/// loads the value behind the given pointer
     ///
-    /// - `lvalue` the pointer and it&#39;s datatype
+    /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    </span><span class="kw">pub fn </span>load_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, lvalue: <span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">&#39;a</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>load_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>, lvalue: <span class="kw-2">&amp;</span>PointerValue&lt;<span class="lifetime">'a</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicValueEnum&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.builder.build_load(lvalue.to_owned(), name)
     }
 
     <span class="doccomment">/// creates a placeholder datatype for a struct with the given name
     ///
     /// returns an opaque_struct with the given name
-    </span><span class="kw">pub fn </span>create_struct_stub(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; inkwell::types::StructType&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>create_struct_stub(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; inkwell::types::StructType&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.context.opaque_struct_type(name)
     }
 
     <span class="doccomment">/// returns the i32_type
-    </span><span class="kw">pub fn </span>i32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; inkwell::types::IntType&lt;<span class="lifetime">&#39;a</span>&gt; {
+    </span><span class="kw">pub fn </span>i32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; inkwell::types::IntType&lt;<span class="lifetime">'a</span>&gt; {
         <span class="self">self</span>.context.i32_type()
     }
 
@@ -467,7 +469,7 @@
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL
     /// - `value` the value of the constant bool value
-    </span><span class="kw">pub fn </span>create_const_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>create_const_bool(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>itype = <span class="self">self</span>.context.bool_type();
 
         <span class="kw">let </span>value = <span class="kw">if </span>value { itype.const_all_ones() } <span class="kw">else </span>{ itype.const_zero() };
@@ -481,25 +483,25 @@
     /// - `value` the value of the constant int value
     </span><span class="kw">pub fn </span>create_const_numeric(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        target_type: <span class="kw-2">&amp;</span>BasicTypeEnum&lt;<span class="lifetime">&#39;a</span>&gt;,
+        target_type: <span class="kw-2">&amp;</span>BasicTypeEnum&lt;<span class="lifetime">'a</span>&gt;,
         value: <span class="kw-2">&amp;</span>str,
         location: SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>target_type {
             BasicTypeEnum::IntType { <span class="number">0</span>: int_type } =&gt; int_type
                 .const_int_from_string(value, StringRadix::Decimal)
-                .ok_or_else(|| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">&quot;Cannot parse {value} as int&quot;</span>), location))
+                .ok_or_else(|| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"Cannot parse {value} as int"</span>), location))
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { <span class="number">0</span>: float_type } =&gt; {
                 <span class="kw">let </span>value = float_type.const_float_from_string(value);
                 <span class="prelude-val">Ok</span>(BasicValueEnum::FloatValue(value))
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;expected numeric type&quot;</span>, location)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"expected numeric type"</span>, location)),
         }
     }
 
     <span class="doccomment">/// create a null pointer
-    </span><span class="kw">pub fn </span>create_null_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>create_null_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>itype = <span class="self">self</span>.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         <span class="kw">let </span>value = itype.const_null();
         <span class="prelude-val">Ok</span>(value.into())
@@ -512,7 +514,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
         len: usize,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>utf8_chars = value.as_bytes()[..std::cmp::min(value.len(), len - <span class="number">1</span>)].to_vec();
         <span class="comment">//fill the 0 terminators
         </span><span class="kw">while </span>utf8_chars.len() &lt; len {
@@ -529,7 +531,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
         len: usize,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>utf16_chars: Vec&lt;u16&gt; = value.encode_utf16().collect();
         <span class="comment">//fill the 0 terminators
         </span><span class="kw">while </span>utf16_chars.len() &lt; len {
@@ -544,7 +546,7 @@
     </span><span class="kw">pub fn </span>create_llvm_const_utf16_vec_string(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>[u16],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>values: Vec&lt;IntValue&gt; =
             value.iter().map(|it| <span class="self">self</span>.context.i16_type().const_int(<span class="kw-2">*</span>it <span class="kw">as </span>u64, <span class="bool-val">false</span>)).collect();
         <span class="kw">let </span>vector = <span class="self">self</span>.context.i16_type().const_array(<span class="kw-2">&amp;</span>values);
@@ -553,7 +555,7 @@
     <span class="doccomment">/// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    </span><span class="kw">pub fn </span>create_llvm_const_vec_string(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">pub fn </span>create_llvm_const_vec_string(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>values: Vec&lt;IntValue&gt; =
             value.iter().map(|it| <span class="self">self</span>.context.i8_type().const_int(<span class="kw-2">*</span>it <span class="kw">as </span>u64, <span class="bool-val">false</span>)).collect();
         <span class="kw">let </span>vector = <span class="self">self</span>.context.i8_type().const_array(<span class="kw-2">&amp;</span>values);
@@ -567,7 +569,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>arr = value.as_bytes();
         <span class="kw">if let </span>[first, ..] = arr {
             <span class="kw">let </span>value = <span class="self">self</span>.context.i8_type().const_int(<span class="kw-2">*</span>first <span class="kw">as </span>u64, <span class="bool-val">false</span>);
@@ -584,7 +586,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: <span class="kw-2">&amp;</span>str,
         location: <span class="kw-2">&amp;</span>SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;a</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>value.encode_utf16().next() {
             <span class="prelude-val">Some</span>(first) =&gt; {
                 <span class="kw">let </span>value = <span class="self">self</span>.context.i16_type().const_int(first <span class="kw">as </span>u64, <span class="bool-val">false</span>);

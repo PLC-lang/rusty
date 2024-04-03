@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/struct_type.rs`."><title>struct_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/struct_type.rs`."><title>struct_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -446,15 +448,15 @@
 
 <span class="doccomment">/// A `StructType` is the type of a heterogeneous container of types.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-</span><span class="kw">pub struct </span>StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    struct_type: Type&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>StructType&lt;<span class="lifetime">'ctx</span>&gt; {
+    struct_type: Type&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create `StructType` from [`LLVMTypeRef`]
     ///
     /// # Safety
-    /// Undefined behavior, if referenced type isn&#39;t struct type
+    /// Undefined behavior, if referenced type isn't struct type
     </span><span class="kw">pub unsafe fn </span>new(struct_type: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!struct_type.is_null());
 
@@ -476,8 +478,8 @@
     ///
     /// assert_eq!(struct_type.get_field_type_at_index(0).unwrap().into_float_type(), f32_type);
     /// ```
-    </span><span class="kw">pub fn </span>get_field_type_at_index(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
-        <span class="comment">// LLVM doesn&#39;t seem to just return null if opaque.
+    </span><span class="kw">pub fn </span>get_field_type_at_index(<span class="self">self</span>, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
+        <span class="comment">// LLVM doesn't seem to just return null if opaque.
         // TODO: One day, with SubTypes (&amp; maybe specialization?) we could just
         // impl this method for non opaque structs only
         </span><span class="kw">if </span><span class="self">self</span>.is_opaque() {
@@ -492,7 +494,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(BasicTypeEnum::new(LLVMStructGetTypeAtIndex(<span class="self">self</span>.as_type_ref(), index))) }
     }
 
-    <span class="doccomment">/// Creates a `StructValue` based on this `StructType`&#39;s definition.
+    <span class="doccomment">/// Creates a `StructValue` based on this `StructType`'s definition.
     ///
     /// # Example
     ///
@@ -505,7 +507,7 @@
     /// let struct_type = context.struct_type(&amp;[f32_type.into()], false);
     /// let struct_val = struct_type.const_named_struct(&amp;[f32_zero.into()]);
     /// ```
-    </span><span class="kw">pub fn </span>const_named_struct(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_named_struct(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; StructValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             StructValue::new(LLVMConstNamedStruct(
@@ -528,7 +530,7 @@
     /// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);
     /// let struct_zero = struct_type.const_zero();
     /// ```
-    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; StructValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ StructValue::new(<span class="self">self</span>.struct_type.const_zero()) }
     }
 
@@ -545,7 +547,7 @@
     /// let f32_struct_type = context.struct_type(&amp;[f32_type.into()], false);
     /// let f32_struct_type_size = f32_struct_type.size_of();
     /// ```
-    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="self">self</span>.struct_type.size_of()
     }
 
@@ -561,7 +563,7 @@
     /// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);
     /// let struct_type_alignment = struct_type.get_alignment();
     /// ```
-    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.struct_type.get_alignment()
     }
 
@@ -578,11 +580,11 @@
     ///
     /// assert_eq!(struct_type.get_context(), context);
     /// ```
-    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.struct_type.get_context()
     }
 
-    <span class="doccomment">/// Gets this `StructType`&#39;s name.
+    <span class="doccomment">/// Gets this `StructType`'s name.
     ///
     /// # Example
     ///
@@ -591,9 +593,9 @@
     ///
     /// let context = Context::create();
     /// let f32_type = context.f32_type();
-    /// let struct_type = context.opaque_struct_type(&quot;opaque_struct&quot;);
+    /// let struct_type = context.opaque_struct_type("opaque_struct");
     ///
-    /// assert_eq!(struct_type.get_name().unwrap().to_str().unwrap(), &quot;opaque_struct&quot;);
+    /// assert_eq!(struct_type.get_name().unwrap().to_str().unwrap(), "opaque_struct");
     /// ```
     </span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt; {
         <span class="kw">let </span>name = <span class="kw">unsafe </span>{ LLVMGetStructName(<span class="self">self</span>.as_type_ref()) };
@@ -621,21 +623,21 @@
     /// let struct_ptr_type = struct_type.ptr_type(AddressSpace::default());
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
     /// assert_eq!(struct_ptr_type.get_element_type().into_struct_type(), struct_type);
     /// ```
-    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.struct_type.ptr_type(address_space)
     }
 
@@ -651,7 +653,7 @@
     /// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);
     /// let fn_type = struct_type.fn_type(&amp;[], false);
     /// ```
-    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.struct_type.fn_type(param_types, is_var_args)
     }
 
@@ -670,7 +672,7 @@
     /// assert_eq!(struct_array_type.len(), 3);
     /// assert_eq!(struct_array_type.get_element_type().into_struct_type(), struct_type);
     /// ```
-    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.struct_type.array_type(size)
     }
 
@@ -700,7 +702,7 @@
     ///
     /// let context = Context::create();
     /// let f32_type = context.f32_type();
-    /// let struct_type = context.opaque_struct_type(&quot;opaque_struct&quot;);
+    /// let struct_type = context.opaque_struct_type("opaque_struct");
     ///
     /// assert!(struct_type.is_opaque());
     /// ```
@@ -726,7 +728,7 @@
         <span class="kw">unsafe </span>{ LLVMCountStructElementTypes(<span class="self">self</span>.as_type_ref()) }
     }
 
-    <span class="doccomment">/// Gets this `StructType`&#39;s field types.
+    <span class="doccomment">/// Gets this `StructType`'s field types.
     ///
     /// # Example
     ///
@@ -740,7 +742,7 @@
     ///
     /// assert_eq!(struct_type.get_field_types(), &amp;[f32_type.into(), i8_type.into()]);
     /// ```
-    </span><span class="kw">pub fn </span>get_field_types(<span class="self">self</span>) -&gt; Vec&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_field_types(<span class="self">self</span>) -&gt; Vec&lt;BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>count = <span class="self">self</span>.count_fields();
         <span class="kw">let </span><span class="kw-2">mut </span>raw_vec: Vec&lt;LLVMTypeRef&gt; = Vec::with_capacity(count <span class="kw">as </span>usize);
         <span class="kw">let </span>ptr = raw_vec.as_mut_ptr();
@@ -776,7 +778,7 @@
     ///
     /// assert!(struct_type_undef.is_undef());
     /// ```
-    </span><span class="kw">pub fn </span>get_undef(<span class="self">self</span>) -&gt; StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_undef(<span class="self">self</span>) -&gt; StructValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ StructValue::new(<span class="self">self</span>.struct_type.get_undef()) }
     }
 
@@ -793,13 +795,13 @@
     ///
     /// let context = Context::create();
     /// let f32_type = context.f32_type();
-    /// let opaque_struct_type = context.opaque_struct_type(&quot;opaque_struct&quot;);
+    /// let opaque_struct_type = context.opaque_struct_type("opaque_struct");
     ///
     /// opaque_struct_type.set_body(&amp;[f32_type.into()], false);
     ///
     /// assert!(!opaque_struct_type.is_opaque());
     /// ```
-    </span><span class="kw">pub fn </span>set_body(<span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], packed: bool) -&gt; bool {
+    </span><span class="kw">pub fn </span>set_body(<span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], packed: bool) -&gt; bool {
         <span class="kw">let </span>is_opaque = <span class="self">self</span>.is_opaque();
         <span class="kw">let </span><span class="kw-2">mut </span>field_types: Vec&lt;LLVMTypeRef&gt; = field_types.iter().map(|val| val.as_type_ref()).collect();
         <span class="kw">if </span>is_opaque {
@@ -831,7 +833,7 @@
     ///
     /// assert!(struct_array.is_const());
     /// ```
-    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[StructValue&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>values: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             ArrayValue::new(LLVMConstArray(
@@ -843,15 +845,15 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>StructType&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>StructType&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_type_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMTypeRef {
         <span class="self">self</span>.struct_type.ty
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>StructType&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>StructType&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 </code></pre></div></section></main></body></html>

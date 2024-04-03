@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/graph/rope.rs`."><title>rope.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../logos_derive/index.html"><img src="https://maciej.codes/kosz/logos.png" alt="logos_derive"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/logos-derive-0.12.1/src/graph/rope.rs`."><title>rope.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="logos_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../logos_derive/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -567,35 +569,35 @@
     </span><span class="kw">fn </span>into_fork() {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::new();
 
-        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">&quot;LEAF&quot;</span>));
-        <span class="kw">let </span>rope = Rope::new(<span class="string">&quot;foobar&quot;</span>, leaf);
+        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">"LEAF"</span>));
+        <span class="kw">let </span>rope = Rope::new(<span class="string">"foobar"</span>, leaf);
 
         <span class="kw">let </span>fork = rope.into_fork(<span class="kw-2">&amp;mut </span>graph);
 
         <span class="macro">assert_eq!</span>(leaf, NodeId::new(<span class="number">1</span>));
-        <span class="macro">assert_eq!</span>(fork, Fork::new().branch(<span class="string">b&#39;f&#39;</span>, NodeId::new(<span class="number">2</span>)));
-        <span class="macro">assert_eq!</span>(graph[NodeId::new(<span class="number">2</span>)], Rope::new(<span class="string">&quot;oobar&quot;</span>, leaf));
+        <span class="macro">assert_eq!</span>(fork, Fork::new().branch(<span class="string">b'f'</span>, NodeId::new(<span class="number">2</span>)));
+        <span class="macro">assert_eq!</span>(graph[NodeId::new(<span class="number">2</span>)], Rope::new(<span class="string">"oobar"</span>, leaf));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>into_fork_one_byte() {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::new();
 
-        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">&quot;LEAF&quot;</span>));
-        <span class="kw">let </span>rope = Rope::new(<span class="string">&quot;!&quot;</span>, leaf);
+        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">"LEAF"</span>));
+        <span class="kw">let </span>rope = Rope::new(<span class="string">"!"</span>, leaf);
 
         <span class="kw">let </span>fork = rope.into_fork(<span class="kw-2">&amp;mut </span>graph);
 
         <span class="macro">assert_eq!</span>(leaf, NodeId::new(<span class="number">1</span>));
-        <span class="macro">assert_eq!</span>(fork, Fork::new().branch(<span class="string">b&#39;!&#39;</span>, NodeId::new(<span class="number">1</span>)));
+        <span class="macro">assert_eq!</span>(fork, Fork::new().branch(<span class="string">b'!'</span>, NodeId::new(<span class="number">1</span>)));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>into_fork_miss_any() {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::new();
 
-        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">&quot;LEAF&quot;</span>));
-        <span class="kw">let </span>rope = Rope::new(<span class="string">&quot;42&quot;</span>, leaf).miss_any(NodeId::new(<span class="number">42</span>));
+        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">"LEAF"</span>));
+        <span class="kw">let </span>rope = Rope::new(<span class="string">"42"</span>, leaf).miss_any(NodeId::new(<span class="number">42</span>));
 
         <span class="kw">let </span>fork = rope.into_fork(<span class="kw-2">&amp;mut </span>graph);
 
@@ -603,12 +605,12 @@
         <span class="macro">assert_eq!</span>(
             fork,
             Fork::new()
-                .branch(<span class="string">b&#39;4&#39;</span>, NodeId::new(<span class="number">2</span>))
+                .branch(<span class="string">b'4'</span>, NodeId::new(<span class="number">2</span>))
                 .miss(NodeId::new(<span class="number">42</span>))
         );
         <span class="macro">assert_eq!</span>(
             graph[NodeId::new(<span class="number">2</span>)],
-            Rope::new(<span class="string">&quot;2&quot;</span>, leaf).miss_any(NodeId::new(<span class="number">42</span>))
+            Rope::new(<span class="string">"2"</span>, leaf).miss_any(NodeId::new(<span class="number">42</span>))
         );
     }
 
@@ -616,8 +618,8 @@
     </span><span class="kw">fn </span>into_fork_miss_first() {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::new();
 
-        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">&quot;LEAF&quot;</span>));
-        <span class="kw">let </span>rope = Rope::new(<span class="string">&quot;42&quot;</span>, leaf).miss(Miss::First(NodeId::new(<span class="number">42</span>)));
+        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">"LEAF"</span>));
+        <span class="kw">let </span>rope = Rope::new(<span class="string">"42"</span>, leaf).miss(Miss::First(NodeId::new(<span class="number">42</span>)));
 
         <span class="kw">let </span>fork = rope.into_fork(<span class="kw-2">&amp;mut </span>graph);
 
@@ -625,35 +627,35 @@
         <span class="macro">assert_eq!</span>(
             fork,
             Fork::new()
-                .branch(<span class="string">b&#39;4&#39;</span>, NodeId::new(<span class="number">2</span>))
+                .branch(<span class="string">b'4'</span>, NodeId::new(<span class="number">2</span>))
                 .miss(NodeId::new(<span class="number">42</span>))
         );
-        <span class="macro">assert_eq!</span>(graph[NodeId::new(<span class="number">2</span>)], Rope::new(<span class="string">&quot;2&quot;</span>, leaf));
+        <span class="macro">assert_eq!</span>(graph[NodeId::new(<span class="number">2</span>)], Rope::new(<span class="string">"2"</span>, leaf));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>split_at() {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::new();
 
-        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">&quot;LEAF&quot;</span>));
-        <span class="kw">let </span>rope = Rope::new(<span class="string">&quot;foobar&quot;</span>, leaf);
+        <span class="kw">let </span>leaf = graph.push(Node::Leaf(<span class="string">"LEAF"</span>));
+        <span class="kw">let </span>rope = Rope::new(<span class="string">"foobar"</span>, leaf);
 
         <span class="macro">assert_eq!</span>(rope.clone().split_at(<span class="number">6</span>, <span class="kw-2">&amp;mut </span>graph).unwrap(), rope);
 
         <span class="kw">let </span>split = rope.split_at(<span class="number">3</span>, <span class="kw-2">&amp;mut </span>graph).unwrap();
         <span class="kw">let </span>expected_id = NodeId::new(leaf.get() + <span class="number">1</span>);
 
-        <span class="macro">assert_eq!</span>(split, Rope::new(<span class="string">&quot;foo&quot;</span>, expected_id));
-        <span class="macro">assert_eq!</span>(graph[expected_id], Rope::new(<span class="string">&quot;bar&quot;</span>, leaf));
+        <span class="macro">assert_eq!</span>(split, Rope::new(<span class="string">"foo"</span>, expected_id));
+        <span class="macro">assert_eq!</span>(graph[expected_id], Rope::new(<span class="string">"bar"</span>, leaf));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>pattern_to_bytes() {
-        <span class="kw">let </span>pat = Pattern::from(<span class="string">&quot;foobar&quot;</span>);
+        <span class="kw">let </span>pat = Pattern::from(<span class="string">"foobar"</span>);
 
-        <span class="macro">assert_eq!</span>(pat.to_bytes().unwrap(), <span class="string">b&quot;foobar&quot;</span>);
+        <span class="macro">assert_eq!</span>(pat.to_bytes().unwrap(), <span class="string">b"foobar"</span>);
 
-        <span class="kw">let </span>ranges = Pattern::from(<span class="macro">vec!</span>[<span class="number">0</span>..=<span class="number">0</span>, <span class="number">42</span>..=<span class="number">42</span>, <span class="string">b&#39;{&#39;</span>..=<span class="string">b&#39;}&#39;</span>]);
+        <span class="kw">let </span>ranges = Pattern::from(<span class="macro">vec!</span>[<span class="number">0</span>..=<span class="number">0</span>, <span class="number">42</span>..=<span class="number">42</span>, <span class="string">b'{'</span>..=<span class="string">b'}'</span>]);
 
         <span class="macro">assert_eq!</span>(ranges.to_bytes(), <span class="prelude-val">None</span>);
     }

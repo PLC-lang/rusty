@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen.rs`."><title>codegen.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen.rs`."><title>codegen.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -586,32 +588,32 @@
 
 <span class="doccomment">/// the codegen struct carries all dependencies required to generate
 /// the IR code for a compilation unit
-</span><span class="kw">pub struct </span>CodeGen&lt;<span class="lifetime">&#39;ink</span>&gt; {
+</span><span class="kw">pub struct </span>CodeGen&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="doccomment">/// the module represents a llvm compilation unit
-    </span><span class="kw">pub </span>module: Module&lt;<span class="lifetime">&#39;ink</span>&gt;,
+    </span><span class="kw">pub </span>module: Module&lt;<span class="lifetime">'ink</span>&gt;,
     <span class="doccomment">/// the debugging module creates debug information at appropriate locations
-    </span><span class="kw">pub </span>debug: DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+    </span><span class="kw">pub </span>debug: DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
 
     <span class="kw">pub </span>module_location: String,
 }
 
-<span class="kw">pub struct </span>GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt; {
-    module: Module&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    engine: RefCell&lt;<span class="prelude-ty">Option</span>&lt;ExecutionEngine&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;&gt;,
+<span class="kw">pub struct </span>GeneratedModule&lt;<span class="lifetime">'ink</span>&gt; {
+    module: Module&lt;<span class="lifetime">'ink</span>&gt;,
+    engine: RefCell&lt;<span class="prelude-ty">Option</span>&lt;ExecutionEngine&lt;<span class="lifetime">'ink</span>&gt;&gt;&gt;,
 }
 
-<span class="kw">type </span>MainFunction&lt;T, U&gt; = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>T) -&gt; U;
-<span class="kw">type </span>MainEmptyFunction&lt;U&gt; = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>() -&gt; U;
+<span class="kw">type </span>MainFunction&lt;T, U&gt; = <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw-2">*mut </span>T) -&gt; U;
+<span class="kw">type </span>MainEmptyFunction&lt;U&gt; = <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>() -&gt; U;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; CodeGen&lt;<span class="lifetime">&#39;ink</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; CodeGen&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="doccomment">/// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     </span><span class="kw">pub fn </span>new(
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext,
         root: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
         module_location: <span class="kw-2">&amp;</span>str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
-    ) -&gt; CodeGen&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    ) -&gt; CodeGen&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         <span class="kw">let </span>debug = debug::DebugBuilderEnum::new(context, <span class="kw-2">&amp;</span>module, root, optimization_level, debug_level);
@@ -620,12 +622,12 @@
 
     <span class="kw">pub fn </span>generate_llvm_index(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext,
         annotations: <span class="kw-2">&amp;</span>AstAnnotations,
         literals: <span class="kw-2">&amp;</span>StringLiterals,
         dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
         global_index: <span class="kw-2">&amp;</span>Index,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
         <span class="kw">let </span><span class="kw-2">mut </span>index = LlvmTypedIndex::default();
         <span class="comment">//Generate types index, and any global variables associated with them.
@@ -679,7 +681,7 @@
             <span class="kw">let </span>data_type = llvm.context.i8_type().array_type(len <span class="kw">as </span>u32);
             <span class="kw">let </span>literal_variable = llvm.create_global_variable(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.module,
-                <span class="macro">format!</span>(<span class="string">&quot;utf08_literal_{idx}&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"utf08_literal_{idx}"</span>).as_str(),
                 data_type.as_basic_type_enum(),
             );
             <span class="kw">let </span>initializer = llvm.create_const_utf8_string(literal, len)<span class="question-mark">?</span>;
@@ -695,7 +697,7 @@
             <span class="kw">let </span>data_type = llvm.context.i16_type().array_type(len <span class="kw">as </span>u32);
             <span class="kw">let </span>literal_variable = llvm.create_global_variable(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.module,
-                <span class="macro">format!</span>(<span class="string">&quot;utf16_literal_{idx}&quot;</span>).as_str(),
+                <span class="macro">format!</span>(<span class="string">"utf16_literal_{idx}"</span>).as_str(),
                 data_type.as_basic_type_enum(),
             );
             <span class="kw">let </span>initializer = llvm.create_const_utf16_string(literal, literal.len() + <span class="number">1</span>)<span class="question-mark">?</span>;
@@ -710,19 +712,19 @@
     <span class="doccomment">/// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
     </span><span class="kw">pub fn </span>generate(
         <span class="self">self</span>,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext,
         unit: <span class="kw-2">&amp;</span>CompilationUnit,
         annotations: <span class="kw-2">&amp;</span>AstAnnotations,
         global_index: <span class="kw-2">&amp;</span>Index,
         llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;GeneratedModule&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//generate all pous
         </span><span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
         <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
         <span class="comment">//Generate the POU stubs in the first go to make sure they can be referenced.
         </span><span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
-            <span class="comment">//Don&#39;t generate external or generic functions
+            <span class="comment">//Don't generate external or generic functions
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = global_index.find_pou(implementation.name.as_str()) {
                 <span class="kw">if </span>!entry.is_generic() &amp;&amp; entry.get_linkage() != <span class="kw-2">&amp;</span>LinkageType::External {
                     pou_generator.generate_implementation(implementation, <span class="kw-2">&amp;</span><span class="self">self</span>.debug)<span class="question-mark">?</span>;
@@ -731,45 +733,45 @@
         }
 
         <span class="self">self</span>.debug.finalize();
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.module.to_string());
+        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.module.to_string());
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;verify&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"verify"</span>)]
         </span>{
             <span class="self">self</span>.module
                 .verify()
-                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))
+                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))
                 .map(|<span class="kw">_</span>| GeneratedModule { module: <span class="self">self</span>.module, engine: RefCell::new(<span class="prelude-val">None</span>) })
         }
 
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;verify&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"verify"</span>))]
         </span><span class="prelude-val">Ok</span>(GeneratedModule { module: <span class="self">self</span>.module, engine: RefCell::new(<span class="prelude-val">None</span>) })
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>&gt; GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt; {
-    <span class="kw">pub fn </span>try_from_bitcode(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; GeneratedModule&lt;<span class="lifetime">'ink</span>&gt; {
+    <span class="kw">pub fn </span>try_from_bitcode(context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="kw">let </span>module = Module::parse_bitcode_from_path(path, context.deref())
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(GeneratedModule { module, engine: RefCell::new(<span class="prelude-val">None</span>) })
     }
 
-    <span class="kw">pub fn </span>try_from_ir(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+    <span class="kw">pub fn </span>try_from_ir(context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="kw">let </span>buffer = MemoryBuffer::create_from_file(path)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>module = context
             .create_module_from_ir(buffer)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
 
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, module.to_string());
+        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, module.to_string());
 
         <span class="prelude-val">Ok</span>(GeneratedModule { module, engine: RefCell::new(<span class="prelude-val">None</span>) })
     }
 
-    <span class="kw">pub fn </span>merge(<span class="self">self</span>, other: GeneratedModule&lt;<span class="lifetime">&#39;ink</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
+    <span class="kw">pub fn </span>merge(<span class="self">self</span>, other: GeneratedModule&lt;<span class="lifetime">'ink</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Diagnostic&gt; {
         <span class="self">self</span>.module
             .link_in_module(other.module)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">&quot;E071&quot;</span>))<span class="question-mark">?</span>;
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Merged: {}&quot;</span>, <span class="self">self</span>.module.to_string());
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
+        <span class="macro">log::debug!</span>(<span class="string">"Merged: {}"</span>, <span class="self">self</span>.module.to_string());
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
@@ -803,7 +805,7 @@
     }
 
     <span class="kw">fn </span>get_output_file(output_dir: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;, output_name: <span class="kw-2">&amp;</span>str, target: <span class="kw-2">&amp;</span>Target) -&gt; PathBuf {
-        <span class="kw">let </span>output_dir = output_dir.map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from(<span class="string">&quot;&quot;</span>));
+        <span class="kw">let </span>output_dir = output_dir.map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from(<span class="string">""</span>));
         <span class="kw">let </span>output = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = target.try_get_name() {
             output_dir.join(name).join(output_name)
         } <span class="kw">else </span>{
@@ -829,7 +831,7 @@
 
         <span class="kw">let </span>target = inkwell::targets::Target::from_triple(<span class="kw-2">&amp;</span>triple).map_err(|it| {
             Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">&quot;Invalid target-tripple &#39;{triple}&#39; - {it:?}&quot;</span>),
+                <span class="macro">format!</span>(<span class="string">"Invalid target-tripple '{triple}' - {it:?}"</span>),
                 SourceLocation::undefined(),
             )
         })<span class="question-mark">?</span>;
@@ -837,14 +839,14 @@
             .create_target_machine(
                 <span class="kw-2">&amp;</span>triple,
                 <span class="comment">//TODO : Add cpu features as optionals
-                </span><span class="string">&quot;generic&quot;</span>, <span class="comment">//TargetMachine::get_host_cpu_name().to_string().as_str(),
-                </span><span class="string">&quot;&quot;</span>,        <span class="comment">//TargetMachine::get_host_cpu_features().to_string().as_str(),
+                </span><span class="string">"generic"</span>, <span class="comment">//TargetMachine::get_host_cpu_name().to_string().as_str(),
+                </span><span class="string">""</span>,        <span class="comment">//TargetMachine::get_host_cpu_features().to_string().as_str(),
                 </span>optimization_level.into(),
                 reloc,
                 CodeModel::Default,
             )
             .ok_or_else(|| {
-                Diagnostic::codegen_error(<span class="string">&quot;Cannot create target machine.&quot;</span>, SourceLocation::undefined())
+                Diagnostic::codegen_error(<span class="string">"Cannot create target machine."</span>, SourceLocation::undefined())
             });
 
         <span class="comment">//Make sure all parents exist
@@ -875,7 +877,7 @@
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
     /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine&#39;s triple will be used.
+    ///     If not provided, the machine's triple will be used.
     </span><span class="kw">pub fn </span>persist_as_static_obj(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         output: PathBuf,
@@ -892,7 +894,7 @@
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
     /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine&#39;s triple will be used.
+    ///     If not provided, the machine's triple will be used.
     </span><span class="kw">pub fn </span>persist_to_shared_pic_object(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         output: PathBuf,
@@ -929,7 +931,7 @@
         <span class="kw">if </span><span class="self">self</span>.module.write_bitcode_to_path(<span class="kw-2">&amp;</span>output) {
             <span class="prelude-val">Ok</span>(output)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Could not write bitcode to file&quot;</span>, SourceLocation::undefined()))
+            <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Could not write bitcode to file"</span>, SourceLocation::undefined()))
         }
     }
 
@@ -941,18 +943,18 @@
     /// * `codegen` - The generated LLVM module to be persisted
     /// * `output`  - The location to save the generated ir file
     </span><span class="kw">pub fn </span>persist_to_ir(<span class="kw-2">&amp;</span><span class="self">self</span>, output: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, Diagnostic&gt; {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Output location: {}&quot;</span>, output.to_string_lossy());
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.persist_to_string());
+        <span class="macro">log::debug!</span>(<span class="string">"Output location: {}"</span>, output.to_string_lossy());
+        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.persist_to_string());
 
         <span class="self">self</span>.module
             .print_to_file(<span class="kw-2">&amp;</span>output)
             .map_err(|err| {
                 Diagnostic::new(<span class="macro">format!</span>(
-                    <span class="string">&quot;Cannot write file {} {}&quot;</span>,
+                    <span class="string">"Cannot write file {} {}"</span>,
                     output.to_str().unwrap_or_default(),
                     err.to_string()
                 ))
-                .with_error_code(<span class="string">&quot;E002&quot;</span>)
+                .with_error_code(<span class="string">"E002"</span>)
             })
             .map(|<span class="kw">_</span>| output)
     }
@@ -1003,7 +1005,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <span class="self">self</span>.module.get_function(function_name) {
             engine.add_global_mapping(<span class="kw-2">&amp;</span>function, local_function);
         } <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Function {} does not exist&quot;</span>, function_name);
+            <span class="macro">log::debug!</span>(<span class="string">"Function {} does not exist"</span>, function_name);
         }
     }
 
@@ -1012,11 +1014,11 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <span class="self">self</span>.module.get_global(global_name) {
             engine.add_global_mapping(<span class="kw-2">&amp;</span>function, local_var);
         } <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Global {} does not exist&quot;</span>, global_name);
+            <span class="macro">log::debug!</span>(<span class="string">"Global {} does not exist"</span>, global_name);
         }
     }
 
-    <span class="kw">fn </span>get_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionEngine&lt;<span class="lifetime">&#39;ink</span>&gt; {
+    <span class="kw">fn </span>get_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionEngine&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(engine) = <span class="self">self</span>.engine.borrow().as_ref() {
             <span class="kw">return </span>engine.clone();
         }

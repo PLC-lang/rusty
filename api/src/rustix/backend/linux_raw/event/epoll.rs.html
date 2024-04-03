@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/event/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/event/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -473,7 +475,7 @@
 //! # Examples
 //!
 //! ```no_run
-//! # #[cfg(feature = &quot;net&quot;)]
+//! # #[cfg(feature = "net")]
 //! # fn main() -&gt; std::io::Result&lt;()&gt; {
 //! use rustix::event::epoll;
 //! use rustix::fd::AsFd;
@@ -501,7 +503,7 @@
 //!     epoll::EventFlags::IN,
 //! )?;
 //!
-//! // Keep track of the sockets we&#39;ve opened.
+//! // Keep track of the sockets we've opened.
 //! let mut next_id = epoll::EventData::new_u64(2);
 //! let mut sockets = HashMap::new();
 //!
@@ -513,7 +515,7 @@
 //!         let target = event.data;
 //!         if target.u64() == 1 {
 //!             // Accept a new connection, set it to non-blocking, and
-//!             // register to be notified when it&#39;s ready to write to.
+//!             // register to be notified when it's ready to write to.
 //!             let conn_sock = accept(&amp;listen_sock)?;
 //!             ioctl_fionbio(&amp;conn_sock, true)?;
 //!             epoll::add(
@@ -529,13 +531,13 @@
 //!         } else {
 //!             // Write a message to the stream and then unregister it.
 //!             let target = sockets.remove(&amp;target).unwrap();
-//!             write(&amp;target, b&quot;hello\n&quot;)?;
+//!             write(&amp;target, b"hello\n")?;
 //!             let _ = epoll::delete(&amp;epoll, &amp;target)?;
 //!         }
 //!     }
 //! }
 //! # }
-//! # #[cfg(not(feature = &quot;net&quot;))]
+//! # #[cfg(not(feature = "net"))]
 //! # fn main() {}
 //! ```
 
@@ -545,7 +547,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::backend::event::syscalls;
 <span class="kw">use </span><span class="kw">crate</span>::fd::{AsFd, AsRawFd, OwnedFd};
 <span class="kw">use </span><span class="kw">crate</span>::io;
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>core::ffi::c_void;
@@ -625,7 +627,7 @@
 /// Use the [`CreateFlags::CLOEXEC`] flag to prevent the resulting file
 /// descriptor from being implicitly passed across `exec` boundaries.
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;epoll_create1&quot;</span>)]
+#[doc(alias = <span class="string">"epoll_create1"</span>)]
 </span><span class="kw">pub fn </span>create(flags: CreateFlags) -&gt; io::Result&lt;OwnedFd&gt; {
     syscalls::epoll_create(flags)
 }
@@ -642,7 +644,7 @@
 /// returned from [`wait`]. If a file descriptor is an
 /// `Arc&lt;dyn SystemResource&gt;`, then `epoll` can be thought to maintain a
 /// `Weak&lt;dyn SystemResource&gt;` to the file descriptor.
-</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"epoll_ctl"</span>)]
 #[inline]
 </span><span class="kw">pub fn </span>add(
     epoll: <span class="kw">impl </span>AsFd,
@@ -650,7 +652,7 @@
     data: EventData,
     event_flags: EventFlags,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    <span class="comment">// SAFETY: We're calling `epoll_ctl` via FFI and we know how it
     // behaves.
     </span><span class="kw">unsafe </span>{
         syscalls::epoll_add(
@@ -668,7 +670,7 @@
 /// given epoll object.
 ///
 /// This sets the events of interest with `target` to `events`.
-</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"epoll_ctl"</span>)]
 #[inline]
 </span><span class="kw">pub fn </span>modify(
     epoll: <span class="kw">impl </span>AsFd,
@@ -676,7 +678,7 @@
     data: EventData,
     event_flags: EventFlags,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    <span class="comment">// SAFETY: We're calling `epoll_ctl` via FFI and we know how it
     // behaves.
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>raw_fd = source.as_fd().as_raw_fd();
@@ -693,10 +695,10 @@
 
 <span class="doccomment">/// `epoll_ctl(self, EPOLL_CTL_DEL, target, NULL)`—Removes an element in a
 /// given epoll object.
-</span><span class="attr">#[doc(alias = <span class="string">&quot;epoll_ctl&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"epoll_ctl"</span>)]
 #[inline]
 </span><span class="kw">pub fn </span>delete(epoll: <span class="kw">impl </span>AsFd, source: <span class="kw">impl </span>AsFd) -&gt; io::Result&lt;()&gt; {
-    <span class="comment">// SAFETY: We&#39;re calling `epoll_ctl` via FFI and we know how it
+    <span class="comment">// SAFETY: We're calling `epoll_ctl` via FFI and we know how it
     // behaves.
     </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>raw_fd = source.as_fd().as_raw_fd();
@@ -709,11 +711,11 @@
 ///
 /// For each event of interest, an element is written to `events`. On
 /// success, this returns the number of written elements.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">&quot;alloc&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"alloc"</span>)))]
 #[inline]
 </span><span class="kw">pub fn </span>wait(epoll: <span class="kw">impl </span>AsFd, event_list: <span class="kw-2">&amp;mut </span>EventVec, timeout: c::c_int) -&gt; io::Result&lt;()&gt; {
-    <span class="comment">// SAFETY: We&#39;re calling `epoll_wait` via FFI and we know how it
+    <span class="comment">// SAFETY: We're calling `epoll_wait` via FFI and we know how it
     // behaves.
     </span><span class="kw">unsafe </span>{
         event_list.events.set_len(<span class="number">0</span>);
@@ -730,14 +732,14 @@
 }
 
 <span class="doccomment">/// An iterator over the `Event`s in an `EventVec`.
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Use `Copied` to copy the struct, since `Event` is `packed` on some
-    /// platforms, and it&#39;s common for users to directly destructure it, which
+    /// platforms, and it's common for users to directly destructure it, which
     /// would lead to errors about forming references to packed fields.
-    </span>iter: core::iter::Copied&lt;slice::Iter&lt;<span class="lifetime">&#39;a</span>, Event&gt;&gt;,
+    </span>iter: core::iter::Copied&lt;slice::Iter&lt;<span class="lifetime">'a</span>, Event&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Item = Event;
 
     <span class="attr">#[inline]
@@ -748,7 +750,7 @@
 
 <span class="doccomment">/// A record of an event that occurred.
 </span><span class="attr">#[repr(C)]
-#[cfg_attr(target_arch = <span class="string">&quot;x86_64&quot;</span>, repr(packed))]
+#[cfg_attr(target_arch = <span class="string">"x86_64"</span>, repr(packed))]
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 </span><span class="kw">pub struct </span>Event {
     <span class="doccomment">/// Which specific event(s) occurred.
@@ -766,7 +768,7 @@
     </span>as_u64: u64,
 
     <span class="doccomment">/// A `*mut c_void` which preserves pointer provenance, extended to be
-    /// 64-bit so that if we read the value as a `u64` union field, we don&#39;t
+    /// 64-bit so that if we read the value as a `u64` union field, we don't
     /// get uninitialized memory.
     </span>sixty_four_bit_pointer: SixtyFourBitPointer,
 }
@@ -784,7 +786,7 @@
         <span class="self">Self </span>{
             sixty_four_bit_pointer: SixtyFourBitPointer {
                 pointer: value,
-                <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+                <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
                 </span>_padding: <span class="number">0</span>,
             },
         }
@@ -828,24 +830,24 @@
 <span class="attr">#[repr(C)]
 #[derive(Copy, Clone)]
 </span><span class="kw">struct </span>SixtyFourBitPointer {
-    <span class="attr">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
-    #[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+    <span class="attr">#[cfg(target_endian = <span class="string">"big"</span>)]
+    #[cfg(target_pointer_width = <span class="string">"32"</span>)]
     </span>_padding: u32,
 
     pointer: <span class="kw-2">*mut </span>c_void,
 
-    <span class="attr">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
-    #[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+    <span class="attr">#[cfg(target_endian = <span class="string">"little"</span>)]
+    #[cfg(target_pointer_width = <span class="string">"32"</span>)]
     </span>_padding: u32,
 }
 
 <span class="doccomment">/// A vector of `Event`s, plus context for interpreting them.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">pub struct </span>EventVec {
     events: Vec&lt;Event&gt;,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">impl </span>EventVec {
     <span class="doccomment">/// Constructs an `EventVec` from raw pointer, length, and capacity.
     ///
@@ -901,7 +903,7 @@
 
     <span class="doccomment">/// Returns an iterator over the `Event`s in this `EventVec`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'_</span>&gt; {
         Iter {
             iter: <span class="self">self</span>.events.iter().copied(),
         }
@@ -920,9 +922,9 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EventVec {
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>EventVec {
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>&gt;;
     <span class="kw">type </span>Item = Event;
 
     <span class="attr">#[inline]

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/yaml-rust-0.4.5/src/scanner.rs`."><title>scanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/yaml-rust-0.4.5/src/scanner.rs`."><title>scanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="yaml_rust" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../yaml_rust/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2259,7 +2261,7 @@
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             formatter,
-            <span class="string">&quot;{} at line {} column {}&quot;</span>,
+            <span class="string">"{} at line {} column {}"</span>,
             <span class="self">self</span>.info,
             <span class="self">self</span>.mark.line,
             <span class="self">self</span>.mark.col + <span class="number">1
@@ -2356,11 +2358,11 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_z(c: char) -&gt; bool {
-    c == <span class="string">&#39;\0&#39;
+    c == <span class="string">'\0'
 </span>}
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_break(c: char) -&gt; bool {
-    c == <span class="string">&#39;\n&#39; </span>|| c == <span class="string">&#39;\r&#39;
+    c == <span class="string">'\n' </span>|| c == <span class="string">'\r'
 </span>}
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_breakz(c: char) -&gt; bool {
@@ -2368,7 +2370,7 @@
 }
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_blank(c: char) -&gt; bool {
-    c == <span class="string">&#39; &#39; </span>|| c == <span class="string">&#39;\t&#39;
+    c == <span class="string">' ' </span>|| c == <span class="string">'\t'
 </span>}
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_blankz(c: char) -&gt; bool {
@@ -2376,33 +2378,33 @@
 }
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_digit(c: char) -&gt; bool {
-    c &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;9&#39;
+    c &gt;= <span class="string">'0' </span>&amp;&amp; c &lt;= <span class="string">'9'
 </span>}
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_alpha(c: char) -&gt; bool {
     <span class="kw">match </span>c {
-        <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39; </span>=&gt; <span class="bool-val">true</span>,
-        <span class="string">&#39;_&#39; </span>| <span class="string">&#39;-&#39; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'z' </span>| <span class="string">'A'</span>..=<span class="string">'Z' </span>=&gt; <span class="bool-val">true</span>,
+        <span class="string">'_' </span>| <span class="string">'-' </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_hex(c: char) -&gt; bool {
-    (c &gt;= <span class="string">&#39;0&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;9&#39;</span>) || (c &gt;= <span class="string">&#39;a&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;f&#39;</span>) || (c &gt;= <span class="string">&#39;A&#39; </span>&amp;&amp; c &lt;= <span class="string">&#39;F&#39;</span>)
+    (c &gt;= <span class="string">'0' </span>&amp;&amp; c &lt;= <span class="string">'9'</span>) || (c &gt;= <span class="string">'a' </span>&amp;&amp; c &lt;= <span class="string">'f'</span>) || (c &gt;= <span class="string">'A' </span>&amp;&amp; c &lt;= <span class="string">'F'</span>)
 }
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>as_hex(c: char) -&gt; u32 {
     <span class="kw">match </span>c {
-        <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>u32),
-        <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;a&#39; </span><span class="kw">as </span>u32) + <span class="number">10</span>,
-        <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39; </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">&#39;A&#39; </span><span class="kw">as </span>u32) + <span class="number">10</span>,
+        <span class="string">'0'</span>..=<span class="string">'9' </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">'0' </span><span class="kw">as </span>u32),
+        <span class="string">'a'</span>..=<span class="string">'f' </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">'a' </span><span class="kw">as </span>u32) + <span class="number">10</span>,
+        <span class="string">'A'</span>..=<span class="string">'F' </span>=&gt; (c <span class="kw">as </span>u32) - (<span class="string">'A' </span><span class="kw">as </span>u32) + <span class="number">10</span>,
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_flow(c: char) -&gt; bool {
     <span class="kw">match </span>c {
-        <span class="string">&#39;,&#39; </span>| <span class="string">&#39;[&#39; </span>| <span class="string">&#39;]&#39; </span>| <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span>=&gt; <span class="bool-val">true</span>,
+        <span class="string">',' </span>| <span class="string">'[' </span>| <span class="string">']' </span>| <span class="string">'{' </span>| <span class="string">'}' </span>=&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
@@ -2445,7 +2447,7 @@
             <span class="kw">return</span>;
         }
         <span class="kw">for _ in </span><span class="number">0</span>..(count - <span class="self">self</span>.buffer.len()) {
-            <span class="self">self</span>.buffer.push_back(<span class="self">self</span>.rdr.next().unwrap_or(<span class="string">&#39;\0&#39;</span>));
+            <span class="self">self</span>.buffer.push_back(<span class="self">self</span>.rdr.next().unwrap_or(<span class="string">'\0'</span>));
         }
     }
     <span class="attr">#[inline]
@@ -2453,7 +2455,7 @@
         <span class="kw">let </span>c = <span class="self">self</span>.buffer.pop_front().unwrap();
 
         <span class="self">self</span>.mark.index += <span class="number">1</span>;
-        <span class="kw">if </span>c == <span class="string">&#39;\n&#39; </span>{
+        <span class="kw">if </span>c == <span class="string">'\n' </span>{
             <span class="self">self</span>.mark.line += <span class="number">1</span>;
             <span class="self">self</span>.mark.col = <span class="number">0</span>;
         } <span class="kw">else </span>{
@@ -2462,7 +2464,7 @@
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>skip_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;\n&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'\r' </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'\n' </span>{
             <span class="self">self</span>.skip();
             <span class="self">self</span>.skip();
         } <span class="kw">else if </span>is_break(<span class="self">self</span>.buffer[<span class="number">0</span>]) {
@@ -2480,7 +2482,7 @@
     <span class="attr">#[allow(dead_code)]
     #[inline]
     </span><span class="kw">fn </span>eof(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.ch_is(<span class="string">&#39;\0&#39;</span>)
+        <span class="self">self</span>.ch_is(<span class="string">'\0'</span>)
     }
     <span class="attr">#[inline]
     </span><span class="kw">pub fn </span>stream_started(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2496,12 +2498,12 @@
     }
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>read_break(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;mut </span>String) {
-        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;\n&#39; </span>{
-            s.push(<span class="string">&#39;\n&#39;</span>);
+        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'\r' </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'\n' </span>{
+            s.push(<span class="string">'\n'</span>);
             <span class="self">self</span>.skip();
             <span class="self">self</span>.skip();
-        } <span class="kw">else if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\r&#39; </span>|| <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\n&#39; </span>{
-            s.push(<span class="string">&#39;\n&#39;</span>);
+        } <span class="kw">else if </span><span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'\r' </span>|| <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'\n' </span>{
+            s.push(<span class="string">'\n'</span>);
             <span class="self">self</span>.skip();
         } <span class="kw">else </span>{
             <span class="macro">unreachable!</span>();
@@ -2524,7 +2526,7 @@
 
     <span class="kw">pub fn </span>fetch_next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="self">self</span>.lookahead(<span class="number">1</span>);
-        <span class="comment">// println!(&quot;--&gt; fetch_next_token Cur {:?} {:?}&quot;, self.mark, self.ch());
+        <span class="comment">// println!("--&gt; fetch_next_token Cur {:?} {:?}", self.mark, self.ch());
 
         </span><span class="kw">if </span>!<span class="self">self</span>.stream_start_produced {
             <span class="self">self</span>.fetch_stream_start();
@@ -2545,14 +2547,14 @@
         }
 
         <span class="comment">// Is it a directive?
-        </span><span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.ch_is(<span class="string">&#39;%&#39;</span>) {
+        </span><span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.ch_is(<span class="string">'%'</span>) {
             <span class="kw">return </span><span class="self">self</span>.fetch_directive();
         }
 
         <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;-&#39;
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;-&#39;
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;-&#39;
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'-'
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'-'
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'-'
             </span>&amp;&amp; is_blankz(<span class="self">self</span>.buffer[<span class="number">3</span>])
         {
             <span class="self">self</span>.fetch_document_indicator(TokenType::DocumentStart)<span class="question-mark">?</span>;
@@ -2560,9 +2562,9 @@
         }
 
         <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;.&#39;
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;.&#39;
-            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;.&#39;
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'.'
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'.'
+            </span>&amp;&amp; <span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'.'
             </span>&amp;&amp; is_blankz(<span class="self">self</span>.buffer[<span class="number">3</span>])
         {
             <span class="self">self</span>.fetch_document_indicator(TokenType::DocumentEnd)<span class="question-mark">?</span>;
@@ -2572,36 +2574,36 @@
         <span class="kw">let </span>c = <span class="self">self</span>.buffer[<span class="number">0</span>];
         <span class="kw">let </span>nc = <span class="self">self</span>.buffer[<span class="number">1</span>];
         <span class="kw">match </span>c {
-            <span class="string">&#39;[&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowSequenceStart),
-            <span class="string">&#39;{&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowMappingStart),
-            <span class="string">&#39;]&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowSequenceEnd),
-            <span class="string">&#39;}&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowMappingEnd),
-            <span class="string">&#39;,&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_entry(),
-            <span class="string">&#39;-&#39; </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_block_entry(),
-            <span class="string">&#39;?&#39; </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_key(),
-            <span class="string">&#39;:&#39; </span><span class="kw">if </span>is_blankz(nc)
+            <span class="string">'[' </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowSequenceStart),
+            <span class="string">'{' </span>=&gt; <span class="self">self</span>.fetch_flow_collection_start(TokenType::FlowMappingStart),
+            <span class="string">']' </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowSequenceEnd),
+            <span class="string">'}' </span>=&gt; <span class="self">self</span>.fetch_flow_collection_end(TokenType::FlowMappingEnd),
+            <span class="string">',' </span>=&gt; <span class="self">self</span>.fetch_flow_entry(),
+            <span class="string">'-' </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_block_entry(),
+            <span class="string">'?' </span><span class="kw">if </span>is_blankz(nc) =&gt; <span class="self">self</span>.fetch_key(),
+            <span class="string">':' </span><span class="kw">if </span>is_blankz(nc)
                 || (<span class="self">self</span>.flow_level &gt; <span class="number">0
                     </span>&amp;&amp; (is_flow(nc) || <span class="self">self</span>.mark.index == <span class="self">self</span>.adjacent_value_allowed_at)) =&gt;
             {
                 <span class="self">self</span>.fetch_value()
             }
             <span class="comment">// Is it an alias?
-            </span><span class="string">&#39;*&#39; </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">true</span>),
+            </span><span class="string">'*' </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">true</span>),
             <span class="comment">// Is it an anchor?
-            </span><span class="string">&#39;&amp;&#39; </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">false</span>),
-            <span class="string">&#39;!&#39; </span>=&gt; <span class="self">self</span>.fetch_tag(),
+            </span><span class="string">'&amp;' </span>=&gt; <span class="self">self</span>.fetch_anchor(<span class="bool-val">false</span>),
+            <span class="string">'!' </span>=&gt; <span class="self">self</span>.fetch_tag(),
             <span class="comment">// Is it a literal scalar?
-            </span><span class="string">&#39;|&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">true</span>),
+            </span><span class="string">'|' </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">true</span>),
             <span class="comment">// Is it a folded scalar?
-            </span><span class="string">&#39;&gt;&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">false</span>),
-            <span class="string">&#39;\&#39;&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">true</span>),
-            <span class="string">&#39;&quot;&#39; </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">false</span>),
+            </span><span class="string">'&gt;' </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_block_scalar(<span class="bool-val">false</span>),
+            <span class="string">'\'' </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">true</span>),
+            <span class="string">'"' </span>=&gt; <span class="self">self</span>.fetch_flow_scalar(<span class="bool-val">false</span>),
             <span class="comment">// plain scalar
-            </span><span class="string">&#39;-&#39; </span><span class="kw">if </span>!is_blankz(nc) =&gt; <span class="self">self</span>.fetch_plain_scalar(),
-            <span class="string">&#39;:&#39; </span>| <span class="string">&#39;?&#39; </span><span class="kw">if </span>!is_blankz(nc) &amp;&amp; <span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_plain_scalar(),
-            <span class="string">&#39;%&#39; </span>| <span class="string">&#39;@&#39; </span>| <span class="string">&#39;`&#39; </span>=&gt; <span class="prelude-val">Err</span>(ScanError::new(
+            </span><span class="string">'-' </span><span class="kw">if </span>!is_blankz(nc) =&gt; <span class="self">self</span>.fetch_plain_scalar(),
+            <span class="string">':' </span>| <span class="string">'?' </span><span class="kw">if </span>!is_blankz(nc) &amp;&amp; <span class="self">self</span>.flow_level == <span class="number">0 </span>=&gt; <span class="self">self</span>.fetch_plain_scalar(),
+            <span class="string">'%' </span>| <span class="string">'@' </span>| <span class="string">'`' </span>=&gt; <span class="prelude-val">Err</span>(ScanError::new(
                 <span class="self">self</span>.mark,
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;unexpected character: `{}&#39;&quot;</span>, c),
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"unexpected character: `{}'"</span>, c),
             )),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.fetch_plain_scalar(),
         }
@@ -2657,7 +2659,7 @@
                 &amp;&amp; (sk.mark.line &lt; <span class="self">self</span>.mark.line || sk.mark.index + <span class="number">1024 </span>&lt; <span class="self">self</span>.mark.index)
             {
                 <span class="kw">if </span>sk.required {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark, <span class="string">&quot;simple key expect &#39;:&#39;&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark, <span class="string">"simple key expect ':'"</span>));
                 }
                 sk.possible = <span class="bool-val">false</span>;
             }
@@ -2670,16 +2672,16 @@
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="comment">// TODO(chenyh) BOM
             </span><span class="kw">match </span><span class="self">self</span>.ch() {
-                <span class="string">&#39; &#39; </span>=&gt; <span class="self">self</span>.skip(),
-                <span class="string">&#39;\t&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>|| !<span class="self">self</span>.simple_key_allowed =&gt; <span class="self">self</span>.skip(),
-                <span class="string">&#39;\n&#39; </span>| <span class="string">&#39;\r&#39; </span>=&gt; {
+                <span class="string">' ' </span>=&gt; <span class="self">self</span>.skip(),
+                <span class="string">'\t' </span><span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>|| !<span class="self">self</span>.simple_key_allowed =&gt; <span class="self">self</span>.skip(),
+                <span class="string">'\n' </span>| <span class="string">'\r' </span>=&gt; {
                     <span class="self">self</span>.lookahead(<span class="number">2</span>);
                     <span class="self">self</span>.skip_line();
                     <span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
                         <span class="self">self</span>.allow_simple_key();
                     }
                 }
-                <span class="string">&#39;#&#39; </span>=&gt; {
+                <span class="string">'#' </span>=&gt; {
                     <span class="kw">while </span>!is_breakz(<span class="self">self</span>.ch()) {
                         <span class="self">self</span>.skip();
                         <span class="self">self</span>.lookahead(<span class="number">1</span>);
@@ -2735,8 +2737,8 @@
 
         <span class="kw">let </span>name = <span class="self">self</span>.scan_directive_name()<span class="question-mark">?</span>;
         <span class="kw">let </span>tok = <span class="kw">match </span>name.as_ref() {
-            <span class="string">&quot;YAML&quot; </span>=&gt; <span class="self">self</span>.scan_version_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
-            <span class="string">&quot;TAG&quot; </span>=&gt; <span class="self">self</span>.scan_tag_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
+            <span class="string">"YAML" </span>=&gt; <span class="self">self</span>.scan_version_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
+            <span class="string">"TAG" </span>=&gt; <span class="self">self</span>.scan_tag_directive_value(<span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>,
             <span class="comment">// XXX This should be a warning instead of an error
             </span><span class="kw">_ </span>=&gt; {
                 <span class="comment">// skip current line
@@ -2751,7 +2753,7 @@
                     TokenType::TagDirective(String::new(), String::new()),
                 )
                 <span class="comment">// return Err(ScanError::new(start_mark,
-                //     &quot;while scanning a directive, found unknown directive name&quot;))
+                //     "while scanning a directive, found unknown directive name"))
             </span>}
         };
         <span class="self">self</span>.lookahead(<span class="number">1</span>);
@@ -2761,7 +2763,7 @@
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
 
-        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;#&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'#' </span>{
             <span class="kw">while </span>!is_breakz(<span class="self">self</span>.ch()) {
                 <span class="self">self</span>.skip();
                 <span class="self">self</span>.lookahead(<span class="number">1</span>);
@@ -2771,7 +2773,7 @@
         <span class="kw">if </span>!is_breakz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 start_mark,
-                <span class="string">&quot;while scanning a directive, did not find expected comment or line break&quot;</span>,
+                <span class="string">"while scanning a directive, did not find expected comment or line break"</span>,
             ));
         }
 
@@ -2794,10 +2796,10 @@
 
         <span class="kw">let </span>major = <span class="self">self</span>.scan_version_directive_number(mark)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;.&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">'.' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while scanning a YAML directive, did not find expected digit or &#39;.&#39; character&quot;</span>,
+                <span class="string">"while scanning a YAML directive, did not find expected digit or '.' character"</span>,
             ));
         }
 
@@ -2821,14 +2823,14 @@
         <span class="kw">if </span>string.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 start_mark,
-                <span class="string">&quot;while scanning a directive, could not find expected directive name&quot;</span>,
+                <span class="string">"while scanning a directive, could not find expected directive name"</span>,
             ));
         }
 
         <span class="kw">if </span>!is_blankz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 start_mark,
-                <span class="string">&quot;while scanning a directive, found unexpected non-alphabetical character&quot;</span>,
+                <span class="string">"while scanning a directive, found unexpected non-alphabetical character"</span>,
             ));
         }
 
@@ -2843,11 +2845,11 @@
             <span class="kw">if </span>length + <span class="number">1 </span>&gt; <span class="number">9 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     <span class="kw-2">*</span>mark,
-                    <span class="string">&quot;while scanning a YAML directive, found extremely long version number&quot;</span>,
+                    <span class="string">"while scanning a YAML directive, found extremely long version number"</span>,
                 ));
             }
             length += <span class="number">1</span>;
-            val = val * <span class="number">10 </span>+ ((<span class="self">self</span>.ch() <span class="kw">as </span>u32) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>u32));
+            val = val * <span class="number">10 </span>+ ((<span class="self">self</span>.ch() <span class="kw">as </span>u32) - (<span class="string">'0' </span><span class="kw">as </span>u32));
             <span class="self">self</span>.skip();
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
@@ -2855,7 +2857,7 @@
         <span class="kw">if </span>length == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while scanning a YAML directive, did not find expected version number&quot;</span>,
+                <span class="string">"while scanning a YAML directive, did not find expected version number"</span>,
             ));
         }
 
@@ -2878,7 +2880,7 @@
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
 
-        <span class="kw">let </span>is_secondary = handle == <span class="string">&quot;!!&quot;</span>;
+        <span class="kw">let </span>is_secondary = handle == <span class="string">"!!"</span>;
         <span class="kw">let </span>prefix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">true</span>, is_secondary, <span class="kw-2">&amp;</span>String::new(), mark)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.lookahead(<span class="number">1</span>);
@@ -2888,7 +2890,7 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while scanning TAG, did not find expected whitespace or line break&quot;</span>,
+                <span class="string">"while scanning TAG, did not find expected whitespace or line break"</span>,
             ))
         }
     }
@@ -2911,37 +2913,37 @@
         <span class="comment">// Check if the tag is in the canonical form (verbatim).
         </span><span class="self">self</span>.lookahead(<span class="number">2</span>);
 
-        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;&lt;&#39; </span>{
-            <span class="comment">// Eat &#39;!&lt;&#39;
+        <span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'&lt;' </span>{
+            <span class="comment">// Eat '!&lt;'
             </span><span class="self">self</span>.skip();
             <span class="self">self</span>.skip();
             suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
 
-            <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;&gt;&#39; </span>{
+            <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">'&gt;' </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     start_mark,
-                    <span class="string">&quot;while scanning a tag, did not find the expected &#39;&gt;&#39;&quot;</span>,
+                    <span class="string">"while scanning a tag, did not find the expected '&gt;'"</span>,
                 ));
             }
 
             <span class="self">self</span>.skip();
         } <span class="kw">else </span>{
-            <span class="comment">// The tag has either the &#39;!suffix&#39; or the &#39;!handle!suffix&#39;
+            <span class="comment">// The tag has either the '!suffix' or the '!handle!suffix'
             </span>handle = <span class="self">self</span>.scan_tag_handle(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
             <span class="comment">// Check if it is, indeed, handle.
-            </span><span class="kw">if </span>handle.len() &gt;= <span class="number">2 </span>&amp;&amp; handle.starts_with(<span class="string">&#39;!&#39;</span>) &amp;&amp; handle.ends_with(<span class="string">&#39;!&#39;</span>) {
-                <span class="kw">if </span>handle == <span class="string">&quot;!!&quot; </span>{
+            </span><span class="kw">if </span>handle.len() &gt;= <span class="number">2 </span>&amp;&amp; handle.starts_with(<span class="string">'!'</span>) &amp;&amp; handle.ends_with(<span class="string">'!'</span>) {
+                <span class="kw">if </span>handle == <span class="string">"!!" </span>{
                     secondary = <span class="bool-val">true</span>;
                 }
                 suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, secondary, <span class="kw-2">&amp;</span>String::new(), <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
                 suffix = <span class="self">self</span>.scan_tag_uri(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>handle, <span class="kw-2">&amp;</span>start_mark)<span class="question-mark">?</span>;
-                handle = <span class="string">&quot;!&quot;</span>.to_owned();
-                <span class="comment">// A special case: the &#39;!&#39; tag.  Set the handle to &#39;&#39; and the
-                // suffix to &#39;!&#39;.
+                handle = <span class="string">"!"</span>.to_owned();
+                <span class="comment">// A special case: the '!' tag.  Set the handle to '' and the
+                // suffix to '!'.
                 </span><span class="kw">if </span>suffix.is_empty() {
                     handle.clear();
-                    suffix = <span class="string">&quot;!&quot;</span>.to_owned();
+                    suffix = <span class="string">"!"</span>.to_owned();
                 }
             }
         }
@@ -2953,7 +2955,7 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(ScanError::new(
                 start_mark,
-                <span class="string">&quot;while scanning a tag, did not find expected whitespace or line break&quot;</span>,
+                <span class="string">"while scanning a tag, did not find expected whitespace or line break"</span>,
             ))
         }
     }
@@ -2961,10 +2963,10 @@
     <span class="kw">fn </span>scan_tag_handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, directive: bool, mark: <span class="kw-2">&amp;</span>Marker) -&gt; <span class="prelude-ty">Result</span>&lt;String, ScanError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
         <span class="self">self</span>.lookahead(<span class="number">1</span>);
-        <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">&#39;!&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.ch() != <span class="string">'!' </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while scanning a tag, did not find expected &#39;!&#39;&quot;</span>,
+                <span class="string">"while scanning a tag, did not find expected '!'"</span>,
             ));
         }
 
@@ -2978,17 +2980,17 @@
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
 
-        <span class="comment">// Check if the trailing character is &#39;!&#39; and copy it.
-        </span><span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;!&#39; </span>{
+        <span class="comment">// Check if the trailing character is '!' and copy it.
+        </span><span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'!' </span>{
             string.push(<span class="self">self</span>.ch());
             <span class="self">self</span>.skip();
-        } <span class="kw">else if </span>directive &amp;&amp; string != <span class="string">&quot;!&quot; </span>{
-            <span class="comment">// It&#39;s either the &#39;!&#39; tag or not really a tag handle.  If it&#39;s a %TAG
-            // directive, it&#39;s an error.  If it&#39;s a tag token, it must be a part of
+        } <span class="kw">else if </span>directive &amp;&amp; string != <span class="string">"!" </span>{
+            <span class="comment">// It's either the '!' tag or not really a tag handle.  If it's a %TAG
+            // directive, it's an error.  If it's a tag token, it must be a part of
             // URI.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while parsing a tag directive, did not find expected &#39;!&#39;&quot;</span>,
+                <span class="string">"while parsing a tag directive, did not find expected '!'"</span>,
             ));
         }
         <span class="prelude-val">Ok</span>(string)
@@ -3005,7 +3007,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
 
         <span class="comment">// Copy the head if needed.
-        // Note that we don&#39;t copy the leading &#39;!&#39; character.
+        // Note that we don't copy the leading '!' character.
         </span><span class="kw">if </span>length &gt; <span class="number">1 </span>{
             string.extend(head.chars().skip(<span class="number">1</span>));
         }
@@ -3014,19 +3016,19 @@
         <span class="comment">/*
          * The set of characters that may appear in URI is as follows:
          *
-         *      &#39;0&#39;-&#39;9&#39;, &#39;A&#39;-&#39;Z&#39;, &#39;a&#39;-&#39;z&#39;, &#39;_&#39;, &#39;-&#39;, &#39;;&#39;, &#39;/&#39;, &#39;?&#39;, &#39;:&#39;, &#39;@&#39;, &#39;&amp;&#39;,
-         *      &#39;=&#39;, &#39;+&#39;, &#39;$&#39;, &#39;,&#39;, &#39;.&#39;, &#39;!&#39;, &#39;~&#39;, &#39;*&#39;, &#39;\&#39;&#39;, &#39;(&#39;, &#39;)&#39;, &#39;[&#39;, &#39;]&#39;,
-         *      &#39;%&#39;.
+         *      '0'-'9', 'A'-'Z', 'a'-'z', '_', '-', ';', '/', '?', ':', '@', '&amp;',
+         *      '=', '+', '$', ',', '.', '!', '~', '*', '\'', '(', ')', '[', ']',
+         *      '%'.
          */
         </span><span class="kw">while match </span><span class="self">self</span>.ch() {
-            <span class="string">&#39;;&#39; </span>| <span class="string">&#39;/&#39; </span>| <span class="string">&#39;?&#39; </span>| <span class="string">&#39;:&#39; </span>| <span class="string">&#39;@&#39; </span>| <span class="string">&#39;&amp;&#39; </span>=&gt; <span class="bool-val">true</span>,
-            <span class="string">&#39;=&#39; </span>| <span class="string">&#39;+&#39; </span>| <span class="string">&#39;$&#39; </span>| <span class="string">&#39;,&#39; </span>| <span class="string">&#39;.&#39; </span>| <span class="string">&#39;!&#39; </span>| <span class="string">&#39;~&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;\&#39;&#39; </span>| <span class="string">&#39;(&#39; </span>| <span class="string">&#39;)&#39; </span>| <span class="string">&#39;[&#39; </span>| <span class="string">&#39;]&#39; </span>=&gt; <span class="bool-val">true</span>,
-            <span class="string">&#39;%&#39; </span>=&gt; <span class="bool-val">true</span>,
+            <span class="string">';' </span>| <span class="string">'/' </span>| <span class="string">'?' </span>| <span class="string">':' </span>| <span class="string">'@' </span>| <span class="string">'&amp;' </span>=&gt; <span class="bool-val">true</span>,
+            <span class="string">'=' </span>| <span class="string">'+' </span>| <span class="string">'$' </span>| <span class="string">',' </span>| <span class="string">'.' </span>| <span class="string">'!' </span>| <span class="string">'~' </span>| <span class="string">'*' </span>| <span class="string">'\'' </span>| <span class="string">'(' </span>| <span class="string">')' </span>| <span class="string">'[' </span>| <span class="string">']' </span>=&gt; <span class="bool-val">true</span>,
+            <span class="string">'%' </span>=&gt; <span class="bool-val">true</span>,
             c <span class="kw">if </span>is_alpha(c) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         } {
             <span class="comment">// Check if it is a URI-escape sequence.
-            </span><span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;%&#39; </span>{
+            </span><span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'%' </span>{
                 string.push(<span class="self">self</span>.scan_uri_escapes(directive, mark)<span class="question-mark">?</span>);
             } <span class="kw">else </span>{
                 string.push(<span class="self">self</span>.ch());
@@ -3040,7 +3042,7 @@
         <span class="kw">if </span>length == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while parsing a tag, did not find expected tag URI&quot;</span>,
+                <span class="string">"while parsing a tag, did not find expected tag URI"</span>,
             ));
         }
 
@@ -3053,10 +3055,10 @@
         <span class="kw">loop </span>{
             <span class="self">self</span>.lookahead(<span class="number">3</span>);
 
-            <span class="kw">if </span>!(<span class="self">self</span>.ch() == <span class="string">&#39;%&#39; </span>&amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">1</span>]) &amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">2</span>])) {
+            <span class="kw">if </span>!(<span class="self">self</span>.ch() == <span class="string">'%' </span>&amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">1</span>]) &amp;&amp; is_hex(<span class="self">self</span>.buffer[<span class="number">2</span>])) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     <span class="kw-2">*</span>mark,
-                    <span class="string">&quot;while parsing a tag, did not find URI escaped octet&quot;</span>,
+                    <span class="string">"while parsing a tag, did not find URI escaped octet"</span>,
                 ));
             }
 
@@ -3070,7 +3072,7 @@
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                             <span class="kw-2">*</span>mark,
-                            <span class="string">&quot;while parsing a tag, found an incorrect leading UTF-8 octet&quot;</span>,
+                            <span class="string">"while parsing a tag, found an incorrect leading UTF-8 octet"</span>,
                         ));
                     }
                 };
@@ -3079,7 +3081,7 @@
                 <span class="kw">if </span>octet &amp; <span class="number">0xc0 </span>!= <span class="number">0x80 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                         <span class="kw-2">*</span>mark,
-                        <span class="string">&quot;while parsing a tag, found an incorrect trailing UTF-8 octet&quot;</span>,
+                        <span class="string">"while parsing a tag, found an incorrect trailing UTF-8 octet"</span>,
                     ));
                 }
                 code = (code &lt;&lt; <span class="number">8</span>) + octet;
@@ -3099,7 +3101,7 @@
             <span class="prelude-val">Some</span>(ch) =&gt; <span class="prelude-val">Ok</span>(ch),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(ScanError::new(
                 <span class="kw-2">*</span>mark,
-                <span class="string">&quot;while parsing a tag, found an invalid UTF-8 codepoint&quot;</span>,
+                <span class="string">"while parsing a tag, found an invalid UTF-8 codepoint"</span>,
             )),
         }
     }
@@ -3130,11 +3132,11 @@
         <span class="kw">if </span>string.is_empty()
             || <span class="kw">match </span><span class="self">self</span>.ch() {
                 c <span class="kw">if </span>is_blankz(c) =&gt; <span class="bool-val">false</span>,
-                <span class="string">&#39;?&#39; </span>| <span class="string">&#39;:&#39; </span>| <span class="string">&#39;,&#39; </span>| <span class="string">&#39;]&#39; </span>| <span class="string">&#39;}&#39; </span>| <span class="string">&#39;%&#39; </span>| <span class="string">&#39;@&#39; </span>| <span class="string">&#39;`&#39; </span>=&gt; <span class="bool-val">false</span>,
+                <span class="string">'?' </span>| <span class="string">':' </span>| <span class="string">',' </span>| <span class="string">']' </span>| <span class="string">'}' </span>| <span class="string">'%' </span>| <span class="string">'@' </span>| <span class="string">'`' </span>=&gt; <span class="bool-val">false</span>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
             }
         {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(start_mark, <span class="string">&quot;while scanning an anchor or alias, did not find expected alphabetic or numeric character&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(start_mark, <span class="string">"while scanning an anchor or alias, did not find expected alphabetic or numeric character"</span>));
         }
 
         <span class="kw">if </span>alias {
@@ -3145,7 +3147,7 @@
     }
 
     <span class="kw">fn </span>fetch_flow_collection_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tok: TokenType) -&gt; ScanResult {
-        <span class="comment">// The indicators &#39;[&#39; and &#39;{&#39; may start a simple key.
+        <span class="comment">// The indicators '[' and '{' may start a simple key.
         </span><span class="self">self</span>.save_simple_key()<span class="question-mark">?</span>;
 
         <span class="self">self</span>.increase_flow_level()<span class="question-mark">?</span>;
@@ -3189,7 +3191,7 @@
         <span class="self">self</span>.flow_level = <span class="self">self
             </span>.flow_level
             .checked_add(<span class="number">1</span>)
-            .ok_or_else(|| ScanError::new(<span class="self">self</span>.mark, <span class="string">&quot;recursion limit exceeded&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| ScanError::new(<span class="self">self</span>.mark, <span class="string">"recursion limit exceeded"</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>decrease_flow_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -3205,7 +3207,7 @@
             </span><span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     <span class="self">self</span>.mark,
-                    <span class="string">&quot;block sequence entries are not allowed in this context&quot;</span>,
+                    <span class="string">"block sequence entries are not allowed in this context"</span>,
                 ));
             }
 
@@ -3216,7 +3218,7 @@
             <span class="comment">// - * only allowed in block
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 <span class="self">self</span>.mark,
-                <span class="string">r#&quot;&quot;-&quot; is only valid inside a block&quot;#</span>,
+                <span class="string">r#""-" is only valid inside a block"#</span>,
             ));
         }
         <span class="self">self</span>.remove_simple_key()<span class="question-mark">?</span>;
@@ -3266,12 +3268,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>leading_break = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>trailing_breaks = String::new();
 
-        <span class="comment">// skip &#39;|&#39; or &#39;&gt;&#39;
+        <span class="comment">// skip '|' or '&gt;'
         </span><span class="self">self</span>.skip();
         <span class="self">self</span>.lookahead(<span class="number">1</span>);
 
-        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>|| <span class="self">self</span>.ch() == <span class="string">&#39;-&#39; </span>{
-            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'+' </span>|| <span class="self">self</span>.ch() == <span class="string">'-' </span>{
+            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'+' </span>{
                 chomping = <span class="number">1</span>;
             } <span class="kw">else </span>{
                 chomping = -<span class="number">1</span>;
@@ -3279,28 +3281,28 @@
             <span class="self">self</span>.skip();
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="kw">if </span>is_digit(<span class="self">self</span>.ch()) {
-                <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;0&#39; </span>{
+                <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'0' </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                         start_mark,
-                        <span class="string">&quot;while scanning a block scalar, found an indentation indicator equal to 0&quot;</span>,
+                        <span class="string">"while scanning a block scalar, found an indentation indicator equal to 0"</span>,
                     ));
                 }
-                increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>usize);
+                increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">'0' </span><span class="kw">as </span>usize);
                 <span class="self">self</span>.skip();
             }
         } <span class="kw">else if </span>is_digit(<span class="self">self</span>.ch()) {
-            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;0&#39; </span>{
+            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'0' </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     start_mark,
-                    <span class="string">&quot;while scanning a block scalar, found an indentation indicator equal to 0&quot;</span>,
+                    <span class="string">"while scanning a block scalar, found an indentation indicator equal to 0"</span>,
                 ));
             }
 
-            increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">&#39;0&#39; </span><span class="kw">as </span>usize);
+            increment = (<span class="self">self</span>.ch() <span class="kw">as </span>usize) - (<span class="string">'0' </span><span class="kw">as </span>usize);
             <span class="self">self</span>.skip();
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
-            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>|| <span class="self">self</span>.ch() == <span class="string">&#39;-&#39; </span>{
-                <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;+&#39; </span>{
+            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'+' </span>|| <span class="self">self</span>.ch() == <span class="string">'-' </span>{
+                <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'+' </span>{
                     chomping = <span class="number">1</span>;
                 } <span class="kw">else </span>{
                     chomping = -<span class="number">1</span>;
@@ -3317,7 +3319,7 @@
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
         }
 
-        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;#&#39; </span>{
+        <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'#' </span>{
             <span class="kw">while </span>!is_breakz(<span class="self">self</span>.ch()) {
                 <span class="self">self</span>.skip();
                 <span class="self">self</span>.lookahead(<span class="number">1</span>);
@@ -3328,7 +3330,7 @@
         </span><span class="kw">if </span>!is_breakz(<span class="self">self</span>.ch()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                 start_mark,
-                <span class="string">&quot;while scanning a block scalar, did not find expected comment or line break&quot;</span>,
+                <span class="string">"while scanning a block scalar, did not find expected comment or line break"</span>,
             ));
         }
 
@@ -3356,7 +3358,7 @@
             </span>trailing_blank = is_blank(<span class="self">self</span>.ch());
             <span class="kw">if </span>!literal &amp;&amp; !leading_break.is_empty() &amp;&amp; !leading_blank &amp;&amp; !trailing_blank {
                 <span class="kw">if </span>trailing_breaks.is_empty() {
-                    string.push(<span class="string">&#39; &#39;</span>);
+                    string.push(<span class="string">' '</span>);
                 }
                 leading_break.clear();
             } <span class="kw">else </span>{
@@ -3412,7 +3414,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>max_indent = <span class="number">0</span>;
         <span class="kw">loop </span>{
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
-            <span class="kw">while </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39; &#39; </span>{
+            <span class="kw">while </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">' ' </span>{
                 <span class="self">self</span>.skip();
                 <span class="self">self</span>.lookahead(<span class="number">1</span>);
             }
@@ -3422,9 +3424,9 @@
             }
 
             <span class="comment">// Check for a tab character messing the indentation.
-            </span><span class="kw">if </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;\t&#39; </span>{
+            </span><span class="kw">if </span>(<span class="kw-2">*</span>indent == <span class="number">0 </span>|| <span class="self">self</span>.mark.col &lt; <span class="kw-2">*</span>indent) &amp;&amp; <span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'\t' </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark,
-                        <span class="string">&quot;while scanning a block scalar, found a tab character where an indentation space is expected&quot;</span>));
+                        <span class="string">"while scanning a block scalar, found a tab character where an indentation space is expected"</span>));
             }
 
             <span class="kw">if </span>!is_break(<span class="self">self</span>.ch()) {
@@ -3479,22 +3481,22 @@
             </span><span class="self">self</span>.lookahead(<span class="number">4</span>);
 
             <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
-                </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;-&#39;</span>))
-                    || ((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;.&#39;</span>)
-                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;.&#39;</span>)
-                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;.&#39;</span>)))
+                </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'-'</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'-'</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'-'</span>))
+                    || ((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'.'</span>)
+                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'.'</span>)
+                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'.'</span>)))
                 &amp;&amp; is_blankz(<span class="self">self</span>.buffer[<span class="number">3</span>])
             {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     start_mark,
-                    <span class="string">&quot;while scanning a quoted scalar, found unexpected document indicator&quot;</span>,
+                    <span class="string">"while scanning a quoted scalar, found unexpected document indicator"</span>,
                 ));
             }
 
             <span class="kw">if </span>is_z(<span class="self">self</span>.ch()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     start_mark,
-                    <span class="string">&quot;while scanning a quoted scalar, found unexpected end of stream&quot;</span>,
+                    <span class="string">"while scanning a quoted scalar, found unexpected end of stream"</span>,
                 ));
             }
 
@@ -3506,16 +3508,16 @@
             </span><span class="kw">while </span>!is_blankz(<span class="self">self</span>.ch()) {
                 <span class="kw">match </span><span class="self">self</span>.ch() {
                     <span class="comment">// Check for an escaped single quote.
-                    </span><span class="string">&#39;\&#39;&#39; </span><span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;\&#39;&#39; </span>&amp;&amp; single =&gt; {
-                        string.push(<span class="string">&#39;\&#39;&#39;</span>);
+                    </span><span class="string">'\'' </span><span class="kw">if </span><span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'\'' </span>&amp;&amp; single =&gt; {
+                        string.push(<span class="string">'\''</span>);
                         <span class="self">self</span>.skip();
                         <span class="self">self</span>.skip();
                     }
                     <span class="comment">// Check for the right quote.
-                    </span><span class="string">&#39;\&#39;&#39; </span><span class="kw">if </span>single =&gt; <span class="kw">break</span>,
-                    <span class="string">&#39;&quot;&#39; </span><span class="kw">if </span>!single =&gt; <span class="kw">break</span>,
+                    </span><span class="string">'\'' </span><span class="kw">if </span>single =&gt; <span class="kw">break</span>,
+                    <span class="string">'"' </span><span class="kw">if </span>!single =&gt; <span class="kw">break</span>,
                     <span class="comment">// Check for an escaped line break.
-                    </span><span class="string">&#39;\\&#39; </span><span class="kw">if </span>!single &amp;&amp; is_break(<span class="self">self</span>.buffer[<span class="number">1</span>]) =&gt; {
+                    </span><span class="string">'\\' </span><span class="kw">if </span>!single &amp;&amp; is_break(<span class="self">self</span>.buffer[<span class="number">1</span>]) =&gt; {
                         <span class="self">self</span>.lookahead(<span class="number">3</span>);
                         <span class="self">self</span>.skip();
                         <span class="self">self</span>.skip_line();
@@ -3523,37 +3525,37 @@
                         <span class="kw">break</span>;
                     }
                     <span class="comment">// Check for an escape sequence.
-                    </span><span class="string">&#39;\\&#39; </span><span class="kw">if </span>!single =&gt; {
+                    </span><span class="string">'\\' </span><span class="kw">if </span>!single =&gt; {
                         <span class="kw">let </span><span class="kw-2">mut </span>code_length = <span class="number">0usize</span>;
                         <span class="kw">match </span><span class="self">self</span>.buffer[<span class="number">1</span>] {
-                            <span class="string">&#39;0&#39; </span>=&gt; string.push(<span class="string">&#39;\0&#39;</span>),
-                            <span class="string">&#39;a&#39; </span>=&gt; string.push(<span class="string">&#39;\x07&#39;</span>),
-                            <span class="string">&#39;b&#39; </span>=&gt; string.push(<span class="string">&#39;\x08&#39;</span>),
-                            <span class="string">&#39;t&#39; </span>| <span class="string">&#39;\t&#39; </span>=&gt; string.push(<span class="string">&#39;\t&#39;</span>),
-                            <span class="string">&#39;n&#39; </span>=&gt; string.push(<span class="string">&#39;\n&#39;</span>),
-                            <span class="string">&#39;v&#39; </span>=&gt; string.push(<span class="string">&#39;\x0b&#39;</span>),
-                            <span class="string">&#39;f&#39; </span>=&gt; string.push(<span class="string">&#39;\x0c&#39;</span>),
-                            <span class="string">&#39;r&#39; </span>=&gt; string.push(<span class="string">&#39;\x0d&#39;</span>),
-                            <span class="string">&#39;e&#39; </span>=&gt; string.push(<span class="string">&#39;\x1b&#39;</span>),
-                            <span class="string">&#39; &#39; </span>=&gt; string.push(<span class="string">&#39;\x20&#39;</span>),
-                            <span class="string">&#39;&quot;&#39; </span>=&gt; string.push(<span class="string">&#39;&quot;&#39;</span>),
-                            <span class="string">&#39;\&#39;&#39; </span>=&gt; string.push(<span class="string">&#39;\&#39;&#39;</span>),
-                            <span class="string">&#39;\\&#39; </span>=&gt; string.push(<span class="string">&#39;\\&#39;</span>),
+                            <span class="string">'0' </span>=&gt; string.push(<span class="string">'\0'</span>),
+                            <span class="string">'a' </span>=&gt; string.push(<span class="string">'\x07'</span>),
+                            <span class="string">'b' </span>=&gt; string.push(<span class="string">'\x08'</span>),
+                            <span class="string">'t' </span>| <span class="string">'\t' </span>=&gt; string.push(<span class="string">'\t'</span>),
+                            <span class="string">'n' </span>=&gt; string.push(<span class="string">'\n'</span>),
+                            <span class="string">'v' </span>=&gt; string.push(<span class="string">'\x0b'</span>),
+                            <span class="string">'f' </span>=&gt; string.push(<span class="string">'\x0c'</span>),
+                            <span class="string">'r' </span>=&gt; string.push(<span class="string">'\x0d'</span>),
+                            <span class="string">'e' </span>=&gt; string.push(<span class="string">'\x1b'</span>),
+                            <span class="string">' ' </span>=&gt; string.push(<span class="string">'\x20'</span>),
+                            <span class="string">'"' </span>=&gt; string.push(<span class="string">'"'</span>),
+                            <span class="string">'\'' </span>=&gt; string.push(<span class="string">'\''</span>),
+                            <span class="string">'\\' </span>=&gt; string.push(<span class="string">'\\'</span>),
                             <span class="comment">// NEL (#x85)
-                            </span><span class="string">&#39;N&#39; </span>=&gt; string.push(char::from_u32(<span class="number">0x85</span>).unwrap()),
+                            </span><span class="string">'N' </span>=&gt; string.push(char::from_u32(<span class="number">0x85</span>).unwrap()),
                             <span class="comment">// #xA0
-                            </span><span class="string">&#39;_&#39; </span>=&gt; string.push(char::from_u32(<span class="number">0xA0</span>).unwrap()),
+                            </span><span class="string">'_' </span>=&gt; string.push(char::from_u32(<span class="number">0xA0</span>).unwrap()),
                             <span class="comment">// LS (#x2028)
-                            </span><span class="string">&#39;L&#39; </span>=&gt; string.push(char::from_u32(<span class="number">0x2028</span>).unwrap()),
+                            </span><span class="string">'L' </span>=&gt; string.push(char::from_u32(<span class="number">0x2028</span>).unwrap()),
                             <span class="comment">// PS (#x2029)
-                            </span><span class="string">&#39;P&#39; </span>=&gt; string.push(char::from_u32(<span class="number">0x2029</span>).unwrap()),
-                            <span class="string">&#39;x&#39; </span>=&gt; code_length = <span class="number">2</span>,
-                            <span class="string">&#39;u&#39; </span>=&gt; code_length = <span class="number">4</span>,
-                            <span class="string">&#39;U&#39; </span>=&gt; code_length = <span class="number">8</span>,
+                            </span><span class="string">'P' </span>=&gt; string.push(char::from_u32(<span class="number">0x2029</span>).unwrap()),
+                            <span class="string">'x' </span>=&gt; code_length = <span class="number">2</span>,
+                            <span class="string">'u' </span>=&gt; code_length = <span class="number">4</span>,
+                            <span class="string">'U' </span>=&gt; code_length = <span class="number">8</span>,
                             <span class="kw">_ </span>=&gt; {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                                     start_mark,
-                                    <span class="string">&quot;while parsing a quoted scalar, found unknown escape character&quot;</span>,
+                                    <span class="string">"while parsing a quoted scalar, found unknown escape character"</span>,
                                 ))
                             }
                         }
@@ -3566,7 +3568,7 @@
                             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..code_length {
                                 <span class="kw">if </span>!is_hex(<span class="self">self</span>.buffer[i]) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(start_mark,
-                                        <span class="string">&quot;while parsing a quoted scalar, did not find expected hexadecimal number&quot;</span>));
+                                        <span class="string">"while parsing a quoted scalar, did not find expected hexadecimal number"</span>));
                                 }
                                 value = (value &lt;&lt; <span class="number">4</span>) + as_hex(<span class="self">self</span>.buffer[i]);
                             }
@@ -3575,7 +3577,7 @@
                                 <span class="prelude-val">Some</span>(v) =&gt; v,
                                 <span class="prelude-val">None </span>=&gt; {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(start_mark,
-                                        <span class="string">&quot;while parsing a quoted scalar, found invalid Unicode character escape code&quot;</span>));
+                                        <span class="string">"while parsing a quoted scalar, found invalid Unicode character escape code"</span>));
                                 }
                             };
                             string.push(ch);
@@ -3594,8 +3596,8 @@
             }
             <span class="self">self</span>.lookahead(<span class="number">1</span>);
             <span class="kw">match </span><span class="self">self</span>.ch() {
-                <span class="string">&#39;\&#39;&#39; </span><span class="kw">if </span>single =&gt; <span class="kw">break</span>,
-                <span class="string">&#39;&quot;&#39; </span><span class="kw">if </span>!single =&gt; <span class="kw">break</span>,
+                <span class="string">'\'' </span><span class="kw">if </span>single =&gt; <span class="kw">break</span>,
+                <span class="string">'"' </span><span class="kw">if </span>!single =&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
 
@@ -3631,7 +3633,7 @@
                     leading_break.clear();
                 } <span class="kw">else </span>{
                     <span class="kw">if </span>trailing_breaks.is_empty() {
-                        string.push(<span class="string">&#39; &#39;</span>);
+                        string.push(<span class="string">' '</span>);
                     } <span class="kw">else </span>{
                         string.push_str(<span class="kw-2">&amp;</span>trailing_breaks);
                         trailing_breaks.clear();
@@ -3685,27 +3687,27 @@
             </span><span class="self">self</span>.lookahead(<span class="number">4</span>);
 
             <span class="kw">if </span><span class="self">self</span>.mark.col == <span class="number">0
-                </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;-&#39;</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;-&#39;</span>))
-                    || ((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">&#39;.&#39;</span>)
-                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">&#39;.&#39;</span>)
-                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">&#39;.&#39;</span>)))
+                </span>&amp;&amp; (((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'-'</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'-'</span>) &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'-'</span>))
+                    || ((<span class="self">self</span>.buffer[<span class="number">0</span>] == <span class="string">'.'</span>)
+                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">1</span>] == <span class="string">'.'</span>)
+                        &amp;&amp; (<span class="self">self</span>.buffer[<span class="number">2</span>] == <span class="string">'.'</span>)))
                 &amp;&amp; is_blankz(<span class="self">self</span>.buffer[<span class="number">3</span>])
             {
                 <span class="kw">break</span>;
             }
 
-            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">&#39;#&#39; </span>{
+            <span class="kw">if </span><span class="self">self</span>.ch() == <span class="string">'#' </span>{
                 <span class="kw">break</span>;
             }
             <span class="kw">while </span>!is_blankz(<span class="self">self</span>.ch()) {
                 <span class="comment">// indicators can end a plain scalar, see 7.3.3. Plain Style
                 </span><span class="kw">match </span><span class="self">self</span>.ch() {
-                    <span class="string">&#39;:&#39; </span><span class="kw">if </span>is_blankz(<span class="self">self</span>.buffer[<span class="number">1</span>])
+                    <span class="string">':' </span><span class="kw">if </span>is_blankz(<span class="self">self</span>.buffer[<span class="number">1</span>])
                         || (<span class="self">self</span>.flow_level &gt; <span class="number">0 </span>&amp;&amp; is_flow(<span class="self">self</span>.buffer[<span class="number">1</span>])) =&gt;
                     {
                         <span class="kw">break</span>;
                     }
-                    <span class="string">&#39;,&#39; </span>| <span class="string">&#39;[&#39; </span>| <span class="string">&#39;]&#39; </span>| <span class="string">&#39;{&#39; </span>| <span class="string">&#39;}&#39; </span><span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>=&gt; <span class="kw">break</span>,
+                    <span class="string">',' </span>| <span class="string">'[' </span>| <span class="string">']' </span>| <span class="string">'{' </span>| <span class="string">'}' </span><span class="kw">if </span><span class="self">self</span>.flow_level &gt; <span class="number">0 </span>=&gt; <span class="kw">break</span>,
                     <span class="kw">_ </span>=&gt; {}
                 }
 
@@ -3718,7 +3720,7 @@
                             leading_break.clear();
                         } <span class="kw">else </span>{
                             <span class="kw">if </span>trailing_breaks.is_empty() {
-                                string.push(<span class="string">&#39; &#39;</span>);
+                                string.push(<span class="string">' '</span>);
                             } <span class="kw">else </span>{
                                 string.push_str(<span class="kw-2">&amp;</span>trailing_breaks);
                                 trailing_breaks.clear();
@@ -3744,10 +3746,10 @@
 
             <span class="kw">while </span>is_blank(<span class="self">self</span>.ch()) || is_break(<span class="self">self</span>.ch()) {
                 <span class="kw">if </span>is_blank(<span class="self">self</span>.ch()) {
-                    <span class="kw">if </span>leading_blanks &amp;&amp; (<span class="self">self</span>.mark.col <span class="kw">as </span>isize) &lt; indent &amp;&amp; <span class="self">self</span>.ch() == <span class="string">&#39;\t&#39; </span>{
+                    <span class="kw">if </span>leading_blanks &amp;&amp; (<span class="self">self</span>.mark.col <span class="kw">as </span>isize) &lt; indent &amp;&amp; <span class="self">self</span>.ch() == <span class="string">'\t' </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                             start_mark,
-                            <span class="string">&quot;while scanning a plain scalar, found a tab&quot;</span>,
+                            <span class="string">"while scanning a plain scalar, found a tab"</span>,
                         ));
                     }
 
@@ -3794,7 +3796,7 @@
             </span><span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                     <span class="self">self</span>.mark,
-                    <span class="string">&quot;mapping keys are not allowed in this context&quot;</span>,
+                    <span class="string">"mapping keys are not allowed in this context"</span>,
                 ));
             }
             <span class="self">self</span>.roll_indent(
@@ -3838,12 +3840,12 @@
             <span class="self">self</span>.simple_keys.last_mut().unwrap().possible = <span class="bool-val">false</span>;
             <span class="self">self</span>.disallow_simple_key();
         } <span class="kw">else </span>{
-            <span class="comment">// The &#39;:&#39; indicator follows a complex key.
+            <span class="comment">// The ':' indicator follows a complex key.
             </span><span class="kw">if </span><span class="self">self</span>.flow_level == <span class="number">0 </span>{
                 <span class="kw">if </span>!<span class="self">self</span>.simple_key_allowed {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(
                         start_mark,
-                        <span class="string">&quot;mapping values are not allowed in this context&quot;</span>,
+                        <span class="string">"mapping values are not allowed in this context"</span>,
                     ));
                 }
 
@@ -3912,7 +3914,7 @@
     <span class="kw">fn </span>remove_simple_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ScanResult {
         <span class="kw">let </span>last = <span class="self">self</span>.simple_keys.last_mut().unwrap();
         <span class="kw">if </span>last.possible &amp;&amp; last.required {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark, <span class="string">&quot;simple key expected&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ScanError::new(<span class="self">self</span>.mark, <span class="string">"simple key expected"</span>));
         }
 
         last.possible = <span class="bool-val">false</span>;
@@ -3930,7 +3932,7 @@
             <span class="kw">let </span>tok = <span class="macro-nonterminal">$p</span>.next().unwrap();
             <span class="kw">match </span>tok.<span class="number">1 </span>{
                 <span class="macro-nonterminal">$tk </span>=&gt; {}
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected token: {:?}&quot;</span>, tok),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"unexpected token: {:?}"</span>, tok),
             }
         }};
     }
@@ -3943,7 +3945,7 @@
                     <span class="macro">assert_eq!</span>(style, <span class="macro-nonterminal">$tk</span>);
                     <span class="macro">assert_eq!</span>(v, <span class="macro-nonterminal">$v</span>);
                 }
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected token: {:?}&quot;</span>, tok),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"unexpected token: {:?}"</span>, tok),
             }
         }};
     }
@@ -3956,7 +3958,7 @@
     <span class="doccomment">/// test cases in libyaml scanner.c
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_empty() {
-        <span class="kw">let </span>s = <span class="string">&quot;&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">""</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, StreamEnd);
@@ -3965,7 +3967,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_scalar() {
-        <span class="kw">let </span>s = <span class="string">&quot;a scalar&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"a scalar"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, Scalar(TScalarStyle::Plain, <span class="kw">_</span>));
@@ -3975,10 +3977,10 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_explicit_scalar() {
-        <span class="kw">let </span>s = <span class="string">&quot;---
-&#39;a scalar&#39;
+        <span class="kw">let </span>s = <span class="string">"---
+'a scalar'
 ...
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, DocumentStart);
@@ -3990,13 +3992,13 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_multiple_documents() {
-        <span class="kw">let </span>s = <span class="string">&quot;
-&#39;a scalar&#39;
+        <span class="kw">let </span>s = <span class="string">"
+'a scalar'
 ---
-&#39;a scalar&#39;
+'a scalar'
 ---
-&#39;a scalar&#39;
-&quot;</span>;
+'a scalar'
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, Scalar(TScalarStyle::SingleQuoted, <span class="kw">_</span>));
@@ -4010,11 +4012,11 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_a_flow_sequence() {
-        <span class="kw">let </span>s = <span class="string">&quot;[item 1, item 2, item 3]&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"[item 1, item 2, item 3]"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, FlowSequenceStart);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 1"</span>);
         <span class="macro">next!</span>(p, FlowEntry);
         <span class="macro">next!</span>(p, Scalar(TScalarStyle::Plain, <span class="kw">_</span>));
         <span class="macro">next!</span>(p, FlowEntry);
@@ -4026,12 +4028,12 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_a_flow_mapping() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 {
     a simple key: a value, # Note that the KEY token is produced.
     ? a complex key: another value,
 }
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, FlowMappingStart);
@@ -4041,7 +4043,7 @@
         <span class="macro">next!</span>(p, Scalar(TScalarStyle::Plain, <span class="kw">_</span>));
         <span class="macro">next!</span>(p, FlowEntry);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a complex key&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a complex key"</span>);
         <span class="macro">next!</span>(p, Value);
         <span class="macro">next!</span>(p, Scalar(TScalarStyle::Plain, <span class="kw">_</span>));
         <span class="macro">next!</span>(p, FlowEntry);
@@ -4052,7 +4054,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_block_sequences() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 - item 1
 - item 2
 -
@@ -4061,31 +4063,31 @@
 -
   key 1: value 1
   key 2: value 2
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 2"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 3.1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 3.1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 3.2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 3.2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEntry);
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 1"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 1"</span>);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 2"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, StreamEnd);
@@ -4094,7 +4096,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_block_mappings() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 a simple key: a value   # The KEY token is produced here.
 ? a complex key
 : another value
@@ -4104,7 +4106,7 @@ a mapping:
 a sequence:
   - item 1
   - item 2
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, BlockMappingStart);
@@ -4145,21 +4147,21 @@ a sequence:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_no_block_sequence_start() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 key:
 - item 1
 - item 2
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key"</span>);
         <span class="macro">next!</span>(p, Value);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
@@ -4167,41 +4169,41 @@ key:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_collections_in_sequence() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 - - item 1
   - item 2
 - key 1: value 1
   key 2: value 2
 - ? complex key
   : complex value
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEntry);
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 1"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 1"</span>);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 2"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEntry);
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;complex key&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"complex key"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;complex value&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"complex value"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, StreamEnd);
@@ -4210,38 +4212,38 @@ key:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_collections_in_mapping() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 ? a sequence
 : - item 1
   - item 2
 ? a mapping
 : key 1: value 1
   key 2: value 2
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a sequence&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a sequence"</span>);
         <span class="macro">next!</span>(p, Value);
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;item 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"item 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a mapping&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a mapping"</span>);
         <span class="macro">next!</span>(p, Value);
         <span class="macro">next!</span>(p, BlockMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 1"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 1"</span>);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;key 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"key 2"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;value 2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"value 2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, StreamEnd);
@@ -4250,21 +4252,21 @@ key:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_spec_ex7_3() {
-        <span class="kw">let </span>s = <span class="string">&quot;
+        <span class="kw">let </span>s = <span class="string">"
 {
     ? foo :,
     : bar,
 }
-&quot;</span>;
+"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, FlowMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;foo&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"foo"</span>);
         <span class="macro">next!</span>(p, Value);
         <span class="macro">next!</span>(p, FlowEntry);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;bar&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"bar"</span>);
         <span class="macro">next!</span>(p, FlowEntry);
         <span class="macro">next!</span>(p, FlowMappingEnd);
         <span class="macro">next!</span>(p, StreamEnd);
@@ -4273,30 +4275,30 @@ key:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_plain_scalar_starting_with_indicators_in_flow() {
-        <span class="comment">// &quot;Plain scalars must not begin with most indicators, as this would cause ambiguity with
+        <span class="comment">// "Plain scalars must not begin with most indicators, as this would cause ambiguity with
         // other YAML constructs. However, the “:”, “?” and “-” indicators may be used as the first
-        // character if followed by a non-space “safe” character, as this causes no ambiguity.&quot;
+        // character if followed by a non-space “safe” character, as this causes no ambiguity."
 
-        </span><span class="kw">let </span>s = <span class="string">&quot;{a: :b}&quot;</span>;
+        </span><span class="kw">let </span>s = <span class="string">"{a: :b}"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, FlowMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;:b&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">":b"</span>);
         <span class="macro">next!</span>(p, FlowMappingEnd);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
 
-        <span class="kw">let </span>s = <span class="string">&quot;{a: ?b}&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"{a: ?b}"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, FlowMappingStart);
         <span class="macro">next!</span>(p, Key);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a"</span>);
         <span class="macro">next!</span>(p, Value);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;?b&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"?b"</span>);
         <span class="macro">next!</span>(p, FlowMappingEnd);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
@@ -4304,49 +4306,49 @@ key:
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_plain_scalar_starting_with_indicators_in_block() {
-        <span class="kw">let </span>s = <span class="string">&quot;:a&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">":a"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;:a&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">":a"</span>);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
 
-        <span class="kw">let </span>s = <span class="string">&quot;?a&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"?a"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;?a&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"?a"</span>);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_plain_scalar_containing_indicators_in_block() {
-        <span class="kw">let </span>s = <span class="string">&quot;a:,b&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"a:,b"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;a:,b&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"a:,b"</span>);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
 
-        <span class="kw">let </span>s = <span class="string">&quot;:,b&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">":,b"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;:,b&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">":,b"</span>);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_scanner_cr() {
-        <span class="kw">let </span>s = <span class="string">&quot;---\r\n- tok1\r\n- tok2&quot;</span>;
+        <span class="kw">let </span>s = <span class="string">"---\r\n- tok1\r\n- tok2"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>p = Scanner::new(s.chars());
         <span class="macro">next!</span>(p, StreamStart(..));
         <span class="macro">next!</span>(p, DocumentStart);
         <span class="macro">next!</span>(p, BlockSequenceStart);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;tok1&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"tok1"</span>);
         <span class="macro">next!</span>(p, BlockEntry);
-        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">&quot;tok2&quot;</span>);
+        <span class="macro">next_scalar!</span>(p, TScalarStyle::Plain, <span class="string">"tok2"</span>);
         <span class="macro">next!</span>(p, BlockEnd);
         <span class="macro">next!</span>(p, StreamEnd);
         <span class="macro">end!</span>(p);

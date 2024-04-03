@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/content/json.rs`."><title>json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/content/json.rs`."><title>json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -536,9 +538,9 @@
 </span><span class="kw">const </span>COMPACT_MAX_CHARS: usize = <span class="number">120</span>;
 
 <span class="kw">pub fn </span>format_float&lt;T: Display&gt;(value: T) -&gt; String {
-    <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, value);
-    <span class="kw">if </span>!rv.contains(<span class="string">&#39;.&#39;</span>) {
-        rv.push_str(<span class="string">&quot;.0&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="macro">format!</span>(<span class="string">"{}"</span>, value);
+    <span class="kw">if </span>!rv.contains(<span class="string">'.'</span>) {
+        rv.push_str(<span class="string">".0"</span>);
     }
     rv
 }
@@ -573,7 +575,7 @@
 
     <span class="kw">fn </span>write_indentation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.format == Format::Pretty {
-            <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{: ^1$}&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="self">self</span>.indentation * <span class="number">2</span>).unwrap();
+            <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{: ^1$}"</span>, <span class="string">""</span>, <span class="self">self</span>.indentation * <span class="number">2</span>).unwrap();
         }
     }
 
@@ -585,7 +587,7 @@
     <span class="kw">fn </span>end_container(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, empty: bool) {
         <span class="self">self</span>.indentation -= <span class="number">1</span>;
         <span class="kw">if </span><span class="self">self</span>.format == Format::Pretty &amp;&amp; !empty {
-            <span class="self">self</span>.write_char(<span class="string">&#39;\n&#39;</span>);
+            <span class="self">self</span>.write_char(<span class="string">'\n'</span>);
             <span class="self">self</span>.write_indentation();
         }
         <span class="self">self</span>.write_char(c);
@@ -595,20 +597,20 @@
         <span class="kw">match </span><span class="self">self</span>.format {
             Format::Pretty =&gt; {
                 <span class="kw">if </span>first {
-                    <span class="self">self</span>.write_char(<span class="string">&#39;\n&#39;</span>);
+                    <span class="self">self</span>.write_char(<span class="string">'\n'</span>);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.write_str(<span class="string">&quot;,\n&quot;</span>);
+                    <span class="self">self</span>.write_str(<span class="string">",\n"</span>);
                 }
                 <span class="self">self</span>.write_indentation();
             }
             Format::Condensed =&gt; {
                 <span class="kw">if </span>!first {
-                    <span class="self">self</span>.write_char(<span class="string">&#39;,&#39;</span>);
+                    <span class="self">self</span>.write_char(<span class="string">','</span>);
                 }
             }
             Format::SingleLine =&gt; {
                 <span class="kw">if </span>!first {
-                    <span class="self">self</span>.write_str(<span class="string">&quot;, &quot;</span>);
+                    <span class="self">self</span>.write_str(<span class="string">", "</span>);
                 }
             }
         }
@@ -616,94 +618,94 @@
 
     <span class="kw">fn </span>write_colon(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self</span>.format {
-            Format::Pretty | Format::SingleLine =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;: &quot;</span>),
-            Format::Condensed =&gt; <span class="self">self</span>.write_char(<span class="string">&#39;:&#39;</span>),
+            Format::Pretty | Format::SingleLine =&gt; <span class="self">self</span>.write_str(<span class="string">": "</span>),
+            Format::Condensed =&gt; <span class="self">self</span>.write_char(<span class="string">':'</span>),
         }
     }
 
     <span class="kw">fn </span>serialize_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, items: <span class="kw-2">&amp;</span>[Content]) {
-        <span class="self">self</span>.start_container(<span class="string">&#39;[&#39;</span>);
+        <span class="self">self</span>.start_container(<span class="string">'['</span>);
         <span class="kw">for </span>(idx, item) <span class="kw">in </span>items.iter().enumerate() {
             <span class="self">self</span>.write_comma(idx == <span class="number">0</span>);
             <span class="self">self</span>.serialize(item);
         }
-        <span class="self">self</span>.end_container(<span class="string">&#39;]&#39;</span>, items.is_empty());
+        <span class="self">self</span>.end_container(<span class="string">']'</span>, items.is_empty());
     }
 
     <span class="kw">fn </span>serialize_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fields: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>str, Content)]) {
-        <span class="self">self</span>.start_container(<span class="string">&#39;{&#39;</span>);
+        <span class="self">self</span>.start_container(<span class="string">'{'</span>);
         <span class="kw">for </span>(idx, (key, value)) <span class="kw">in </span>fields.iter().enumerate() {
             <span class="self">self</span>.write_comma(idx == <span class="number">0</span>);
             <span class="self">self</span>.write_escaped_str(key);
             <span class="self">self</span>.write_colon();
             <span class="self">self</span>.serialize(value);
         }
-        <span class="self">self</span>.end_container(<span class="string">&#39;}&#39;</span>, fields.is_empty());
+        <span class="self">self</span>.end_container(<span class="string">'}'</span>, fields.is_empty());
     }
 
     <span class="kw">pub fn </span>serialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Content) {
         <span class="kw">match </span>value {
-            Content::Bool(<span class="bool-val">true</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;true&quot;</span>),
-            Content::Bool(<span class="bool-val">false</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;false&quot;</span>),
-            Content::U8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::U16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::U32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::U64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::U128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::I8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::I16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::I32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::I64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
-            Content::I128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">&quot;{}&quot;</span>, n).unwrap(),
+            Content::Bool(<span class="bool-val">true</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">"true"</span>),
+            Content::Bool(<span class="bool-val">false</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">"false"</span>),
+            Content::U8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::U16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::U32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::U64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::U128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::I8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::I16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::I32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::I64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+            Content::I128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
             Content::F32(f) =&gt; {
                 <span class="kw">if </span>f.is_finite() {
                     <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>format_float(f));
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.write_str(<span class="string">&quot;null&quot;</span>)
+                    <span class="self">self</span>.write_str(<span class="string">"null"</span>)
                 }
             }
             Content::F64(f) =&gt; {
                 <span class="kw">if </span>f.is_finite() {
                     <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>format_float(f));
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.write_str(<span class="string">&quot;null&quot;</span>)
+                    <span class="self">self</span>.write_str(<span class="string">"null"</span>)
                 }
             }
             Content::Char(c) =&gt; <span class="self">self</span>.write_escaped_str(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>c).to_string()),
             Content::String(s) =&gt; <span class="self">self</span>.write_escaped_str(s),
             Content::Bytes(bytes) =&gt; {
-                <span class="self">self</span>.start_container(<span class="string">&#39;[&#39;</span>);
+                <span class="self">self</span>.start_container(<span class="string">'['</span>);
                 <span class="kw">for </span>(idx, byte) <span class="kw">in </span>bytes.iter().enumerate() {
                     <span class="self">self</span>.write_comma(idx == <span class="number">0</span>);
                     <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>byte.to_string());
                 }
-                <span class="self">self</span>.end_container(<span class="string">&#39;]&#39;</span>, bytes.is_empty());
+                <span class="self">self</span>.end_container(<span class="string">']'</span>, bytes.is_empty());
             }
-            Content::None | Content::Unit | Content::UnitStruct(<span class="kw">_</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;null&quot;</span>),
+            Content::None | Content::Unit | Content::UnitStruct(<span class="kw">_</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">"null"</span>),
             Content::Some(content) =&gt; <span class="self">self</span>.serialize(content),
             Content::UnitVariant(<span class="kw">_</span>, <span class="kw">_</span>, variant) =&gt; <span class="self">self</span>.write_escaped_str(variant),
             Content::NewtypeStruct(<span class="kw">_</span>, content) =&gt; <span class="self">self</span>.serialize(content),
             Content::NewtypeVariant(<span class="kw">_</span>, <span class="kw">_</span>, variant, content) =&gt; {
-                <span class="self">self</span>.start_container(<span class="string">&#39;{&#39;</span>);
+                <span class="self">self</span>.start_container(<span class="string">'{'</span>);
                 <span class="self">self</span>.write_comma(<span class="bool-val">true</span>);
                 <span class="self">self</span>.write_escaped_str(variant);
                 <span class="self">self</span>.write_colon();
                 <span class="self">self</span>.serialize(content);
-                <span class="self">self</span>.end_container(<span class="string">&#39;}&#39;</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.end_container(<span class="string">'}'</span>, <span class="bool-val">false</span>);
             }
             Content::Seq(seq) | Content::Tuple(seq) | Content::TupleStruct(<span class="kw">_</span>, seq) =&gt; {
                 <span class="self">self</span>.serialize_array(seq);
             }
             Content::TupleVariant(<span class="kw">_</span>, <span class="kw">_</span>, variant, seq) =&gt; {
-                <span class="self">self</span>.start_container(<span class="string">&#39;{&#39;</span>);
+                <span class="self">self</span>.start_container(<span class="string">'{'</span>);
                 <span class="self">self</span>.write_comma(<span class="bool-val">true</span>);
                 <span class="self">self</span>.write_escaped_str(variant);
                 <span class="self">self</span>.write_colon();
                 <span class="self">self</span>.serialize_array(seq);
-                <span class="self">self</span>.end_container(<span class="string">&#39;}&#39;</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.end_container(<span class="string">'}'</span>, <span class="bool-val">false</span>);
             }
             Content::Map(map) =&gt; {
-                <span class="self">self</span>.start_container(<span class="string">&#39;{&#39;</span>);
+                <span class="self">self</span>.start_container(<span class="string">'{'</span>);
                 <span class="kw">for </span>(idx, (key, value)) <span class="kw">in </span>map.iter().enumerate() {
                     <span class="self">self</span>.write_comma(idx == <span class="number">0</span>);
                     <span class="kw">let </span>real_key = key.resolve_inner();
@@ -714,23 +716,23 @@
                     } <span class="kw">else if let </span><span class="prelude-val">Some</span>(num) = real_key.as_i128() {
                         <span class="self">self</span>.write_escaped_str(<span class="kw-2">&amp;</span>num.to_string());
                     } <span class="kw">else </span>{
-                        <span class="macro">panic!</span>(<span class="string">&quot;cannot serialize maps without string keys to JSON&quot;</span>);
+                        <span class="macro">panic!</span>(<span class="string">"cannot serialize maps without string keys to JSON"</span>);
                     }
                     <span class="self">self</span>.write_colon();
                     <span class="self">self</span>.serialize(value);
                 }
-                <span class="self">self</span>.end_container(<span class="string">&#39;}&#39;</span>, map.is_empty());
+                <span class="self">self</span>.end_container(<span class="string">'}'</span>, map.is_empty());
             }
             Content::Struct(<span class="kw">_</span>, fields) =&gt; {
                 <span class="self">self</span>.serialize_object(fields);
             }
             Content::StructVariant(<span class="kw">_</span>, <span class="kw">_</span>, variant, fields) =&gt; {
-                <span class="self">self</span>.start_container(<span class="string">&#39;{&#39;</span>);
+                <span class="self">self</span>.start_container(<span class="string">'{'</span>);
                 <span class="self">self</span>.write_comma(<span class="bool-val">true</span>);
                 <span class="self">self</span>.write_escaped_str(variant);
                 <span class="self">self</span>.write_colon();
                 <span class="self">self</span>.serialize_object(fields);
-                <span class="self">self</span>.end_container(<span class="string">&#39;}&#39;</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.end_container(<span class="string">'}'</span>, <span class="bool-val">false</span>);
             }
         }
     }
@@ -744,7 +746,7 @@
     }
 
     <span class="kw">fn </span>write_escaped_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.write_char(<span class="string">&#39;&quot;&#39;</span>);
+        <span class="self">self</span>.write_char(<span class="string">'"'</span>);
 
         <span class="kw">let </span>bytes = value.as_bytes();
         <span class="kw">let </span><span class="kw-2">mut </span>start = <span class="number">0</span>;
@@ -760,16 +762,16 @@
             }
 
             <span class="kw">match </span>escape {
-                <span class="self">self</span>::BB =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\b&quot;</span>),
-                <span class="self">self</span>::TT =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\t&quot;</span>),
-                <span class="self">self</span>::NN =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\n&quot;</span>),
-                <span class="self">self</span>::FF =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\f&quot;</span>),
-                <span class="self">self</span>::RR =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\r&quot;</span>),
-                <span class="self">self</span>::QU =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\\&quot;&quot;</span>),
-                <span class="self">self</span>::BS =&gt; <span class="self">self</span>.write_str(<span class="string">&quot;\\\\&quot;</span>),
+                <span class="self">self</span>::BB =&gt; <span class="self">self</span>.write_str(<span class="string">"\\b"</span>),
+                <span class="self">self</span>::TT =&gt; <span class="self">self</span>.write_str(<span class="string">"\\t"</span>),
+                <span class="self">self</span>::NN =&gt; <span class="self">self</span>.write_str(<span class="string">"\\n"</span>),
+                <span class="self">self</span>::FF =&gt; <span class="self">self</span>.write_str(<span class="string">"\\f"</span>),
+                <span class="self">self</span>::RR =&gt; <span class="self">self</span>.write_str(<span class="string">"\\r"</span>),
+                <span class="self">self</span>::QU =&gt; <span class="self">self</span>.write_str(<span class="string">"\\\""</span>),
+                <span class="self">self</span>::BS =&gt; <span class="self">self</span>.write_str(<span class="string">"\\\\"</span>),
                 <span class="self">self</span>::U =&gt; {
-                    <span class="kw">static </span>HEX_DIGITS: [u8; <span class="number">16</span>] = <span class="kw-2">*</span><span class="string">b&quot;0123456789abcdef&quot;</span>;
-                    <span class="self">self</span>.write_str(<span class="string">&quot;\\u00&quot;</span>);
+                    <span class="kw">static </span>HEX_DIGITS: [u8; <span class="number">16</span>] = <span class="kw-2">*</span><span class="string">b"0123456789abcdef"</span>;
+                    <span class="self">self</span>.write_str(<span class="string">"\\u00"</span>);
                     <span class="self">self</span>.write_char(HEX_DIGITS[(byte &gt;&gt; <span class="number">4</span>) <span class="kw">as </span>usize] <span class="kw">as </span>char);
                     <span class="self">self</span>.write_char(HEX_DIGITS[(byte &amp; <span class="number">0xF</span>) <span class="kw">as </span>usize] <span class="kw">as </span>char);
                 }
@@ -783,21 +785,21 @@
             <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>value[start..]);
         }
 
-        <span class="self">self</span>.write_char(<span class="string">&#39;&quot;&#39;</span>);
+        <span class="self">self</span>.write_char(<span class="string">'"'</span>);
     }
 }
 
-<span class="kw">const </span>BB: u8 = <span class="string">b&#39;b&#39;</span>; <span class="comment">// \x08
-</span><span class="kw">const </span>TT: u8 = <span class="string">b&#39;t&#39;</span>; <span class="comment">// \x09
-</span><span class="kw">const </span>NN: u8 = <span class="string">b&#39;n&#39;</span>; <span class="comment">// \x0A
-</span><span class="kw">const </span>FF: u8 = <span class="string">b&#39;f&#39;</span>; <span class="comment">// \x0C
-</span><span class="kw">const </span>RR: u8 = <span class="string">b&#39;r&#39;</span>; <span class="comment">// \x0D
-</span><span class="kw">const </span>QU: u8 = <span class="string">b&#39;&quot;&#39;</span>; <span class="comment">// \x22
-</span><span class="kw">const </span>BS: u8 = <span class="string">b&#39;\\&#39;</span>; <span class="comment">// \x5C
-</span><span class="kw">const </span>U: u8 = <span class="string">b&#39;u&#39;</span>; <span class="comment">// \x00...\x1F except the ones above
+<span class="kw">const </span>BB: u8 = <span class="string">b'b'</span>; <span class="comment">// \x08
+</span><span class="kw">const </span>TT: u8 = <span class="string">b't'</span>; <span class="comment">// \x09
+</span><span class="kw">const </span>NN: u8 = <span class="string">b'n'</span>; <span class="comment">// \x0A
+</span><span class="kw">const </span>FF: u8 = <span class="string">b'f'</span>; <span class="comment">// \x0C
+</span><span class="kw">const </span>RR: u8 = <span class="string">b'r'</span>; <span class="comment">// \x0D
+</span><span class="kw">const </span>QU: u8 = <span class="string">b'"'</span>; <span class="comment">// \x22
+</span><span class="kw">const </span>BS: u8 = <span class="string">b'\\'</span>; <span class="comment">// \x5C
+</span><span class="kw">const </span>U: u8 = <span class="string">b'u'</span>; <span class="comment">// \x00...\x1F except the ones above
 
-// Lookup table of escape sequences. A value of b&#39;x&#39; at index i means that byte
-// i is escaped as &quot;\x&quot; in JSON. A value of 0 means that byte i is not escaped.
+// Lookup table of escape sequences. A value of b'x' at index i means that byte
+// i is escaped as "\x" in JSON. A value of 0 means that byte i is not escaped.
 </span><span class="attr">#[rustfmt::skip]
 </span><span class="kw">static </span>ESCAPE: [u8; <span class="number">256</span>] = [
     <span class="comment">//  1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
@@ -834,7 +836,7 @@
     ser.serialize(value);
     <span class="kw">let </span>rv = ser.into_result();
     <span class="comment">// this is pretty wasteful as we just format twice
-    // but it&#39;s acceptable for the way this is used in
+    // but it's acceptable for the way this is used in
     // insta.
     </span><span class="kw">if </span>rv.chars().count() &gt; COMPACT_MAX_CHARS {
         to_string_pretty(value)
@@ -856,41 +858,41 @@
 </span><span class="kw">fn </span>test_to_string() {
     <span class="kw">let </span>json = to_string(<span class="kw-2">&amp;</span>Content::Map(<span class="macro">vec!</span>[
         (
-            Content::from(<span class="string">&quot;environments&quot;</span>),
+            Content::from(<span class="string">"environments"</span>),
             Content::Seq(<span class="macro">vec!</span>[
-                Content::from(<span class="string">&quot;development&quot;</span>),
-                Content::from(<span class="string">&quot;production&quot;</span>),
+                Content::from(<span class="string">"development"</span>),
+                Content::from(<span class="string">"production"</span>),
             ]),
         ),
-        (Content::from(<span class="string">&quot;cmdline&quot;</span>), Content::Seq(<span class="macro">vec!</span>[])),
-        (Content::from(<span class="string">&quot;extra&quot;</span>), Content::Map(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"cmdline"</span>), Content::Seq(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"extra"</span>), Content::Map(<span class="macro">vec!</span>[])),
     ]));
-    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###&quot;{&quot;environments&quot;:[&quot;development&quot;,&quot;production&quot;],&quot;cmdline&quot;:[],&quot;extra&quot;:{}}&quot;###</span>);
+    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"{"environments":["development","production"],"cmdline":[],"extra":{}}"###</span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_to_string_pretty() {
     <span class="kw">let </span>json = to_string_pretty(<span class="kw-2">&amp;</span>Content::Map(<span class="macro">vec!</span>[
         (
-            Content::from(<span class="string">&quot;environments&quot;</span>),
+            Content::from(<span class="string">"environments"</span>),
             Content::Seq(<span class="macro">vec!</span>[
-                Content::from(<span class="string">&quot;development&quot;</span>),
-                Content::from(<span class="string">&quot;production&quot;</span>),
+                Content::from(<span class="string">"development"</span>),
+                Content::from(<span class="string">"production"</span>),
             ]),
         ),
-        (Content::from(<span class="string">&quot;cmdline&quot;</span>), Content::Seq(<span class="macro">vec!</span>[])),
-        (Content::from(<span class="string">&quot;extra&quot;</span>), Content::Map(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"cmdline"</span>), Content::Seq(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"extra"</span>), Content::Map(<span class="macro">vec!</span>[])),
     ]));
-    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###&quot;
+    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
     {
-      &quot;environments&quot;: [
-        &quot;development&quot;,
-        &quot;production&quot;
+      "environments": [
+        "development",
+        "production"
       ],
-      &quot;cmdline&quot;: [],
-      &quot;extra&quot;: {}
+      "cmdline": [],
+      "extra": {}
     }
-    &quot;###</span>);
+    "###</span>);
 }
 
 <span class="attr">#[test]
@@ -900,160 +902,160 @@
         (Content::from(-<span class="number">23i32</span>), Content::from(<span class="bool-val">false</span>)),
     ]);
     <span class="kw">let </span>json = to_string_pretty(<span class="kw-2">&amp;</span>content);
-    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###&quot;
+    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
     {
-      &quot;42&quot;: true,
-      &quot;-23&quot;: false
+      "42": true,
+      "-23": false
     }
-    &quot;###</span>);
+    "###</span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_to_string_pretty_complex() {
     <span class="kw">let </span>content = Content::Map(<span class="macro">vec!</span>[
         (
-            Content::from(<span class="string">&quot;is_alive&quot;</span>),
-            Content::NewtypeStruct(<span class="string">&quot;Some&quot;</span>, Content::from(<span class="bool-val">true</span>).into()),
+            Content::from(<span class="string">"is_alive"</span>),
+            Content::NewtypeStruct(<span class="string">"Some"</span>, Content::from(<span class="bool-val">true</span>).into()),
         ),
         (
-            Content::from(<span class="string">&quot;newtype_variant&quot;</span>),
+            Content::from(<span class="string">"newtype_variant"</span>),
             Content::NewtypeVariant(
-                <span class="string">&quot;Foo&quot;</span>,
+                <span class="string">"Foo"</span>,
                 <span class="number">0</span>,
-                <span class="string">&quot;variant_a&quot;</span>,
+                <span class="string">"variant_a"</span>,
                 Box::new(Content::Struct(
-                    <span class="string">&quot;VariantA&quot;</span>,
+                    <span class="string">"VariantA"</span>,
                     <span class="macro">vec!</span>[
-                        (<span class="string">&quot;field_a&quot;</span>, Content::String(<span class="string">&quot;value_a&quot;</span>.into())),
-                        (<span class="string">&quot;field_b&quot;</span>, <span class="number">42u32</span>.into()),
+                        (<span class="string">"field_a"</span>, Content::String(<span class="string">"value_a"</span>.into())),
+                        (<span class="string">"field_b"</span>, <span class="number">42u32</span>.into()),
                     ],
                 )),
             ),
         ),
         (
-            Content::from(<span class="string">&quot;struct_variant&quot;</span>),
+            Content::from(<span class="string">"struct_variant"</span>),
             Content::StructVariant(
-                <span class="string">&quot;Foo&quot;</span>,
+                <span class="string">"Foo"</span>,
                 <span class="number">0</span>,
-                <span class="string">&quot;variant_b&quot;</span>,
+                <span class="string">"variant_b"</span>,
                 <span class="macro">vec!</span>[
-                    (<span class="string">&quot;field_a&quot;</span>, Content::String(<span class="string">&quot;value_a&quot;</span>.into())),
-                    (<span class="string">&quot;field_b&quot;</span>, <span class="number">42u32</span>.into()),
+                    (<span class="string">"field_a"</span>, Content::String(<span class="string">"value_a"</span>.into())),
+                    (<span class="string">"field_b"</span>, <span class="number">42u32</span>.into()),
                 ],
             ),
         ),
         (
-            Content::from(<span class="string">&quot;tuple_variant&quot;</span>),
+            Content::from(<span class="string">"tuple_variant"</span>),
             Content::TupleVariant(
-                <span class="string">&quot;Foo&quot;</span>,
+                <span class="string">"Foo"</span>,
                 <span class="number">0</span>,
-                <span class="string">&quot;variant_c&quot;</span>,
-                <span class="macro">vec!</span>[(Content::String(<span class="string">&quot;value_a&quot;</span>.into())), (<span class="number">42u32</span>.into())],
+                <span class="string">"variant_c"</span>,
+                <span class="macro">vec!</span>[(Content::String(<span class="string">"value_a"</span>.into())), (<span class="number">42u32</span>.into())],
             ),
         ),
-        (Content::from(<span class="string">&quot;empty_array&quot;</span>), Content::Seq(<span class="macro">vec!</span>[])),
-        (Content::from(<span class="string">&quot;empty_object&quot;</span>), Content::Map(<span class="macro">vec!</span>[])),
-        (Content::from(<span class="string">&quot;array&quot;</span>), Content::Seq(<span class="macro">vec!</span>[<span class="bool-val">true</span>.into()])),
+        (Content::from(<span class="string">"empty_array"</span>), Content::Seq(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"empty_object"</span>), Content::Map(<span class="macro">vec!</span>[])),
+        (Content::from(<span class="string">"array"</span>), Content::Seq(<span class="macro">vec!</span>[<span class="bool-val">true</span>.into()])),
         (
-            Content::from(<span class="string">&quot;object&quot;</span>),
-            Content::Map(<span class="macro">vec!</span>[(<span class="string">&quot;foo&quot;</span>.into(), <span class="bool-val">true</span>.into())]),
+            Content::from(<span class="string">"object"</span>),
+            Content::Map(<span class="macro">vec!</span>[(<span class="string">"foo"</span>.into(), <span class="bool-val">true</span>.into())]),
         ),
         (
-            Content::from(<span class="string">&quot;array_of_objects&quot;</span>),
+            Content::from(<span class="string">"array_of_objects"</span>),
             Content::Seq(<span class="macro">vec!</span>[Content::Struct(
-                <span class="string">&quot;MyType&quot;</span>,
+                <span class="string">"MyType"</span>,
                 <span class="macro">vec!</span>[
-                    (<span class="string">&quot;foo&quot;</span>, Content::from(<span class="string">&quot;bar&quot;</span>.to_string())),
-                    (<span class="string">&quot;bar&quot;</span>, Content::from(<span class="string">&quot;xxx&quot;</span>.to_string())),
+                    (<span class="string">"foo"</span>, Content::from(<span class="string">"bar"</span>.to_string())),
+                    (<span class="string">"bar"</span>, Content::from(<span class="string">"xxx"</span>.to_string())),
                 ],
             )]),
         ),
         (
-            Content::from(<span class="string">&quot;unit_variant&quot;</span>),
-            Content::UnitVariant(<span class="string">&quot;Stuff&quot;</span>, <span class="number">0</span>, <span class="string">&quot;value&quot;</span>),
+            Content::from(<span class="string">"unit_variant"</span>),
+            Content::UnitVariant(<span class="string">"Stuff"</span>, <span class="number">0</span>, <span class="string">"value"</span>),
         ),
-        (Content::from(<span class="string">&quot;u8&quot;</span>), Content::U8(<span class="number">8</span>)),
-        (Content::from(<span class="string">&quot;u16&quot;</span>), Content::U16(<span class="number">16</span>)),
-        (Content::from(<span class="string">&quot;u32&quot;</span>), Content::U32(<span class="number">32</span>)),
-        (Content::from(<span class="string">&quot;u64&quot;</span>), Content::U64(<span class="number">64</span>)),
-        (Content::from(<span class="string">&quot;u128&quot;</span>), Content::U128(<span class="number">128</span>)),
-        (Content::from(<span class="string">&quot;i8&quot;</span>), Content::I8(<span class="number">8</span>)),
-        (Content::from(<span class="string">&quot;i16&quot;</span>), Content::I16(<span class="number">16</span>)),
-        (Content::from(<span class="string">&quot;i32&quot;</span>), Content::I32(<span class="number">32</span>)),
-        (Content::from(<span class="string">&quot;i64&quot;</span>), Content::I64(<span class="number">64</span>)),
-        (Content::from(<span class="string">&quot;i128&quot;</span>), Content::I128(<span class="number">128</span>)),
-        (Content::from(<span class="string">&quot;f32&quot;</span>), Content::F32(<span class="number">32.0</span>)),
-        (Content::from(<span class="string">&quot;f64&quot;</span>), Content::F64(<span class="number">64.0</span>)),
-        (Content::from(<span class="string">&quot;char&quot;</span>), Content::Char(<span class="string">&#39;A&#39;</span>)),
-        (Content::from(<span class="string">&quot;bytes&quot;</span>), Content::Bytes(<span class="string">b&quot;hehe&quot;</span>.to_vec())),
-        (Content::from(<span class="string">&quot;null&quot;</span>), Content::None),
-        (Content::from(<span class="string">&quot;unit&quot;</span>), Content::Unit),
+        (Content::from(<span class="string">"u8"</span>), Content::U8(<span class="number">8</span>)),
+        (Content::from(<span class="string">"u16"</span>), Content::U16(<span class="number">16</span>)),
+        (Content::from(<span class="string">"u32"</span>), Content::U32(<span class="number">32</span>)),
+        (Content::from(<span class="string">"u64"</span>), Content::U64(<span class="number">64</span>)),
+        (Content::from(<span class="string">"u128"</span>), Content::U128(<span class="number">128</span>)),
+        (Content::from(<span class="string">"i8"</span>), Content::I8(<span class="number">8</span>)),
+        (Content::from(<span class="string">"i16"</span>), Content::I16(<span class="number">16</span>)),
+        (Content::from(<span class="string">"i32"</span>), Content::I32(<span class="number">32</span>)),
+        (Content::from(<span class="string">"i64"</span>), Content::I64(<span class="number">64</span>)),
+        (Content::from(<span class="string">"i128"</span>), Content::I128(<span class="number">128</span>)),
+        (Content::from(<span class="string">"f32"</span>), Content::F32(<span class="number">32.0</span>)),
+        (Content::from(<span class="string">"f64"</span>), Content::F64(<span class="number">64.0</span>)),
+        (Content::from(<span class="string">"char"</span>), Content::Char(<span class="string">'A'</span>)),
+        (Content::from(<span class="string">"bytes"</span>), Content::Bytes(<span class="string">b"hehe"</span>.to_vec())),
+        (Content::from(<span class="string">"null"</span>), Content::None),
+        (Content::from(<span class="string">"unit"</span>), Content::Unit),
         (
-            Content::from(<span class="string">&quot;crazy_string&quot;</span>),
+            Content::from(<span class="string">"crazy_string"</span>),
             Content::String((<span class="number">0u8</span>..=<span class="number">126</span>).map(|x| x <span class="kw">as </span>char).collect()),
         ),
     ]);
     <span class="kw">let </span>json = to_string_pretty(<span class="kw-2">&amp;</span>content);
 
-    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###&quot;
+    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
     {
-      &quot;is_alive&quot;: true,
-      &quot;newtype_variant&quot;: {
-        &quot;variant_a&quot;: {
-          &quot;field_a&quot;: &quot;value_a&quot;,
-          &quot;field_b&quot;: 42
+      "is_alive": true,
+      "newtype_variant": {
+        "variant_a": {
+          "field_a": "value_a",
+          "field_b": 42
         }
       },
-      &quot;struct_variant&quot;: {
-        &quot;variant_b&quot;: {
-          &quot;field_a&quot;: &quot;value_a&quot;,
-          &quot;field_b&quot;: 42
+      "struct_variant": {
+        "variant_b": {
+          "field_a": "value_a",
+          "field_b": 42
         }
       },
-      &quot;tuple_variant&quot;: {
-        &quot;variant_c&quot;: [
-          &quot;value_a&quot;,
+      "tuple_variant": {
+        "variant_c": [
+          "value_a",
           42
         ]
       },
-      &quot;empty_array&quot;: [],
-      &quot;empty_object&quot;: {},
-      &quot;array&quot;: [
+      "empty_array": [],
+      "empty_object": {},
+      "array": [
         true
       ],
-      &quot;object&quot;: {
-        &quot;foo&quot;: true
+      "object": {
+        "foo": true
       },
-      &quot;array_of_objects&quot;: [
+      "array_of_objects": [
         {
-          &quot;foo&quot;: &quot;bar&quot;,
-          &quot;bar&quot;: &quot;xxx&quot;
+          "foo": "bar",
+          "bar": "xxx"
         }
       ],
-      &quot;unit_variant&quot;: &quot;value&quot;,
-      &quot;u8&quot;: 8,
-      &quot;u16&quot;: 16,
-      &quot;u32&quot;: 32,
-      &quot;u64&quot;: 64,
-      &quot;u128&quot;: 128,
-      &quot;i8&quot;: 8,
-      &quot;i16&quot;: 16,
-      &quot;i32&quot;: 32,
-      &quot;i64&quot;: 64,
-      &quot;i128&quot;: 128,
-      &quot;f32&quot;: 32.0,
-      &quot;f64&quot;: 64.0,
-      &quot;char&quot;: &quot;A&quot;,
-      &quot;bytes&quot;: [
+      "unit_variant": "value",
+      "u8": 8,
+      "u16": 16,
+      "u32": 32,
+      "u64": 64,
+      "u128": 128,
+      "i8": 8,
+      "i16": 16,
+      "i32": 32,
+      "i64": 64,
+      "i128": 128,
+      "f32": 32.0,
+      "f64": 64.0,
+      "char": "A",
+      "bytes": [
         104,
         101,
         104,
         101
       ],
-      &quot;null&quot;: null,
-      &quot;unit&quot;: null,
-      &quot;crazy_string&quot;: &quot;\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\&quot;#$%&amp;&#39;()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~&quot;
+      "null": null,
+      "unit": null,
+      "crazy_string": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
     }
-    &quot;###</span>);
+    "###</span>);
 }
 </code></pre></div></section></main></body></html>

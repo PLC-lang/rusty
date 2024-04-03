@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/compilation/context.rs`."><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/compilation/context.rs`."><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -166,27 +168,27 @@
 <span class="kw">use </span>std::{borrow::Cow, sync::Arc};
 <span class="kw">use </span>url::{ParseError, Url};
 
-<span class="kw">static </span>DEFAULT_SCHEME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;json-schema&quot;</span>;
+<span class="kw">static </span>DEFAULT_SCHEME: <span class="kw-2">&amp;</span>str = <span class="string">"json-schema"</span>;
 
 <span class="doccomment">/// Context holds information about used draft and current scope.
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompilationContext&lt;<span class="lifetime">&#39;a</span>&gt; {
-    base_uri: BaseUri&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompilationContext&lt;<span class="lifetime">'a</span>&gt; {
+    base_uri: BaseUri&lt;<span class="lifetime">'a</span>&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) config: Arc&lt;CompilationOptions&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) resolver: Arc&lt;Resolver&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) schema_path: InstancePath&lt;<span class="lifetime">&#39;a</span>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) schema_path: InstancePath&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BaseUri&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// A base URL was specified, either because we know a reasonable base URI where we retrieved the
     /// schema or because a URI was specified via $id
-    </span>Known(Cow&lt;<span class="lifetime">&#39;a</span>, Url&gt;),
-    <span class="doccomment">/// We don&#39;t know a base URI for this schema
+    </span>Known(Cow&lt;<span class="lifetime">'a</span>, Url&gt;),
+    <span class="doccomment">/// We don't know a base URI for this schema
     </span>Unknown,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; BaseUri&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; BaseUri&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_new_scope(<span class="kw-2">&amp;</span><span class="self">self</span>, new_scope: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ParseError&gt; {
         <span class="kw">let </span>options = <span class="kw">match </span><span class="self">self </span>{
             BaseUri::Known(u) =&gt; Url::options().base_url(<span class="prelude-val">Some</span>(u)),
@@ -196,14 +198,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="prelude-ty">Option</span>&lt;Url&gt;&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="prelude-ty">Option</span>&lt;Url&gt;&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>from(u: <span class="prelude-ty">Option</span>&lt;Url&gt;) -&gt; <span class="self">Self </span>{
         u.map_or(BaseUri::Unknown, Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Url&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(u: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Url) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Url&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(u: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Url) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>u.scheme() == DEFAULT_SCHEME {
             BaseUri::Unknown
         } <span class="kw">else </span>{
@@ -212,7 +214,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;Url&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;Url&gt; <span class="kw">for </span>BaseUri&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>from(u: Url) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>u.scheme() == DEFAULT_SCHEME {
             BaseUri::Unknown
@@ -222,8 +224,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, Url&gt; {
-    <span class="kw">fn </span>from(uri: <span class="kw-2">&amp;</span>BaseUri&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>BaseUri&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, Url&gt; {
+    <span class="kw">fn </span>from(uri: <span class="kw-2">&amp;</span>BaseUri&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>uri {
             BaseUri::Unknown =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span>DEFAULT_SCOPE),
             BaseUri::Known(u) =&gt; u.clone(),
@@ -231,9 +233,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CompilationContext&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CompilationContext&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new(
-        scope: BaseUri&lt;<span class="lifetime">&#39;a</span>&gt;,
+        scope: BaseUri&lt;<span class="lifetime">'a</span>&gt;,
         config: Arc&lt;CompilationOptions&gt;,
         resolver: Arc&lt;Resolver&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -249,14 +251,14 @@
     </span><span class="doccomment">/// Push a new scope. All URLs built from the new context will have this scope in them.
     /// Before push:
     ///    scope = http://example.com/
-    ///    build_url(&quot;#/definitions/foo&quot;) -&gt; &quot;http://example.com/#/definitions/foo&quot;
-    /// After push this schema - {&quot;$id&quot;: &quot;folder/&quot;, ...}
+    ///    build_url("#/definitions/foo") -&gt; "http://example.com/#/definitions/foo"
+    /// After push this schema - {"$id": "folder/", ...}
     ///    scope = http://example.com/folder/
-    ///    build_url(&quot;#/definitions/foo&quot;) -&gt; &quot;http://example.com/folder/#/definitions/foo&quot;
+    ///    build_url("#/definitions/foo") -&gt; "http://example.com/folder/#/definitions/foo"
     ///
     /// In other words it keeps track of sub-folders during compilation.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, schema: <span class="kw-2">&amp;</span>Value) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ParseError&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, schema: <span class="kw-2">&amp;</span>Value) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ParseError&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = schemas::id_of(<span class="self">self</span>.config.draft(), schema) {
             <span class="prelude-val">Ok</span>(CompilationContext {
                 base_uri: <span class="self">self</span>.base_uri.with_new_scope(id)<span class="question-mark">?</span>,
@@ -275,7 +277,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_path(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, chunk: <span class="kw">impl </span>Into&lt;PathChunk&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_path(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, chunk: <span class="kw">impl </span>Into&lt;PathChunk&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>schema_path = <span class="self">self</span>.schema_path.push(chunk);
         CompilationContext {
             base_uri: <span class="self">self</span>.base_uri.clone(),

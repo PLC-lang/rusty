@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fraction-0.13.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fraction-0.13.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fraction/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -220,8 +222,8 @@
 //!
 //! # Library features
 //!
-//! - Drop in replacement for floats with the exception for NaN == NaN so that it&#39;s hashable
-//! - It&#39;s hashable, so may be used as values in Sets and keys in dictionaries and hash maps
+//! - Drop in replacement for floats with the exception for NaN == NaN so that it's hashable
+//! - It's hashable, so may be used as values in Sets and keys in dictionaries and hash maps
 //! - [Display](fraction::display) implementation for fractions and decimals
 //! - [Fraction](GenericFraction) type, representing fractions
 //! - [Decimal](GenericDecimal) type, based on [Fraction](GenericFraction) type represents floats as lossless decimals
@@ -247,7 +249,7 @@
 //!
 //! # Implementation
 //! Basic math implemented upon the [num] crate (in particular the [num::rational] module).
-//! The utilised traits from the [num] crate are re-exported, so you don&#39;t have to explicitly depend on that crate however,
+//! The utilised traits from the [num] crate are re-exported, so you don't have to explicitly depend on that crate however,
 //! you may import them from either of crates if necessary.
 //!
 //! # Usage
@@ -266,22 +268,22 @@
 //! assert_eq!(F::from(2), two);
 //! assert_eq!(F::new(2u64, 3u64), two_third);
 //!
-//! assert_eq!(&quot;2/3&quot;, format!(&quot;{}&quot;, two_third));  // print as Fraction (by default)
-//! assert_eq!(&quot;0.6666&quot;, format!(&quot;{:.4}&quot;, two_third));  // format as decimal and print up to 4 digits after floating point
+//! assert_eq!("2/3", format!("{}", two_third));  // print as Fraction (by default)
+//! assert_eq!("0.6666", format!("{:.4}", two_third));  // format as decimal and print up to 4 digits after floating point
 //! ```
 //!
 //! Decimal is implemented as a representation layer on top of Fraction.
-//! Thus, it is also lossless and may require explicit control over &quot;precision&quot;
+//! Thus, it is also lossless and may require explicit control over "precision"
 //! for comparison and formatting operations.
 //! ```
 //! type D = fraction::Decimal;
 //!
 //! let result = D::from(0.5) / D::from(0.3);
 //!
-//! assert_eq!(format!(&quot;{}&quot;, result), &quot;1.6&quot;); // calculation result uses precision of the operands
-//! assert_eq!(format!(&quot;{:.4}&quot;, result), &quot;1.6666&quot;);  // explicitly passing precision to format
+//! assert_eq!(format!("{}", result), "1.6"); // calculation result uses precision of the operands
+//! assert_eq!(format!("{:.4}", result), "1.6666");  // explicitly passing precision to format
 //!
-//! assert_eq!(&quot;1.6666&quot;, format!(&quot;{}&quot;, result.set_precision(4))); // the other way to set precision explicitly on Decimal
+//! assert_eq!("1.6666", format!("{}", result.set_precision(4))); // the other way to set precision explicitly on Decimal
 //! ```
 //!
 //! ## Construct:
@@ -297,7 +299,7 @@
 //!     let f = Fraction::new(1u8, 2u8);  // constructs with numerator/denominator and normalizes the fraction (finds least common denominator)
 //!     assert_eq!(f, Fraction::new_generic(Sign::Plus, 1i32, 2u8).unwrap());  // with numerator/denominator of different integer types
 //!     assert_eq!(f, Fraction::from(0.5));  // convert from float (f32, f64)
-//!     assert_eq!(f, Fraction::from_str(&quot;0.5&quot;).unwrap());  // parse a string
+//!     assert_eq!(f, Fraction::from_str("0.5").unwrap());  // parse a string
 //!
 //!     // Raw construct with no extra calculations.
 //!     // Most performant, but does not look for common denominator and may lead to unexpected results
@@ -323,7 +325,7 @@
 //!     assert_eq!(d, Decimal::from_fraction(Fraction::from(1))); // from fraction, precision is calculated from fraction
 //!
 //!     let d = Decimal::from(1.3);  // from float (f32, f64)
-//!     assert_eq!(d, Decimal::from_str(&quot;1.3&quot;).unwrap());
+//!     assert_eq!(d, Decimal::from_str("1.3").unwrap());
 //! }
 //! ```
 //!
@@ -335,9 +337,9 @@
 //! type F = fraction::Fraction;
 //!
 //! let result = F::from(0.7) / F::from(0.4);
-//! assert_eq!(format!(&quot;{}&quot;, result), &quot;7/4&quot;);  // Printed as fraction by default
-//! assert_eq!(format!(&quot;{:.2}&quot;, result), &quot;1.75&quot;); // if precision is defined, printed as decimal
-//! assert_eq!(format!(&quot;{:#.3}&quot;, result), &quot;1.750&quot;); // to print leading zeroes, pass hash to the format
+//! assert_eq!(format!("{}", result), "7/4");  // Printed as fraction by default
+//! assert_eq!(format!("{:.2}", result), "1.75"); // if precision is defined, printed as decimal
+//! assert_eq!(format!("{:#.3}", result), "1.750"); // to print leading zeroes, pass hash to the format
 //! ```
 //!
 //! ### Generic integer conversion
@@ -351,7 +353,7 @@
 //! ```
 //!
 //! ### Postgres usage
-//! Postgres uses i16 for its binary protocol, so you&#39;ll have to use at least u16
+//! Postgres uses i16 for its binary protocol, so you'll have to use at least u16
 //! as the base type for fractions/decimals.
 //! Otherwise you may workaround with DynaInt&lt;u8, _something_more_than_u8_&gt;.
 //! The safest way to go with would be DynaInt based types
@@ -368,11 +370,11 @@
 
 </span><span class="kw">extern crate </span>num;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-bigint"</span>)]
 #[macro_use]
 </span><span class="kw">extern crate </span>lazy_static;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-bigint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-bigint"</span>)]
 </span><span class="kw">pub use </span>num::bigint::{BigInt, BigUint};
 
 <span class="kw">pub use </span>num::rational::{ParseRatioError, Ratio};
@@ -402,20 +404,20 @@
 
 <span class="comment">// ====================================== FEATURES ======================================
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;with-juniper-support&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"with-juniper-support"</span>)]
 </span><span class="kw">extern crate </span>juniper;
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-postgres-support&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-postgres-support"</span>)]
 #[macro_use]
 </span><span class="kw">extern crate </span>postgres_types;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-serde-support&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-serde-support"</span>)]
 #[macro_use]
 </span><span class="kw">extern crate </span>serde_derive;
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-serde-support&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-serde-support"</span>)]
 </span><span class="kw">extern crate </span>serde;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-decimal&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-decimal"</span>)]
 </span><span class="kw">mod </span>decimal;
-<span class="attr">#[cfg(feature = <span class="string">&quot;with-dynaint&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"with-dynaint"</span>)]
 </span><span class="kw">pub mod </span>dynaint;
 </code></pre></div></section></main></body></html>

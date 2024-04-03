@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/metadata_value.rs`."><title>metadata_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/metadata_value.rs`."><title>metadata_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -171,35 +173,35 @@
 <span class="kw">use </span>std::ffi::CStr;
 <span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
 
-<span class="comment">// FIXME: use #[doc(cfg(...))] for this rustdoc comment when it&#39;s stabilized:
+<span class="comment">// FIXME: use #[doc(cfg(...))] for this rustdoc comment when it's stabilized:
 // https://github.com/rust-lang/rust/issues/43781
 </span><span class="doccomment">/// Value returned by [`Context::get_kind_id()`](crate::context::Context::get_kind_id)
-/// for the first input string that isn&#39;t known. Each LLVM version has a different set of pre-defined metadata kinds.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;llvm4-0&quot;</span>)]
+/// for the first input string that isn't known. Each LLVM version has a different set of pre-defined metadata kinds.
+</span><span class="attr">#[cfg(feature = <span class="string">"llvm4-0"</span>)]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">22</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;llvm5-0&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"llvm5-0"</span>)]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">23</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm6-0&quot;</span>, feature = <span class="string">&quot;llvm7-0&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"llvm6-0"</span>, feature = <span class="string">"llvm7-0"</span>))]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">25</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;llvm8-0&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"llvm8-0"</span>)]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">26</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;llvm9-0&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"llvm9-0"</span>)]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">28</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm10-0&quot;</span>, feature = <span class="string">&quot;llvm11-0&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"llvm10-0"</span>, feature = <span class="string">"llvm11-0"</span>))]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">30</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm12-0&quot;</span>, feature = <span class="string">&quot;llvm13-0&quot;</span>, feature = <span class="string">&quot;llvm14-0&quot;</span>,))]
+<span class="attr">#[cfg(any(feature = <span class="string">"llvm12-0"</span>, feature = <span class="string">"llvm13-0"</span>, feature = <span class="string">"llvm14-0"</span>,))]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">31</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm15-0&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"llvm15-0"</span>))]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">36</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm16-0&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"llvm16-0"</span>))]
 </span><span class="kw">pub const </span>FIRST_CUSTOM_METADATA_KIND_ID: u32 = <span class="number">39</span>;
 
 <span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-</span><span class="kw">pub struct </span>MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    metadata_value: Value&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    metadata_value: Value&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(value: LLVMValueRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!value.is_null());
         <span class="macro">assert!</span>(!LLVMIsAMDNode(value).is_null() || !LLVMIsAMDString(value).is_null());
@@ -251,7 +253,7 @@
 
     <span class="comment">// SubTypes: Node only one day
     // REVIEW: BasicMetadataValueEnum only if you can put metadata in metadata...
-    </span><span class="kw">pub fn </span>get_node_values(<span class="self">self</span>) -&gt; Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_node_values(<span class="self">self</span>) -&gt; Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_string() {
             <span class="kw">return </span>Vec::new();
         }
@@ -275,35 +277,35 @@
         <span class="self">self</span>.metadata_value.print_to_stderr()
     }
 
-    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    <span class="kw">pub fn </span>replace_all_uses_with(<span class="self">self</span>, other: <span class="kw-2">&amp;</span>MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="self">self</span>.metadata_value.replace_all_uses_with(other.as_value_ref())
     }
 }
 
-<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_value_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMValueRef {
         <span class="self">self</span>.metadata_value.value
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MetadataValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>d = f.debug_struct(<span class="string">&quot;MetadataValue&quot;</span>);
-        d.field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_value_ref());
+        <span class="kw">let </span><span class="kw-2">mut </span>d = f.debug_struct(<span class="string">"MetadataValue"</span>);
+        d.field(<span class="string">"address"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.as_value_ref());
 
         <span class="kw">if </span><span class="self">self</span>.is_string() {
-            d.field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_string_value().unwrap());
+            d.field(<span class="string">"value"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_string_value().unwrap());
         } <span class="kw">else </span>{
-            d.field(<span class="string">&quot;values&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_node_values());
+            d.field(<span class="string">"values"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_node_values());
         }
 
-        d.field(<span class="string">&quot;repr&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.print_to_string());
+        d.field(<span class="string">"repr"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.print_to_string());
 
         d.finish()
     }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/macros.rs`."><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/macros.rs`."><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -529,11 +531,11 @@
 </span><span class="macro">macro_rules! </span>_function_name {
     () =&gt; {{
         <span class="kw">fn </span>f() {}
-        <span class="kw">fn </span>type_name_of_val&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">fn </span>type_name_of_val&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
             std::any::type_name::&lt;T&gt;()
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>name = type_name_of_val(f).strip_suffix(<span class="string">&quot;::f&quot;</span>).unwrap_or(<span class="string">&quot;&quot;</span>);
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(rest) = name.strip_suffix(<span class="string">&quot;::{{closure}}&quot;</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>name = type_name_of_val(f).strip_suffix(<span class="string">"::f"</span>).unwrap_or(<span class="string">""</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(rest) = name.strip_suffix(<span class="string">"::{{closure}}"</span>) {
             name = rest;
         }
         name
@@ -555,13 +557,13 @@
 /// ```
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;csv&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;csv&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"csv"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"csv"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_csv_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -585,13 +587,13 @@
 /// ```
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;toml&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;toml&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"toml"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"toml"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_toml_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -621,19 +623,19 @@
 /// macro, this one has a secondary mode where redactions can be defined.
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// Example:
 ///
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;redactions&quot;</span>, doc = <span class="string">&quot; ```no_run&quot;</span>)]
-#[cfg_attr(not(feature = <span class="string">&quot;redactions&quot;</span>), doc = <span class="string">&quot; ```ignore&quot;</span>)]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"redactions"</span>, doc = <span class="string">" ```no_run"</span>)]
+#[cfg_attr(not(feature = <span class="string">"redactions"</span>), doc = <span class="string">" ```ignore"</span>)]
 </span><span class="doccomment">/// # use insta::*; use serde::Serialize;
 /// # #[derive(Serialize)] struct Value; let value = Value;
 /// assert_yaml_snapshot!(value, {
-///     &quot;.key.to.redact&quot; =&gt; &quot;[replacement value]&quot;,
-///     &quot;.another.key.*.to.redact&quot; =&gt; 42
+///     ".key.to.redact" =&gt; "[replacement value]",
+///     ".another.key.*.to.redact" =&gt; 42
 /// });
 /// ```
 ///
@@ -641,11 +643,11 @@
 ///
 /// For inline usage the format is `(expression, @reference_value)` where the
 /// reference value must be a string literal.  If you make the initial snapshot
-/// just use an empty string (`@&quot;&quot;`).
+/// just use an empty string (`@""`).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;yaml&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;yaml&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"yaml"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"yaml"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_yaml_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -669,13 +671,13 @@
 /// ```
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;ron&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;ron&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"ron"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"ron"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_ron_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -699,13 +701,13 @@
 /// ```
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_json_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -730,13 +732,13 @@
 /// ```
 ///
 /// The third argument to the macro can be an object expression for redaction.
-/// It&#39;s in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
+/// It's in the form `{ selector =&gt; replacement }` or `match .. { selector =&gt; replacement }`.
 /// For more information about redactions refer to the [redactions feature in
 /// the guide](https://insta.rs/docs/redactions/).
 ///
 /// The snapshot name is optional but can be provided as first argument.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;json&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;json&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>assert_compact_json_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
@@ -771,7 +773,7 @@
         };
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>);
     }};
-    <span class="comment">// If there&#39;s an inline snapshot, capture serialization function and pass to
+    <span class="comment">// If there's an inline snapshot, capture serialization function and pass to
     // `_assert_snapshot_base`, specifying `Inline`
       </span>(format=<span class="macro-nonterminal">$format</span>:ident, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal) =&gt; {{
         <span class="kw">let </span>transform = |value| {<span class="macro-nonterminal">$crate::_macro_support::serialize_value</span>(
@@ -793,7 +795,7 @@
     }};
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;redactions&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
 #[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>_prepare_snapshot_for_redaction {
@@ -816,12 +818,12 @@
     }
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;redactions&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"redactions"</span>))]
 #[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>_prepare_snapshot_for_redaction {
     (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}, <span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$location</span>:ident) =&gt; {
-        <span class="macro">compile_error!</span>(<span class="string">&quot;insta was compiled without redaction support.&quot;</span>);
+        <span class="macro">compile_error!</span>(<span class="string">"insta was compiled without redaction support."</span>);
     };
 }
 
@@ -831,11 +833,11 @@
 /// simple values that do not implement the `Serialize` trait, but does not
 /// permit redactions.
 ///
-/// Debug is called with `&quot;{:#?}&quot;`, which means this uses pretty-print.
+/// Debug is called with `"{:#?}"`, which means this uses pretty-print.
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>assert_debug_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">&quot;{:#?}&quot;</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">"{:#?}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     };
 }
 
@@ -844,7 +846,7 @@
 </span><span class="attr">#[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>_assert_snapshot_base {
-    <span class="comment">// If there&#39;s an inline literal value, wrap the literal in a
+    <span class="comment">// If there's an inline literal value, wrap the literal in a
     // `ReferenceValue::Inline`, call self.
     </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
@@ -854,11 +856,11 @@
             $(<span class="macro-nonterminal">$arg</span>),*
         )
     };
-    <span class="comment">// If there&#39;s no debug_expr, use the stringified value, call self.
+    <span class="comment">// If there's no debug_expr, use the stringified value, call self.
     </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>))
     };
-    <span class="comment">// If there&#39;s no name (and necessarily no debug expr), auto generate the
+    <span class="comment">// If there's no name (and necessarily no debug expr), auto generate the
     // name, call self.
     </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$value</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
@@ -873,7 +875,7 @@
             <span class="macro-nonterminal">$name</span>.into(),
             <span class="attr">#[allow(clippy::redundant_closure_call)]
             </span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$transform</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$value</span>),
-            <span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>),
+            <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>),
             <span class="macro-nonterminal">$</span><span class="macro">crate::_function_name!</span>(),
             <span class="macro">module_path!</span>(),
             <span class="macro">file!</span>(),
@@ -888,7 +890,7 @@
 ///
 /// This is now deprecated, replaced by the more generic `assert_snapshot!()`
 </span><span class="attr">#[macro_export]
-#[deprecated = <span class="string">&quot;use assert_snapshot!() instead&quot;</span>]
+#[deprecated = <span class="string">"use assert_snapshot!() instead"</span>]
 </span><span class="macro">macro_rules! </span>assert_display_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::assert_snapshot!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
@@ -902,7 +904,7 @@
 ///
 /// ```no_run
 /// # use insta::*;
-/// assert_snapshot!(&quot;reference value to snapshot&quot;);
+/// assert_snapshot!("reference value to snapshot");
 /// ```
 ///
 /// Optionally a third argument can be given as an expression to be stringified
@@ -911,7 +913,7 @@
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>assert_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">"{}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     };
 }
 
@@ -967,7 +969,7 @@
 /// # let _dropguard = settings.bind_to_scope();
 /// use std::fs;
 ///
-/// glob!(&quot;inputs/*.txt&quot;, |path| {
+/// glob!("inputs/*.txt", |path| {
 ///     let input = fs::read_to_string(path).unwrap();
 ///     assert_snapshot!(input.to_uppercase());
 /// });
@@ -995,18 +997,18 @@
 /// # let _dropguard = settings.bind_to_scope();
 /// use std::fs;
 ///
-/// glob!(&quot;../test_data&quot;, &quot;inputs/*.txt&quot;, |path| {
+/// glob!("../test_data", "inputs/*.txt", |path| {
 ///     let input = fs::read_to_string(path).unwrap();
 ///     assert_snapshot!(input.to_uppercase());
 /// });
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;glob&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;glob&quot;</span>)))]
+</span><span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
+#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"glob"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules! </span>glob {
     (<span class="macro-nonterminal">$base_path</span>:expr, <span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
         <span class="kw">use </span>std::path::Path;
-        <span class="kw">let </span>base = <span class="macro-nonterminal">$crate::_macro_support::get_cargo_workspace</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>))
+        <span class="kw">let </span>base = <span class="macro-nonterminal">$crate::_macro_support::get_cargo_workspace</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>))
             .join(Path::new(<span class="macro">file!</span>()).parent().unwrap())
             .join(<span class="macro-nonterminal">$base_path</span>)
             .to_path_buf();
@@ -1014,11 +1016,11 @@
         <span class="comment">// we try to canonicalize but on some platforms (eg: wasm) that might not work, so
         // we instead silently fall back.
         </span><span class="kw">let </span>base = base.canonicalize().unwrap_or_else(|<span class="kw">_</span>| base);
-        <span class="macro-nonterminal">$crate::_macro_support::glob_exec</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>), <span class="kw-2">&amp;</span>base, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>);
+        <span class="macro-nonterminal">$crate::_macro_support::glob_exec</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>), <span class="kw-2">&amp;</span>base, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>);
     }};
 
     (<span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
-        <span class="macro">insta::glob!</span>(<span class="string">&quot;.&quot;</span>, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>)
+        <span class="macro">insta::glob!</span>(<span class="string">"."</span>, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>)
     }};
 }
 
@@ -1032,13 +1034,13 @@
 /// insta::allow_duplicates! {
 ///     for x in (0..10).step_by(2) {
 ///         let is_even = x % 2 == 0;
-///         insta::assert_debug_snapshot!(is_even, @&quot;true&quot;);
+///         insta::assert_debug_snapshot!(is_even, @"true");
 ///     }
 /// }
 /// ```
 ///
 /// The first snapshot assertion will be used as a gold master and every further
-/// assertion will be checked against it.  If they don&#39;t match the assertion will
+/// assertion will be checked against it.  If they don't match the assertion will
 /// fail.
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>allow_duplicates {

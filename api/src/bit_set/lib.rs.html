@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bit-set-0.5.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bit_set" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bit-set-0.5.3/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bit_set" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../bit_set/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1628,7 +1630,7 @@
 //! ```
 //! use bit_set::BitSet;
 //!
-//! // It&#39;s a regular set
+//! // It's a regular set
 //! let mut s = BitSet::new();
 //! s.insert(0);
 //! s.insert(3);
@@ -1637,7 +1639,7 @@
 //! s.remove(7);
 //!
 //! if !s.contains(7) {
-//!     println!(&quot;There is no 7&quot;);
+//!     println!("There is no 7");
 //! }
 //!
 //! // Can initialize from a `BitVec`
@@ -1647,7 +1649,7 @@
 //!
 //! // Print 0, 1, 3 in some order
 //! for x in s.iter() {
-//!     println!(&quot;{}&quot;, x);
+//!     println!("{}", x);
 //! }
 //!
 //! // Can convert back to a `BitVec`
@@ -1656,11 +1658,11 @@
 //! ```
 
 </span><span class="attr">#![no_std]
-#![cfg_attr(all(test, feature = <span class="string">&quot;nightly&quot;</span>), feature(test))]
+#![cfg_attr(all(test, feature = <span class="string">"nightly"</span>), feature(test))]
 </span><span class="kw">extern crate </span>bit_vec;
-<span class="attr">#[cfg(all(test, feature = <span class="string">&quot;nightly&quot;</span>))]
+<span class="attr">#[cfg(all(test, feature = <span class="string">"nightly"</span>))]
 </span><span class="kw">extern crate </span>rand;
-<span class="attr">#[cfg(all(test, feature = <span class="string">&quot;nightly&quot;</span>))]
+<span class="attr">#[cfg(all(test, feature = <span class="string">"nightly"</span>))]
 </span><span class="kw">extern crate </span>test;
 
 <span class="attr">#[cfg(test)]
@@ -1674,13 +1676,13 @@
 <span class="kw">use </span>core::hash;
 <span class="kw">use </span>core::iter::{<span class="self">self</span>, Chain, Enumerate, FromIterator, Repeat, Skip, Take};
 
-<span class="kw">type </span>MatchWords&lt;<span class="lifetime">&#39;a</span>, B&gt; = Chain&lt;Enumerate&lt;Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt;&gt;, Skip&lt;Take&lt;Enumerate&lt;Repeat&lt;B&gt;&gt;&gt;&gt;&gt;;
+<span class="kw">type </span>MatchWords&lt;<span class="lifetime">'a</span>, B&gt; = Chain&lt;Enumerate&lt;Blocks&lt;<span class="lifetime">'a</span>, B&gt;&gt;, Skip&lt;Take&lt;Enumerate&lt;Repeat&lt;B&gt;&gt;&gt;&gt;&gt;;
 
 <span class="doccomment">/// Computes how many blocks are needed to store that many bits
 </span><span class="kw">fn </span>blocks_for_bits&lt;B: BitBlock&gt;(bits: usize) -&gt; usize {
     <span class="comment">// If we want 17 bits, dividing by 32 will produce 0. So we add 1 to make sure we
     // reserve enough. But if we want exactly a multiple of 32, this will actually allocate
-    // one too many. So we need to check if that&#39;s the case. We can do that by computing if
+    // one too many. So we need to check if that's the case. We can do that by computing if
     // bitwise AND by `32 - 1` is 0. But LLVM should be able to optimize the semantically
     // superior modulo operator on a power of two to this.
     //
@@ -1693,12 +1695,12 @@
     </span>}
 }
 
-<span class="comment">// Take two BitVec&#39;s, and return iterators of their words, where the shorter one
-// has been padded with 0&#39;s
-</span><span class="kw">fn </span>match_words&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, B: BitBlock&gt;(
-    a: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BitVec&lt;B&gt;,
-    b: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>BitVec&lt;B&gt;,
-) -&gt; (MatchWords&lt;<span class="lifetime">&#39;a</span>, B&gt;, MatchWords&lt;<span class="lifetime">&#39;b</span>, B&gt;) {
+<span class="comment">// Take two BitVec's, and return iterators of their words, where the shorter one
+// has been padded with 0's
+</span><span class="kw">fn </span>match_words&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, B: BitBlock&gt;(
+    a: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BitVec&lt;B&gt;,
+    b: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>BitVec&lt;B&gt;,
+) -&gt; (MatchWords&lt;<span class="lifetime">'a</span>, B&gt;, MatchWords&lt;<span class="lifetime">'b</span>, B&gt;) {
     <span class="kw">let </span>a_len = a.storage().len();
     <span class="kw">let </span>b_len = b.storage().len();
 
@@ -1838,7 +1840,7 @@
     ///
     ///     // Print 1, 2 in arbitrary order
     ///     for x in s.iter() {
-    ///         println!(&quot;{}&quot;, x);
+    ///         println!("{}", x);
     ///     }
     /// }
     /// ```
@@ -1974,7 +1976,7 @@
             self_bit_vec.grow(other_len - self_len, <span class="bool-val">false</span>);
         }
 
-        <span class="comment">// virtually pad other with 0&#39;s for equal lengths
+        <span class="comment">// virtually pad other with 0's for equal lengths
         </span><span class="kw">let </span>other_words = {
             <span class="kw">let </span>(<span class="kw">_</span>, result) = match_words(self_bit_vec, other_bit_vec);
             result
@@ -2002,11 +2004,11 @@
     /// s.remove(32183231);
     ///
     /// // Internal storage will probably be bigger than necessary
-    /// println!(&quot;old capacity: {}&quot;, s.capacity());
+    /// println!("old capacity: {}", s.capacity());
     ///
     /// // Now should be smaller
     /// s.shrink_to_fit();
-    /// println!(&quot;new capacity: {}&quot;, s.capacity());
+    /// println!("new capacity: {}", s.capacity());
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>shrink_to_fit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -2040,7 +2042,7 @@
     ///
     /// // Print 1, 4, 6 in arbitrary order
     /// for x in s.iter() {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     /// ```
     </span><span class="attr">#[inline]
@@ -2061,11 +2063,11 @@
     ///
     /// // Print 0, 1, 2, 4 in arbitrary order
     /// for x in a.union(&amp;b) {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>union&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; Union&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    </span><span class="kw">pub fn </span>union&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>) -&gt; Union&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="kw">fn </span>or&lt;B: BitBlock&gt;(w1: B, w2: B) -&gt; B {
             w1 | w2
         }
@@ -2090,11 +2092,11 @@
     ///
     /// // Print 2
     /// for x in a.intersection(&amp;b) {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>intersection&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; Intersection&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    </span><span class="kw">pub fn </span>intersection&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>) -&gt; Intersection&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="kw">fn </span>bitand&lt;B: BitBlock&gt;(w1: B, w2: B) -&gt; B {
             w1 &amp; w2
         }
@@ -2123,18 +2125,18 @@
     ///
     /// // Print 1, 4 in arbitrary order
     /// for x in a.difference(&amp;b) {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     ///
     /// // Note that difference is not symmetric,
     /// // and `b - a` means something else.
     /// // This prints 0
     /// for x in b.difference(&amp;a) {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>difference&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; Difference&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    </span><span class="kw">pub fn </span>difference&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>) -&gt; Difference&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="kw">fn </span>diff&lt;B: BitBlock&gt;(w1: B, w2: B) -&gt; B {
             w1 &amp; !w2
         }
@@ -2160,11 +2162,11 @@
     ///
     /// // Print 0, 1, 4 in arbitrary order
     /// for x in a.symmetric_difference(&amp;b) {
-    ///     println!(&quot;{}&quot;, x);
+    ///     println!("{}", x);
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>symmetric_difference&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>) -&gt; SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    </span><span class="kw">pub fn </span>symmetric_difference&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>) -&gt; SymmetricDifference&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="kw">fn </span>bitxor&lt;B: BitBlock&gt;(w1: B, w2: B) -&gt; B {
             w1 ^ w2
         }
@@ -2342,7 +2344,7 @@
             let b = at % BITS;
 
             // Pad `other` with `w` zero blocks,
-            // append `self`&#39;s blocks in the range from `w` to the end to `other`
+            // append `self`'s blocks in the range from `w` to the end to `other`
             other.bit_vec.storage_mut().extend(repeat(0u32).take(w)
                                          .chain(self.bit_vec.storage()[w..].iter().cloned()));
             other.bit_vec.nbits = self.bit_vec.nbits;
@@ -2401,7 +2403,7 @@
 
         <span class="comment">// Check that `self` intersect `other` is self
         </span>self_bit_vec.blocks().zip(other_bit_vec.blocks()).all(|(w1, w2)| w1 &amp; w2 == w1) &amp;&amp;
-        <span class="comment">// Make sure if `self` has any more blocks than `other`, they&#39;re all 0
+        <span class="comment">// Make sure if `self` has any more blocks than `other`, they're all 0
         </span>self_bit_vec.blocks().skip(other_blocks).all(|w| w == B::zero())
     }
 
@@ -2478,25 +2480,25 @@
 
 <span class="doccomment">/// An iterator combining two `BitSet` iterators.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">struct </span>TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt; {
-    set: Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt;,
-    other: Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt;,
+</span><span class="kw">struct </span>TwoBitPositions&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt; {
+    set: Blocks&lt;<span class="lifetime">'a</span>, B&gt;,
+    other: Blocks&lt;<span class="lifetime">'a</span>, B&gt;,
     merge: <span class="kw">fn</span>(B, B) -&gt; B,
 }
 
 <span class="doccomment">/// An iterator for `BitSet`.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt;(BlockIter&lt;Blocks&lt;<span class="lifetime">&#39;a</span>, B&gt;, B&gt;);
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt;(BlockIter&lt;Blocks&lt;<span class="lifetime">'a</span>, B&gt;, B&gt;);
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B&gt;, B&gt;);
+</span><span class="kw">pub struct </span>Union&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">'a</span>, B&gt;, B&gt;);
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt;(Take&lt;BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B&gt;, B&gt;&gt;);
+</span><span class="kw">pub struct </span>Intersection&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt;(Take&lt;BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">'a</span>, B&gt;, B&gt;&gt;);
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B&gt;, B&gt;);
+</span><span class="kw">pub struct </span>Difference&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">'a</span>, B&gt;, B&gt;);
 <span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, B: <span class="lifetime">&#39;a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B&gt;, B&gt;);
+</span><span class="kw">pub struct </span>SymmetricDifference&lt;<span class="lifetime">'a</span>, B: <span class="lifetime">'a</span>&gt;(BlockIter&lt;TwoBitPositions&lt;<span class="lifetime">'a</span>, B&gt;, B&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, B: BitBlock&gt; Iterator <span class="kw">for </span>BlockIter&lt;T, B&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, B: BitBlock&gt; Iterator <span class="kw">for </span>BlockIter&lt;T, B&gt;
 <span class="kw">where
     </span>T: Iterator&lt;Item = B&gt;,
 {
@@ -2531,7 +2533,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>TwoBitPositions&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>TwoBitPositions&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = B;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;B&gt; {
@@ -2557,7 +2559,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
@@ -2570,7 +2572,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Union&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Union&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
@@ -2583,7 +2585,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Intersection&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
@@ -2596,7 +2598,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>Difference&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
@@ -2609,7 +2611,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; Iterator <span class="kw">for </span>SymmetricDifference&lt;<span class="lifetime">'a</span>, B&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="attr">#[inline]
@@ -2622,11 +2624,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, B: BitBlock&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BitSet&lt;B&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, B: BitBlock&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>BitSet&lt;B&gt; {
     <span class="kw">type </span>Item = usize;
-    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>, B&gt;;
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">'a</span>, B&gt;;
 
-    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'a</span>, B&gt; {
         <span class="self">self</span>.iter()
     }
 }
@@ -2645,7 +2647,7 @@
         s.insert(<span class="number">10</span>);
         s.insert(<span class="number">50</span>);
         s.insert(<span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;{1, 2, 10, 50}&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, s));
+        <span class="macro">assert_eq!</span>(<span class="string">"{1, 2, 10, 50}"</span>, <span class="macro">format!</span>(<span class="string">"{:?}"</span>, s));
     }
 
     <span class="attr">#[test]
@@ -2871,7 +2873,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_bit_set_intersect_with() {
-        <span class="comment">// Explicitly 0&#39;ed bits
+        <span class="comment">// Explicitly 0'ed bits
         </span><span class="kw">let </span><span class="kw-2">mut </span>a = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b10100010</span>]);
         <span class="kw">let </span><span class="kw-2">mut </span>b = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b00000000</span>]);
         <span class="kw">let </span>c = a.clone();
@@ -2880,7 +2882,7 @@
         <span class="macro">assert!</span>(a.is_empty());
         <span class="macro">assert!</span>(b.is_empty());
 
-        <span class="comment">// Uninitialized bits should behave like 0&#39;s
+        <span class="comment">// Uninitialized bits should behave like 0's
         </span><span class="kw">let </span><span class="kw-2">mut </span>a = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b10100010</span>]);
         <span class="kw">let </span><span class="kw-2">mut </span>b = BitSet::new();
         <span class="kw">let </span>c = a.clone();
@@ -2901,13 +2903,13 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_bit_set_difference_with() {
-        <span class="comment">// Explicitly 0&#39;ed bits
+        <span class="comment">// Explicitly 0'ed bits
         </span><span class="kw">let </span><span class="kw-2">mut </span>a = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b00000000</span>]);
         <span class="kw">let </span>b = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b10100010</span>]);
         a.difference_with(<span class="kw-2">&amp;</span>b);
         <span class="macro">assert!</span>(a.is_empty());
 
-        <span class="comment">// Uninitialized bits should behave like 0&#39;s
+        <span class="comment">// Uninitialized bits should behave like 0's
         </span><span class="kw">let </span><span class="kw-2">mut </span>a = BitSet::new();
         <span class="kw">let </span>b = BitSet::from_bytes(<span class="kw-2">&amp;</span>[<span class="number">0b11111111</span>]);
         a.difference_with(<span class="kw-2">&amp;</span>b);
@@ -3028,7 +3030,7 @@
         <span class="kw">let </span>old_cap = a.capacity();
         <span class="macro">assert!</span>(a.remove(<span class="number">259</span>));
         a.shrink_to_fit();
-        <span class="macro">assert!</span>(a.capacity() &lt; old_cap, <span class="string">&quot;{} {}&quot;</span>, a.capacity(), old_cap);
+        <span class="macro">assert!</span>(a.capacity() &lt; old_cap, <span class="string">"{} {}"</span>, a.capacity(), old_cap);
         <span class="macro">assert!</span>(!a.contains(<span class="number">1</span>));
         <span class="macro">assert!</span>(!a.contains(<span class="number">259</span>));
         <span class="macro">assert!</span>(a.contains(<span class="number">98</span>));
@@ -3163,7 +3165,7 @@
     */
 </span>}
 
-<span class="attr">#[cfg(all(test, feature = <span class="string">&quot;nightly&quot;</span>))]
+<span class="attr">#[cfg(all(test, feature = <span class="string">"nightly"</span>))]
 </span><span class="kw">mod </span>bench {
     <span class="kw">use </span><span class="kw">super</span>::BitSet;
     <span class="kw">use </span>bit_vec::BitVec;

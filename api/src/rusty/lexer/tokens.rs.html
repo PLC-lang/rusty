@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lexer/tokens.rs`."><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lexer/tokens.rs`."><title>tokens.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -392,384 +394,384 @@
 <span class="attr">#[derive(Debug, PartialEq, Eq, Logos, Clone)]
 </span><span class="kw">pub enum </span>Token {
     <span class="attr">#[error]
-    #[regex(<span class="string">r&quot;\(\*&quot;</span>, |lex| <span class="kw">super</span>::parse_comments(lex))]
-    #[regex(<span class="string">r&quot;/\*&quot;</span>, |lex| <span class="kw">super</span>::parse_comments(lex))]
-    #[regex(<span class="string">r&quot;\{&quot;</span>, |lex| <span class="kw">super</span>::parse_pragma(lex))]
-    #[regex(<span class="string">r&quot;//.*&quot;</span>, logos::skip)]
-    #[regex(<span class="string">r&quot;(?m)\r&quot;</span>, logos::skip)]
+    #[regex(<span class="string">r"\(\*"</span>, |lex| <span class="kw">super</span>::parse_comments(lex))]
+    #[regex(<span class="string">r"/\*"</span>, |lex| <span class="kw">super</span>::parse_comments(lex))]
+    #[regex(<span class="string">r"\{"</span>, |lex| <span class="kw">super</span>::parse_pragma(lex))]
+    #[regex(<span class="string">r"//.*"</span>, logos::skip)]
+    #[regex(<span class="string">r"(?m)\r"</span>, logos::skip)]
     </span>Error,
 
-    <span class="attr">#[token(<span class="string">&quot;@EXTERNAL&quot;</span>)]
-    #[token(<span class="string">&quot;{external}&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"@EXTERNAL"</span>)]
+    #[token(<span class="string">"{external}"</span>)]
     </span>PropertyExternal,
 
-    <span class="attr">#[token(<span class="string">&quot;{ref}&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"{ref}"</span>)]
     </span>PropertyByRef,
 
-    <span class="attr">#[token(<span class="string">&quot;{sized}&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"{sized}"</span>)]
     </span>PropertySized,
 
-    <span class="attr">#[token(<span class="string">&quot;PROGRAM&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"PROGRAM"</span>, ignore(case))]
     </span>KeywordProgram,
 
-    <span class="attr">#[token(<span class="string">&quot;CLASS&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"CLASS"</span>, ignore(case))]
     </span>KeywordClass,
 
-    <span class="attr">#[token(<span class="string">&quot;END_CLASS&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDCLASS&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_CLASS"</span>, ignore(case))]
+    #[token(<span class="string">"ENDCLASS"</span>, ignore(case))]
     </span>KeywordEndClass,
 
-    <span class="attr">#[token(<span class="string">&quot;EXTENDS&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"EXTENDS"</span>, ignore(case))]
     </span>KeywordExtends,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR_INPUT&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;VARINPUT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR_INPUT"</span>, ignore(case))]
+    #[token(<span class="string">"VARINPUT"</span>, ignore(case))]
     </span>KeywordVarInput,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR_OUTPUT&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;VAROUTPUT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR_OUTPUT"</span>, ignore(case))]
+    #[token(<span class="string">"VAROUTPUT"</span>, ignore(case))]
     </span>KeywordVarOutput,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR"</span>, ignore(case))]
     </span>KeywordVar,
 
-    <span class="attr">#[token(<span class="string">&quot;ABSTRACT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ABSTRACT"</span>, ignore(case))]
     </span>KeywordAbstract,
 
-    <span class="attr">#[token(<span class="string">&quot;FINAL&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"FINAL"</span>, ignore(case))]
     </span>KeywordFinal,
 
-    <span class="attr">#[token(<span class="string">&quot;METHOD&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"METHOD"</span>, ignore(case))]
     </span>KeywordMethod,
 
-    <span class="attr">#[token(<span class="string">&quot;CONSTANT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"CONSTANT"</span>, ignore(case))]
     </span>KeywordConstant,
 
-    <span class="attr">#[token(<span class="string">&quot;RETAIN&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"RETAIN"</span>, ignore(case))]
     </span>KeywordRetain,
 
-    <span class="attr">#[token(<span class="string">&quot;NON_RETAIN&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;NONRETAIN&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"NON_RETAIN"</span>, ignore(case))]
+    #[token(<span class="string">"NONRETAIN"</span>, ignore(case))]
     </span>KeywordNonRetain,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR_TEMP&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;VARTEMP&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR_TEMP"</span>, ignore(case))]
+    #[token(<span class="string">"VARTEMP"</span>, ignore(case))]
     </span>KeywordVarTemp,
 
-    <span class="attr">#[token(<span class="string">&quot;END_METHOD&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDMETHOD&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_METHOD"</span>, ignore(case))]
+    #[token(<span class="string">"ENDMETHOD"</span>, ignore(case))]
     </span>KeywordEndMethod,
 
-    <span class="attr">#[token(<span class="string">&quot;PUBLIC&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"PUBLIC"</span>, ignore(case))]
     </span>KeywordAccessPublic,
 
-    <span class="attr">#[token(<span class="string">&quot;PRIVATE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"PRIVATE"</span>, ignore(case))]
     </span>KeywordAccessPrivate,
 
-    <span class="attr">#[token(<span class="string">&quot;INTERNAL&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"INTERNAL"</span>, ignore(case))]
     </span>KeywordAccessInternal,
 
-    <span class="attr">#[token(<span class="string">&quot;PROTECTED&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"PROTECTED"</span>, ignore(case))]
     </span>KeywordAccessProtected,
 
-    <span class="attr">#[token(<span class="string">&quot;OVERRIDE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"OVERRIDE"</span>, ignore(case))]
     </span>KeywordOverride,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR_GLOBAL&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;VARGLOBAL&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR_GLOBAL"</span>, ignore(case))]
+    #[token(<span class="string">"VARGLOBAL"</span>, ignore(case))]
     </span>KeywordVarGlobal,
 
-    <span class="attr">#[token(<span class="string">&quot;VAR_IN_OUT&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;VARINOUT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"VAR_IN_OUT"</span>, ignore(case))]
+    #[token(<span class="string">"VARINOUT"</span>, ignore(case))]
     </span>KeywordVarInOut,
 
-    <span class="attr">#[token(<span class="string">&quot;END_VAR&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDVAR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_VAR"</span>, ignore(case))]
+    #[token(<span class="string">"ENDVAR"</span>, ignore(case))]
     </span>KeywordEndVar,
 
-    <span class="attr">#[token(<span class="string">&quot;END_PROGRAM&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDPROGRAM&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_PROGRAM"</span>, ignore(case))]
+    #[token(<span class="string">"ENDPROGRAM"</span>, ignore(case))]
     </span>KeywordEndProgram,
 
-    <span class="attr">#[token(<span class="string">&quot;FUNCTION&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"FUNCTION"</span>, ignore(case))]
     </span>KeywordFunction,
 
-    <span class="attr">#[token(<span class="string">&quot;END_FUNCTION&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDFUNCTION&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_FUNCTION"</span>, ignore(case))]
+    #[token(<span class="string">"ENDFUNCTION"</span>, ignore(case))]
     </span>KeywordEndFunction,
 
-    <span class="attr">#[token(<span class="string">&quot;FUNCTION_BLOCK&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;FUNCTIONBLOCK&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"FUNCTION_BLOCK"</span>, ignore(case))]
+    #[token(<span class="string">"FUNCTIONBLOCK"</span>, ignore(case))]
     </span>KeywordFunctionBlock,
 
-    <span class="attr">#[token(<span class="string">&quot;END_FUNCTION_BLOCK&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDFUNCTIONBLOCK&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_FUNCTION_BLOCK"</span>, ignore(case))]
+    #[token(<span class="string">"ENDFUNCTIONBLOCK"</span>, ignore(case))]
     </span>KeywordEndFunctionBlock,
 
-    <span class="attr">#[token(<span class="string">&quot;TYPE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"TYPE"</span>, ignore(case))]
     </span>KeywordType,
 
-    <span class="attr">#[token(<span class="string">&quot;STRUCT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"STRUCT"</span>, ignore(case))]
     </span>KeywordStruct,
 
-    <span class="attr">#[token(<span class="string">&quot;END_TYPE&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDTYPE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_TYPE"</span>, ignore(case))]
+    #[token(<span class="string">"ENDTYPE"</span>, ignore(case))]
     </span>KeywordEndType,
 
-    <span class="attr">#[token(<span class="string">&quot;END_STRUCT&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDSTRUCT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_STRUCT"</span>, ignore(case))]
+    #[token(<span class="string">"ENDSTRUCT"</span>, ignore(case))]
     </span>KeywordEndStruct,
 
-    <span class="attr">#[token(<span class="string">&quot;ACTIONS&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ACTIONS"</span>, ignore(case))]
     </span>KeywordActions,
 
-    <span class="attr">#[token(<span class="string">&quot;ACTION&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ACTION"</span>, ignore(case))]
     </span>KeywordAction,
 
-    <span class="attr">#[token(<span class="string">&quot;END_ACTION&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDACTION&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_ACTION"</span>, ignore(case))]
+    #[token(<span class="string">"ENDACTION"</span>, ignore(case))]
     </span>KeywordEndAction,
 
-    <span class="attr">#[token(<span class="string">&quot;END_ACTIONS&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDACTIONS&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_ACTIONS"</span>, ignore(case))]
+    #[token(<span class="string">"ENDACTIONS"</span>, ignore(case))]
     </span>KeywordEndActions,
 
-    <span class="attr">#[token(<span class="string">&quot;:&quot;</span>)]
+    <span class="attr">#[token(<span class="string">":"</span>)]
     </span>KeywordColon,
 
-    <span class="attr">#[token(<span class="string">&quot;;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">";"</span>)]
     </span>KeywordSemicolon,
 
-    <span class="attr">#[token(<span class="string">&quot;:=&quot;</span>)]
+    <span class="attr">#[token(<span class="string">":="</span>)]
     </span>KeywordAssignment,
 
-    <span class="attr">#[token(<span class="string">&quot;=&gt;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"=&gt;"</span>)]
     </span>KeywordOutputAssignment,
 
-    <span class="attr">#[token(<span class="string">&quot;(&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"("</span>)]
     </span>KeywordParensOpen,
 
-    <span class="attr">#[token(<span class="string">&quot;)&quot;</span>)]
+    <span class="attr">#[token(<span class="string">")"</span>)]
     </span>KeywordParensClose,
 
-    <span class="attr">#[token(<span class="string">&quot;[&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"["</span>)]
     </span>KeywordSquareParensOpen,
 
-    <span class="attr">#[token(<span class="string">&quot;]&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"]"</span>)]
     </span>KeywordSquareParensClose,
 
-    <span class="attr">#[token(<span class="string">&quot;,&quot;</span>)]
+    <span class="attr">#[token(<span class="string">","</span>)]
     </span>KeywordComma,
 
-    <span class="attr">#[token(<span class="string">&quot;...&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"..."</span>)]
     </span>KeywordDotDotDot,
 
-    <span class="attr">#[token(<span class="string">&quot;..&quot;</span>)]
+    <span class="attr">#[token(<span class="string">".."</span>)]
     </span>KeywordDotDot,
 
-    <span class="attr">#[token(<span class="string">&quot;.&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"."</span>)]
     </span>KeywordDot,
 
     <span class="comment">//Control Structures
-    </span><span class="attr">#[token(<span class="string">&quot;IF&quot;</span>, ignore(case))]
+    </span><span class="attr">#[token(<span class="string">"IF"</span>, ignore(case))]
     </span>KeywordIf,
 
-    <span class="attr">#[token(<span class="string">&quot;THEN&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"THEN"</span>, ignore(case))]
     </span>KeywordThen,
 
-    <span class="attr">#[token(<span class="string">&quot;ELSIF&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ELSIF"</span>, ignore(case))]
     </span>KeywordElseIf,
 
-    <span class="attr">#[token(<span class="string">&quot;ELSE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ELSE"</span>, ignore(case))]
     </span>KeywordElse,
 
-    <span class="attr">#[token(<span class="string">&quot;END_IF&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDIF&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_IF"</span>, ignore(case))]
+    #[token(<span class="string">"ENDIF"</span>, ignore(case))]
     </span>KeywordEndIf,
 
-    <span class="attr">#[token(<span class="string">&quot;FOR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"FOR"</span>, ignore(case))]
     </span>KeywordFor,
 
-    <span class="attr">#[token(<span class="string">&quot;TO&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"TO"</span>, ignore(case))]
     </span>KeywordTo,
 
-    <span class="attr">#[token(<span class="string">&quot;BY&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"BY"</span>, ignore(case))]
     </span>KeywordBy,
 
-    <span class="attr">#[token(<span class="string">&quot;DO&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"DO"</span>, ignore(case))]
     </span>KeywordDo,
 
-    <span class="attr">#[token(<span class="string">&quot;END_FOR&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDFOR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_FOR"</span>, ignore(case))]
+    #[token(<span class="string">"ENDFOR"</span>, ignore(case))]
     </span>KeywordEndFor,
 
-    <span class="attr">#[token(<span class="string">&quot;WHILE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"WHILE"</span>, ignore(case))]
     </span>KeywordWhile,
 
-    <span class="attr">#[token(<span class="string">&quot;END_WHILE&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDWHILE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_WHILE"</span>, ignore(case))]
+    #[token(<span class="string">"ENDWHILE"</span>, ignore(case))]
     </span>KeywordEndWhile,
 
-    <span class="attr">#[token(<span class="string">&quot;REPEAT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"REPEAT"</span>, ignore(case))]
     </span>KeywordRepeat,
 
-    <span class="attr">#[token(<span class="string">&quot;UNTIL&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"UNTIL"</span>, ignore(case))]
     </span>KeywordUntil,
 
-    <span class="attr">#[token(<span class="string">&quot;END_REPEAT&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDREPEAT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_REPEAT"</span>, ignore(case))]
+    #[token(<span class="string">"ENDREPEAT"</span>, ignore(case))]
     </span>KeywordEndRepeat,
 
-    <span class="attr">#[token(<span class="string">&quot;CASE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"CASE"</span>, ignore(case))]
     </span>KeywordCase,
 
-    <span class="attr">#[token(<span class="string">&quot;RETURN&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"RETURN"</span>, ignore(case))]
     </span>KeywordReturn,
 
-    <span class="attr">#[token(<span class="string">&quot;EXIT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"EXIT"</span>, ignore(case))]
     </span>KeywordExit,
 
-    <span class="attr">#[token(<span class="string">&quot;CONTINUE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"CONTINUE"</span>, ignore(case))]
     </span>KeywordContinue,
 
-    <span class="attr">#[token(<span class="string">&quot;POINTER&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"POINTER"</span>, ignore(case))]
     </span>KeywordPointer,
 
-    <span class="attr">#[token(<span class="string">&quot;REF_TO&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;REFTO&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"REF_TO"</span>, ignore(case))]
+    #[token(<span class="string">"REFTO"</span>, ignore(case))]
     </span>KeywordRef,
 
-    <span class="attr">#[token(<span class="string">&quot;ARRAY&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"ARRAY"</span>, ignore(case))]
     </span>KeywordArray,
 
-    <span class="attr">#[token(<span class="string">&quot;STRING&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"STRING"</span>, ignore(case))]
     </span>KeywordString,
 
-    <span class="attr">#[token(<span class="string">&quot;WSTRING&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"WSTRING"</span>, ignore(case))]
     </span>KeywordWideString,
 
-    <span class="attr">#[token(<span class="string">&quot;OF&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"OF"</span>, ignore(case))]
     </span>KeywordOf,
 
-    <span class="attr">#[token(<span class="string">&quot;AT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"AT"</span>, ignore(case))]
     </span>KeywordAt,
 
-    <span class="attr">#[token(<span class="string">&quot;END_CASE&quot;</span>, ignore(case))]
-    #[token(<span class="string">&quot;ENDCASE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"END_CASE"</span>, ignore(case))]
+    #[token(<span class="string">"ENDCASE"</span>, ignore(case))]
     </span>KeywordEndCase,
 
     <span class="comment">//Operators
-    </span><span class="attr">#[token(<span class="string">&quot;+&quot;</span>)]
+    </span><span class="attr">#[token(<span class="string">"+"</span>)]
     </span>OperatorPlus,
 
-    <span class="attr">#[token(<span class="string">&quot;-&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"-"</span>)]
     </span>OperatorMinus,
 
-    <span class="attr">#[token(<span class="string">&quot;*&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"*"</span>)]
     </span>OperatorMultiplication,
 
-    <span class="attr">#[token(<span class="string">&quot;**&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"**"</span>)]
     </span>OperatorExponent,
 
-    <span class="attr">#[token(<span class="string">&quot;/&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"/"</span>)]
     </span>OperatorDivision,
 
-    <span class="attr">#[token(<span class="string">&quot;=&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"="</span>)]
     </span>OperatorEqual,
 
-    <span class="attr">#[token(<span class="string">&quot;&lt;&gt;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&lt;&gt;"</span>)]
     </span>OperatorNotEqual,
 
-    <span class="attr">#[token(<span class="string">&quot;&lt;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&lt;"</span>)]
     </span>OperatorLess,
 
-    <span class="attr">#[token(<span class="string">&quot;&gt;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&gt;"</span>)]
     </span>OperatorGreater,
 
-    <span class="attr">#[token(<span class="string">&quot;&lt;=&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&lt;="</span>)]
     </span>OperatorLessOrEqual,
 
-    <span class="attr">#[token(<span class="string">&quot;&gt;=&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&gt;="</span>)]
     </span>OperatorGreaterOrEqual,
 
-    <span class="attr">#[token(<span class="string">&quot;&amp;&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"&amp;"</span>)]
     </span>OperatorAmp,
 
-    <span class="attr">#[token(<span class="string">&quot;^&quot;</span>)]
+    <span class="attr">#[token(<span class="string">"^"</span>)]
     </span>OperatorDeref,
 
-    <span class="attr">#[token(<span class="string">&quot;MOD&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"MOD"</span>, ignore(case))]
     </span>OperatorModulo,
 
-    <span class="attr">#[token(<span class="string">&quot;AND&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"AND"</span>, ignore(case))]
     </span>OperatorAnd,
 
-    <span class="attr">#[token(<span class="string">&quot;OR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"OR"</span>, ignore(case))]
     </span>OperatorOr,
 
-    <span class="attr">#[token(<span class="string">&quot;XOR&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"XOR"</span>, ignore(case))]
     </span>OperatorXor,
 
-    <span class="attr">#[token(<span class="string">&quot;NOT&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"NOT"</span>, ignore(case))]
     </span>OperatorNot,
 
     <span class="comment">//Identifiers
-    </span><span class="attr">#[regex(<span class="string">r&quot;[a-zA-Z_][a-zA-Z_0-9]*&quot;</span>)]
+    </span><span class="attr">#[regex(<span class="string">r"[a-zA-Z_][a-zA-Z_0-9]*"</span>)]
     </span>Identifier,
 
     <span class="comment">//Literals
-    </span><span class="attr">#[regex(<span class="string">r&quot;16#[0-9a-fA-F]+(_[0-9a-fA-F]+)*&quot;</span>)]
+    </span><span class="attr">#[regex(<span class="string">r"16#[0-9a-fA-F]+(_[0-9a-fA-F]+)*"</span>)]
     </span>LiteralIntegerHex,
 
-    <span class="attr">#[regex(<span class="string">r&quot;8#[0-7]+(_[0-7]+)*&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">r"8#[0-7]+(_[0-7]+)*"</span>)]
     </span>LiteralIntegerOct,
 
-    <span class="attr">#[regex(<span class="string">r&quot;2#[0-1]+(_[0-1]+)*&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">r"2#[0-1]+(_[0-1]+)*"</span>)]
     </span>LiteralIntegerBin,
 
-    <span class="attr">#[regex(<span class="string">r&quot;[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">r"[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?"</span>)]
     </span>LiteralInteger,
 
-    <span class="attr">#[token(<span class="string">&quot;NULL&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"NULL"</span>, ignore(case))]
     </span>LiteralNull,
 
-    <span class="attr">#[token(<span class="string">&quot;TRUE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"TRUE"</span>, ignore(case))]
     </span>LiteralTrue,
 
-    <span class="attr">#[token(<span class="string">&quot;FALSE&quot;</span>, ignore(case))]
+    <span class="attr">#[token(<span class="string">"FALSE"</span>, ignore(case))]
     </span>LiteralFalse,
 
-    <span class="attr">#[regex(<span class="string">&quot;(LDATE|DATE|LD|D)#\\d+-\\d+-\\d+&quot;</span>, ignore(case))]
+    <span class="attr">#[regex(<span class="string">"(LDATE|DATE|LD|D)#\\d+-\\d+-\\d+"</span>, ignore(case))]
     </span>LiteralDate,
 
     <span class="attr">#[regex(
-        <span class="string">&quot;(DATE_AND_TIME|DT|LDATE_AND_TIME|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
+        <span class="string">"(DATE_AND_TIME|DT|LDATE_AND_TIME|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?"</span>,
         ignore(case)
     )]
     </span>LiteralDateAndTime,
 
-    <span class="attr">#[regex(<span class="string">&quot;(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, ignore(case))]
+    <span class="attr">#[regex(<span class="string">"(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?"</span>, ignore(case))]
     </span>LiteralTimeOfDay,
 
-    <span class="attr">#[regex(<span class="string">&quot;(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, ignore(case))]
+    <span class="attr">#[regex(<span class="string">"(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+"</span>, ignore(case))]
     </span>LiteralTime,
 
-    <span class="attr">#[regex(<span class="string">&quot;%(B|b|D|d|W|w|L|l|X|x)&quot;</span>, <span class="kw">super</span>::parse_access_type)]
+    <span class="attr">#[regex(<span class="string">"%(B|b|D|d|W|w|L|l|X|x)"</span>, <span class="kw">super</span>::parse_access_type)]
     </span>DirectAccess(DirectAccessType),
 
-    <span class="attr">#[regex(<span class="string">r&quot;%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)&quot;</span>, <span class="kw">super</span>::parse_hardware_access_type)]
+    <span class="attr">#[regex(<span class="string">r"%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)"</span>, <span class="kw">super</span>::parse_hardware_access_type)]
     </span>HardwareAccess((HardwareAccessType, DirectAccessType)),
 
-    <span class="attr">#[regex(<span class="string">&quot;&#39;((\\$.)|[^$&#39;])*&#39;&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">"'((\\$.)|[^$'])*'"</span>)]
     </span>LiteralString,
 
-    <span class="attr">#[regex(<span class="string">&quot;\&quot;((\\$.)|[^$\&quot;])*\&quot;&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">"\"((\\$.)|[^$\"])*\""</span>)]
     </span>LiteralWideString,
 
-    <span class="attr">#[regex(<span class="string">&quot;[a-zA-Z_][a-zA-Z_0-9]*#&quot;</span>)]
+    <span class="attr">#[regex(<span class="string">"[a-zA-Z_][a-zA-Z_0-9]*#"</span>)]
     </span>TypeCastPrefix,
 
-    <span class="attr">#[regex(<span class="string">r&quot;[ \t\n\f]+&quot;</span>, logos::skip)]
+    <span class="attr">#[regex(<span class="string">r"[ \t\n\f]+"</span>, logos::skip)]
     </span>End,
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/cpu.rs`."><title>cpu.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/linux/cpu.rs`."><title>cpu.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -812,7 +814,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             global_cpu: Cpu::new_with_values(
-                <span class="string">&quot;&quot;</span>,
+                <span class="string">""</span>,
                 <span class="number">0</span>,
                 <span class="number">0</span>,
                 <span class="number">0</span>,
@@ -858,13 +860,13 @@
         };
 
         <span class="comment">// If the last CPU usage update is too close (less than `MINIMUM_CPU_UPDATE_INTERVAL`),
-        // we don&#39;t want to update CPUs times.
+        // we don't want to update CPUs times.
         </span><span class="kw">if </span>need_cpu_usage_update {
             <span class="self">self</span>.last_update = <span class="prelude-val">Some</span>(Instant::now());
-            <span class="kw">let </span>f = <span class="kw">match </span>File::open(<span class="string">&quot;/proc/stat&quot;</span>) {
+            <span class="kw">let </span>f = <span class="kw">match </span>File::open(<span class="string">"/proc/stat"</span>) {
                 <span class="prelude-val">Ok</span>(f) =&gt; f,
                 <span class="prelude-val">Err</span>(_e) =&gt; {
-                    <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;failed to retrieve CPU information: {:?}&quot;</span>, _e);
+                    <span class="macro">sysinfo_debug!</span>(<span class="string">"failed to retrieve CPU information: {:?}"</span>, _e);
                     <span class="kw">return</span>;
                 }
             };
@@ -872,14 +874,14 @@
 
             <span class="self">self</span>.need_cpus_update = <span class="bool-val">false</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>i: usize = <span class="number">0</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>it = buf.split(<span class="string">b&#39;\n&#39;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>it = buf.split(<span class="string">b'\n'</span>);
 
             <span class="kw">if </span>first || refresh_kind.cpu_usage() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(line)) = it.next() {
-                    <span class="kw">if </span><span class="kw-2">&amp;</span>line[..<span class="number">4</span>] != <span class="string">b&quot;cpu &quot; </span>{
+                    <span class="kw">if </span><span class="kw-2">&amp;</span>line[..<span class="number">4</span>] != <span class="string">b"cpu " </span>{
                         <span class="kw">return</span>;
                     }
-                    <span class="kw">let </span><span class="kw-2">mut </span>parts = line.split(|x| <span class="kw-2">*</span>x == <span class="string">b&#39; &#39;</span>).filter(|s| !s.is_empty());
+                    <span class="kw">let </span><span class="kw-2">mut </span>parts = line.split(|x| <span class="kw-2">*</span>x == <span class="string">b' '</span>).filter(|s| !s.is_empty());
                     <span class="kw">if </span>first {
                         <span class="self">self</span>.global_cpu.name = <span class="macro">to_str!</span>(parts.next().unwrap_or(<span class="kw-2">&amp;</span>[])).to_owned();
                     } <span class="kw">else </span>{
@@ -900,11 +902,11 @@
                 }
                 <span class="kw">if </span>first || !only_update_global_cpu {
                     <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(line)) = it.next() {
-                        <span class="kw">if </span><span class="kw-2">&amp;</span>line[..<span class="number">3</span>] != <span class="string">b&quot;cpu&quot; </span>{
+                        <span class="kw">if </span><span class="kw-2">&amp;</span>line[..<span class="number">3</span>] != <span class="string">b"cpu" </span>{
                             <span class="kw">break</span>;
                         }
 
-                        <span class="kw">let </span><span class="kw-2">mut </span>parts = line.split(|x| <span class="kw-2">*</span>x == <span class="string">b&#39; &#39;</span>).filter(|s| !s.is_empty());
+                        <span class="kw">let </span><span class="kw-2">mut </span>parts = line.split(|x| <span class="kw-2">*</span>x == <span class="string">b' '</span>).filter(|s| !s.is_empty());
                         <span class="kw">if </span>first {
                             <span class="self">self</span>.cpus.push(Cpu::new_with_values(
                                 <span class="macro">to_str!</span>(parts.next().unwrap_or(<span class="kw-2">&amp;</span>[])),
@@ -923,7 +925,7 @@
                                 brand.clone(),
                             ));
                         } <span class="kw">else </span>{
-                            parts.next(); <span class="comment">// we don&#39;t want the name again
+                            parts.next(); <span class="comment">// we don't want the name again
                             </span><span class="self">self</span>.cpus[i].set(
                                 parts.next().map(to_u64).unwrap_or(<span class="number">0</span>),
                                 parts.next().map(to_u64).unwrap_or(<span class="number">0</span>),
@@ -945,24 +947,24 @@
         }
 
         <span class="kw">if </span>refresh_kind.frequency() {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;multithread&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"multithread"</span>)]
             </span><span class="kw">use </span>rayon::iter::{
                 IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator,
             };
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;multithread&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"multithread"</span>)]
             </span><span class="comment">// This function is voluntarily made generic in case we want to generalize it.
-            </span><span class="kw">fn </span>iter_mut&lt;<span class="lifetime">&#39;a</span>, T&gt;(
-                val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T,
-            ) -&gt; &lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T <span class="kw">as </span>rayon::iter::IntoParallelIterator&gt;::Iter
+            </span><span class="kw">fn </span>iter_mut&lt;<span class="lifetime">'a</span>, T&gt;(
+                val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T,
+            ) -&gt; &lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T <span class="kw">as </span>rayon::iter::IntoParallelIterator&gt;::Iter
             <span class="kw">where
-                </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T: rayon::iter::IntoParallelIterator,
+                </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T: rayon::iter::IntoParallelIterator,
             {
                 val.par_iter_mut()
             }
 
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;multithread&quot;</span>))]
-            </span><span class="kw">fn </span>iter_mut&lt;<span class="lifetime">&#39;a</span>&gt;(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Cpu&gt;) -&gt; std::slice::IterMut&lt;<span class="lifetime">&#39;a</span>, Cpu&gt; {
+            <span class="attr">#[cfg(not(feature = <span class="string">"multithread"</span>))]
+            </span><span class="kw">fn </span>iter_mut&lt;<span class="lifetime">'a</span>&gt;(val: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;Cpu&gt;) -&gt; std::slice::IterMut&lt;<span class="lifetime">'a</span>, Cpu&gt; {
                 val.iter_mut()
             }
 
@@ -1076,7 +1078,7 @@
         <span class="self">self</span>.work_time()
             .saturating_add(<span class="self">self</span>.idle)
             .saturating_add(<span class="self">self</span>.iowait)
-            <span class="comment">// `steal`, `guest` and `guest_nice` are only used if we want to account the &quot;guest&quot;
+            <span class="comment">// `steal`, `guest` and `guest_nice` are only used if we want to account the "guest"
             // into the computation.
             </span>.saturating_add(<span class="self">self</span>.guest)
             .saturating_add(<span class="self">self</span>.guest_nice)
@@ -1084,7 +1086,7 @@
     }
 }
 
-<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../md_doc/cpu.md&quot;</span>)]
+<span class="attr">#[doc = <span class="macro">include_str!</span>(<span class="string">"../../md_doc/cpu.md"</span>)]
 </span><span class="kw">pub struct </span>Cpu {
     old_values: CpuValues,
     new_values: CpuValues,
@@ -1194,12 +1196,12 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_cpu_frequency(cpu_core_index: usize) -&gt; u64 {
     <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
     <span class="kw">if </span>File::open(<span class="macro">format!</span>(
-        <span class="string">&quot;/sys/devices/system/cpu/cpu{cpu_core_index}/cpufreq/scaling_cur_freq&quot;</span>,
+        <span class="string">"/sys/devices/system/cpu/cpu{cpu_core_index}/cpufreq/scaling_cur_freq"</span>,
     ))
     .and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s))
     .is_ok()
     {
-        <span class="kw">let </span>freq_option = s.trim().split(<span class="string">&#39;\n&#39;</span>).next();
+        <span class="kw">let </span>freq_option = s.trim().split(<span class="string">'\n'</span>).next();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(freq_string) = freq_option {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(freq) = freq_string.parse::&lt;u64&gt;() {
                 <span class="kw">return </span>freq / <span class="number">1000</span>;
@@ -1207,21 +1209,21 @@
         }
     }
     s.clear();
-    <span class="kw">if </span>File::open(<span class="string">&quot;/proc/cpuinfo&quot;</span>)
+    <span class="kw">if </span>File::open(<span class="string">"/proc/cpuinfo"</span>)
         .and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s))
         .is_err()
     {
         <span class="kw">return </span><span class="number">0</span>;
     }
-    <span class="kw">let </span>find_cpu_mhz = s.split(<span class="string">&#39;\n&#39;</span>).find(|line| {
-        line.starts_with(<span class="string">&quot;cpu MHz\t&quot;</span>)
-            || line.starts_with(<span class="string">&quot;BogoMIPS&quot;</span>)
-            || line.starts_with(<span class="string">&quot;clock\t&quot;</span>)
-            || line.starts_with(<span class="string">&quot;bogomips per cpu&quot;</span>)
+    <span class="kw">let </span>find_cpu_mhz = s.split(<span class="string">'\n'</span>).find(|line| {
+        line.starts_with(<span class="string">"cpu MHz\t"</span>)
+            || line.starts_with(<span class="string">"BogoMIPS"</span>)
+            || line.starts_with(<span class="string">"clock\t"</span>)
+            || line.starts_with(<span class="string">"bogomips per cpu"</span>)
     });
     find_cpu_mhz
-        .and_then(|line| line.split(<span class="string">&#39;:&#39;</span>).last())
-        .and_then(|val| val.replace(<span class="string">&quot;MHz&quot;</span>, <span class="string">&quot;&quot;</span>).trim().parse::&lt;f64&gt;().ok())
+        .and_then(|line| line.split(<span class="string">':'</span>).last())
+        .and_then(|val| val.replace(<span class="string">"MHz"</span>, <span class="string">""</span>).trim().parse::&lt;f64&gt;().ok())
         .map(|speed| speed <span class="kw">as </span>u64)
         .unwrap_or_default()
 }
@@ -1229,50 +1231,50 @@
 <span class="attr">#[allow(unused_assignments)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_physical_core_count() -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(_e) = File::open(<span class="string">&quot;/proc/cpuinfo&quot;</span>).and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s)) {
-        <span class="macro">sysinfo_debug!</span>(<span class="string">&quot;Cannot read `/proc/cpuinfo` file: {:?}&quot;</span>, _e);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(_e) = File::open(<span class="string">"/proc/cpuinfo"</span>).and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s)) {
+        <span class="macro">sysinfo_debug!</span>(<span class="string">"Cannot read `/proc/cpuinfo` file: {:?}"</span>, _e);
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
     <span class="macro">macro_rules! </span>add_core {
         (<span class="macro-nonterminal">$core_ids_and_physical_ids</span>:ident, <span class="macro-nonterminal">$core_id</span>:ident, <span class="macro-nonterminal">$physical_id</span>:ident, <span class="macro-nonterminal">$cpu</span>:ident) =&gt; {{
             <span class="kw">if </span>!<span class="macro-nonterminal">$core_id</span>.is_empty() &amp;&amp; !<span class="macro-nonterminal">$physical_id</span>.is_empty() {
-                <span class="macro-nonterminal">$core_ids_and_physical_ids</span>.insert(<span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="macro-nonterminal">$core_id</span>, <span class="macro-nonterminal">$physical_id</span>));
+                <span class="macro-nonterminal">$core_ids_and_physical_ids</span>.insert(<span class="macro">format!</span>(<span class="string">"{} {}"</span>, <span class="macro-nonterminal">$core_id</span>, <span class="macro-nonterminal">$physical_id</span>));
             } <span class="kw">else if </span>!<span class="macro-nonterminal">$cpu</span>.is_empty() {
-                <span class="comment">// On systems with only physical cores like raspberry, there is no &quot;core id&quot; or
-                // &quot;physical id&quot; fields. So if one of them is missing, we simply use the &quot;CPU&quot;
+                <span class="comment">// On systems with only physical cores like raspberry, there is no "core id" or
+                // "physical id" fields. So if one of them is missing, we simply use the "CPU"
                 // info and count it as a physical core.
                 </span><span class="macro-nonterminal">$core_ids_and_physical_ids</span>.insert(<span class="macro-nonterminal">$cpu</span>.to_owned());
             }
-            <span class="macro-nonterminal">$core_id </span>= <span class="string">&quot;&quot;</span>;
-            <span class="macro-nonterminal">$physical_id </span>= <span class="string">&quot;&quot;</span>;
-            <span class="macro-nonterminal">$cpu </span>= <span class="string">&quot;&quot;</span>;
+            <span class="macro-nonterminal">$core_id </span>= <span class="string">""</span>;
+            <span class="macro-nonterminal">$physical_id </span>= <span class="string">""</span>;
+            <span class="macro-nonterminal">$cpu </span>= <span class="string">""</span>;
         }};
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>core_ids_and_physical_ids: HashSet&lt;String&gt; = HashSet::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>core_id = <span class="string">&quot;&quot;</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>physical_id = <span class="string">&quot;&quot;</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>cpu = <span class="string">&quot;&quot;</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>core_id = <span class="string">""</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>physical_id = <span class="string">""</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>cpu = <span class="string">""</span>;
 
     <span class="kw">for </span>line <span class="kw">in </span>s.lines() {
         <span class="kw">if </span>line.is_empty() {
             <span class="macro">add_core!</span>(core_ids_and_physical_ids, core_id, physical_id, cpu);
-        } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;processor&quot;</span>) {
+        } <span class="kw">else if </span>line.starts_with(<span class="string">"processor"</span>) {
             cpu = line
-                .splitn(<span class="number">2</span>, <span class="string">&#39;:&#39;</span>)
+                .splitn(<span class="number">2</span>, <span class="string">':'</span>)
                 .last()
                 .map(|x| x.trim())
                 .unwrap_or_default();
-        } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;core id&quot;</span>) {
+        } <span class="kw">else if </span>line.starts_with(<span class="string">"core id"</span>) {
             core_id = line
-                .splitn(<span class="number">2</span>, <span class="string">&#39;:&#39;</span>)
+                .splitn(<span class="number">2</span>, <span class="string">':'</span>)
                 .last()
                 .map(|x| x.trim())
                 .unwrap_or_default();
-        } <span class="kw">else if </span>line.starts_with(<span class="string">&quot;physical id&quot;</span>) {
+        } <span class="kw">else if </span>line.starts_with(<span class="string">"physical id"</span>) {
             physical_id = line
-                .splitn(<span class="number">2</span>, <span class="string">&#39;:&#39;</span>)
+                .splitn(<span class="number">2</span>, <span class="string">':'</span>)
                 .last()
                 .map(|x| x.trim())
                 .unwrap_or_default();
@@ -1285,209 +1287,209 @@
 
 <span class="doccomment">/// Obtain the implementer of this CPU core.
 ///
-/// This has been obtained from util-linux&#39;s lscpu implementation, see
+/// This has been obtained from util-linux's lscpu implementation, see
 /// https://github.com/util-linux/util-linux/blob/7076703b529d255600631306419cca1b48ab850a/sys-utils/lscpu-arm.c#L240
 ///
 /// This list will have to be updated every time a new vendor appears, please keep it synchronized
 /// with util-linux and update the link above with the commit you have used.
-</span><span class="kw">fn </span>get_arm_implementer(implementer: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+</span><span class="kw">fn </span>get_arm_implementer(implementer: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
     <span class="prelude-val">Some</span>(<span class="kw">match </span>implementer {
-        <span class="number">0x41 </span>=&gt; <span class="string">&quot;ARM&quot;</span>,
-        <span class="number">0x42 </span>=&gt; <span class="string">&quot;Broadcom&quot;</span>,
-        <span class="number">0x43 </span>=&gt; <span class="string">&quot;Cavium&quot;</span>,
-        <span class="number">0x44 </span>=&gt; <span class="string">&quot;DEC&quot;</span>,
-        <span class="number">0x46 </span>=&gt; <span class="string">&quot;FUJITSU&quot;</span>,
-        <span class="number">0x48 </span>=&gt; <span class="string">&quot;HiSilicon&quot;</span>,
-        <span class="number">0x49 </span>=&gt; <span class="string">&quot;Infineon&quot;</span>,
-        <span class="number">0x4d </span>=&gt; <span class="string">&quot;Motorola/Freescale&quot;</span>,
-        <span class="number">0x4e </span>=&gt; <span class="string">&quot;NVIDIA&quot;</span>,
-        <span class="number">0x50 </span>=&gt; <span class="string">&quot;APM&quot;</span>,
-        <span class="number">0x51 </span>=&gt; <span class="string">&quot;Qualcomm&quot;</span>,
-        <span class="number">0x53 </span>=&gt; <span class="string">&quot;Samsung&quot;</span>,
-        <span class="number">0x56 </span>=&gt; <span class="string">&quot;Marvell&quot;</span>,
-        <span class="number">0x61 </span>=&gt; <span class="string">&quot;Apple&quot;</span>,
-        <span class="number">0x66 </span>=&gt; <span class="string">&quot;Faraday&quot;</span>,
-        <span class="number">0x69 </span>=&gt; <span class="string">&quot;Intel&quot;</span>,
-        <span class="number">0x70 </span>=&gt; <span class="string">&quot;Phytium&quot;</span>,
-        <span class="number">0xc0 </span>=&gt; <span class="string">&quot;Ampere&quot;</span>,
+        <span class="number">0x41 </span>=&gt; <span class="string">"ARM"</span>,
+        <span class="number">0x42 </span>=&gt; <span class="string">"Broadcom"</span>,
+        <span class="number">0x43 </span>=&gt; <span class="string">"Cavium"</span>,
+        <span class="number">0x44 </span>=&gt; <span class="string">"DEC"</span>,
+        <span class="number">0x46 </span>=&gt; <span class="string">"FUJITSU"</span>,
+        <span class="number">0x48 </span>=&gt; <span class="string">"HiSilicon"</span>,
+        <span class="number">0x49 </span>=&gt; <span class="string">"Infineon"</span>,
+        <span class="number">0x4d </span>=&gt; <span class="string">"Motorola/Freescale"</span>,
+        <span class="number">0x4e </span>=&gt; <span class="string">"NVIDIA"</span>,
+        <span class="number">0x50 </span>=&gt; <span class="string">"APM"</span>,
+        <span class="number">0x51 </span>=&gt; <span class="string">"Qualcomm"</span>,
+        <span class="number">0x53 </span>=&gt; <span class="string">"Samsung"</span>,
+        <span class="number">0x56 </span>=&gt; <span class="string">"Marvell"</span>,
+        <span class="number">0x61 </span>=&gt; <span class="string">"Apple"</span>,
+        <span class="number">0x66 </span>=&gt; <span class="string">"Faraday"</span>,
+        <span class="number">0x69 </span>=&gt; <span class="string">"Intel"</span>,
+        <span class="number">0x70 </span>=&gt; <span class="string">"Phytium"</span>,
+        <span class="number">0xc0 </span>=&gt; <span class="string">"Ampere"</span>,
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
     })
 }
 
 <span class="doccomment">/// Obtain the part of this CPU core.
 ///
-/// This has been obtained from util-linux&#39;s lscpu implementation, see
+/// This has been obtained from util-linux's lscpu implementation, see
 /// https://github.com/util-linux/util-linux/blob/7076703b529d255600631306419cca1b48ab850a/sys-utils/lscpu-arm.c#L34
 ///
 /// This list will have to be updated every time a new core appears, please keep it synchronized
 /// with util-linux and update the link above with the commit you have used.
-</span><span class="kw">fn </span>get_arm_part(implementer: u32, part: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+</span><span class="kw">fn </span>get_arm_part(implementer: u32, part: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
     <span class="prelude-val">Some</span>(<span class="kw">match </span>(implementer, part) {
         <span class="comment">// ARM
-        </span>(<span class="number">0x41</span>, <span class="number">0x810</span>) =&gt; <span class="string">&quot;ARM810&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x920</span>) =&gt; <span class="string">&quot;ARM920&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x922</span>) =&gt; <span class="string">&quot;ARM922&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x926</span>) =&gt; <span class="string">&quot;ARM926&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x940</span>) =&gt; <span class="string">&quot;ARM940&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x946</span>) =&gt; <span class="string">&quot;ARM946&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0x966</span>) =&gt; <span class="string">&quot;ARM966&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xa20</span>) =&gt; <span class="string">&quot;ARM1020&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xa22</span>) =&gt; <span class="string">&quot;ARM1022&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xa26</span>) =&gt; <span class="string">&quot;ARM1026&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xb02</span>) =&gt; <span class="string">&quot;ARM11 MPCore&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xb36</span>) =&gt; <span class="string">&quot;ARM1136&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xb56</span>) =&gt; <span class="string">&quot;ARM1156&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xb76</span>) =&gt; <span class="string">&quot;ARM1176&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc05</span>) =&gt; <span class="string">&quot;Cortex-A5&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc07</span>) =&gt; <span class="string">&quot;Cortex-A7&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc08</span>) =&gt; <span class="string">&quot;Cortex-A8&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc09</span>) =&gt; <span class="string">&quot;Cortex-A9&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc0d</span>) =&gt; <span class="string">&quot;Cortex-A17&quot;</span>, <span class="comment">// Originally A12
-        </span>(<span class="number">0x41</span>, <span class="number">0xc0f</span>) =&gt; <span class="string">&quot;Cortex-A15&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc0e</span>) =&gt; <span class="string">&quot;Cortex-A17&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc14</span>) =&gt; <span class="string">&quot;Cortex-R4&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc15</span>) =&gt; <span class="string">&quot;Cortex-R5&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc17</span>) =&gt; <span class="string">&quot;Cortex-R7&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc18</span>) =&gt; <span class="string">&quot;Cortex-R8&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc20</span>) =&gt; <span class="string">&quot;Cortex-M0&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc21</span>) =&gt; <span class="string">&quot;Cortex-M1&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc23</span>) =&gt; <span class="string">&quot;Cortex-M3&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc24</span>) =&gt; <span class="string">&quot;Cortex-M4&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc27</span>) =&gt; <span class="string">&quot;Cortex-M7&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xc60</span>) =&gt; <span class="string">&quot;Cortex-M0+&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd01</span>) =&gt; <span class="string">&quot;Cortex-A32&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd02</span>) =&gt; <span class="string">&quot;Cortex-A34&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd03</span>) =&gt; <span class="string">&quot;Cortex-A53&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd04</span>) =&gt; <span class="string">&quot;Cortex-A35&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd05</span>) =&gt; <span class="string">&quot;Cortex-A55&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd06</span>) =&gt; <span class="string">&quot;Cortex-A65&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd07</span>) =&gt; <span class="string">&quot;Cortex-A57&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd08</span>) =&gt; <span class="string">&quot;Cortex-A72&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd09</span>) =&gt; <span class="string">&quot;Cortex-A73&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd0a</span>) =&gt; <span class="string">&quot;Cortex-A75&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd0b</span>) =&gt; <span class="string">&quot;Cortex-A76&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd0c</span>) =&gt; <span class="string">&quot;Neoverse-N1&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd0d</span>) =&gt; <span class="string">&quot;Cortex-A77&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd0e</span>) =&gt; <span class="string">&quot;Cortex-A76AE&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd13</span>) =&gt; <span class="string">&quot;Cortex-R52&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd20</span>) =&gt; <span class="string">&quot;Cortex-M23&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd21</span>) =&gt; <span class="string">&quot;Cortex-M33&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd40</span>) =&gt; <span class="string">&quot;Neoverse-V1&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd41</span>) =&gt; <span class="string">&quot;Cortex-A78&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd42</span>) =&gt; <span class="string">&quot;Cortex-A78AE&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd43</span>) =&gt; <span class="string">&quot;Cortex-A65AE&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd44</span>) =&gt; <span class="string">&quot;Cortex-X1&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd46</span>) =&gt; <span class="string">&quot;Cortex-A510&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd47</span>) =&gt; <span class="string">&quot;Cortex-A710&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd48</span>) =&gt; <span class="string">&quot;Cortex-X2&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd49</span>) =&gt; <span class="string">&quot;Neoverse-N2&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd4a</span>) =&gt; <span class="string">&quot;Neoverse-E1&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd4b</span>) =&gt; <span class="string">&quot;Cortex-A78C&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd4c</span>) =&gt; <span class="string">&quot;Cortex-X1C&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd4d</span>) =&gt; <span class="string">&quot;Cortex-A715&quot;</span>,
-        (<span class="number">0x41</span>, <span class="number">0xd4e</span>) =&gt; <span class="string">&quot;Cortex-X3&quot;</span>,
+        </span>(<span class="number">0x41</span>, <span class="number">0x810</span>) =&gt; <span class="string">"ARM810"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x920</span>) =&gt; <span class="string">"ARM920"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x922</span>) =&gt; <span class="string">"ARM922"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x926</span>) =&gt; <span class="string">"ARM926"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x940</span>) =&gt; <span class="string">"ARM940"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x946</span>) =&gt; <span class="string">"ARM946"</span>,
+        (<span class="number">0x41</span>, <span class="number">0x966</span>) =&gt; <span class="string">"ARM966"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xa20</span>) =&gt; <span class="string">"ARM1020"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xa22</span>) =&gt; <span class="string">"ARM1022"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xa26</span>) =&gt; <span class="string">"ARM1026"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xb02</span>) =&gt; <span class="string">"ARM11 MPCore"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xb36</span>) =&gt; <span class="string">"ARM1136"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xb56</span>) =&gt; <span class="string">"ARM1156"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xb76</span>) =&gt; <span class="string">"ARM1176"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc05</span>) =&gt; <span class="string">"Cortex-A5"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc07</span>) =&gt; <span class="string">"Cortex-A7"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc08</span>) =&gt; <span class="string">"Cortex-A8"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc09</span>) =&gt; <span class="string">"Cortex-A9"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc0d</span>) =&gt; <span class="string">"Cortex-A17"</span>, <span class="comment">// Originally A12
+        </span>(<span class="number">0x41</span>, <span class="number">0xc0f</span>) =&gt; <span class="string">"Cortex-A15"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc0e</span>) =&gt; <span class="string">"Cortex-A17"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc14</span>) =&gt; <span class="string">"Cortex-R4"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc15</span>) =&gt; <span class="string">"Cortex-R5"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc17</span>) =&gt; <span class="string">"Cortex-R7"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc18</span>) =&gt; <span class="string">"Cortex-R8"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc20</span>) =&gt; <span class="string">"Cortex-M0"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc21</span>) =&gt; <span class="string">"Cortex-M1"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc23</span>) =&gt; <span class="string">"Cortex-M3"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc24</span>) =&gt; <span class="string">"Cortex-M4"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc27</span>) =&gt; <span class="string">"Cortex-M7"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xc60</span>) =&gt; <span class="string">"Cortex-M0+"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd01</span>) =&gt; <span class="string">"Cortex-A32"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd02</span>) =&gt; <span class="string">"Cortex-A34"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd03</span>) =&gt; <span class="string">"Cortex-A53"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd04</span>) =&gt; <span class="string">"Cortex-A35"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd05</span>) =&gt; <span class="string">"Cortex-A55"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd06</span>) =&gt; <span class="string">"Cortex-A65"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd07</span>) =&gt; <span class="string">"Cortex-A57"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd08</span>) =&gt; <span class="string">"Cortex-A72"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd09</span>) =&gt; <span class="string">"Cortex-A73"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd0a</span>) =&gt; <span class="string">"Cortex-A75"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd0b</span>) =&gt; <span class="string">"Cortex-A76"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd0c</span>) =&gt; <span class="string">"Neoverse-N1"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd0d</span>) =&gt; <span class="string">"Cortex-A77"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd0e</span>) =&gt; <span class="string">"Cortex-A76AE"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd13</span>) =&gt; <span class="string">"Cortex-R52"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd20</span>) =&gt; <span class="string">"Cortex-M23"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd21</span>) =&gt; <span class="string">"Cortex-M33"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd40</span>) =&gt; <span class="string">"Neoverse-V1"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd41</span>) =&gt; <span class="string">"Cortex-A78"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd42</span>) =&gt; <span class="string">"Cortex-A78AE"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd43</span>) =&gt; <span class="string">"Cortex-A65AE"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd44</span>) =&gt; <span class="string">"Cortex-X1"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd46</span>) =&gt; <span class="string">"Cortex-A510"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd47</span>) =&gt; <span class="string">"Cortex-A710"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd48</span>) =&gt; <span class="string">"Cortex-X2"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd49</span>) =&gt; <span class="string">"Neoverse-N2"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd4a</span>) =&gt; <span class="string">"Neoverse-E1"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd4b</span>) =&gt; <span class="string">"Cortex-A78C"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd4c</span>) =&gt; <span class="string">"Cortex-X1C"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd4d</span>) =&gt; <span class="string">"Cortex-A715"</span>,
+        (<span class="number">0x41</span>, <span class="number">0xd4e</span>) =&gt; <span class="string">"Cortex-X3"</span>,
 
         <span class="comment">// Broadcom
-        </span>(<span class="number">0x42</span>, <span class="number">0x00f</span>) =&gt; <span class="string">&quot;Brahma-B15&quot;</span>,
-        (<span class="number">0x42</span>, <span class="number">0x100</span>) =&gt; <span class="string">&quot;Brahma-B53&quot;</span>,
-        (<span class="number">0x42</span>, <span class="number">0x516</span>) =&gt; <span class="string">&quot;ThunderX2&quot;</span>,
+        </span>(<span class="number">0x42</span>, <span class="number">0x00f</span>) =&gt; <span class="string">"Brahma-B15"</span>,
+        (<span class="number">0x42</span>, <span class="number">0x100</span>) =&gt; <span class="string">"Brahma-B53"</span>,
+        (<span class="number">0x42</span>, <span class="number">0x516</span>) =&gt; <span class="string">"ThunderX2"</span>,
 
         <span class="comment">// Cavium
-        </span>(<span class="number">0x43</span>, <span class="number">0x0a0</span>) =&gt; <span class="string">&quot;ThunderX&quot;</span>,
-        (<span class="number">0x43</span>, <span class="number">0x0a1</span>) =&gt; <span class="string">&quot;ThunderX-88XX&quot;</span>,
-        (<span class="number">0x43</span>, <span class="number">0x0a2</span>) =&gt; <span class="string">&quot;ThunderX-81XX&quot;</span>,
-        (<span class="number">0x43</span>, <span class="number">0x0a3</span>) =&gt; <span class="string">&quot;ThunderX-83XX&quot;</span>,
-        (<span class="number">0x43</span>, <span class="number">0x0af</span>) =&gt; <span class="string">&quot;ThunderX2-99xx&quot;</span>,
+        </span>(<span class="number">0x43</span>, <span class="number">0x0a0</span>) =&gt; <span class="string">"ThunderX"</span>,
+        (<span class="number">0x43</span>, <span class="number">0x0a1</span>) =&gt; <span class="string">"ThunderX-88XX"</span>,
+        (<span class="number">0x43</span>, <span class="number">0x0a2</span>) =&gt; <span class="string">"ThunderX-81XX"</span>,
+        (<span class="number">0x43</span>, <span class="number">0x0a3</span>) =&gt; <span class="string">"ThunderX-83XX"</span>,
+        (<span class="number">0x43</span>, <span class="number">0x0af</span>) =&gt; <span class="string">"ThunderX2-99xx"</span>,
 
         <span class="comment">// DEC
-        </span>(<span class="number">0x44</span>, <span class="number">0xa10</span>) =&gt; <span class="string">&quot;SA110&quot;</span>,
-        (<span class="number">0x44</span>, <span class="number">0xa11</span>) =&gt; <span class="string">&quot;SA1100&quot;</span>,
+        </span>(<span class="number">0x44</span>, <span class="number">0xa10</span>) =&gt; <span class="string">"SA110"</span>,
+        (<span class="number">0x44</span>, <span class="number">0xa11</span>) =&gt; <span class="string">"SA1100"</span>,
 
         <span class="comment">// Fujitsu
-        </span>(<span class="number">0x46</span>, <span class="number">0x001</span>) =&gt; <span class="string">&quot;A64FX&quot;</span>,
+        </span>(<span class="number">0x46</span>, <span class="number">0x001</span>) =&gt; <span class="string">"A64FX"</span>,
 
         <span class="comment">// HiSilicon
-        </span>(<span class="number">0x48</span>, <span class="number">0xd01</span>) =&gt; <span class="string">&quot;Kunpeng-920&quot;</span>, <span class="comment">// aka tsv110
+        </span>(<span class="number">0x48</span>, <span class="number">0xd01</span>) =&gt; <span class="string">"Kunpeng-920"</span>, <span class="comment">// aka tsv110
 
         // NVIDIA
-        </span>(<span class="number">0x4e</span>, <span class="number">0x000</span>) =&gt; <span class="string">&quot;Denver&quot;</span>,
-        (<span class="number">0x4e</span>, <span class="number">0x003</span>) =&gt; <span class="string">&quot;Denver 2&quot;</span>,
-        (<span class="number">0x4e</span>, <span class="number">0x004</span>) =&gt; <span class="string">&quot;Carmel&quot;</span>,
+        </span>(<span class="number">0x4e</span>, <span class="number">0x000</span>) =&gt; <span class="string">"Denver"</span>,
+        (<span class="number">0x4e</span>, <span class="number">0x003</span>) =&gt; <span class="string">"Denver 2"</span>,
+        (<span class="number">0x4e</span>, <span class="number">0x004</span>) =&gt; <span class="string">"Carmel"</span>,
 
         <span class="comment">// APM
-        </span>(<span class="number">0x50</span>, <span class="number">0x000</span>) =&gt; <span class="string">&quot;X-Gene&quot;</span>,
+        </span>(<span class="number">0x50</span>, <span class="number">0x000</span>) =&gt; <span class="string">"X-Gene"</span>,
 
         <span class="comment">// Qualcomm
-        </span>(<span class="number">0x51</span>, <span class="number">0x00f</span>) =&gt; <span class="string">&quot;Scorpion&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x02d</span>) =&gt; <span class="string">&quot;Scorpion&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x04d</span>) =&gt; <span class="string">&quot;Krait&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x06f</span>) =&gt; <span class="string">&quot;Krait&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x201</span>) =&gt; <span class="string">&quot;Kryo&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x205</span>) =&gt; <span class="string">&quot;Kryo&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x211</span>) =&gt; <span class="string">&quot;Kryo&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x800</span>) =&gt; <span class="string">&quot;Falkor-V1/Kryo&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x801</span>) =&gt; <span class="string">&quot;Kryo-V2&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x802</span>) =&gt; <span class="string">&quot;Kryo-3XX-Gold&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x803</span>) =&gt; <span class="string">&quot;Kryo-3XX-Silver&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x804</span>) =&gt; <span class="string">&quot;Kryo-4XX-Gold&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0x805</span>) =&gt; <span class="string">&quot;Kryo-4XX-Silver&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0xc00</span>) =&gt; <span class="string">&quot;Falkor&quot;</span>,
-        (<span class="number">0x51</span>, <span class="number">0xc01</span>) =&gt; <span class="string">&quot;Saphira&quot;</span>,
+        </span>(<span class="number">0x51</span>, <span class="number">0x00f</span>) =&gt; <span class="string">"Scorpion"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x02d</span>) =&gt; <span class="string">"Scorpion"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x04d</span>) =&gt; <span class="string">"Krait"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x06f</span>) =&gt; <span class="string">"Krait"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x201</span>) =&gt; <span class="string">"Kryo"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x205</span>) =&gt; <span class="string">"Kryo"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x211</span>) =&gt; <span class="string">"Kryo"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x800</span>) =&gt; <span class="string">"Falkor-V1/Kryo"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x801</span>) =&gt; <span class="string">"Kryo-V2"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x802</span>) =&gt; <span class="string">"Kryo-3XX-Gold"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x803</span>) =&gt; <span class="string">"Kryo-3XX-Silver"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x804</span>) =&gt; <span class="string">"Kryo-4XX-Gold"</span>,
+        (<span class="number">0x51</span>, <span class="number">0x805</span>) =&gt; <span class="string">"Kryo-4XX-Silver"</span>,
+        (<span class="number">0x51</span>, <span class="number">0xc00</span>) =&gt; <span class="string">"Falkor"</span>,
+        (<span class="number">0x51</span>, <span class="number">0xc01</span>) =&gt; <span class="string">"Saphira"</span>,
 
         <span class="comment">// Samsung
-        </span>(<span class="number">0x53</span>, <span class="number">0x001</span>) =&gt; <span class="string">&quot;exynos-m1&quot;</span>,
+        </span>(<span class="number">0x53</span>, <span class="number">0x001</span>) =&gt; <span class="string">"exynos-m1"</span>,
 
         <span class="comment">// Marvell
-        </span>(<span class="number">0x56</span>, <span class="number">0x131</span>) =&gt; <span class="string">&quot;Feroceon-88FR131&quot;</span>,
-        (<span class="number">0x56</span>, <span class="number">0x581</span>) =&gt; <span class="string">&quot;PJ4/PJ4b&quot;</span>,
-        (<span class="number">0x56</span>, <span class="number">0x584</span>) =&gt; <span class="string">&quot;PJ4B-MP&quot;</span>,
+        </span>(<span class="number">0x56</span>, <span class="number">0x131</span>) =&gt; <span class="string">"Feroceon-88FR131"</span>,
+        (<span class="number">0x56</span>, <span class="number">0x581</span>) =&gt; <span class="string">"PJ4/PJ4b"</span>,
+        (<span class="number">0x56</span>, <span class="number">0x584</span>) =&gt; <span class="string">"PJ4B-MP"</span>,
 
         <span class="comment">// Apple
-        </span>(<span class="number">0x61</span>, <span class="number">0x020</span>) =&gt; <span class="string">&quot;Icestorm-A14&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x021</span>) =&gt; <span class="string">&quot;Firestorm-A14&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x022</span>) =&gt; <span class="string">&quot;Icestorm-M1&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x023</span>) =&gt; <span class="string">&quot;Firestorm-M1&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x024</span>) =&gt; <span class="string">&quot;Icestorm-M1-Pro&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x025</span>) =&gt; <span class="string">&quot;Firestorm-M1-Pro&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x028</span>) =&gt; <span class="string">&quot;Icestorm-M1-Max&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x029</span>) =&gt; <span class="string">&quot;Firestorm-M1-Max&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x030</span>) =&gt; <span class="string">&quot;Blizzard-A15&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x031</span>) =&gt; <span class="string">&quot;Avalanche-A15&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x032</span>) =&gt; <span class="string">&quot;Blizzard-M2&quot;</span>,
-        (<span class="number">0x61</span>, <span class="number">0x033</span>) =&gt; <span class="string">&quot;Avalanche-M2&quot;</span>,
+        </span>(<span class="number">0x61</span>, <span class="number">0x020</span>) =&gt; <span class="string">"Icestorm-A14"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x021</span>) =&gt; <span class="string">"Firestorm-A14"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x022</span>) =&gt; <span class="string">"Icestorm-M1"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x023</span>) =&gt; <span class="string">"Firestorm-M1"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x024</span>) =&gt; <span class="string">"Icestorm-M1-Pro"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x025</span>) =&gt; <span class="string">"Firestorm-M1-Pro"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x028</span>) =&gt; <span class="string">"Icestorm-M1-Max"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x029</span>) =&gt; <span class="string">"Firestorm-M1-Max"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x030</span>) =&gt; <span class="string">"Blizzard-A15"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x031</span>) =&gt; <span class="string">"Avalanche-A15"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x032</span>) =&gt; <span class="string">"Blizzard-M2"</span>,
+        (<span class="number">0x61</span>, <span class="number">0x033</span>) =&gt; <span class="string">"Avalanche-M2"</span>,
 
         <span class="comment">// Faraday
-        </span>(<span class="number">0x66</span>, <span class="number">0x526</span>) =&gt; <span class="string">&quot;FA526&quot;</span>,
-        (<span class="number">0x66</span>, <span class="number">0x626</span>) =&gt; <span class="string">&quot;FA626&quot;</span>,
+        </span>(<span class="number">0x66</span>, <span class="number">0x526</span>) =&gt; <span class="string">"FA526"</span>,
+        (<span class="number">0x66</span>, <span class="number">0x626</span>) =&gt; <span class="string">"FA626"</span>,
 
         <span class="comment">// Intel
-        </span>(<span class="number">0x69</span>, <span class="number">0x200</span>) =&gt; <span class="string">&quot;i80200&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x210</span>) =&gt; <span class="string">&quot;PXA250A&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x212</span>) =&gt; <span class="string">&quot;PXA210A&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x242</span>) =&gt; <span class="string">&quot;i80321-400&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x243</span>) =&gt; <span class="string">&quot;i80321-600&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x290</span>) =&gt; <span class="string">&quot;PXA250B/PXA26x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x292</span>) =&gt; <span class="string">&quot;PXA210B&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x2c2</span>) =&gt; <span class="string">&quot;i80321-400-B0&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x2c3</span>) =&gt; <span class="string">&quot;i80321-600-B0&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x2d0</span>) =&gt; <span class="string">&quot;PXA250C/PXA255/PXA26x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x2d2</span>) =&gt; <span class="string">&quot;PXA210C&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x411</span>) =&gt; <span class="string">&quot;PXA27x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x41c</span>) =&gt; <span class="string">&quot;IPX425-533&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x41d</span>) =&gt; <span class="string">&quot;IPX425-400&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x41f</span>) =&gt; <span class="string">&quot;IPX425-266&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x682</span>) =&gt; <span class="string">&quot;PXA32x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x683</span>) =&gt; <span class="string">&quot;PXA930/PXA935&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x688</span>) =&gt; <span class="string">&quot;PXA30x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0x689</span>) =&gt; <span class="string">&quot;PXA31x&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0xb11</span>) =&gt; <span class="string">&quot;SA1110&quot;</span>,
-        (<span class="number">0x69</span>, <span class="number">0xc12</span>) =&gt; <span class="string">&quot;IPX1200&quot;</span>,
+        </span>(<span class="number">0x69</span>, <span class="number">0x200</span>) =&gt; <span class="string">"i80200"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x210</span>) =&gt; <span class="string">"PXA250A"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x212</span>) =&gt; <span class="string">"PXA210A"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x242</span>) =&gt; <span class="string">"i80321-400"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x243</span>) =&gt; <span class="string">"i80321-600"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x290</span>) =&gt; <span class="string">"PXA250B/PXA26x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x292</span>) =&gt; <span class="string">"PXA210B"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x2c2</span>) =&gt; <span class="string">"i80321-400-B0"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x2c3</span>) =&gt; <span class="string">"i80321-600-B0"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x2d0</span>) =&gt; <span class="string">"PXA250C/PXA255/PXA26x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x2d2</span>) =&gt; <span class="string">"PXA210C"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x411</span>) =&gt; <span class="string">"PXA27x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x41c</span>) =&gt; <span class="string">"IPX425-533"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x41d</span>) =&gt; <span class="string">"IPX425-400"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x41f</span>) =&gt; <span class="string">"IPX425-266"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x682</span>) =&gt; <span class="string">"PXA32x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x683</span>) =&gt; <span class="string">"PXA930/PXA935"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x688</span>) =&gt; <span class="string">"PXA30x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0x689</span>) =&gt; <span class="string">"PXA31x"</span>,
+        (<span class="number">0x69</span>, <span class="number">0xb11</span>) =&gt; <span class="string">"SA1110"</span>,
+        (<span class="number">0x69</span>, <span class="number">0xc12</span>) =&gt; <span class="string">"IPX1200"</span>,
 
         <span class="comment">// Phytium
-        </span>(<span class="number">0x70</span>, <span class="number">0x660</span>) =&gt; <span class="string">&quot;FTC660&quot;</span>,
-        (<span class="number">0x70</span>, <span class="number">0x661</span>) =&gt; <span class="string">&quot;FTC661&quot;</span>,
-        (<span class="number">0x70</span>, <span class="number">0x662</span>) =&gt; <span class="string">&quot;FTC662&quot;</span>,
-        (<span class="number">0x70</span>, <span class="number">0x663</span>) =&gt; <span class="string">&quot;FTC663&quot;</span>,
+        </span>(<span class="number">0x70</span>, <span class="number">0x660</span>) =&gt; <span class="string">"FTC660"</span>,
+        (<span class="number">0x70</span>, <span class="number">0x661</span>) =&gt; <span class="string">"FTC661"</span>,
+        (<span class="number">0x70</span>, <span class="number">0x662</span>) =&gt; <span class="string">"FTC662"</span>,
+        (<span class="number">0x70</span>, <span class="number">0x663</span>) =&gt; <span class="string">"FTC663"</span>,
 
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
     })
@@ -1496,7 +1498,7 @@
 <span class="doccomment">/// Returns the brand/vendor string for the first CPU (which should be the same for all CPUs).
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_vendor_id_and_brand() -&gt; (String, String) {
     <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
-    <span class="kw">if </span>File::open(<span class="string">&quot;/proc/cpuinfo&quot;</span>)
+    <span class="kw">if </span>File::open(<span class="string">"/proc/cpuinfo"</span>)
         .and_then(|<span class="kw-2">mut </span>f| f.read_to_string(<span class="kw-2">&amp;mut </span>s))
         .is_err()
     {
@@ -1504,17 +1506,17 @@
     }
 
     <span class="kw">fn </span>get_value(s: <span class="kw-2">&amp;</span>str) -&gt; String {
-        s.split(<span class="string">&#39;:&#39;</span>)
+        s.split(<span class="string">':'</span>)
             .last()
             .map(|x| x.trim().to_owned())
             .unwrap_or_default()
     }
 
     <span class="kw">fn </span>get_hex_value(s: <span class="kw-2">&amp;</span>str) -&gt; u32 {
-        s.split(<span class="string">&#39;:&#39;</span>)
+        s.split(<span class="string">':'</span>)
             .last()
             .map(|x| x.trim())
-            .filter(|x| x.starts_with(<span class="string">&quot;0x&quot;</span>))
+            .filter(|x| x.starts_with(<span class="string">"0x"</span>))
             .map(|x| u32::from_str_radix(<span class="kw-2">&amp;</span>x[<span class="number">2</span>..], <span class="number">16</span>).unwrap())
             .unwrap_or_default()
     }
@@ -1524,14 +1526,14 @@
     <span class="kw">let </span><span class="kw-2">mut </span>implementer = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>part = <span class="prelude-val">None</span>;
 
-    <span class="kw">for </span>it <span class="kw">in </span>s.split(<span class="string">&#39;\n&#39;</span>) {
-        <span class="kw">if </span>it.starts_with(<span class="string">&quot;vendor_id\t&quot;</span>) {
+    <span class="kw">for </span>it <span class="kw">in </span>s.split(<span class="string">'\n'</span>) {
+        <span class="kw">if </span>it.starts_with(<span class="string">"vendor_id\t"</span>) {
             vendor_id = <span class="prelude-val">Some</span>(get_value(it));
-        } <span class="kw">else if </span>it.starts_with(<span class="string">&quot;model name\t&quot;</span>) {
+        } <span class="kw">else if </span>it.starts_with(<span class="string">"model name\t"</span>) {
             brand = <span class="prelude-val">Some</span>(get_value(it));
-        } <span class="kw">else if </span>it.starts_with(<span class="string">&quot;CPU implementer\t&quot;</span>) {
+        } <span class="kw">else if </span>it.starts_with(<span class="string">"CPU implementer\t"</span>) {
             implementer = <span class="prelude-val">Some</span>(get_hex_value(it));
-        } <span class="kw">else if </span>it.starts_with(<span class="string">&quot;CPU part\t&quot;</span>) {
+        } <span class="kw">else if </span>it.starts_with(<span class="string">"CPU part\t"</span>) {
             part = <span class="prelude-val">Some</span>(get_hex_value(it));
         } <span class="kw">else </span>{
             <span class="kw">continue</span>;
@@ -1542,8 +1544,8 @@
     }
     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(implementer), <span class="prelude-val">Some</span>(part)) = (implementer, part) {
         vendor_id = get_arm_implementer(implementer).map(String::from);
-        <span class="comment">// It&#39;s possible to &quot;model name&quot; even with an ARM CPU, so just in case we can&#39;t retrieve
-        // the brand from &quot;CPU part&quot;, we will then use the value from &quot;model name&quot;.
+        <span class="comment">// It's possible to "model name" even with an ARM CPU, so just in case we can't retrieve
+        // the brand from "CPU part", we will then use the value from "model name".
         //
         // Example from raspberry pi 3B+:
         //

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1221,7 +1223,7 @@
     ///     .collect();
     /// assert_eq!(products, [6, 64, 162]);
     /// ```
-    </span><span class="kw">fn </span>par_split&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; Split&lt;<span class="lifetime">&#39;_</span>, T, P&gt;
+    </span><span class="kw">fn </span>par_split&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; Split&lt;<span class="lifetime">'_</span>, T, P&gt;
     <span class="kw">where
         </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     {
@@ -1244,7 +1246,7 @@
     ///     .collect();
     /// assert_eq!(lengths, [4, 4, 3]);
     /// ```
-    </span><span class="kw">fn </span>par_split_inclusive&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; SplitInclusive&lt;<span class="lifetime">&#39;_</span>, T, P&gt;
+    </span><span class="kw">fn </span>par_split_inclusive&lt;P&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; SplitInclusive&lt;<span class="lifetime">'_</span>, T, P&gt;
     <span class="kw">where
         </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     {
@@ -1264,7 +1266,7 @@
     /// let windows: Vec&lt;_&gt; = [1, 2, 3].par_windows(2).collect();
     /// assert_eq!(vec![[1, 2], [2, 3]], windows);
     /// ```
-    </span><span class="kw">fn </span>par_windows(<span class="kw-2">&amp;</span><span class="self">self</span>, window_size: usize) -&gt; Windows&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">fn </span>par_windows(<span class="kw-2">&amp;</span><span class="self">self</span>, window_size: usize) -&gt; Windows&lt;<span class="lifetime">'_</span>, T&gt; {
         Windows {
             window_size,
             slice: <span class="self">self</span>.as_parallel_slice(),
@@ -1286,8 +1288,8 @@
     /// assert_eq!(chunks, vec![&amp;[1, 2][..], &amp;[3, 4], &amp;[5]]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; Chunks&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; Chunks&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         Chunks::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
     }
 
@@ -1306,8 +1308,8 @@
     /// assert_eq!(chunks, vec![&amp;[1, 2][..], &amp;[3, 4]]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExact&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         ChunksExact::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
     }
 
@@ -1326,8 +1328,8 @@
     /// assert_eq!(chunks, vec![&amp;[4, 5][..], &amp;[2, 3], &amp;[1]]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunks&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunks&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         RChunks::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
     }
 
@@ -1346,8 +1348,8 @@
     /// assert_eq!(chunks, vec![&amp;[4, 5][..], &amp;[2, 3]]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_rchunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExact&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_rchunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExact&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         RChunksExact::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
     }
 }
@@ -1377,7 +1379,7 @@
     ///      .for_each(|slice| slice.reverse());
     /// assert_eq!(array, [3, 2, 1, 0, 8, 4, 2, 0, 9, 6, 3]);
     /// ```
-    </span><span class="kw">fn </span>par_split_mut&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, separator: P) -&gt; SplitMut&lt;<span class="lifetime">&#39;_</span>, T, P&gt;
+    </span><span class="kw">fn </span>par_split_mut&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, separator: P) -&gt; SplitMut&lt;<span class="lifetime">'_</span>, T, P&gt;
     <span class="kw">where
         </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     {
@@ -1399,7 +1401,7 @@
     ///      .for_each(|slice| slice.reverse());
     /// assert_eq!(array, [0, 3, 2, 1, 0, 8, 4, 2, 9, 6, 3]);
     /// ```
-    </span><span class="kw">fn </span>par_split_inclusive_mut&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, separator: P) -&gt; SplitInclusiveMut&lt;<span class="lifetime">&#39;_</span>, T, P&gt;
+    </span><span class="kw">fn </span>par_split_inclusive_mut&lt;P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, separator: P) -&gt; SplitInclusiveMut&lt;<span class="lifetime">'_</span>, T, P&gt;
     <span class="kw">where
         </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     {
@@ -1426,8 +1428,8 @@
     /// assert_eq!(array, [2, 1, 4, 3, 5]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksMut&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         ChunksMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
     }
 
@@ -1448,8 +1450,8 @@
     /// assert_eq!(array, [3, 2, 1, 4, 5]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_chunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_chunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         ChunksExactMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
     }
 
@@ -1470,8 +1472,8 @@
     /// assert_eq!(array, [1, 3, 2, 5, 4]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksMut&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         RChunksMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
     }
 
@@ -1492,8 +1494,8 @@
     /// assert_eq!(array, [1, 2, 5, 4, 3]);
     /// ```
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">fn </span>par_rchunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExactMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">&quot;chunk_size must not be zero&quot;</span>);
+    </span><span class="kw">fn </span>par_rchunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt; {
+        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
         RChunksExactMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
     }
 
@@ -1502,7 +1504,7 @@
     /// This sort is stable (i.e., does not reorder equal elements) and *O*(*n* \* log(*n*)) worst-case.
     ///
     /// When applicable, unstable sorting is preferred because it is generally faster than stable
-    /// sorting and it doesn&#39;t allocate auxiliary memory.
+    /// sorting and it doesn't allocate auxiliary memory.
     /// See [`par_sort_unstable`](#method.par_sort_unstable).
     ///
     /// # Current implementation
@@ -1548,8 +1550,8 @@
     /// * total and antisymmetric: exactly one of `a &lt; b`, `a == b` or `a &gt; b` is true, and
     /// * transitive, `a &lt; b` and `b &lt; c` implies `a &lt; c`. The same must hold for both `==` and `&gt;`.
     ///
-    /// For example, while [`f64`] doesn&#39;t implement [`Ord`] because `NaN != NaN`, we can use
-    /// `partial_cmp` as our sort function when we know the slice doesn&#39;t contain a `NaN`.
+    /// For example, while [`f64`] doesn't implement [`Ord`] because `NaN != NaN`, we can use
+    /// `partial_cmp` as our sort function when we know the slice doesn't contain a `NaN`.
     ///
     /// ```
     /// use rayon::prelude::*;
@@ -1560,7 +1562,7 @@
     /// ```
     ///
     /// When applicable, unstable sorting is preferred because it is generally faster than stable
-    /// sorting and it doesn&#39;t allocate auxiliary memory.
+    /// sorting and it doesn't allocate auxiliary memory.
     /// See [`par_sort_unstable_by`](#method.par_sort_unstable_by).
     ///
     /// # Current implementation
@@ -1610,7 +1612,7 @@
     /// be significantly faster, as it does not recompute element keys.
     ///
     /// When applicable, unstable sorting is preferred because it is generally faster than stable
-    /// sorting and it doesn&#39;t allocate auxiliary memory.
+    /// sorting and it doesn't allocate auxiliary memory.
     /// See [`par_sort_unstable_by_key`](#method.par_sort_unstable_by_key).
     ///
     /// # Current implementation
@@ -1789,8 +1791,8 @@
     /// * total and antisymmetric: exactly one of `a &lt; b`, `a == b` or `a &gt; b` is true, and
     /// * transitive, `a &lt; b` and `b &lt; c` implies `a &lt; c`. The same must hold for both `==` and `&gt;`.
     ///
-    /// For example, while [`f64`] doesn&#39;t implement [`Ord`] because `NaN != NaN`, we can use
-    /// `partial_cmp` as our sort function when we know the slice doesn&#39;t contain a `NaN`.
+    /// For example, while [`f64`] doesn't implement [`Ord`] because `NaN != NaN`, we can use
+    /// `partial_cmp` as our sort function when we know the slice doesn't contain a `NaN`.
     ///
     /// ```
     /// use rayon::prelude::*;
@@ -1890,18 +1892,18 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync + <span class="lifetime">&#39;data</span>&gt; IntoParallelIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T] {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T;
-    <span class="kw">type </span>Iter = Iter&lt;<span class="lifetime">&#39;data</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync + <span class="lifetime">'data</span>&gt; IntoParallelIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T] {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>T;
+    <span class="kw">type </span>Iter = Iter&lt;<span class="lifetime">'data</span>, T&gt;;
 
     <span class="kw">fn </span>into_par_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
         Iter { slice: <span class="self">self </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Send + <span class="lifetime">&#39;data</span>&gt; IntoParallelIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T] {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>T;
-    <span class="kw">type </span>Iter = IterMut&lt;<span class="lifetime">&#39;data</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Send + <span class="lifetime">'data</span>&gt; IntoParallelIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T] {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>T;
+    <span class="kw">type </span>Iter = IterMut&lt;<span class="lifetime">'data</span>, T&gt;;
 
     <span class="kw">fn </span>into_par_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Iter {
         IterMut { slice: <span class="self">self </span>}
@@ -1910,18 +1912,18 @@
 
 <span class="doccomment">/// Parallel iterator over immutable items in a slice
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'data</span>, T: Sync&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Iter { ..<span class="kw-2">*</span><span class="self">self </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync + <span class="lifetime">&#39;data</span>&gt; ParallelIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync + <span class="lifetime">'data</span>&gt; ParallelIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>T;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1935,7 +1937,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync + <span class="lifetime">&#39;data</span>&gt; IndexedParallelIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync + <span class="lifetime">'data</span>&gt; IndexedParallelIterator <span class="kw">for </span>Iter&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>drive&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
         </span>C: Consumer&lt;<span class="self">Self</span>::Item&gt;,
@@ -1955,13 +1957,13 @@
     }
 }
 
-<span class="kw">struct </span>IterProducer&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+<span class="kw">struct </span>IterProducer&lt;<span class="lifetime">'data</span>, T: Sync&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: <span class="lifetime">&#39;data </span>+ Sync&gt; Producer <span class="kw">for </span>IterProducer&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>T;
-    <span class="kw">type </span>IntoIter = ::std::slice::Iter&lt;<span class="lifetime">&#39;data</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: <span class="lifetime">'data </span>+ Sync&gt; Producer <span class="kw">for </span>IterProducer&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>T;
+    <span class="kw">type </span>IntoIter = ::std::slice::Iter&lt;<span class="lifetime">'data</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.slice.iter()
@@ -1975,19 +1977,19 @@
 
 <span class="doccomment">/// Parallel iterator over immutable overlapping windows of a slice
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Windows&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; {
+</span><span class="kw">pub struct </span>Windows&lt;<span class="lifetime">'data</span>, T: Sync&gt; {
     window_size: usize,
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; Clone <span class="kw">for </span>Windows&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync&gt; Clone <span class="kw">for </span>Windows&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Windows { ..<span class="kw-2">*</span><span class="self">self </span>}
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync + <span class="lifetime">&#39;data</span>&gt; ParallelIterator <span class="kw">for </span>Windows&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T];
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync + <span class="lifetime">'data</span>&gt; ParallelIterator <span class="kw">for </span>Windows&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T];
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2001,7 +2003,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Sync + <span class="lifetime">&#39;data</span>&gt; IndexedParallelIterator <span class="kw">for </span>Windows&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Sync + <span class="lifetime">'data</span>&gt; IndexedParallelIterator <span class="kw">for </span>Windows&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>drive&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
         </span>C: Consumer&lt;<span class="self">Self</span>::Item&gt;,
@@ -2025,14 +2027,14 @@
     }
 }
 
-<span class="kw">struct </span>WindowsProducer&lt;<span class="lifetime">&#39;data</span>, T: Sync&gt; {
+<span class="kw">struct </span>WindowsProducer&lt;<span class="lifetime">'data</span>, T: Sync&gt; {
     window_size: usize,
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: <span class="lifetime">&#39;data </span>+ Sync&gt; Producer <span class="kw">for </span>WindowsProducer&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T];
-    <span class="kw">type </span>IntoIter = ::std::slice::Windows&lt;<span class="lifetime">&#39;data</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: <span class="lifetime">'data </span>+ Sync&gt; Producer <span class="kw">for </span>WindowsProducer&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T];
+    <span class="kw">type </span>IntoIter = ::std::slice::Windows&lt;<span class="lifetime">'data</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.slice.windows(<span class="self">self</span>.window_size)
@@ -2057,12 +2059,12 @@
 
 <span class="doccomment">/// Parallel iterator over mutable items in a slice
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">&#39;data</span>, T: Send&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T],
+</span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">'data</span>, T: Send&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Send + <span class="lifetime">&#39;data</span>&gt; ParallelIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>T;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Send + <span class="lifetime">'data</span>&gt; ParallelIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>T;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2076,7 +2078,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Send + <span class="lifetime">&#39;data</span>&gt; IndexedParallelIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">&#39;data</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Send + <span class="lifetime">'data</span>&gt; IndexedParallelIterator <span class="kw">for </span>IterMut&lt;<span class="lifetime">'data</span>, T&gt; {
     <span class="kw">fn </span>drive&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
         </span>C: Consumer&lt;<span class="self">Self</span>::Item&gt;,
@@ -2096,13 +2098,13 @@
     }
 }
 
-<span class="kw">struct </span>IterMutProducer&lt;<span class="lifetime">&#39;data</span>, T: Send&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T],
+<span class="kw">struct </span>IterMutProducer&lt;<span class="lifetime">'data</span>, T: Send&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: <span class="lifetime">&#39;data </span>+ Send&gt; Producer <span class="kw">for </span>IterMutProducer&lt;<span class="lifetime">&#39;data</span>, T&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>T;
-    <span class="kw">type </span>IntoIter = ::std::slice::IterMut&lt;<span class="lifetime">&#39;data</span>, T&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: <span class="lifetime">'data </span>+ Send&gt; Producer <span class="kw">for </span>IterMutProducer&lt;<span class="lifetime">'data</span>, T&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>T;
+    <span class="kw">type </span>IntoIter = ::std::slice::IterMut&lt;<span class="lifetime">'data</span>, T&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.slice.iter_mut()
@@ -2118,12 +2120,12 @@
 }
 
 <span class="doccomment">/// Parallel iterator over slices separated by a predicate
-</span><span class="kw">pub struct </span>Split&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+</span><span class="kw">pub struct </span>Split&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P: Clone&gt; Clone <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P: Clone&gt; Clone <span class="kw">for </span>Split&lt;<span class="lifetime">'data</span>, T, P&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         Split {
             separator: <span class="self">self</span>.separator.clone(),
@@ -2132,18 +2134,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Split&quot;</span>).field(<span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice).finish()
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>Split&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Split"</span>).field(<span class="string">"slice"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;data</span>, T, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>Split&lt;<span class="lifetime">'data</span>, T, P&gt;
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     T: Sync,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T];
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T];
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2156,12 +2158,12 @@
 
 <span class="doccomment">/// Parallel iterator over slices separated by a predicate,
 /// including the matched part as a terminator.
-</span><span class="kw">pub struct </span>SplitInclusive&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T],
+</span><span class="kw">pub struct </span>SplitInclusive&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T],
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P: Clone&gt; Clone <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P: Clone&gt; Clone <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">'data</span>, T, P&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         SplitInclusive {
             separator: <span class="self">self</span>.separator.clone(),
@@ -2170,20 +2172,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;SplitInclusive&quot;</span>)
-            .field(<span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"SplitInclusive"</span>)
+            .field(<span class="string">"slice"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">&#39;data</span>, T, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">'data</span>, T, P&gt;
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     T: Sync,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T];
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T];
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2195,7 +2197,7 @@
 }
 
 <span class="doccomment">/// Implement support for `SplitProducer`.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span>[T]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span>[T]
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool,
 {
@@ -2244,25 +2246,25 @@
 }
 
 <span class="doccomment">/// Parallel iterator over mutable slices separated by a predicate
-</span><span class="kw">pub struct </span>SplitMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T],
+</span><span class="kw">pub struct </span>SplitMut&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T],
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;SplitMut&quot;</span>)
-            .field(<span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitMut&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"SplitMut"</span>)
+            .field(<span class="string">"slice"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitMut&lt;<span class="lifetime">'data</span>, T, P&gt;
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     T: Send,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T];
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T];
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2275,25 +2277,25 @@
 
 <span class="doccomment">/// Parallel iterator over mutable slices separated by a predicate,
 /// including the matched part as a terminator.
-</span><span class="kw">pub struct </span>SplitInclusiveMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T],
+</span><span class="kw">pub struct </span>SplitInclusiveMut&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    slice: <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T],
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitInclusiveMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;SplitInclusiveMut&quot;</span>)
-            .field(<span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T: Debug, P&gt; Debug <span class="kw">for </span>SplitInclusiveMut&lt;<span class="lifetime">'data</span>, T, P&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"SplitInclusiveMut"</span>)
+            .field(<span class="string">"slice"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.slice)
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitInclusiveMut&lt;<span class="lifetime">&#39;data</span>, T, P&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; ParallelIterator <span class="kw">for </span>SplitInclusiveMut&lt;<span class="lifetime">'data</span>, T, P&gt;
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool + Sync + Send,
     T: Send,
 {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T];
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T];
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -2305,7 +2307,7 @@
 }
 
 <span class="doccomment">/// Implement support for `SplitProducer`.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;data</span>, T, P&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data </span><span class="kw-2">mut </span>[T]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'data</span>, T, P&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'data </span><span class="kw-2">mut </span>[T]
 <span class="kw">where
     </span>P: Fn(<span class="kw-2">&amp;</span>T) -&gt; bool,
 {

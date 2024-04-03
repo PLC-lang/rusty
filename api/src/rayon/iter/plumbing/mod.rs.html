@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/plumbing/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/iter/plumbing/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -516,7 +518,7 @@
         </span>P: Producer&lt;Item = T&gt;;
 }
 
-<span class="doccomment">/// A `Producer` is effectively a &quot;splittable `IntoIterator`&quot;. That
+<span class="doccomment">/// A `Producer` is effectively a "splittable `IntoIterator`". That
 /// is, a producer is a value which can be converted into an iterator
 /// at any time: at that point, it simply produces items on demand,
 /// like any iterator. But what makes a `Producer` special is that,
@@ -595,7 +597,7 @@
     }
 }
 
-<span class="doccomment">/// A consumer is effectively a [generalized &quot;fold&quot; operation][fold],
+<span class="doccomment">/// A consumer is effectively a [generalized "fold" operation][fold],
 /// and in fact each consumer will eventually be converted into a
 /// [`Folder`]. What makes a consumer special is that, like a
 /// [`Producer`], it can be **split** into multiple consumers using
@@ -695,8 +697,8 @@
 /// simply splits at some arbitrary point (`for_each`, for example,
 /// produces an unindexed consumer).
 </span><span class="kw">pub trait </span>UnindexedConsumer&lt;I&gt;: Consumer&lt;I&gt; {
-    <span class="doccomment">/// Splits off a &quot;left&quot; consumer and returns it. The `self`
-    /// consumer should then be used to consume the &quot;right&quot; portion of
+    <span class="doccomment">/// Splits off a "left" consumer and returns it. The `self`
+    /// consumer should then be used to consume the "right" portion of
     /// the data. (The ordering matters for methods like find_first --
     /// values produced by the returned value are given precedence
     /// over values produced by `self`.) Once the left and right
@@ -712,7 +714,7 @@
 <span class="doccomment">/// A variant on `Producer` which does not know its exact length or
 /// cannot represent it in a `usize`. These producers act like
 /// ordinary producers except that they cannot be told to split at a
-/// particular point. Instead, you just ask them to split &#39;somewhere&#39;.
+/// particular point. Instead, you just ask them to split 'somewhere'.
 ///
 /// (In principle, `Producer` could extend this trait; however, it
 /// does not because to do so would require producers to carry their
@@ -738,7 +740,7 @@
 /// job is actually stolen into a different thread.
 </span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">struct </span>Splitter {
-    <span class="doccomment">/// The `splits` tell us approximately how many remaining times we&#39;d
+    <span class="doccomment">/// The `splits` tell us approximately how many remaining times we'd
     /// like to split this job.  We always just divide it by two though, so
     /// the effective number of pieces will be `next_power_of_two()`.
     </span>splits: usize,
@@ -758,7 +760,7 @@
 
         <span class="kw">if </span>stolen {
             <span class="comment">// This job was stolen!  Reset the number of desired splits to the
-            // thread count, if that&#39;s more than we had remaining anyway.
+            // thread count, if that's more than we had remaining anyway.
             </span><span class="self">self</span>.splits = cmp::max(<span class="kw">crate</span>::current_num_threads(), <span class="self">self</span>.splits / <span class="number">2</span>);
             <span class="bool-val">true
         </span>} <span class="kw">else if </span>splits &gt; <span class="number">0 </span>{
@@ -766,7 +768,7 @@
             </span><span class="self">self</span>.splits /= <span class="number">2</span>;
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
-            <span class="comment">// Not stolen, and no more splits -- we&#39;re done!
+            <span class="comment">// Not stolen, and no more splits -- we're done!
             </span><span class="bool-val">false
         </span>}
     }
@@ -778,7 +780,7 @@
 </span><span class="kw">struct </span>LengthSplitter {
     inner: Splitter,
 
-    <span class="doccomment">/// The smallest we&#39;re willing to divide into.  Usually this is just 1,
+    <span class="doccomment">/// The smallest we're willing to divide into.  Usually this is just 1,
     /// but you can choose a larger working size with `with_min_len()`.
     </span>min: usize,
 }
@@ -786,7 +788,7 @@
 <span class="kw">impl </span>LengthSplitter {
     <span class="doccomment">/// Creates a new splitter based on lengths.
     ///
-    /// The `min` is a hard lower bound.  We&#39;ll never split below that, but
+    /// The `min` is a hard lower bound.  We'll never split below that, but
     /// of course an iterator might start out smaller already.
     ///
     /// The `max` is an upper bound on the working size, used to determine
@@ -806,7 +808,7 @@
         // e.g. len 12345 / max 100 = 123 min_splits -&gt; 128 pieces.
         </span><span class="kw">let </span>min_splits = len / cmp::max(max, <span class="number">1</span>);
 
-        <span class="comment">// Only update the value if it&#39;s not splitting enough already.
+        <span class="comment">// Only update the value if it's not splitting enough already.
         </span><span class="kw">if </span>min_splits &gt; splitter.inner.splits {
             splitter.inner.splits = min_splits;
         }
@@ -816,12 +818,12 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>try_split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize, stolen: bool) -&gt; bool {
-        <span class="comment">// If splitting wouldn&#39;t make us too small, try the inner splitter.
+        <span class="comment">// If splitting wouldn't make us too small, try the inner splitter.
         </span>len / <span class="number">2 </span>&gt;= <span class="self">self</span>.min &amp;&amp; <span class="self">self</span>.inner.try_split(stolen)
     }
 }
 
-<span class="doccomment">/// This helper function is used to &quot;connect&quot; a parallel iterator to a
+<span class="doccomment">/// This helper function is used to "connect" a parallel iterator to a
 /// consumer. It will convert the `par_iter` into a producer P and
 /// then pull items from P and feed them to `consumer`, splitting and
 /// creating parallel threads as needed.
@@ -859,7 +861,7 @@
     }
 }
 
-<span class="doccomment">/// This helper function is used to &quot;connect&quot; a producer and a
+<span class="doccomment">/// This helper function is used to "connect" a producer and a
 /// consumer. You may prefer to call [`bridge`], which wraps this
 /// function. This function will draw items from `producer` and feed
 /// them to `consumer`, splitting and creating parallel tasks when

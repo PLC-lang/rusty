@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.8/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.8/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../console/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -970,18 +972,18 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::term::{wants_emoji, Term};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;ansi-parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::ansi::{strip_ansi_codes, AnsiCodeIterator};
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;ansi-parsing&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"ansi-parsing"</span>))]
 </span><span class="kw">fn </span>strip_ansi_codes(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
     s
 }
 
 <span class="kw">fn </span>default_colors_enabled(out: <span class="kw-2">&amp;</span>Term) -&gt; bool {
     (out.features().colors_supported()
-        &amp;&amp; <span class="kw-2">&amp;</span>env::var(<span class="string">&quot;CLICOLOR&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;1&quot;</span>.into()) != <span class="string">&quot;0&quot;</span>)
-        || <span class="kw-2">&amp;</span>env::var(<span class="string">&quot;CLICOLOR_FORCE&quot;</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">&quot;0&quot;</span>.into()) != <span class="string">&quot;0&quot;
+        &amp;&amp; <span class="kw-2">&amp;</span>env::var(<span class="string">"CLICOLOR"</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">"1"</span>.into()) != <span class="string">"0"</span>)
+        || <span class="kw-2">&amp;</span>env::var(<span class="string">"CLICOLOR_FORCE"</span>).unwrap_or_else(|<span class="kw">_</span>| <span class="string">"0"</span>.into()) != <span class="string">"0"
 </span>}
 
 <span class="macro">lazy_static! </span>{
@@ -993,8 +995,8 @@
 ///
 /// This honors the [clicolors spec](http://bixense.com/clicolors/).
 ///
-/// * `CLICOLOR != 0`: ANSI colors are supported and should be used when the program isn&#39;t piped.
-/// * `CLICOLOR == 0`: Don&#39;t output ANSI color escape codes.
+/// * `CLICOLOR != 0`: ANSI colors are supported and should be used when the program isn't piped.
+/// * `CLICOLOR == 0`: Don't output ANSI color escape codes.
 /// * `CLICOLOR_FORCE != 0`: ANSI colors should be enabled no matter what.
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>colors_enabled() -&gt; bool {
@@ -1014,8 +1016,8 @@
 ///
 /// This honors the [clicolors spec](http://bixense.com/clicolors/).
 ///
-/// * `CLICOLOR != 0`: ANSI colors are supported and should be used when the program isn&#39;t piped.
-/// * `CLICOLOR == 0`: Don&#39;t output ANSI color escape codes.
+/// * `CLICOLOR != 0`: ANSI colors are supported and should be used when the program isn't piped.
+/// * `CLICOLOR == 0`: Don't output ANSI color escape codes.
 /// * `CLICOLOR_FORCE != 0`: ANSI colors should be enabled no matter what.
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>colors_enabled_stderr() -&gt; bool {
@@ -1156,35 +1158,35 @@
     /// ignored.
     </span><span class="kw">pub fn </span>from_dotted_str(s: <span class="kw-2">&amp;</span>str) -&gt; Style {
         <span class="kw">let </span><span class="kw-2">mut </span>rv = Style::new();
-        <span class="kw">for </span>part <span class="kw">in </span>s.split(<span class="string">&#39;.&#39;</span>) {
+        <span class="kw">for </span>part <span class="kw">in </span>s.split(<span class="string">'.'</span>) {
             rv = <span class="kw">match </span>part {
-                <span class="string">&quot;black&quot; </span>=&gt; rv.black(),
-                <span class="string">&quot;red&quot; </span>=&gt; rv.red(),
-                <span class="string">&quot;green&quot; </span>=&gt; rv.green(),
-                <span class="string">&quot;yellow&quot; </span>=&gt; rv.yellow(),
-                <span class="string">&quot;blue&quot; </span>=&gt; rv.blue(),
-                <span class="string">&quot;magenta&quot; </span>=&gt; rv.magenta(),
-                <span class="string">&quot;cyan&quot; </span>=&gt; rv.cyan(),
-                <span class="string">&quot;white&quot; </span>=&gt; rv.white(),
-                <span class="string">&quot;bright&quot; </span>=&gt; rv.bright(),
-                <span class="string">&quot;on_black&quot; </span>=&gt; rv.on_black(),
-                <span class="string">&quot;on_red&quot; </span>=&gt; rv.on_red(),
-                <span class="string">&quot;on_green&quot; </span>=&gt; rv.on_green(),
-                <span class="string">&quot;on_yellow&quot; </span>=&gt; rv.on_yellow(),
-                <span class="string">&quot;on_blue&quot; </span>=&gt; rv.on_blue(),
-                <span class="string">&quot;on_magenta&quot; </span>=&gt; rv.on_magenta(),
-                <span class="string">&quot;on_cyan&quot; </span>=&gt; rv.on_cyan(),
-                <span class="string">&quot;on_white&quot; </span>=&gt; rv.on_white(),
-                <span class="string">&quot;on_bright&quot; </span>=&gt; rv.on_bright(),
-                <span class="string">&quot;bold&quot; </span>=&gt; rv.bold(),
-                <span class="string">&quot;dim&quot; </span>=&gt; rv.dim(),
-                <span class="string">&quot;underlined&quot; </span>=&gt; rv.underlined(),
-                <span class="string">&quot;blink&quot; </span>=&gt; rv.blink(),
-                <span class="string">&quot;blink_fast&quot; </span>=&gt; rv.blink_fast(),
-                <span class="string">&quot;reverse&quot; </span>=&gt; rv.reverse(),
-                <span class="string">&quot;hidden&quot; </span>=&gt; rv.hidden(),
-                <span class="string">&quot;strikethrough&quot; </span>=&gt; rv.strikethrough(),
-                on_c <span class="kw">if </span>on_c.starts_with(<span class="string">&quot;on_&quot;</span>) =&gt; {
+                <span class="string">"black" </span>=&gt; rv.black(),
+                <span class="string">"red" </span>=&gt; rv.red(),
+                <span class="string">"green" </span>=&gt; rv.green(),
+                <span class="string">"yellow" </span>=&gt; rv.yellow(),
+                <span class="string">"blue" </span>=&gt; rv.blue(),
+                <span class="string">"magenta" </span>=&gt; rv.magenta(),
+                <span class="string">"cyan" </span>=&gt; rv.cyan(),
+                <span class="string">"white" </span>=&gt; rv.white(),
+                <span class="string">"bright" </span>=&gt; rv.bright(),
+                <span class="string">"on_black" </span>=&gt; rv.on_black(),
+                <span class="string">"on_red" </span>=&gt; rv.on_red(),
+                <span class="string">"on_green" </span>=&gt; rv.on_green(),
+                <span class="string">"on_yellow" </span>=&gt; rv.on_yellow(),
+                <span class="string">"on_blue" </span>=&gt; rv.on_blue(),
+                <span class="string">"on_magenta" </span>=&gt; rv.on_magenta(),
+                <span class="string">"on_cyan" </span>=&gt; rv.on_cyan(),
+                <span class="string">"on_white" </span>=&gt; rv.on_white(),
+                <span class="string">"on_bright" </span>=&gt; rv.on_bright(),
+                <span class="string">"bold" </span>=&gt; rv.bold(),
+                <span class="string">"dim" </span>=&gt; rv.dim(),
+                <span class="string">"underlined" </span>=&gt; rv.underlined(),
+                <span class="string">"blink" </span>=&gt; rv.blink(),
+                <span class="string">"blink_fast" </span>=&gt; rv.blink_fast(),
+                <span class="string">"reverse" </span>=&gt; rv.reverse(),
+                <span class="string">"hidden" </span>=&gt; rv.hidden(),
+                <span class="string">"strikethrough" </span>=&gt; rv.strikethrough(),
+                on_c <span class="kw">if </span>on_c.starts_with(<span class="string">"on_"</span>) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Ok</span>(n) = on_c[<span class="number">3</span>..].parse::&lt;u8&gt;() {
                         rv.on_color256(n)
                     } <span class="kw">else </span>{
@@ -1387,7 +1389,7 @@
 ///
 /// ```rust,no_run
 /// # use console::style;
-/// format!(&quot;Hello {}&quot;, style(&quot;World&quot;).cyan());
+/// format!("Hello {}", style("World").cyan());
 /// ```
 ///
 /// This is a shortcut for making a new style and applying it
@@ -1395,7 +1397,7 @@
 ///
 /// ```rust,no_run
 /// # use console::Style;
-/// format!(&quot;Hello {}&quot;, Style::new().cyan().apply_to(&quot;World&quot;));
+/// format!("Hello {}", Style::new().cyan().apply_to("World"));
 /// ```
 </span><span class="kw">pub fn </span>style&lt;D&gt;(val: D) -&gt; StyledObject&lt;D&gt; {
     Style::new().apply_to(val)
@@ -1594,32 +1596,32 @@
                 {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(fg) = <span class="self">self</span>.style.fg {
                         <span class="kw">if </span>fg.is_color256() {
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[38;5;{}m&quot;</span>, fg.ansi_num())<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[38;5;{}m"</span>, fg.ansi_num())<span class="question-mark">?</span>;
                         } <span class="kw">else if </span><span class="self">self</span>.style.fg_bright {
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[38;5;{}m&quot;</span>, fg.ansi_num() + <span class="number">8</span>)<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[38;5;{}m"</span>, fg.ansi_num() + <span class="number">8</span>)<span class="question-mark">?</span>;
                         } <span class="kw">else </span>{
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[{}m&quot;</span>, fg.ansi_num() + <span class="number">30</span>)<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[{}m"</span>, fg.ansi_num() + <span class="number">30</span>)<span class="question-mark">?</span>;
                         }
                         reset = <span class="bool-val">true</span>;
                     }
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(bg) = <span class="self">self</span>.style.bg {
                         <span class="kw">if </span>bg.is_color256() {
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[48;5;{}m&quot;</span>, bg.ansi_num())<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[48;5;{}m"</span>, bg.ansi_num())<span class="question-mark">?</span>;
                         } <span class="kw">else if </span><span class="self">self</span>.style.bg_bright {
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[48;5;{}m&quot;</span>, bg.ansi_num() + <span class="number">8</span>)<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[48;5;{}m"</span>, bg.ansi_num() + <span class="number">8</span>)<span class="question-mark">?</span>;
                         } <span class="kw">else </span>{
-                            <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[{}m&quot;</span>, bg.ansi_num() + <span class="number">40</span>)<span class="question-mark">?</span>;
+                            <span class="macro">write!</span>(f, <span class="string">"\x1b[{}m"</span>, bg.ansi_num() + <span class="number">40</span>)<span class="question-mark">?</span>;
                         }
                         reset = <span class="bool-val">true</span>;
                     }
                     <span class="kw">for </span>attr <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.style.attrs {
-                        <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[{}m&quot;</span>, attr.ansi_num())<span class="question-mark">?</span>;
+                        <span class="macro">write!</span>(f, <span class="string">"\x1b[{}m"</span>, attr.ansi_num())<span class="question-mark">?</span>;
                         reset = <span class="bool-val">true</span>;
                     }
                 }
                 fmt::<span class="macro-nonterminal">$name::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.val, f)<span class="question-mark">?</span>;
                 <span class="kw">if </span>reset {
-                    <span class="macro">write!</span>(f, <span class="string">&quot;\x1b[0m&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(f, <span class="string">"\x1b[0m"</span>)<span class="question-mark">?</span>;
                 }
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1637,7 +1639,7 @@
 <span class="macro">impl_fmt!</span>(UpperExp);
 <span class="macro">impl_fmt!</span>(UpperHex);
 
-<span class="doccomment">/// &quot;Intelligent&quot; emoji formatter.
+<span class="doccomment">/// "Intelligent" emoji formatter.
 ///
 /// This struct intelligently wraps an emoji so that it is rendered
 /// only on systems that want emojis and renders a fallback on others.
@@ -1646,48 +1648,48 @@
 ///
 /// ```rust
 /// use console::Emoji;
-/// println!(&quot;[3/4] {}Downloading ...&quot;, Emoji(&quot;🚚 &quot;, &quot;&quot;));
-/// println!(&quot;[4/4] {} Done!&quot;, Emoji(&quot;✨&quot;, &quot;:-)&quot;));
+/// println!("[3/4] {}Downloading ...", Emoji("🚚 ", ""));
+/// println!("[4/4] {} Done!", Emoji("✨", ":-)"));
 /// ```
 </span><span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">pub struct </span>Emoji&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, <span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str);
+</span><span class="kw">pub struct </span>Emoji&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">'b </span>str);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Emoji&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    <span class="kw">pub fn </span>new(emoji: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, fallback: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>str) -&gt; Emoji&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; Emoji&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    <span class="kw">pub fn </span>new(emoji: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, fallback: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str) -&gt; Emoji&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
         Emoji(emoji, fallback)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; fmt::Display <span class="kw">for </span>Emoji&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; fmt::Display <span class="kw">for </span>Emoji&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">if </span>wants_emoji() {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.<span class="number">0</span>)
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">1</span>)
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.<span class="number">1</span>)
         }
     }
 }
 
 <span class="kw">fn </span>str_width(s: <span class="kw-2">&amp;</span>str) -&gt; usize {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unicode-width"</span>)]
     </span>{
         <span class="kw">use </span>unicode_width::UnicodeWidthStr;
         s.width()
     }
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"unicode-width"</span>))]
     </span>{
         s.chars().count()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;ansi-parsing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
 </span><span class="kw">fn </span>char_width(c: char) -&gt; usize {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unicode-width&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unicode-width"</span>)]
     </span>{
         <span class="kw">use </span>unicode_width::UnicodeWidthChar;
         c.width().unwrap_or(<span class="number">0</span>)
     }
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;unicode-width&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"unicode-width"</span>))]
     </span>{
         <span class="kw">let </span>_c = c;
         <span class="number">1
@@ -1700,8 +1702,8 @@
 /// If the maximum length is hit the string will be truncated but
 /// escapes code will still be honored.  If truncation takes place
 /// the tail string will be appended.
-</span><span class="kw">pub fn </span>truncate_str&lt;<span class="lifetime">&#39;a</span>&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, width: usize, tail: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;ansi-parsing&quot;</span>)]
+</span><span class="kw">pub fn </span>truncate_str&lt;<span class="lifetime">'a</span>&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, width: usize, tail: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
     </span>{
         <span class="kw">use </span>std::cmp::Ordering;
         <span class="kw">let </span><span class="kw-2">mut </span>iter = AnsiCodeIterator::new(s);
@@ -1754,13 +1756,13 @@
         }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;ansi-parsing&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"ansi-parsing"</span>))]
     </span>{
         <span class="kw">if </span>s.len() &lt;= width - tail.len() {
             Cow::Borrowed(s)
         } <span class="kw">else </span>{
             Cow::Owned(<span class="macro">format!</span>(
-                <span class="string">&quot;{}{}&quot;</span>,
+                <span class="string">"{}{}"</span>,
                 s.get(..width - tail.len()).unwrap_or_default(),
                 tail
             ))
@@ -1774,13 +1776,13 @@
 /// on the left, right or centered.  Additionally truncation can be enabled
 /// by setting `truncate` to a string that should be used as a truncation
 /// marker.
-</span><span class="kw">pub fn </span>pad_str&lt;<span class="lifetime">&#39;a</span>&gt;(
-    s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+</span><span class="kw">pub fn </span>pad_str&lt;<span class="lifetime">'a</span>&gt;(
+    s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
     width: usize,
     align: Alignment,
     truncate: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
-    pad_str_with(s, width, align, truncate, <span class="string">&#39; &#39;</span>)
+) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
+    pad_str_with(s, width, align, truncate, <span class="string">' '</span>)
 }
 <span class="doccomment">/// Pads a string with specific padding to fill a certain number of characters.
 ///
@@ -1788,13 +1790,13 @@
 /// on the left, right or centered.  Additionally truncation can be enabled
 /// by setting `truncate` to a string that should be used as a truncation
 /// marker.
-</span><span class="kw">pub fn </span>pad_str_with&lt;<span class="lifetime">&#39;a</span>&gt;(
-    s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+</span><span class="kw">pub fn </span>pad_str_with&lt;<span class="lifetime">'a</span>&gt;(
+    s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
     width: usize,
     align: Alignment,
     truncate: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     pad: char,
-) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
+) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
     <span class="kw">let </span>cols = measure_text_width(s);
 
     <span class="kw">if </span>cols &gt;= width {
@@ -1825,7 +1827,7 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_text_width() {
-    <span class="kw">let </span>s = style(<span class="string">&quot;foo&quot;</span>)
+    <span class="kw">let </span>s = style(<span class="string">"foo"</span>)
         .red()
         .on_black()
         .bold()
@@ -1833,9 +1835,9 @@
         .to_string();
     <span class="macro">assert_eq!</span>(
         measure_text_width(<span class="kw-2">&amp;</span>s),
-        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;ansi-parsing&quot;</span>) {
+        <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"ansi-parsing"</span>) {
             <span class="number">3
-        </span>} <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;unicode-width&quot;</span>) {
+        </span>} <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">"unicode-width"</span>) {
             <span class="number">17
         </span>} <span class="kw">else </span>{
             <span class="number">21
@@ -1844,82 +1846,82 @@
 }
 
 <span class="attr">#[test]
-#[cfg(all(feature = <span class="string">&quot;unicode-width&quot;</span>, feature = <span class="string">&quot;ansi-parsing&quot;</span>))]
+#[cfg(all(feature = <span class="string">"unicode-width"</span>, feature = <span class="string">"ansi-parsing"</span>))]
 </span><span class="kw">fn </span>test_truncate_str() {
-    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;bar&quot;</span>).red().force_styling(<span class="bool-val">true</span>));
+    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"bar"</span>).red().force_styling(<span class="bool-val">true</span>));
     <span class="macro">assert_eq!</span>(
-        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">&quot;&quot;</span>),
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;b&quot;</span>).red().force_styling(<span class="bool-val">true</span>))
+        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">""</span>),
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"b"</span>).red().force_styling(<span class="bool-val">true</span>))
     );
-    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;bar&quot;</span>).red().force_styling(<span class="bool-val">true</span>));
+    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"bar"</span>).red().force_styling(<span class="bool-val">true</span>));
     <span class="macro">assert_eq!</span>(
-        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">&quot;!&quot;</span>),
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;!&quot;</span>).red().force_styling(<span class="bool-val">true</span>))
+        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">"!"</span>),
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"!"</span>).red().force_styling(<span class="bool-val">true</span>))
     );
-    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;foo {} baz&quot;</span>, style(<span class="string">&quot;bar&quot;</span>).red().force_styling(<span class="bool-val">true</span>));
+    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"foo {} baz"</span>, style(<span class="string">"bar"</span>).red().force_styling(<span class="bool-val">true</span>));
     <span class="macro">assert_eq!</span>(
-        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">10</span>, <span class="string">&quot;...&quot;</span>),
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;foo {}...&quot;</span>, style(<span class="string">&quot;bar&quot;</span>).red().force_styling(<span class="bool-val">true</span>))
+        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">10</span>, <span class="string">"..."</span>),
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"foo {}..."</span>, style(<span class="string">"bar"</span>).red().force_styling(<span class="bool-val">true</span>))
     );
-    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;バー&quot;</span>).red().force_styling(<span class="bool-val">true</span>));
+    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"バー"</span>).red().force_styling(<span class="bool-val">true</span>));
     <span class="macro">assert_eq!</span>(
-        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">&quot;&quot;</span>),
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;&quot;</span>).red().force_styling(<span class="bool-val">true</span>))
+        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">5</span>, <span class="string">""</span>),
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">""</span>).red().force_styling(<span class="bool-val">true</span>))
     );
-    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;バー&quot;</span>).red().force_styling(<span class="bool-val">true</span>));
+    <span class="kw">let </span>s = <span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"バー"</span>).red().force_styling(<span class="bool-val">true</span>));
     <span class="macro">assert_eq!</span>(
-        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">6</span>, <span class="string">&quot;&quot;</span>),
-        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;foo {}&quot;</span>, style(<span class="string">&quot;バ&quot;</span>).red().force_styling(<span class="bool-val">true</span>))
+        <span class="kw-2">&amp;</span>truncate_str(<span class="kw-2">&amp;</span>s, <span class="number">6</span>, <span class="string">""</span>),
+        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"foo {}"</span>, style(<span class="string">"バ"</span>).red().force_styling(<span class="bool-val">true</span>))
     );
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_truncate_str_no_ansi() {
-    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">&quot;foo bar&quot;</span>, <span class="number">5</span>, <span class="string">&quot;&quot;</span>), <span class="string">&quot;foo b&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">&quot;foo bar&quot;</span>, <span class="number">5</span>, <span class="string">&quot;!&quot;</span>), <span class="string">&quot;foo !&quot;</span>);
-    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">&quot;foo bar baz&quot;</span>, <span class="number">10</span>, <span class="string">&quot;...&quot;</span>), <span class="string">&quot;foo bar...&quot;</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">"foo bar"</span>, <span class="number">5</span>, <span class="string">""</span>), <span class="string">"foo b"</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">"foo bar"</span>, <span class="number">5</span>, <span class="string">"!"</span>), <span class="string">"foo !"</span>);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>truncate_str(<span class="string">"foo bar baz"</span>, <span class="number">10</span>, <span class="string">"..."</span>), <span class="string">"foo bar..."</span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_pad_str() {
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Center, <span class="prelude-val">None</span>), <span class="string">&quot;  foo  &quot;</span>);
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">&quot;foo    &quot;</span>);
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Right, <span class="prelude-val">None</span>), <span class="string">&quot;    foo&quot;</span>);
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foo&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">&quot;foo&quot;</span>);
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foobar&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">&quot;foobar&quot;</span>);
-    <span class="macro">assert_eq!</span>(pad_str(<span class="string">&quot;foobar&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>)), <span class="string">&quot;foo&quot;</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Center, <span class="prelude-val">None</span>), <span class="string">"  foo  "</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">"foo    "</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Right, <span class="prelude-val">None</span>), <span class="string">"    foo"</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foo"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">"foo"</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foobar"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>), <span class="string">"foobar"</span>);
+    <span class="macro">assert_eq!</span>(pad_str(<span class="string">"foobar"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">""</span>)), <span class="string">"foo"</span>);
     <span class="macro">assert_eq!</span>(
-        pad_str(<span class="string">&quot;foobarbaz&quot;</span>, <span class="number">6</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">&quot;...&quot;</span>)),
-        <span class="string">&quot;foo...&quot;
+        pad_str(<span class="string">"foobarbaz"</span>, <span class="number">6</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">"..."</span>)),
+        <span class="string">"foo..."
     </span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_pad_str_with() {
     <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Center, <span class="prelude-val">None</span>, <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;##foo##&quot;
+        pad_str_with(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Center, <span class="prelude-val">None</span>, <span class="string">'#'</span>),
+        <span class="string">"##foo##"
     </span>);
     <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;foo####&quot;
+        pad_str_with(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">'#'</span>),
+        <span class="string">"foo####"
     </span>);
     <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foo&quot;</span>, <span class="number">7</span>, Alignment::Right, <span class="prelude-val">None</span>, <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;####foo&quot;
+        pad_str_with(<span class="string">"foo"</span>, <span class="number">7</span>, Alignment::Right, <span class="prelude-val">None</span>, <span class="string">'#'</span>),
+        <span class="string">"####foo"
     </span>);
-    <span class="macro">assert_eq!</span>(pad_str_with(<span class="string">&quot;foo&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">&#39;#&#39;</span>), <span class="string">&quot;foo&quot;</span>);
+    <span class="macro">assert_eq!</span>(pad_str_with(<span class="string">"foo"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">'#'</span>), <span class="string">"foo"</span>);
     <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foobar&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;foobar&quot;
-    </span>);
-    <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foobar&quot;</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>), <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;foo&quot;
+        pad_str_with(<span class="string">"foobar"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">None</span>, <span class="string">'#'</span>),
+        <span class="string">"foobar"
     </span>);
     <span class="macro">assert_eq!</span>(
-        pad_str_with(<span class="string">&quot;foobarbaz&quot;</span>, <span class="number">6</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">&quot;...&quot;</span>), <span class="string">&#39;#&#39;</span>),
-        <span class="string">&quot;foo...&quot;
+        pad_str_with(<span class="string">"foobar"</span>, <span class="number">3</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">""</span>), <span class="string">'#'</span>),
+        <span class="string">"foo"
+    </span>);
+    <span class="macro">assert_eq!</span>(
+        pad_str_with(<span class="string">"foobarbaz"</span>, <span class="number">6</span>, Alignment::Left, <span class="prelude-val">Some</span>(<span class="string">"..."</span>), <span class="string">'#'</span>),
+        <span class="string">"foo..."
     </span>);
 }
 </code></pre></div></section></main></body></html>

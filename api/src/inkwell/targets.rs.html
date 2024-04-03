@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/targets.rs`."><title>targets.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/targets.rs`."><title>targets.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1466,13 +1468,13 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>TargetTriple {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;TargetTriple({:?})&quot;</span>, <span class="self">self</span>.triple)
+        <span class="macro">write!</span>(f, <span class="string">"TargetTriple({:?})"</span>, <span class="self">self</span>.triple)
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>TargetTriple {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
-        <span class="macro">write!</span>(f, <span class="string">&quot;TargetTriple({:?})&quot;</span>, <span class="self">self</span>.triple)
+        <span class="macro">write!</span>(f, <span class="string">"TargetTriple({:?})"</span>, <span class="self">self</span>.triple)
     }
 }
 
@@ -1497,7 +1499,7 @@
     }
 
     <span class="comment">// REVIEW: Should this just initialize all? Is opt into each a good idea?
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;target-x86&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"target-x86"</span>)]
     </span><span class="kw">pub fn </span>initialize_x86(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeX86AsmParser, LLVMInitializeX86AsmPrinter, LLVMInitializeX86Disassembler,
@@ -1535,7 +1537,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-arm&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-arm"</span>)]
     </span><span class="kw">pub fn </span>initialize_arm(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeARMAsmParser, LLVMInitializeARMAsmPrinter, LLVMInitializeARMDisassembler,
@@ -1573,7 +1575,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-mips&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-mips"</span>)]
     </span><span class="kw">pub fn </span>initialize_mips(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeMipsAsmParser, LLVMInitializeMipsAsmPrinter, LLVMInitializeMipsDisassembler,
@@ -1611,7 +1613,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-aarch64&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-aarch64"</span>)]
     </span><span class="kw">pub fn </span>initialize_aarch64(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeAArch64AsmParser, LLVMInitializeAArch64AsmPrinter, LLVMInitializeAArch64Disassembler,
@@ -1649,7 +1651,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-amdgpu&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-amdgpu"</span>)]
     #[llvm_versions(<span class="number">4.0</span>..=latest)]
     </span><span class="kw">pub fn </span>initialize_amd_gpu(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
@@ -1685,7 +1687,7 @@
         <span class="comment">// Disassembler Status Unknown
     </span>}
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-systemz&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-systemz"</span>)]
     </span><span class="kw">pub fn </span>initialize_system_z(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeSystemZAsmParser, LLVMInitializeSystemZAsmPrinter, LLVMInitializeSystemZDisassembler,
@@ -1723,7 +1725,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-hexagon&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-hexagon"</span>)]
     </span><span class="kw">pub fn </span>initialize_hexagon(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeHexagonAsmPrinter, LLVMInitializeHexagonDisassembler, LLVMInitializeHexagonTarget,
@@ -1758,7 +1760,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-nvptx&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-nvptx"</span>)]
     </span><span class="kw">pub fn </span>initialize_nvptx(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeNVPTXAsmPrinter, LLVMInitializeNVPTXTarget, LLVMInitializeNVPTXTargetInfo,
@@ -1790,7 +1792,7 @@
         <span class="comment">// Disassembler status unknown
     </span>}
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-msp430&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-msp430"</span>)]
     </span><span class="kw">pub fn </span>initialize_msp430(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeMSP430AsmPrinter, LLVMInitializeMSP430Target, LLVMInitializeMSP430TargetInfo,
@@ -1822,7 +1824,7 @@
         <span class="comment">// Disassembler status unknown
     </span>}
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-xcore&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-xcore"</span>)]
     </span><span class="kw">pub fn </span>initialize_x_core(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeXCoreAsmPrinter, LLVMInitializeXCoreDisassembler, LLVMInitializeXCoreTarget,
@@ -1857,7 +1859,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-powerpc&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-powerpc"</span>)]
     </span><span class="kw">pub fn </span>initialize_power_pc(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializePowerPCAsmParser, LLVMInitializePowerPCAsmPrinter, LLVMInitializePowerPCDisassembler,
@@ -1895,7 +1897,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-sparc&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-sparc"</span>)]
     </span><span class="kw">pub fn </span>initialize_sparc(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeSparcAsmParser, LLVMInitializeSparcAsmPrinter, LLVMInitializeSparcDisassembler,
@@ -1933,7 +1935,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-bpf&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-bpf"</span>)]
     </span><span class="kw">pub fn </span>initialize_bpf(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
             LLVMInitializeBPFAsmPrinter, LLVMInitializeBPFTarget, LLVMInitializeBPFTargetInfo,
@@ -1970,7 +1972,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-lanai&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-lanai"</span>)]
     #[llvm_versions(<span class="number">4.0</span>..=latest)]
     </span><span class="kw">pub fn </span>initialize_lanai(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
@@ -2011,10 +2013,10 @@
 
     <span class="comment">// RISCV was accidentally built by default in 4.0 since it was meant to be marked
     // experimental and so it was later removed from default builds in 5.0 until it was
-    // officially released in 9.0 Since llvm-sys doesn&#39;t officially support any experimental
-    // targets we&#39;re going to make this 9.0+ only. See
+    // officially released in 9.0 Since llvm-sys doesn't officially support any experimental
+    // targets we're going to make this 9.0+ only. See
     // https://lists.llvm.org/pipermail/llvm-dev/2017-August/116347.html for more info.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;target-riscv&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"target-riscv"</span>)]
     #[llvm_versions(<span class="number">9.0</span>..=latest)]
     </span><span class="kw">pub fn </span>initialize_riscv(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
@@ -2053,7 +2055,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;target-webassembly&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"target-webassembly"</span>)]
     #[llvm_versions(<span class="number">8.0</span>..=latest)]
     </span><span class="kw">pub fn </span>initialize_webassembly(config: <span class="kw-2">&amp;</span>InitializationConfig) {
         <span class="kw">use </span>llvm_sys::target::{
@@ -2104,7 +2106,7 @@
             <span class="kw">let </span>code = <span class="kw">unsafe </span>{ LLVM_InitializeNativeTarget() };
 
             <span class="kw">if </span>code == <span class="number">1 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native target&quot;</span>.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Unknown error in initializing native target"</span>.into());
             }
         }
 
@@ -2113,7 +2115,7 @@
             <span class="kw">let </span>code = <span class="kw">unsafe </span>{ LLVM_InitializeNativeAsmPrinter() };
 
             <span class="kw">if </span>code == <span class="number">1 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native asm printer&quot;</span>.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Unknown error in initializing native asm printer"</span>.into());
             }
         }
 
@@ -2123,7 +2125,7 @@
 
             <span class="kw">if </span>code == <span class="number">1 </span>{
                 <span class="comment">// REVIEW: Does parser need to go before printer?
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native asm parser&quot;</span>.into());
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Unknown error in initializing native asm parser"</span>.into());
             }
         }
 
@@ -2132,7 +2134,7 @@
             <span class="kw">let </span>code = <span class="kw">unsafe </span>{ LLVM_InitializeNativeDisassembler() };
 
             <span class="kw">if </span>code == <span class="number">1 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native disassembler&quot;</span>.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Unknown error in initializing native disassembler"</span>.into());
             }
         }
 
@@ -2343,7 +2345,7 @@
     ///
     /// let default_triple = TargetMachine::get_default_triple();
     ///
-    /// assert_eq!(default_triple.as_str().to_str(), Ok(&quot;x86_64-pc-linux-gnu&quot;));
+    /// assert_eq!(default_triple.as_str().to_str(), Ok("x86_64-pc-linux-gnu"));
     /// ```
     </span><span class="kw">pub fn </span>get_default_triple() -&gt; TargetTriple {
         <span class="kw">let </span>llvm_string = <span class="kw">unsafe </span>{ LLVMString::new(LLVMGetDefaultTargetTriple()) };
@@ -2360,7 +2362,7 @@
         <span class="kw">unsafe </span>{ TargetTriple::new(normalized) }
     }
 
-    <span class="doccomment">/// Gets a string containing the host CPU&#39;s name (triple).
+    <span class="doccomment">/// Gets a string containing the host CPU's name (triple).
     ///
     /// # Example Output
     ///
@@ -2421,11 +2423,11 @@
     /// let opt = OptimizationLevel::Default;
     /// let reloc = RelocMode::Default;
     /// let model = CodeModel::Default;
-    /// let target = Target::from_name(&quot;x86-64&quot;).unwrap();
+    /// let target = Target::from_name("x86-64").unwrap();
     /// let target_machine = target.create_target_machine(
-    ///     &amp;TargetTriple::create(&quot;x86_64-pc-linux-gnu&quot;),
-    ///     &quot;x86-64&quot;,
-    ///     &quot;+avx2&quot;,
+    ///     &amp;TargetTriple::create("x86_64-pc-linux-gnu"),
+    ///     "x86-64",
+    ///     "+avx2",
     ///     opt,
     ///     reloc,
     ///     model
@@ -2433,11 +2435,11 @@
     /// .unwrap();
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
     ///
-    /// module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// module.add_function("my_fn", fn_type, None);
     ///
     /// let buffer = target_machine.write_to_memory_buffer(&amp;module, FileType::Assembly).unwrap();
     /// ```
@@ -2482,12 +2484,12 @@
     /// let opt = OptimizationLevel::Default;
     /// let reloc = RelocMode::Default;
     /// let model = CodeModel::Default;
-    /// let path = Path::new(&quot;/tmp/some/path/main.asm&quot;);
-    /// let target = Target::from_name(&quot;x86-64&quot;).unwrap();
+    /// let path = Path::new("/tmp/some/path/main.asm");
+    /// let target = Target::from_name("x86-64").unwrap();
     /// let target_machine = target.create_target_machine(
-    ///     &amp;TargetTriple::create(&quot;x86_64-pc-linux-gnu&quot;),
-    ///     &quot;x86-64&quot;,
-    ///     &quot;+avx2&quot;,
+    ///     &amp;TargetTriple::create("x86_64-pc-linux-gnu"),
+    ///     "x86-64",
+    ///     "+avx2",
     ///     opt,
     ///     reloc,
     ///     model
@@ -2495,16 +2497,16 @@
     /// .unwrap();
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
     ///
-    /// module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// module.add_function("my_fn", fn_type, None);
     ///
     /// assert!(target_machine.write_to_file(&amp;module, FileType::Object, &amp;path).is_ok());
     /// ```
     </span><span class="kw">pub fn </span>write_to_file(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>Module, file_type: FileType, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LLVMString&gt; {
-        <span class="kw">let </span>path = path.to_str().expect(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
+        <span class="kw">let </span>path = path.to_str().expect(<span class="string">"Did not find a valid Unicode path string"</span>);
         <span class="kw">let </span>path_c_string = to_c_str(path);
         <span class="kw">let </span><span class="kw-2">mut </span>err_string = MaybeUninit::uninit();
         <span class="kw">let </span>return_code = <span class="kw">unsafe </span>{
@@ -2570,20 +2572,20 @@
     /// use inkwell::context::Context;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     /// let target_data = execution_engine.get_target_data();
     /// let int_type = target_data.ptr_sized_int_type_in_context(&amp;context, None);
     /// ```
-    </span><span class="attr">#[deprecated(note = <span class="string">&quot;This method will be removed in the future. Please use Context::ptr_sized_int_type instead.&quot;</span>)]
-    </span><span class="kw">pub fn </span>ptr_sized_int_type_in_context&lt;<span class="lifetime">&#39;ctx</span>&gt;(
+    </span><span class="attr">#[deprecated(note = <span class="string">"This method will be removed in the future. Please use Context::ptr_sized_int_type instead."</span>)]
+    </span><span class="kw">pub fn </span>ptr_sized_int_type_in_context&lt;<span class="lifetime">'ctx</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;,
         address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;,
-    ) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>int_type_ptr = <span class="kw">match </span>address_space {
             <span class="prelude-val">Some</span>(address_space) =&gt; <span class="kw">unsafe </span>{
                 LLVMIntPtrTypeForASInContext(context.as_ctx_ref(), <span class="self">self</span>.target_data, address_space.<span class="number">0</span>)
@@ -2603,7 +2605,7 @@
         <span class="kw">unsafe </span>{ LLVMSizeOfTypeInBits(<span class="self">self</span>.target_data, type_.as_type_ref()) }
     }
 
-    <span class="comment">// TODOC: This can fail on LLVM&#39;s side(exit?), but it doesn&#39;t seem like we have any way to check this in rust
+    <span class="comment">// TODOC: This can fail on LLVM's side(exit?), but it doesn't seem like we have any way to check this in rust
     </span><span class="kw">pub fn </span>create(str_repr: <span class="kw-2">&amp;</span>str) -&gt; TargetData {
         <span class="kw">let </span>c_string = to_c_str(str_repr);
 

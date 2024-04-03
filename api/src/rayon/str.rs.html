@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/str.rs`."><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/str.rs`."><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1078,10 +1080,10 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let max = &quot;hello&quot;.par_chars().max_by_key(|c| *c as i32);
-    /// assert_eq!(Some(&#39;o&#39;), max);
+    /// let max = "hello".par_chars().max_by_key(|c| *c as i32);
+    /// assert_eq!(Some('o'), max);
     /// ```
-    </span><span class="kw">fn </span>par_chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chars&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_chars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Chars&lt;<span class="lifetime">'_</span>&gt; {
         Chars {
             chars: <span class="self">self</span>.as_parallel_string(),
         }
@@ -1093,10 +1095,10 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let min = &quot;hello&quot;.par_char_indices().min_by_key(|&amp;(_i, c)| c as i32);
-    /// assert_eq!(Some((1, &#39;e&#39;)), min);
+    /// let min = "hello".par_char_indices().min_by_key(|&amp;(_i, c)| c as i32);
+    /// assert_eq!(Some((1, 'e')), min);
     /// ```
-    </span><span class="kw">fn </span>par_char_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CharIndices&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_char_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CharIndices&lt;<span class="lifetime">'_</span>&gt; {
         CharIndices {
             chars: <span class="self">self</span>.as_parallel_string(),
         }
@@ -1113,10 +1115,10 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let max = &quot;hello&quot;.par_bytes().max();
-    /// assert_eq!(Some(b&#39;o&#39;), max);
+    /// let max = "hello".par_bytes().max();
+    /// assert_eq!(Some(b'o'), max);
     /// ```
-    </span><span class="kw">fn </span>par_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Bytes&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Bytes&lt;<span class="lifetime">'_</span>&gt; {
         Bytes {
             chars: <span class="self">self</span>.as_parallel_string(),
         }
@@ -1132,15 +1134,15 @@
     /// ```
     /// use rayon::prelude::*;
     ///
-    /// let max = &quot;hello&quot;.par_encode_utf16().max();
-    /// assert_eq!(Some(b&#39;o&#39; as u16), max);
+    /// let max = "hello".par_encode_utf16().max();
+    /// assert_eq!(Some(b'o' as u16), max);
     ///
-    /// let text = &quot;Zażółć gęślą jaźń&quot;;
+    /// let text = "Zażółć gęślą jaźń";
     /// let utf8_len = text.len();
     /// let utf16_len = text.par_encode_utf16().count();
     /// assert!(utf16_len &lt;= utf8_len);
     /// ```
-    </span><span class="kw">fn </span>par_encode_utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EncodeUtf16&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_encode_utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; EncodeUtf16&lt;<span class="lifetime">'_</span>&gt; {
         EncodeUtf16 {
             chars: <span class="self">self</span>.as_parallel_string(),
         }
@@ -1157,13 +1159,13 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let total = &quot;1, 2, buckle, 3, 4, door&quot;
-    ///    .par_split(&#39;,&#39;)
+    /// let total = "1, 2, buckle, 3, 4, door"
+    ///    .par_split(',')
     ///    .filter_map(|s| s.trim().parse::&lt;i32&gt;().ok())
     ///    .sum();
     /// assert_eq!(10, total);
     /// ```
-    </span><span class="kw">fn </span>par_split&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; Split&lt;<span class="lifetime">&#39;_</span>, P&gt; {
+    </span><span class="kw">fn </span>par_split&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; Split&lt;<span class="lifetime">'_</span>, P&gt; {
         Split::new(<span class="self">self</span>.as_parallel_string(), separator)
     }
 
@@ -1179,18 +1181,18 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let lines: Vec&lt;_&gt; = &quot;Mary had a little lamb\nlittle lamb\nlittle lamb.&quot;
-    ///    .par_split_inclusive(&#39;\n&#39;)
+    /// let lines: Vec&lt;_&gt; = "Mary had a little lamb\nlittle lamb\nlittle lamb."
+    ///    .par_split_inclusive('\n')
     ///    .collect();
-    /// assert_eq!(lines, [&quot;Mary had a little lamb\n&quot;, &quot;little lamb\n&quot;, &quot;little lamb.&quot;]);
+    /// assert_eq!(lines, ["Mary had a little lamb\n", "little lamb\n", "little lamb."]);
     /// ```
-    </span><span class="kw">fn </span>par_split_inclusive&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; SplitInclusive&lt;<span class="lifetime">&#39;_</span>, P&gt; {
+    </span><span class="kw">fn </span>par_split_inclusive&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, separator: P) -&gt; SplitInclusive&lt;<span class="lifetime">'_</span>, P&gt; {
         SplitInclusive::new(<span class="self">self</span>.as_parallel_string(), separator)
     }
 
     <span class="doccomment">/// Returns a parallel iterator over substrings terminated by a
     /// given character or predicate, similar to `str::split_terminator`.
-    /// It&#39;s equivalent to `par_split`, except it doesn&#39;t produce an empty
+    /// It's equivalent to `par_split`, except it doesn't produce an empty
     /// substring after a trailing terminator.
     ///
     /// Note: the `Pattern` trait is private, for use only by Rayon itself.
@@ -1201,12 +1203,12 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let parts: Vec&lt;_&gt; = &quot;((1 + 3) * 2)&quot;
-    ///     .par_split_terminator(|c| c == &#39;(&#39; || c == &#39;)&#39;)
+    /// let parts: Vec&lt;_&gt; = "((1 + 3) * 2)"
+    ///     .par_split_terminator(|c| c == '(' || c == ')')
     ///     .collect();
-    /// assert_eq!(vec![&quot;&quot;, &quot;&quot;, &quot;1 + 3&quot;, &quot; * 2&quot;], parts);
+    /// assert_eq!(vec!["", "", "1 + 3", " * 2"], parts);
     /// ```
-    </span><span class="kw">fn </span>par_split_terminator&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, terminator: P) -&gt; SplitTerminator&lt;<span class="lifetime">&#39;_</span>, P&gt; {
+    </span><span class="kw">fn </span>par_split_terminator&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, terminator: P) -&gt; SplitTerminator&lt;<span class="lifetime">'_</span>, P&gt; {
         SplitTerminator::new(<span class="self">self</span>.as_parallel_string(), terminator)
     }
 
@@ -1219,20 +1221,20 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let lengths: Vec&lt;_&gt; = &quot;hello world\nfizbuzz&quot;
+    /// let lengths: Vec&lt;_&gt; = "hello world\nfizbuzz"
     ///     .par_lines()
     ///     .map(|l| l.len())
     ///     .collect();
     /// assert_eq!(vec![11, 7], lengths);
     /// ```
-    </span><span class="kw">fn </span>par_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lines&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Lines&lt;<span class="lifetime">'_</span>&gt; {
         Lines(<span class="self">self</span>.as_parallel_string())
     }
 
     <span class="doccomment">/// Returns a parallel iterator over the sub-slices of a string that are
     /// separated by any amount of whitespace.
     ///
-    /// As with `str::split_whitespace`, &#39;whitespace&#39; is defined according to
+    /// As with `str::split_whitespace`, 'whitespace' is defined according to
     /// the terms of the Unicode Derived Core Property `White_Space`.
     /// If you only want to split on ASCII whitespace instead, use
     /// [`par_split_ascii_whitespace`][`ParallelString::par_split_ascii_whitespace`].
@@ -1241,30 +1243,30 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let longest = &quot;which is the longest word?&quot;
+    /// let longest = "which is the longest word?"
     ///     .par_split_whitespace()
     ///     .max_by_key(|word| word.len());
-    /// assert_eq!(Some(&quot;longest&quot;), longest);
+    /// assert_eq!(Some("longest"), longest);
     /// ```
     ///
     /// All kinds of whitespace are considered:
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let words: Vec&lt;&amp;str&gt; = &quot; Mary   had\ta\u{2009}little  \n\t lamb&quot;
+    /// let words: Vec&lt;&amp;str&gt; = " Mary   had\ta\u{2009}little  \n\t lamb"
     ///     .par_split_whitespace()
     ///     .collect();
-    /// assert_eq!(words, [&quot;Mary&quot;, &quot;had&quot;, &quot;a&quot;, &quot;little&quot;, &quot;lamb&quot;]);
+    /// assert_eq!(words, ["Mary", "had", "a", "little", "lamb"]);
     /// ```
     ///
     /// If the string is empty or all whitespace, the iterator yields no string slices:
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// assert_eq!(&quot;&quot;.par_split_whitespace().count(), 0);
-    /// assert_eq!(&quot;   &quot;.par_split_whitespace().count(), 0);
+    /// assert_eq!("".par_split_whitespace().count(), 0);
+    /// assert_eq!("   ".par_split_whitespace().count(), 0);
     /// ```
-    </span><span class="kw">fn </span>par_split_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SplitWhitespace&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_split_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SplitWhitespace&lt;<span class="lifetime">'_</span>&gt; {
         SplitWhitespace(<span class="self">self</span>.as_parallel_string())
     }
 
@@ -1278,30 +1280,30 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let longest = &quot;which is the longest word?&quot;
+    /// let longest = "which is the longest word?"
     ///     .par_split_ascii_whitespace()
     ///     .max_by_key(|word| word.len());
-    /// assert_eq!(Some(&quot;longest&quot;), longest);
+    /// assert_eq!(Some("longest"), longest);
     /// ```
     ///
     /// All kinds of ASCII whitespace are considered, but not Unicode `White_Space`:
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let words: Vec&lt;&amp;str&gt; = &quot; Mary   had\ta\u{2009}little  \n\t lamb&quot;
+    /// let words: Vec&lt;&amp;str&gt; = " Mary   had\ta\u{2009}little  \n\t lamb"
     ///     .par_split_ascii_whitespace()
     ///     .collect();
-    /// assert_eq!(words, [&quot;Mary&quot;, &quot;had&quot;, &quot;a\u{2009}little&quot;, &quot;lamb&quot;]);
+    /// assert_eq!(words, ["Mary", "had", "a\u{2009}little", "lamb"]);
     /// ```
     ///
     /// If the string is empty or all ASCII whitespace, the iterator yields no string slices:
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// assert_eq!(&quot;&quot;.par_split_whitespace().count(), 0);
-    /// assert_eq!(&quot;   &quot;.par_split_whitespace().count(), 0);
+    /// assert_eq!("".par_split_whitespace().count(), 0);
+    /// assert_eq!("   ".par_split_whitespace().count(), 0);
     /// ```
-    </span><span class="kw">fn </span>par_split_ascii_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SplitAsciiWhitespace&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">fn </span>par_split_ascii_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SplitAsciiWhitespace&lt;<span class="lifetime">'_</span>&gt; {
         SplitAsciiWhitespace(<span class="self">self</span>.as_parallel_string())
     }
 
@@ -1316,13 +1318,13 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let total = &quot;1, 2, buckle, 3, 4, door&quot;
+    /// let total = "1, 2, buckle, 3, 4, door"
     ///    .par_matches(char::is_numeric)
-    ///    .map(|s| s.parse::&lt;i32&gt;().expect(&quot;digit&quot;))
+    ///    .map(|s| s.parse::&lt;i32&gt;().expect("digit"))
     ///    .sum();
     /// assert_eq!(10, total);
     /// ```
-    </span><span class="kw">fn </span>par_matches&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pattern: P) -&gt; Matches&lt;<span class="lifetime">&#39;_</span>, P&gt; {
+    </span><span class="kw">fn </span>par_matches&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pattern: P) -&gt; Matches&lt;<span class="lifetime">'_</span>, P&gt; {
         Matches {
             chars: <span class="self">self</span>.as_parallel_string(),
             pattern,
@@ -1340,12 +1342,12 @@
     ///
     /// ```
     /// use rayon::prelude::*;
-    /// let digits: Vec&lt;_&gt; = &quot;1, 2, buckle, 3, 4, door&quot;
+    /// let digits: Vec&lt;_&gt; = "1, 2, buckle, 3, 4, door"
     ///    .par_match_indices(char::is_numeric)
     ///    .collect();
-    /// assert_eq!(digits, vec![(0, &quot;1&quot;), (3, &quot;2&quot;), (14, &quot;3&quot;), (17, &quot;4&quot;)]);
+    /// assert_eq!(digits, vec![(0, "1"), (3, "2"), (14, "3"), (17, "4")]);
     /// ```
-    </span><span class="kw">fn </span>par_match_indices&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pattern: P) -&gt; MatchIndices&lt;<span class="lifetime">&#39;_</span>, P&gt; {
+    </span><span class="kw">fn </span>par_match_indices&lt;P: Pattern&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, pattern: P) -&gt; MatchIndices&lt;<span class="lifetime">'_</span>, P&gt; {
         MatchIndices {
             chars: <span class="self">self</span>.as_parallel_string(),
             pattern,
@@ -1378,18 +1380,18 @@
         <span class="kw">fn </span>find_in(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
         <span class="kw">fn </span>rfind_in(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;;
         <span class="kw">fn </span>is_suffix_of(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span>str) -&gt; bool;
-        <span class="kw">fn </span>fold_splits&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F, skip_last: bool) -&gt; F
+        <span class="kw">fn </span>fold_splits&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F, skip_last: bool) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;;
-        <span class="kw">fn </span>fold_inclusive_splits&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F) -&gt; F
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;;
+        <span class="kw">fn </span>fold_inclusive_splits&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;;
-        <span class="kw">fn </span>fold_matches&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F) -&gt; F
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;;
+        <span class="kw">fn </span>fold_matches&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;;
-        <span class="kw">fn </span>fold_match_indices&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F, base: usize) -&gt; F
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;;
+        <span class="kw">fn </span>fold_match_indices&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, haystack: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F, base: usize) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str)&gt;;
+            </span>F: Folder&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str)&gt;;
     }
 }
 <span class="kw">use </span><span class="self">self</span>::private::Pattern;
@@ -1418,9 +1420,9 @@
             chars.ends_with(<span class="macro-nonterminal">$pattern</span>)
         }
 
-        <span class="kw">fn </span>fold_splits&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F, skip_last: bool) -&gt; F
+        <span class="kw">fn </span>fold_splits&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F, skip_last: bool) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;,
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;,
         {
             <span class="kw">let </span><span class="kw-2">mut </span>split = chars.split(<span class="macro-nonterminal">$pattern</span>);
             <span class="kw">if </span>skip_last {
@@ -1429,23 +1431,23 @@
             folder.consume_iter(split)
         }
 
-        <span class="kw">fn </span>fold_inclusive_splits&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F) -&gt; F
+        <span class="kw">fn </span>fold_inclusive_splits&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;,
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;,
         {
             folder.consume_iter(chars.split_inclusive(<span class="macro-nonterminal">$pattern</span>))
         }
 
-        <span class="kw">fn </span>fold_matches&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F) -&gt; F
+        <span class="kw">fn </span>fold_matches&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;,
+            </span>F: Folder&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;,
         {
             folder.consume_iter(chars.matches(<span class="macro-nonterminal">$pattern</span>))
         }
 
-        <span class="kw">fn </span>fold_match_indices&lt;<span class="lifetime">&#39;ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, folder: F, base: usize) -&gt; F
+        <span class="kw">fn </span>fold_match_indices&lt;<span class="lifetime">'ch</span>, F&gt;(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>, chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, folder: F, base: usize) -&gt; F
         <span class="kw">where
-            </span>F: Folder&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str)&gt;,
+            </span>F: Folder&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str)&gt;,
         {
             folder.consume_iter(chars.match_indices(<span class="macro-nonterminal">$pattern</span>).map(offset(base)))
         }
@@ -1479,15 +1481,15 @@
 
 </span><span class="doccomment">/// Parallel iterator over the characters of a string
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Chars&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>Chars&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">struct </span>CharsProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+<span class="kw">struct </span>CharsProducer&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>Chars&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>Chars&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = char;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
@@ -1498,7 +1500,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; UnindexedProducer <span class="kw">for </span>CharsProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; UnindexedProducer <span class="kw">for </span>CharsProducer&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = char;
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
@@ -1523,16 +1525,16 @@
 
 </span><span class="doccomment">/// Parallel iterator over the characters of a string, with their positions
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>CharIndices&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>CharIndices&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">struct </span>CharIndicesProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">struct </span>CharIndicesProducer&lt;<span class="lifetime">'ch</span>&gt; {
     index: usize,
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>CharIndices&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>CharIndices&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = (usize, char);
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
@@ -1547,7 +1549,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; UnindexedProducer <span class="kw">for </span>CharIndicesProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; UnindexedProducer <span class="kw">for </span>CharIndicesProducer&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = (usize, char);
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
@@ -1579,15 +1581,15 @@
 
 </span><span class="doccomment">/// Parallel iterator over the bytes of a string
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>Bytes&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">struct </span>BytesProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+<span class="kw">struct </span>BytesProducer&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>Bytes&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = u8;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
@@ -1598,7 +1600,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; UnindexedProducer <span class="kw">for </span>BytesProducer&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; UnindexedProducer <span class="kw">for </span>BytesProducer&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = u8;
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
@@ -1623,15 +1625,15 @@
 
 </span><span class="doccomment">/// Parallel iterator over a string encoded as UTF-16
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>EncodeUtf16&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>EncodeUtf16&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">struct </span>EncodeUtf16Producer&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+<span class="kw">struct </span>EncodeUtf16Producer&lt;<span class="lifetime">'ch</span>&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>EncodeUtf16&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>EncodeUtf16&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = u16;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
@@ -1642,7 +1644,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; UnindexedProducer <span class="kw">for </span>EncodeUtf16Producer&lt;<span class="lifetime">&#39;ch</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; UnindexedProducer <span class="kw">for </span>EncodeUtf16Producer&lt;<span class="lifetime">'ch</span>&gt; {
     <span class="kw">type </span>Item = u16;
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
@@ -1667,19 +1669,19 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings separated by a pattern
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Split&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>Split&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; Split&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, separator: P) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; Split&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, separator: P) -&gt; <span class="self">Self </span>{
         Split { chars, separator }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>Split&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>Split&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1691,7 +1693,7 @@
 }
 
 <span class="doccomment">/// Implement support for `SplitProducer`.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; Fissile&lt;P&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str {
     <span class="kw">fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.len()
     }
@@ -1739,19 +1741,19 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings separated by a pattern
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>SplitInclusive&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>SplitInclusive&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
     separator: P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; SplitInclusive&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, separator: P) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; SplitInclusive&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, separator: P) -&gt; <span class="self">Self </span>{
         SplitInclusive { chars, separator }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>SplitInclusive&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1766,24 +1768,24 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings separated by a terminator pattern
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>SplitTerminator&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>SplitTerminator&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
     terminator: P,
 }
 
-<span class="kw">struct </span>SplitTerminatorProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;sep</span>, P: Pattern&gt; {
-    splitter: SplitProducer&lt;<span class="lifetime">&#39;sep</span>, P, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str&gt;,
+<span class="kw">struct </span>SplitTerminatorProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'sep</span>, P: Pattern&gt; {
+    splitter: SplitProducer&lt;<span class="lifetime">'sep</span>, P, <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str&gt;,
     skip_last: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; SplitTerminator&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, terminator: P) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; SplitTerminator&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, terminator: P) -&gt; <span class="self">Self </span>{
         SplitTerminator { chars, terminator }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;sep</span>, P: Pattern + <span class="lifetime">&#39;sep</span>&gt; SplitTerminatorProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;sep</span>, P&gt; {
-    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str, terminator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;sep </span>P) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'sep</span>, P: Pattern + <span class="lifetime">'sep</span>&gt; SplitTerminatorProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'sep</span>, P&gt; {
+    <span class="kw">fn </span>new(chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str, terminator: <span class="kw-2">&amp;</span><span class="lifetime">'sep </span>P) -&gt; <span class="self">Self </span>{
         SplitTerminatorProducer {
             splitter: SplitProducer::new(chars, terminator),
             skip_last: chars.is_empty() || terminator.is_suffix_of(chars),
@@ -1791,8 +1793,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>SplitTerminator&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>SplitTerminator&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1803,8 +1805,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;sep</span>, P: Pattern + <span class="lifetime">&#39;sep</span>&gt; UnindexedProducer <span class="kw">for </span>SplitTerminatorProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;sep</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'sep</span>, P: Pattern + <span class="lifetime">'sep</span>&gt; UnindexedProducer <span class="kw">for </span>SplitTerminatorProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'sep</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>split(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
         <span class="kw">let </span>(left, right) = <span class="self">self</span>.splitter.split();
@@ -1832,22 +1834,22 @@
 
 </span><span class="doccomment">/// Parallel iterator over lines in a string
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Lines&lt;<span class="lifetime">&#39;ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str);
+</span><span class="kw">pub struct </span>Lines&lt;<span class="lifetime">'ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str);
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>no_carriage_return(line: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
-    line.strip_suffix(<span class="string">&#39;\r&#39;</span>).unwrap_or(line)
+    line.strip_suffix(<span class="string">'\r'</span>).unwrap_or(line)
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>Lines&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>Lines&lt;<span class="lifetime">'ch</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
         </span>C: UnindexedConsumer&lt;<span class="self">Self</span>::Item&gt;,
     {
         <span class="self">self</span>.<span class="number">0
-            </span>.par_split_terminator(<span class="string">&#39;\n&#39;</span>)
+            </span>.par_split_terminator(<span class="string">'\n'</span>)
             .map(no_carriage_return)
             .drive_unindexed(consumer)
     }
@@ -1857,15 +1859,15 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings separated by whitespace
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>SplitWhitespace&lt;<span class="lifetime">&#39;ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str);
+</span><span class="kw">pub struct </span>SplitWhitespace&lt;<span class="lifetime">'ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str);
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>not_empty(s: &amp;&amp;str) -&gt; bool {
     !s.is_empty()
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>SplitWhitespace&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>SplitWhitespace&lt;<span class="lifetime">'ch</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1882,15 +1884,15 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings separated by ASCII whitespace
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>SplitAsciiWhitespace&lt;<span class="lifetime">&#39;ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str);
+</span><span class="kw">pub struct </span>SplitAsciiWhitespace&lt;<span class="lifetime">'ch</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str);
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>is_ascii_whitespace(c: char) -&gt; bool {
     c.is_ascii_whitespace()
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>&gt; ParallelIterator <span class="kw">for </span>SplitAsciiWhitespace&lt;<span class="lifetime">&#39;ch</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>&gt; ParallelIterator <span class="kw">for </span>SplitAsciiWhitespace&lt;<span class="lifetime">'ch</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1907,18 +1909,18 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings that match a pattern
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>Matches&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
     pattern: P,
 }
 
-<span class="kw">struct </span>MatchesProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
-    pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;pat </span>P,
+<span class="kw">struct </span>MatchesProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
+    pattern: <span class="kw-2">&amp;</span><span class="lifetime">'pat </span>P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>Matches&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>Matches&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1932,8 +1934,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P: Pattern&gt; UnindexedProducer <span class="kw">for </span>MatchesProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P: Pattern&gt; UnindexedProducer <span class="kw">for </span>MatchesProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str;
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
         <span class="kw">match </span>split(<span class="self">self</span>.chars) {
@@ -1963,19 +1965,19 @@
 
 </span><span class="doccomment">/// Parallel iterator over substrings that match a pattern, with their positions
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>MatchIndices&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; {
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
+</span><span class="kw">pub struct </span>MatchIndices&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; {
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
     pattern: P,
 }
 
-<span class="kw">struct </span>MatchIndicesProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P: Pattern&gt; {
+<span class="kw">struct </span>MatchIndicesProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P: Pattern&gt; {
     index: usize,
-    chars: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str,
-    pattern: <span class="kw-2">&amp;</span><span class="lifetime">&#39;pat </span>P,
+    chars: <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str,
+    pattern: <span class="kw-2">&amp;</span><span class="lifetime">'pat </span>P,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>MatchIndices&lt;<span class="lifetime">&#39;ch</span>, P&gt; {
-    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str);
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, P: Pattern&gt; ParallelIterator <span class="kw">for </span>MatchIndices&lt;<span class="lifetime">'ch</span>, P&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str);
 
     <span class="kw">fn </span>drive_unindexed&lt;C&gt;(<span class="self">self</span>, consumer: C) -&gt; C::Result
     <span class="kw">where
@@ -1990,8 +1992,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P: Pattern&gt; UnindexedProducer <span class="kw">for </span>MatchIndicesProducer&lt;<span class="lifetime">&#39;ch</span>, <span class="lifetime">&#39;pat</span>, P&gt; {
-    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ch </span>str);
+<span class="kw">impl</span>&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P: Pattern&gt; UnindexedProducer <span class="kw">for </span>MatchIndicesProducer&lt;<span class="lifetime">'ch</span>, <span class="lifetime">'pat</span>, P&gt; {
+    <span class="kw">type </span>Item = (usize, <span class="kw-2">&amp;</span><span class="lifetime">'ch </span>str);
 
     <span class="kw">fn </span>split(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) {
         <span class="kw">match </span>split(<span class="self">self</span>.chars) {

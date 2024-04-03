@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/net/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1810,15 +1812,15 @@
     </span><span class="kw">pub const </span>DGRAM: <span class="self">Self </span>= <span class="self">Self</span>(c::SOCK_DGRAM <span class="kw">as _</span>);
 
     <span class="doccomment">/// `SOCK_SEQPACKET`
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;espidf&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"espidf"</span>))]
     </span><span class="kw">pub const </span>SEQPACKET: <span class="self">Self </span>= <span class="self">Self</span>(c::SOCK_SEQPACKET <span class="kw">as _</span>);
 
     <span class="doccomment">/// `SOCK_RAW`
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;espidf&quot;</span>))]
+    </span><span class="attr">#[cfg(not(target_os = <span class="string">"espidf"</span>))]
     </span><span class="kw">pub const </span>RAW: <span class="self">Self </span>= <span class="self">Self</span>(c::SOCK_RAW <span class="kw">as _</span>);
 
     <span class="doccomment">/// `SOCK_RDM`
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;espidf&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"haiku"</span>)))]
     </span><span class="kw">pub const </span>RDM: <span class="self">Self </span>= <span class="self">Self</span>(c::SOCK_RDM <span class="kw">as _</span>);
 
     <span class="doccomment">/// Constructs a `SocketType` from a raw integer.
@@ -1876,48 +1878,48 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>NETLINK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NETLINK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_UNIX`, aka `AF_LOCAL`
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;LOCAL&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"LOCAL"</span>)]
     </span><span class="kw">pub const </span>UNIX: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_UNIX <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_AX25`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>AX25: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_AX25 <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IPX`
     </span><span class="attr">#[cfg(not(any(
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>IPX: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IPX <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_APPLETALK`
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;espidf&quot;</span>, target_os = <span class="string">&quot;vita&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>)))]
     </span><span class="kw">pub const </span>APPLETALK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_APPLETALK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NETROM`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>NETROM: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NETROM <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_BRIDGE`
@@ -1925,11 +1927,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>BRIDGE: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_BRIDGE <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ATMPVC`
@@ -1937,22 +1939,22 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ATMPVC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ATMPVC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_X25`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>X25: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_X25 <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ROSE`
@@ -1960,26 +1962,26 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ROSE: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ROSE <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_DECnet`
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;espidf&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;vita&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"vita"</span>)))]
     </span><span class="kw">pub const </span>DECnet: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_DECnet <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NETBEUI`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>NETBEUI: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NETBEUI <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SECURITY`
@@ -1987,22 +1989,22 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>SECURITY: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_SECURITY <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_KEY`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>KEY: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_KEY <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_PACKET`
@@ -2014,11 +2016,11 @@
     </span><span class="attr">#[cfg(not(any(
         bsd,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>PACKET: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_PACKET <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ASH`
@@ -2026,11 +2028,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ASH: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ASH <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ECONET`
@@ -2038,11 +2040,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ECONET: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ECONET <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ATMSVC`
@@ -2050,11 +2052,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ATMSVC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ATMSVC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_RDS`
@@ -2062,25 +2064,25 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>RDS: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_RDS <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SNA`
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;espidf&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;vita&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"vita"</span>)))]
     </span><span class="kw">pub const </span>SNA: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_SNA <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IRDA`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         solarish,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>IRDA: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IRDA <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_PPPOX`
@@ -2088,11 +2090,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>PPPOX: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_PPPOX <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_WANPIPE`
@@ -2100,11 +2102,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>WANPIPE: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_WANPIPE <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_LLC`
@@ -2112,11 +2114,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>LLC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_LLC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_CAN`
@@ -2124,11 +2126,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>CAN: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_CAN <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_TIPC`
@@ -2136,11 +2138,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>TIPC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_TIPC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_BLUETOOTH`
@@ -2148,9 +2150,9 @@
         apple,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>BLUETOOTH: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_BLUETOOTH <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IUCV`
@@ -2158,11 +2160,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>IUCV: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IUCV <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_RXRPC`
@@ -2170,21 +2172,21 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>RXRPC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_RXRPC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ISDN`
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ISDN: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ISDN <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_PHONET`
@@ -2192,11 +2194,11 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>PHONET: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_PHONET <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IEEE802154`
@@ -2204,54 +2206,54 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>IEEE802154: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IEEE802154 <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_802`
     </span><span class="attr">#[cfg(solarish)]
     </span><span class="kw">pub const </span>EIGHT_ZERO_TWO: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_802 <span class="kw">as _</span>);
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;fuchsia&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"fuchsia"</span>)]
     </span><span class="doccomment">/// `AF_ALG`
     </span><span class="kw">pub const </span>ALG: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ALG <span class="kw">as _</span>);
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"netbsd"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="doccomment">/// `AF_ARP`
     </span><span class="kw">pub const </span>ARP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ARP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ATM`
     </span><span class="attr">#[cfg(freebsdlike)]
     </span><span class="kw">pub const </span>ATM: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ATM <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_CAIF`
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CAIF: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_CAIF <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_CCITT`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>CCITT: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_CCITT <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_CHAOS`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>CHAOS: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_CHAOS <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_CNT`
-    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>CNT: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_CNT <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_COIP`
-    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>COIP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_COIP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_DATAKIT`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>DATAKIT: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_DATAKIT <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_DLI`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>DLI: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_DLI <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_E164`
-    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>E164: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_E164 <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ECMA`
-    </span><span class="attr">#[cfg(any(apple, freebsdlike, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+    </span><span class="attr">#[cfg(any(apple, freebsdlike, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>, target_os = <span class="string">"openbsd"</span>))]
     </span><span class="kw">pub const </span>ECMA: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ECMA <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ENCAP`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;openbsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"openbsd"</span>)]
     </span><span class="kw">pub const </span>ENCAP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ENCAP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_FILE`
     </span><span class="attr">#[cfg(solarish)]
@@ -2260,43 +2262,43 @@
     </span><span class="attr">#[cfg(solarish)]
     </span><span class="kw">pub const </span>GOSIP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_GOSIP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_HYLINK`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>HYLINK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_HYLINK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IB`
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>IB: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IB <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IMPLINK`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>IMPLINK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IMPLINK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_IEEE80211`
-    </span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">&quot;netbsd&quot;</span>))]
+    </span><span class="attr">#[cfg(any(apple, freebsdlike, target_os = <span class="string">"netbsd"</span>))]
     </span><span class="kw">pub const </span>IEEE80211: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_IEEE80211 <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_INET6_SDP`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">pub const </span>INET6_SDP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_INET6_SDP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_INET_OFFLOAD`
     </span><span class="attr">#[cfg(solarish)]
     </span><span class="kw">pub const </span>INET_OFFLOAD: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_INET_OFFLOAD <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_INET_SDP`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">pub const </span>INET_SDP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_INET_SDP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_INTF`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;aix&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"aix"</span>)]
     </span><span class="kw">pub const </span>INTF: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_INTF <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ISO`
-    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>ISO: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ISO <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_LAT`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>LAT: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_LAT <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_LINK`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>LINK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_LINK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_MPLS`
-    </span><span class="attr">#[cfg(any(netbsdlike, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+    </span><span class="attr">#[cfg(any(netbsdlike, target_os = <span class="string">"dragonfly"</span>, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>MPLS: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_MPLS <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NATM`
-    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>NATM: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NATM <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NBS`
     </span><span class="attr">#[cfg(solarish)]
@@ -2305,7 +2307,7 @@
     </span><span class="attr">#[cfg(solarish)]
     </span><span class="kw">pub const </span>NCA: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NCA <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NDD`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;aix&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"aix"</span>)]
     </span><span class="kw">pub const </span>NDD: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NDD <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NDRV`
     </span><span class="attr">#[cfg(apple)]
@@ -2320,19 +2322,19 @@
     </span><span class="attr">#[cfg(solarish)]
     </span><span class="kw">pub const </span>NIT: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NIT <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NOTIFY`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"haiku"</span>)]
     </span><span class="kw">pub const </span>NOTIFY: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NOTIFY <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NFC`
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>NFC: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NFC <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_NS`
-    </span><span class="attr">#[cfg(any(apple, solarish, netbsdlike, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(apple, solarish, netbsdlike, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>NS: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_NS <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_OROUTE`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;netbsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"netbsd"</span>)]
     </span><span class="kw">pub const </span>OROUTE: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_OROUTE <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_OSI`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>OSI: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_OSI <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_OSINET`
     </span><span class="attr">#[cfg(solarish)]
@@ -2344,22 +2346,22 @@
     </span><span class="attr">#[cfg(apple)]
     </span><span class="kw">pub const </span>PPP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_PPP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_PUP`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>PUP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_PUP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_RIF`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;aix&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"aix"</span>)]
     </span><span class="kw">pub const </span>RIF: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_RIF <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_ROUTE`
-    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;nto&quot;</span>))]
+    </span><span class="attr">#[cfg(any(bsd, solarish, target_os = <span class="string">"android"</span>, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"haiku"</span>, target_os = <span class="string">"nto"</span>))]
     </span><span class="kw">pub const </span>ROUTE: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_ROUTE <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SCLUSTER`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">pub const </span>SCLUSTER: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_SCLUSTER <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SIP`
-    </span><span class="attr">#[cfg(any(apple, target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+    </span><span class="attr">#[cfg(any(apple, target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"openbsd"</span>))]
     </span><span class="kw">pub const </span>SIP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_SIP <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SLOW`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">pub const </span>SLOW: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_SLOW <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_SYS_CONTROL`
     </span><span class="attr">#[cfg(apple)]
@@ -2374,10 +2376,10 @@
     </span><span class="attr">#[cfg(apple)]
     </span><span class="kw">pub const </span>UTUN: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_UTUN <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_VSOCK`
-    </span><span class="attr">#[cfg(any(apple, target_os = <span class="string">&quot;emscripten&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>))]
+    </span><span class="attr">#[cfg(any(apple, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>VSOCK: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_VSOCK <span class="kw">as _</span>);
     <span class="doccomment">/// `AF_XDP`
-    </span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     </span><span class="kw">pub const </span>XDP: <span class="self">Self </span>= <span class="self">Self</span>(c::AF_XDP <span class="kw">as _</span>);
 
     <span class="doccomment">/// Constructs a `AddressFamily` from a raw integer.
@@ -2399,7 +2401,7 @@
 <span class="kw">const fn </span>new_raw_protocol(u: u32) -&gt; RawProtocol {
     <span class="kw">match </span>RawProtocol::new(u) {
         <span class="prelude-val">Some</span>(p) =&gt; p,
-        <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;new_raw_protocol: protocol must be non-zero&quot;</span>),
+        <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"new_raw_protocol: protocol must be non-zero"</span>),
     }
 }
 
@@ -2415,8 +2417,8 @@
 /// [`socketpair`]: crate::net::socketpair()
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 #[repr(transparent)]
-#[doc(alias = <span class="string">&quot;IPPROTO_IP&quot;</span>)]
-#[doc(alias = <span class="string">&quot;NETLINK_ROUTE&quot;</span>)]
+#[doc(alias = <span class="string">"IPPROTO_IP"</span>)]
+#[doc(alias = <span class="string">"NETLINK_ROUTE"</span>)]
 </span><span class="kw">pub struct </span>Protocol(<span class="kw">pub</span>(<span class="kw">crate</span>) RawProtocol);
 
 <span class="doccomment">/// `IPPROTO_*` constants.
@@ -2431,18 +2433,18 @@
     <span class="doccomment">/// `IPPROTO_IGMP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>IGMP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_IGMP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_IPIP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>IPIP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_IPIP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_TCP`
@@ -2450,17 +2452,17 @@
     <span class="doccomment">/// `IPPROTO_EGP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>EGP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_EGP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_PUP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>PUP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_PUP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_UDP`
@@ -2468,18 +2470,18 @@
     <span class="doccomment">/// `IPPROTO_IDP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>IDP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_IDP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_TP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>TP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_TP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_DCCP`
@@ -2487,13 +2489,13 @@
         apple,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>DCCP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_DCCP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_IPV6`
@@ -2502,34 +2504,34 @@
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>RSVP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_RSVP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_GRE`
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>GRE: Protocol = Protocol(new_raw_protocol(c::IPPROTO_GRE <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_ESP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>ESP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_ESP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_AH`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>AH: Protocol = Protocol(new_raw_protocol(c::IPPROTO_AH <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_MTP`
@@ -2537,11 +2539,11 @@
         solarish,
         netbsdlike,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>MTP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_MTP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_BEETPH`
@@ -2549,30 +2551,30 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>BEETPH: Protocol = Protocol(new_raw_protocol(c::IPPROTO_BEETPH <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_ENCAP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>ENCAP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_ENCAP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_PIM`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>PIM: Protocol = Protocol(new_raw_protocol(c::IPPROTO_PIM <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_COMP`
@@ -2580,21 +2582,21 @@
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>COMP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_COMP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_SCTP`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>SCTP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_SCTP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_UDPLITE`
@@ -2603,12 +2605,12 @@
         netbsdlike,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>UDPLITE: Protocol = Protocol(new_raw_protocol(c::IPPROTO_UDPLITE <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_MPLS`
@@ -2616,41 +2618,41 @@
         apple,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>MPLS: Protocol = Protocol(new_raw_protocol(c::IPPROTO_MPLS <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_ETHERNET`
     </span><span class="attr">#[cfg(linux_kernel)]
     </span><span class="kw">pub const </span>ETHERNET: Protocol = Protocol(new_raw_protocol(c::IPPROTO_ETHERNET <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_RAW`
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;espidf&quot;</span>, target_os = <span class="string">&quot;vita&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>)))]
     </span><span class="kw">pub const </span>RAW: Protocol = Protocol(new_raw_protocol(c::IPPROTO_RAW <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_MPTCP`
     </span><span class="attr">#[cfg(not(any(
         bsd,
         solarish,
         windows,
-        target_os = <span class="string">&quot;aix&quot;</span>,
-        target_os = <span class="string">&quot;emscripten&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;fuchsia&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"emscripten"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>MPTCP: Protocol = Protocol(new_raw_protocol(c::IPPROTO_MPTCP <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_FRAGMENT`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>FRAGMENT: Protocol = Protocol(new_raw_protocol(c::IPPROTO_FRAGMENT <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_ICMPV6`
@@ -2661,19 +2663,19 @@
         netbsdlike,
         solarish,
         windows,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;nto&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"vita"</span>,
     )))]
     </span><span class="kw">pub const </span>MH: Protocol = Protocol(new_raw_protocol(c::IPPROTO_MH <span class="kw">as _</span>));
     <span class="doccomment">/// `IPPROTO_ROUTING`
     </span><span class="attr">#[cfg(not(any(
         solarish,
-        target_os = <span class="string">&quot;espidf&quot;</span>,
-        target_os = <span class="string">&quot;haiku&quot;</span>,
-        target_os = <span class="string">&quot;vita&quot;
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"vita"
     </span>)))]
     </span><span class="kw">pub const </span>ROUTING: Protocol = Protocol(new_raw_protocol(c::IPPROTO_ROUTING <span class="kw">as _</span>));
 }
@@ -2751,8 +2753,8 @@
     </span><span class="attr">#[cfg(linux_kernel)]
     </span><span class="kw">pub const </span>KOBJECT_UEVENT: Protocol = Protocol(new_raw_protocol(c::NETLINK_KOBJECT_UEVENT <span class="kw">as _</span>));
     <span class="doccomment">/// `NETLINK_GENERIC`
-    </span><span class="comment">// This is defined on FreeBSD too, but it has the value 0, so it doesn&#39;t
-    // fit in or `NonZeroU32`. It&#39;s unclear whether FreeBSD intends
+    </span><span class="comment">// This is defined on FreeBSD too, but it has the value 0, so it doesn't
+    // fit in or `NonZeroU32`. It's unclear whether FreeBSD intends
     // `NETLINK_GENERIC` to be the default when Linux has `NETLINK_ROUTE`
     // as the default.
     </span><span class="attr">#[cfg(linux_kernel)]
@@ -2815,7 +2817,7 @@
 }
 
 <span class="doccomment">/// `ETH_P_*` constants.
-</span><span class="comment">// These are translated into 16-bit big-endian form because that&#39;s what the
+</span><span class="comment">// These are translated into 16-bit big-endian form because that's what the
 // [`AddressFamily::PACKET`] address family [expects].
 //
 // [expects]: https://man7.org/linux/man-pages/man7/packet.7.html
@@ -3218,16 +3220,16 @@
         </span><span class="attr">#[cfg(not(any(
             apple,
             windows,
-            target_os = <span class="string">&quot;aix&quot;</span>,
-            target_os = <span class="string">&quot;espidf&quot;</span>,
-            target_os = <span class="string">&quot;haiku&quot;</span>,
-            target_os = <span class="string">&quot;nto&quot;</span>,
-            target_os = <span class="string">&quot;vita&quot;</span>,
+            target_os = <span class="string">"aix"</span>,
+            target_os = <span class="string">"espidf"</span>,
+            target_os = <span class="string">"haiku"</span>,
+            target_os = <span class="string">"nto"</span>,
+            target_os = <span class="string">"vita"</span>,
         )))]
         </span><span class="kw">const </span>NONBLOCK = <span class="macro">bitcast!</span>(c::SOCK_NONBLOCK);
 
         <span class="doccomment">/// `SOCK_CLOEXEC`
-        </span><span class="attr">#[cfg(not(any(apple, windows, target_os = <span class="string">&quot;aix&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+        </span><span class="attr">#[cfg(not(any(apple, windows, target_os = <span class="string">"aix"</span>, target_os = <span class="string">"haiku"</span>)))]
         </span><span class="kw">const </span>CLOEXEC = <span class="macro">bitcast!</span>(c::SOCK_CLOEXEC);
 
         <span class="comment">// This deliberately lacks a `const _ = !0`, so that users can use
@@ -3237,7 +3239,7 @@
 }
 
 <span class="doccomment">/// `AF_XDP` related types and constants.
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
 </span><span class="kw">pub mod </span>xdp {
     <span class="kw">use super</span>::{bitflags, c};
 
@@ -3488,7 +3490,7 @@
         </span><span class="kw">pub </span>options: XdpDescOptions,
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     </span><span class="macro">bitflags! </span>{
         <span class="attr">#[repr(transparent)]
         #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -3543,7 +3545,7 @@
     <span class="kw">use </span>c::c_int;
     <span class="kw">use </span>core::mem::transmute;
 
-    <span class="comment">// Backend code needs to cast these to `c_int` so make sure that cast isn&#39;t
+    <span class="comment">// Backend code needs to cast these to `c_int` so make sure that cast isn't
     // lossy.
     </span><span class="macro">assert_eq_size!</span>(RawProtocol, c_int);
     <span class="macro">assert_eq_size!</span>(Protocol, c_int);
@@ -3553,7 +3555,7 @@
     <span class="macro">assert_eq_size!</span>(SocketType, c_int);
     <span class="macro">assert_eq_size!</span>(SocketFlags, c_int);
 
-    <span class="comment">// Rustix doesn&#39;t depend on `Option&lt;Protocol&gt;` matching the ABI of a raw
+    <span class="comment">// Rustix doesn't depend on `Option&lt;Protocol&gt;` matching the ABI of a raw
     // integer for correctness, but it should work nonetheless.
     </span><span class="attr">#[allow(unsafe_code)]
     </span><span class="kw">unsafe </span>{
@@ -3567,11 +3569,11 @@
     <span class="attr">#[cfg(linux_kernel)]
     </span><span class="macro">assert_eq_size!</span>(UCred, libc::ucred);
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     </span><span class="macro">assert_eq_size!</span>(<span class="kw">super</span>::xdp::XdpUmemReg, c::xdp_umem_reg);
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     </span><span class="macro">assert_eq_size!</span>(<span class="kw">super</span>::xdp::XdpOptions, c::xdp_options);
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     </span><span class="macro">assert_eq_size!</span>(<span class="kw">super</span>::xdp::XdpDesc, c::xdp_desc);
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/debug.rs`."><title>debug.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/debug.rs`."><title>debug.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -140,47 +142,47 @@
 <span class="kw">use </span>std::fmt;
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Cpu {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Cpu&quot;</span>)
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name())
-            .field(<span class="string">&quot;CPU usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpu_usage())
-            .field(<span class="string">&quot;frequency&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.frequency())
-            .field(<span class="string">&quot;vendor ID&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vendor_id())
-            .field(<span class="string">&quot;brand&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.brand())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Cpu"</span>)
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name())
+            .field(<span class="string">"CPU usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpu_usage())
+            .field(<span class="string">"frequency"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.frequency())
+            .field(<span class="string">"vendor ID"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.vendor_id())
+            .field(<span class="string">"brand"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.brand())
             .finish()
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>System {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;System&quot;</span>)
-            .field(<span class="string">&quot;global CPU usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.global_cpu_info().cpu_usage())
-            .field(<span class="string">&quot;load average&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.load_average())
-            .field(<span class="string">&quot;total memory&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_memory())
-            .field(<span class="string">&quot;free memory&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.free_memory())
-            .field(<span class="string">&quot;total swap&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_swap())
-            .field(<span class="string">&quot;free swap&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.free_swap())
-            .field(<span class="string">&quot;nb CPUs&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpus().len())
-            .field(<span class="string">&quot;nb network interfaces&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.networks().iter().count())
-            .field(<span class="string">&quot;nb processes&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.processes().len())
-            .field(<span class="string">&quot;nb disks&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.disks().len())
-            .field(<span class="string">&quot;nb components&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.components().len())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"System"</span>)
+            .field(<span class="string">"global CPU usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.global_cpu_info().cpu_usage())
+            .field(<span class="string">"load average"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.load_average())
+            .field(<span class="string">"total memory"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_memory())
+            .field(<span class="string">"free memory"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.free_memory())
+            .field(<span class="string">"total swap"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_swap())
+            .field(<span class="string">"free swap"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.free_swap())
+            .field(<span class="string">"nb CPUs"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpus().len())
+            .field(<span class="string">"nb network interfaces"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.networks().iter().count())
+            .field(<span class="string">"nb processes"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.processes().len())
+            .field(<span class="string">"nb disks"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.disks().len())
+            .field(<span class="string">"nb components"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.components().len())
             .finish()
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Disk {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             fmt,
-            <span class="string">&quot;Disk({:?})[FS: {:?}][Type: {:?}][removable: {}] mounted on {:?}: {}/{} B&quot;</span>,
+            <span class="string">"Disk({:?})[FS: {:?}][Type: {:?}][removable: {}] mounted on {:?}: {}/{} B"</span>,
             <span class="self">self</span>.name(),
             <span class="self">self</span>.file_system()
                 .iter()
                 .map(|c| <span class="kw-2">*</span>c <span class="kw">as </span>char)
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
             <span class="self">self</span>.kind(),
-            <span class="kw">if </span><span class="self">self</span>.is_removable() { <span class="string">&quot;yes&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;no&quot; </span>},
+            <span class="kw">if </span><span class="self">self</span>.is_removable() { <span class="string">"yes" </span>} <span class="kw">else </span>{ <span class="string">"no" </span>},
             <span class="self">self</span>.mount_point(),
             <span class="self">self</span>.available_space(),
             <span class="self">self</span>.total_space(),
@@ -189,31 +191,31 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Process {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Process&quot;</span>)
-            .field(<span class="string">&quot;pid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pid())
-            .field(<span class="string">&quot;parent&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.parent())
-            .field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name())
-            .field(<span class="string">&quot;environ&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.environ())
-            .field(<span class="string">&quot;command&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cmd())
-            .field(<span class="string">&quot;executable path&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.exe())
-            .field(<span class="string">&quot;current working directory&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cwd())
-            .field(<span class="string">&quot;memory usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.memory())
-            .field(<span class="string">&quot;virtual memory usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.virtual_memory())
-            .field(<span class="string">&quot;CPU usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpu_usage())
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status())
-            .field(<span class="string">&quot;root&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.root())
-            .field(<span class="string">&quot;disk_usage&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.disk_usage())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Process"</span>)
+            .field(<span class="string">"pid"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pid())
+            .field(<span class="string">"parent"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.parent())
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name())
+            .field(<span class="string">"environ"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.environ())
+            .field(<span class="string">"command"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cmd())
+            .field(<span class="string">"executable path"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.exe())
+            .field(<span class="string">"current working directory"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cwd())
+            .field(<span class="string">"memory usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.memory())
+            .field(<span class="string">"virtual memory usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.virtual_memory())
+            .field(<span class="string">"CPU usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.cpu_usage())
+            .field(<span class="string">"status"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status())
+            .field(<span class="string">"root"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.root())
+            .field(<span class="string">"disk_usage"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.disk_usage())
             .finish()
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Component {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(critical) = <span class="self">self</span>.critical() {
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{}: {}°C (max: {}°C / critical: {}°C)&quot;</span>,
+                <span class="string">"{}: {}°C (max: {}°C / critical: {}°C)"</span>,
                 <span class="self">self</span>.label(),
                 <span class="self">self</span>.temperature(),
                 <span class="self">self</span>.max(),
@@ -222,7 +224,7 @@
         } <span class="kw">else </span>{
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{}: {}°C (max: {}°C)&quot;</span>,
+                <span class="string">"{}: {}°C (max: {}°C)"</span>,
                 <span class="self">self</span>.label(),
                 <span class="self">self</span>.temperature(),
                 <span class="self">self</span>.max()
@@ -232,33 +234,33 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Networks {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;Networks {{ {} }}&quot;</span>,
+            <span class="string">"Networks {{ {} }}"</span>,
             <span class="self">self</span>.iter()
-                .map(|x| <span class="macro">format!</span>(<span class="string">&quot;{x:?}&quot;</span>))
+                .map(|x| <span class="macro">format!</span>(<span class="string">"{x:?}"</span>))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                .join(<span class="string">&quot;, &quot;</span>)
+                .join(<span class="string">", "</span>)
         )
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>NetworkData {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;NetworkData&quot;</span>)
-            .field(<span class="string">&quot;income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.received())
-            .field(<span class="string">&quot;total income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_received())
-            .field(<span class="string">&quot;outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.transmitted())
-            .field(<span class="string">&quot;total outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_transmitted())
-            .field(<span class="string">&quot;packets income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.packets_received())
-            .field(<span class="string">&quot;total packets income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_packets_received())
-            .field(<span class="string">&quot;packets outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.packets_transmitted())
-            .field(<span class="string">&quot;total packets outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_packets_transmitted())
-            .field(<span class="string">&quot;errors income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.errors_on_received())
-            .field(<span class="string">&quot;total errors income&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_errors_on_received())
-            .field(<span class="string">&quot;errors outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.errors_on_transmitted())
-            .field(<span class="string">&quot;total errors outcome&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_errors_on_transmitted())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"NetworkData"</span>)
+            .field(<span class="string">"income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.received())
+            .field(<span class="string">"total income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_received())
+            .field(<span class="string">"outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.transmitted())
+            .field(<span class="string">"total outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_transmitted())
+            .field(<span class="string">"packets income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.packets_received())
+            .field(<span class="string">"total packets income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_packets_received())
+            .field(<span class="string">"packets outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.packets_transmitted())
+            .field(<span class="string">"total packets outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_packets_transmitted())
+            .field(<span class="string">"errors income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.errors_on_received())
+            .field(<span class="string">"total errors income"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_errors_on_received())
+            .field(<span class="string">"errors outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.errors_on_transmitted())
+            .field(<span class="string">"total errors outcome"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.total_errors_on_transmitted())
             .finish()
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver/generics.rs`."><title>generics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver/generics.rs`."><title>generics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -490,16 +492,16 @@
 }
 
 <span class="comment">// Utility methods handling generic resolution
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; TypeAnnotator&lt;<span class="lifetime">&#39;i</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// determines a possible generic for the current statement
     /// returns a pair with the possible generics symbol and the real datatype
-    /// e.g. `( &quot;T&quot;, &quot;INT&quot; )`
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_generic_candidate&lt;<span class="lifetime">&#39;idx</span>&gt;(
-        index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index,
-        annotation_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>AnnotationMapImpl,
+    /// e.g. `( "T", "INT" )`
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_generic_candidate&lt;<span class="lifetime">'idx</span>&gt;(
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        annotation_map: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>AnnotationMapImpl,
         type_name: <span class="kw-2">&amp;</span>str,
         statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str)&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>str)&gt; {
         <span class="comment">//find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
         </span><span class="kw">let </span>effective_type = index.find_effective_type_info(type_name);
         <span class="kw">let </span>candidate = <span class="kw">match </span>effective_type {
@@ -517,7 +519,7 @@
                 </span>AstStatement::Assignment(data) =&gt; <span class="kw-2">&amp;</span>data.right,
                 <span class="kw">_ </span>=&gt; statement,
             };
-            <span class="comment">//Find the statement&#39;s type
+            <span class="comment">//Find the statement's type
             </span>annotation_map.get_type(statement, index).map(|it| (generic_symbol.as_str(), it.get_name()))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -571,7 +573,7 @@
                                     generic_map,
                                 );
                             } <span class="kw">else </span>{
-                                <span class="macro">unreachable!</span>(<span class="string">&quot;Annotation must be a function but was {:?}&quot;</span>, <span class="kw-2">&amp;</span>annotation)
+                                <span class="macro">unreachable!</span>(<span class="string">"Annotation must be a function but was {:?}"</span>, <span class="kw-2">&amp;</span>annotation)
                             }
                         }
                     }
@@ -598,7 +600,7 @@
     ) {
         <span class="comment">// the generic implementation
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(generic_implementation) = generic_function.find_implementation(<span class="self">self</span>.index) {
-            <span class="comment">//register a copy of the generic&#39;s implemntation under the new name
+            <span class="comment">//register a copy of the generic's implemntation under the new name
             </span><span class="self">self</span>.annotation_map.new_index.register_implementation(
                 new_name,
                 new_name,
@@ -622,7 +624,7 @@
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
             </span><span class="kw">let </span>old_dataype = <span class="self">self</span>.index.find_pou_type(generic_function.get_name()).unwrap_or_else(|| {
-                <span class="macro">panic!</span>(<span class="string">&quot;The POU {} should be in the types index&quot;</span>, generic_function.get_name())
+                <span class="macro">panic!</span>(<span class="string">"The POU {} should be in the types index"</span>, generic_function.get_name())
             });
             <span class="kw">let </span>information = <span class="kw">if let </span>DataTypeInformation::Struct { members, source, .. } =
                 old_dataype.get_type_information()
@@ -639,7 +641,7 @@
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
                 DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
             } <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;The function {} type is always a struct&quot;</span>, old_dataype.get_name())
+                <span class="macro">unreachable!</span>(<span class="string">"The function {} type is always a struct"</span>, old_dataype.get_name())
             };
 
             <span class="kw">let </span>new_datatype = DataType {
@@ -661,7 +663,7 @@
     ) -&gt; String {
         <span class="kw">match </span><span class="self">self</span>.index.find_effective_type_info(member_name) {
             <span class="prelude-val">Some</span>(DataTypeInformation::Generic { generic_symbol, .. }) =&gt; {
-                <span class="comment">// this is a generic member, so lets see what it&#39;s generic symbol is and translate it
+                <span class="comment">// this is a generic member, so lets see what it's generic symbol is and translate it
                 </span>generics
                     .get(generic_symbol)
                     .map(|it| it.derived_type.as_str())
@@ -673,7 +675,7 @@
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 </span><span class="kw">let </span>inner_type_name = <span class="self">self</span>.find_or_create_datatype(inner_type_name, generics);
-                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;{name}__{inner_type_name}&quot;</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"{name}__{inner_type_name}"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span><span class="kw">let </span>new_type_info =
                     DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: <span class="bool-val">true </span>};
 
@@ -702,8 +704,8 @@
         generic_map: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
     ) {
         <span class="doccomment">/// An internal struct used to hold the type and nature of a generic parameter
-        </span><span class="kw">struct </span>TypeAndNature&lt;<span class="lifetime">&#39;a</span>&gt; {
-            datatype: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>typesystem::DataType,
+        </span><span class="kw">struct </span>TypeAndNature&lt;<span class="lifetime">'a</span>&gt; {
+            datatype: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>typesystem::DataType,
             nature: TypeNature,
         }
 
@@ -875,7 +877,7 @@
                                 }
                             }
                         }
-                        <span class="comment">// if we didn&#39;t get the right nature return the last one
+                        <span class="comment">// if we didn't get the right nature return the last one
                         </span>previous_type
                     })
                     .map(DataTypeInformation::get_name);
@@ -904,7 +906,7 @@
         .map(|it| {
             generic_map.get(<span class="kw-2">&amp;</span>it.name).map(|it| it.derived_type.as_str()).unwrap_or_else(|| it.name.as_str())
         })
-        .fold(qualified_name.to_string(), |accum, s| <span class="macro">format!</span>(<span class="string">&quot;{accum}__{s}&quot;</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+        .fold(qualified_name.to_string(), |accum, s| <span class="macro">format!</span>(<span class="string">"{accum}__{s}"</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
 </span>}
 
 <span class="doccomment">/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
@@ -927,7 +929,7 @@
         TypeNature::Chars | TypeNature::Char =&gt; CHAR_TYPE,
         TypeNature::String =&gt; STRING_TYPE,
         TypeNature::Date =&gt; DATE_TYPE,
-        <span class="kw">_ </span>=&gt; <span class="string">&quot;&quot;</span>,
+        <span class="kw">_ </span>=&gt; <span class="string">""</span>,
     }
 }
 </code></pre></div></section></main></body></html>

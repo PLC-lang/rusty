@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-task-4.7.0/src/task.rs`."><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_task/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_task"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-task-4.7.0/src/task.rs`."><title>task.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_task/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -581,7 +583,7 @@
 ///
 /// A [`Task`] can be awaited to retrieve the output of its future.
 ///
-/// Dropping a [`Task`] cancels it, which means its future won&#39;t be polled again. To drop the
+/// Dropping a [`Task`] cancels it, which means its future won't be polled again. To drop the
 /// [`Task`] handle without canceling it, use [`detach()`][`Task::detach()`] instead. To cancel a
 /// task gracefully and wait until it is fully destroyed, use the [`cancel()`][Task::cancel()]
 /// method.
@@ -600,17 +602,17 @@
 ///
 /// // Spawn a future onto the executor.
 /// let task = ex.spawn(async {
-///     println!(&quot;Hello from a task!&quot;);
+///     println!("Hello from a task!");
 ///     1 + 2
 /// });
 ///
 /// // Run an executor thread.
 /// thread::spawn(move || future::block_on(ex.run(future::pending::&lt;()&gt;())));
 ///
-/// // Wait for the task&#39;s output.
+/// // Wait for the task's output.
 /// assert_eq!(future::block_on(task), 3);
 /// ```
-</span><span class="attr">#[must_use = <span class="string">&quot;tasks get canceled when dropped, use `.detach()` to run them in the background&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"tasks get canceled when dropped, use `.detach()` to run them in the background"</span>]
 </span><span class="kw">pub struct </span>Task&lt;T, M = ()&gt; {
     <span class="doccomment">/// A raw task pointer.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) ptr: NonNull&lt;()&gt;,
@@ -624,9 +626,9 @@
 
 <span class="kw">impl</span>&lt;T, M&gt; Unpin <span class="kw">for </span>Task&lt;T, M&gt; {}
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;T, M&gt; std::panic::UnwindSafe <span class="kw">for </span>Task&lt;T, M&gt; {}
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;T, M&gt; std::panic::RefUnwindSafe <span class="kw">for </span>Task&lt;T, M&gt; {}
 
 <span class="kw">impl</span>&lt;T, M&gt; Task&lt;T, M&gt; {
@@ -643,7 +645,7 @@
     /// // Spawn a deamon future.
     /// ex.spawn(async {
     ///     loop {
-    ///         println!(&quot;I&#39;m a daemon task looping forever.&quot;);
+    ///         println!("I'm a daemon task looping forever.");
     ///         Timer::after(Duration::from_secs(1)).await;
     ///     }
     /// })
@@ -657,10 +659,10 @@
 
     <span class="doccomment">/// Cancels the task and waits for it to stop running.
     ///
-    /// Returns the task&#39;s output if it was completed just before it got canceled, or [`None`] if
-    /// it didn&#39;t complete.
+    /// Returns the task's output if it was completed just before it got canceled, or [`None`] if
+    /// it didn't complete.
     ///
-    /// While it&#39;s possible to simply drop the [`Task`] to cancel it, this is a cleaner way of
+    /// While it's possible to simply drop the [`Task`] to cancel it, this is a cleaner way of
     /// canceling because it also waits for the task to stop running.
     ///
     /// # Examples
@@ -676,7 +678,7 @@
     /// // Spawn a deamon future.
     /// let task = ex.spawn(async {
     ///     loop {
-    ///         println!(&quot;Even though I&#39;m in an infinite loop, you can still cancel me!&quot;);
+    ///         println!("Even though I'm in an infinite loop, you can still cancel me!");
     ///         Timer::after(Duration::from_secs(1)).await;
     ///     }
     /// });
@@ -697,10 +699,10 @@
 
     <span class="doccomment">/// Converts this task into a [`FallibleTask`].
     ///
-    /// Like [`Task`], a fallible task will poll the task&#39;s output until it is
+    /// Like [`Task`], a fallible task will poll the task's output until it is
     /// completed or cancelled due to its [`Runnable`][`super::Runnable`] being
-    /// dropped without being run. Resolves to the task&#39;s output when completed,
-    /// or [`None`] if it didn&#39;t complete.
+    /// dropped without being run. Resolves to the task's output when completed,
+    /// or [`None`] if it didn't complete.
     ///
     /// # Examples
     ///
@@ -712,7 +714,7 @@
     ///
     /// // Spawn a future onto the executor.
     /// let task = ex.spawn(async {
-    ///     println!(&quot;Hello from a task!&quot;);
+    ///     println!("Hello from a task!");
     ///     1 + 2
     /// })
     /// .fallible();
@@ -720,7 +722,7 @@
     /// // Run an executor thread.
     /// thread::spawn(move || future::block_on(ex.run(future::pending::&lt;()&gt;())));
     ///
-    /// // Wait for the task&#39;s output.
+    /// // Wait for the task's output.
     /// assert_eq!(future::block_on(task), Some(3));
     /// ```
     ///
@@ -732,12 +734,12 @@
     ///
     /// // Create a task with the future and the schedule function.
     /// let (runnable, task) = async_task::spawn(async {
-    ///     println!(&quot;Hello from a task!&quot;);
+    ///     println!("Hello from a task!");
     ///     1 + 2
     /// }, schedule);
     /// runnable.schedule();
     ///
-    /// // Wait for the task&#39;s output.
+    /// // Wait for the task's output.
     /// assert_eq!(future::block_on(task.fallible()), None);
     /// ```
     </span><span class="kw">pub fn </span>fallible(<span class="self">self</span>) -&gt; FallibleTask&lt;T, M&gt; {
@@ -753,12 +755,12 @@
             <span class="kw">let </span><span class="kw-2">mut </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 
             <span class="kw">loop </span>{
-                <span class="comment">// If the task has been completed or closed, it can&#39;t be canceled.
+                <span class="comment">// If the task has been completed or closed, it can't be canceled.
                 </span><span class="kw">if </span>state &amp; (COMPLETED | CLOSED) != <span class="number">0 </span>{
                     <span class="kw">break</span>;
                 }
 
-                <span class="comment">// If the task is not scheduled nor running, we&#39;ll need to schedule it.
+                <span class="comment">// If the task is not scheduled nor running, we'll need to schedule it.
                 </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; (SCHEDULED | RUNNING) == <span class="number">0 </span>{
                     (state | SCHEDULED | CLOSED) + REFERENCE
                 } <span class="kw">else </span>{
@@ -828,13 +830,13 @@
                                         .read(),
                                 );
 
-                                <span class="comment">// Update the state variable because we&#39;re continuing the loop.
+                                <span class="comment">// Update the state variable because we're continuing the loop.
                                 </span>state |= CLOSED;
                             }
                             <span class="prelude-val">Err</span>(s) =&gt; state = s,
                         }
                     } <span class="kw">else </span>{
-                        <span class="comment">// If this is the last reference to the task and it&#39;s not closed, then
+                        <span class="comment">// If this is the last reference to the task and it's not closed, then
                         // close it and schedule one more time so that its future gets dropped by
                         // the executor.
                         </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; (!(REFERENCE - <span class="number">1</span>) | CLOSED) == <span class="number">0 </span>{
@@ -883,7 +885,7 @@
     /// 2. Its output gets awaited by the `Task`.
     /// 3. It panics while polling the future.
     /// 4. It is completed and the `Task` gets dropped.
-    </span><span class="kw">fn </span>poll_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    </span><span class="kw">fn </span>poll_task(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         <span class="kw">let </span>ptr = <span class="self">self</span>.ptr.as_ptr();
         <span class="kw">let </span>header = ptr <span class="kw">as </span><span class="kw-2">*const </span>Header&lt;M&gt;;
 
@@ -930,7 +932,7 @@
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="comment">// If the task is still not completed, we&#39;re blocked on it.
+                    <span class="comment">// If the task is still not completed, we're blocked on it.
                     </span><span class="kw">if </span>state &amp; COMPLETED == <span class="number">0 </span>{
                         <span class="kw">return </span>Poll::Pending;
                     }
@@ -958,10 +960,10 @@
                         </span><span class="kw">let </span>output = <span class="kw">match </span>output {
                             <span class="prelude-val">Ok</span>(output) =&gt; output,
                             <span class="prelude-val">Err</span>(panic) =&gt; {
-                                <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+                                <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
                                 </span>std::panic::resume_unwind(panic);
 
-                                <span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+                                <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
                                 </span><span class="kw">match </span>panic {}
                             }
                         };
@@ -1012,18 +1014,18 @@
 <span class="kw">impl</span>&lt;T, M&gt; Future <span class="kw">for </span>Task&lt;T, M&gt; {
     <span class="kw">type </span>Output = T;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">match </span><span class="self">self</span>.poll_task(cx) {
-            Poll::Ready(t) =&gt; Poll::Ready(t.expect(<span class="string">&quot;task has failed&quot;</span>)),
+            Poll::Ready(t) =&gt; Poll::Ready(t.expect(<span class="string">"task has failed"</span>)),
             Poll::Pending =&gt; Poll::Pending,
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T, M: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Task&lt;T, M&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Task&quot;</span>)
-            .field(<span class="string">&quot;header&quot;</span>, <span class="self">self</span>.header())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Task"</span>)
+            .field(<span class="string">"header"</span>, <span class="self">self</span>.header())
             .finish()
     }
 }
@@ -1036,7 +1038,7 @@
 ///
 /// This can be useful to avoid the panic produced when polling the `Task`
 /// future if the executor dropped its `Runnable`.
-</span><span class="attr">#[must_use = <span class="string">&quot;tasks get canceled when dropped, use `.detach()` to run them in the background&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"tasks get canceled when dropped, use `.detach()` to run them in the background"</span>]
 </span><span class="kw">pub struct </span>FallibleTask&lt;T, M = ()&gt; {
     task: Task&lt;T, M&gt;,
 }
@@ -1055,7 +1057,7 @@
     /// // Spawn a deamon future.
     /// ex.spawn(async {
     ///     loop {
-    ///         println!(&quot;I&#39;m a daemon task looping forever.&quot;);
+    ///         println!("I'm a daemon task looping forever.");
     ///         Timer::after(Duration::from_secs(1)).await;
     ///     }
     /// })
@@ -1068,10 +1070,10 @@
 
     <span class="doccomment">/// Cancels the task and waits for it to stop running.
     ///
-    /// Returns the task&#39;s output if it was completed just before it got canceled, or [`None`] if
-    /// it didn&#39;t complete.
+    /// Returns the task's output if it was completed just before it got canceled, or [`None`] if
+    /// it didn't complete.
     ///
-    /// While it&#39;s possible to simply drop the [`Task`] to cancel it, this is a cleaner way of
+    /// While it's possible to simply drop the [`Task`] to cancel it, this is a cleaner way of
     /// canceling because it also waits for the task to stop running.
     ///
     /// # Examples
@@ -1087,7 +1089,7 @@
     /// // Spawn a deamon future.
     /// let task = ex.spawn(async {
     ///     loop {
-    ///         println!(&quot;Even though I&#39;m in an infinite loop, you can still cancel me!&quot;);
+    ///         println!("Even though I'm in an infinite loop, you can still cancel me!");
     ///         Timer::after(Duration::from_secs(1)).await;
     ///     }
     /// })
@@ -1116,15 +1118,15 @@
 <span class="kw">impl</span>&lt;T, M&gt; Future <span class="kw">for </span>FallibleTask&lt;T, M&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;T&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="self">self</span>.task.poll_task(cx)
     }
 }
 
 <span class="kw">impl</span>&lt;T, M: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>FallibleTask&lt;T, M&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;FallibleTask&quot;</span>)
-            .field(<span class="string">&quot;header&quot;</span>, <span class="self">self</span>.task.header())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"FallibleTask"</span>)
+            .field(<span class="string">"header"</span>, <span class="self">self</span>.task.header())
             .finish()
     }
 }

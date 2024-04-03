@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/sysinfo-0.29.11/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sysinfo" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../sysinfo/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -538,8 +540,8 @@
 <a href="#538" id="538">538</a>
 </pre></div><pre class="rust"><code><span class="comment">// Take a look at the license at the top of the repository in the LICENSE file.
 
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../README.md&quot;</span>)]
-#![cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, doc = <span class="macro">include_str!</span>(<span class="string">&quot;../md_doc/serde.md&quot;</span>))]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../README.md"</span>)]
+#![cfg_attr(feature = <span class="string">"serde"</span>, doc = <span class="macro">include_str!</span>(<span class="string">"../md_doc/serde.md"</span>))]
 #![allow(unknown_lints)]
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
@@ -553,14 +555,14 @@
 </span><span class="kw">mod </span>macros;
 
 <span class="macro">cfg_if::cfg_if! </span>{
-    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;unknown-ci&quot;</span>)] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">"unknown-ci"</span>)] </span>{
         <span class="comment">// This is used in CI to check that the build for unknown targets is compiling fine.
         </span><span class="kw">mod </span>unknown;
         <span class="kw">use </span>unknown <span class="kw">as </span>sys;
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN_USERS: usize = <span class="number">0</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>))] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(any(target_os = <span class="string">"macos"</span>, target_os = <span class="string">"ios"</span>))] </span>{
         <span class="kw">mod </span>apple;
         <span class="kw">use </span>apple <span class="kw">as </span>sys;
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>users;
@@ -583,7 +585,7 @@
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN_USERS: usize = <span class="number">1</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))] </span>{
         <span class="kw">mod </span>linux;
         <span class="kw">use </span>linux <span class="kw">as </span>sys;
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>users;
@@ -593,14 +595,14 @@
 
         <span class="comment">// This is needed because macos uses `int*` for `getgrouplist`...
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>GroupId = libc::gid_t;
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>libc::__errno_location <span class="kw">as </span>libc_errno;
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>libc::__errno <span class="kw">as </span>libc_errno;
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN_USERS: usize = <span class="number">1</span>;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)] </span>{
         <span class="kw">mod </span>freebsd;
         <span class="kw">use </span>freebsd <span class="kw">as </span>sys;
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>users;
@@ -632,14 +634,14 @@
     ComponentExt, CpuExt, DiskExt, NetworkExt, NetworksExt, ProcessExt, SystemExt, UserExt,
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;c-interface&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"c-interface"</span>)]
 </span><span class="kw">pub use </span>c_interface::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;c-interface&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"c-interface"</span>)]
 </span><span class="kw">mod </span>c_interface;
 <span class="kw">mod </span>common;
 <span class="kw">mod </span>debug;
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serde;
 <span class="kw">mod </span>system;
 <span class="kw">mod </span>traits;
@@ -663,14 +665,14 @@
 ///
 /// // We call the function before any call to the processes update.
 /// if !set_open_files_limit(10) {
-///     // It&#39;ll always return false on non-linux targets.
-///     eprintln!(&quot;failed to update the open files limit...&quot;);
+///     // It'll always return false on non-linux targets.
+///     eprintln!("failed to update the open files limit...");
 /// }
 /// let s = System::new_all();
 /// ```
 </span><span class="kw">pub fn </span>set_open_files_limit(<span class="kw-2">mut </span>_new_limit: isize) -&gt; bool {
     <span class="macro">cfg_if::cfg_if! </span>{
-        <span class="kw">if </span><span class="attr">#[cfg(all(not(feature = <span class="string">&quot;unknown-ci&quot;</span>), any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>)))]
+        <span class="kw">if </span><span class="attr">#[cfg(all(not(feature = <span class="string">"unknown-ci"</span>), any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>)))]
         </span>{
             <span class="kw">if </span>_new_limit &lt; <span class="number">0 </span>{
                 _new_limit = <span class="number">0</span>;
@@ -681,7 +683,7 @@
             }
             <span class="kw">unsafe </span>{
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">ref mut </span>x) = sys::system::REMAINING_FILES.lock() {
-                    <span class="comment">// If files are already open, to be sure that the number won&#39;t be bigger when those
+                    <span class="comment">// If files are already open, to be sure that the number won't be bigger when those
                     // files are closed, we subtract the current number of opened files to the new
                     // limit.
                     </span><span class="kw">let </span>diff = max.saturating_sub(<span class="kw-2">**</span>x);
@@ -700,9 +702,9 @@
 <span class="comment">// FIXME: Can be removed once negative trait bounds are supported.
 </span><span class="attr">#[cfg(doctest)]
 </span><span class="kw">mod </span>doctest {
-    <span class="doccomment">/// Check that `Process` doesn&#39;t implement `Clone`.
+    <span class="doccomment">/// Check that `Process` doesn't implement `Clone`.
     ///
-    /// First we check that the &quot;basic&quot; code works:
+    /// First we check that the "basic" code works:
     ///
     /// ```no_run
     /// use sysinfo::{Process, System, SystemExt};
@@ -722,9 +724,9 @@
     /// ```
     </span><span class="kw">mod </span>process_clone {}
 
-    <span class="doccomment">/// Check that `System` doesn&#39;t implement `Clone`.
+    <span class="doccomment">/// Check that `System` doesn't implement `Clone`.
     ///
-    /// First we check that the &quot;basic&quot; code works:
+    /// First we check that the "basic" code works:
     ///
     /// ```no_run
     /// use sysinfo::{Process, System, SystemExt};
@@ -747,7 +749,7 @@
 </span><span class="kw">mod </span>test {
     <span class="kw">use crate</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;unknown-ci&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"unknown-ci"</span>)]
     #[test]
     </span><span class="kw">fn </span>check_unknown_ci_feature() {
         <span class="macro">assert!</span>(!System::IS_SUPPORTED);
@@ -760,7 +762,7 @@
 
         <span class="kw">if </span>System::IS_SUPPORTED {
             <span class="comment">// No process should have 0 as memory usage.
-            </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;apple-sandbox&quot;</span>))]
+            </span><span class="attr">#[cfg(not(feature = <span class="string">"apple-sandbox"</span>))]
             </span><span class="macro">assert!</span>(!s.processes().iter().all(|(<span class="kw">_</span>, proc_)| proc_.memory() == <span class="number">0</span>));
         } <span class="kw">else </span>{
             <span class="comment">// There should be no process, but if there is one, its memory usage should be 0.
@@ -785,7 +787,7 @@
             <span class="macro">assert!</span>(s.total_memory() &gt; <span class="number">0</span>);
             <span class="macro">assert!</span>(s.used_memory() &gt; <span class="number">0</span>);
             <span class="kw">if </span>s.total_swap() &gt; <span class="number">0 </span>{
-                <span class="comment">// I think it&#39;s pretty safe to assume that there is still some swap left...
+                <span class="comment">// I think it's pretty safe to assume that there is still some swap left...
                 </span><span class="macro">assert!</span>(s.free_swap() &gt; <span class="number">0</span>);
             }
         } <span class="kw">else </span>{
@@ -796,7 +798,7 @@
         }
     }
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
     #[test]
     </span><span class="kw">fn </span>check_processes_cpu_usage() {
         <span class="kw">if </span>!System::IS_SUPPORTED {
@@ -840,7 +842,7 @@
                 </span><span class="kw">return</span>;
             }
         }
-        <span class="macro">panic!</span>(<span class="string">&quot;CPU usage is always zero...&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"CPU usage is always zero..."</span>);
     }
 
     <span class="attr">#[test]
@@ -868,12 +870,12 @@
         <span class="macro">assert!</span>(users.len() &gt;= MIN_USERS);
 
         <span class="kw">if </span>System::IS_SUPPORTED {
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;windows&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"windows"</span>))]
             </span>{
                 <span class="kw">let </span>user = users
                     .iter()
-                    .find(|u| u.name() == <span class="string">&quot;root&quot;</span>)
-                    .expect(<span class="string">&quot;no root user&quot;</span>);
+                    .find(|u| u.name() == <span class="string">"root"</span>)
+                    .expect(<span class="string">"no root user"</span>);
                 <span class="macro">assert_eq!</span>(<span class="kw-2">**</span>user.id(), <span class="number">0</span>);
                 <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>user.group_id(), <span class="number">0</span>);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(user) = users.iter().find(|u| <span class="kw-2">*</span>u.group_id() &gt; <span class="number">0</span>) {
@@ -906,7 +908,7 @@
             // to find that user ID in the global user list
             </span><span class="kw">for </span>process <span class="kw">in </span>s.processes().values() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(uid) = process.user_id() {
-                    <span class="macro">assert!</span>(s.get_user_by_id(uid).is_some(), <span class="string">&quot;No UID {:?} found&quot;</span>, uid);
+                    <span class="macro">assert!</span>(s.get_user_by_id(uid).is_some(), <span class="string">"No UID {:?} found"</span>, uid);
                 }
             }
         }
@@ -916,20 +918,20 @@
     </span><span class="kw">fn </span>check_system_info() {
         <span class="kw">let </span>s = System::new();
 
-        <span class="comment">// We don&#39;t want to test on unsupported systems.
+        <span class="comment">// We don't want to test on unsupported systems.
         </span><span class="kw">if </span>System::IS_SUPPORTED {
-            <span class="macro">assert!</span>(!s.name().expect(<span class="string">&quot;Failed to get system name&quot;</span>).is_empty());
+            <span class="macro">assert!</span>(!s.name().expect(<span class="string">"Failed to get system name"</span>).is_empty());
 
             <span class="macro">assert!</span>(!s
                 .kernel_version()
-                .expect(<span class="string">&quot;Failed to get kernel version&quot;</span>)
+                .expect(<span class="string">"Failed to get kernel version"</span>)
                 .is_empty());
 
-            <span class="macro">assert!</span>(!s.os_version().expect(<span class="string">&quot;Failed to get os version&quot;</span>).is_empty());
+            <span class="macro">assert!</span>(!s.os_version().expect(<span class="string">"Failed to get os version"</span>).is_empty());
 
             <span class="macro">assert!</span>(!s
                 .long_os_version()
-                .expect(<span class="string">&quot;Failed to get long OS version&quot;</span>)
+                .expect(<span class="string">"Failed to get long OS version"</span>)
                 .is_empty());
         }
 
@@ -938,7 +940,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>check_host_name() {
-        <span class="comment">// We don&#39;t want to test on unsupported systems.
+        <span class="comment">// We don't want to test on unsupported systems.
         </span><span class="kw">if </span>System::IS_SUPPORTED {
             <span class="kw">let </span>s = System::new();
             <span class="macro">assert!</span>(s.host_name().is_some());
@@ -947,14 +949,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>check_refresh_process_return_value() {
-        <span class="comment">// We don&#39;t want to test on unsupported systems.
+        <span class="comment">// We don't want to test on unsupported systems.
         </span><span class="kw">if </span>System::IS_SUPPORTED {
-            <span class="kw">let </span>_pid = get_current_pid().expect(<span class="string">&quot;Failed to get current PID&quot;</span>);
+            <span class="kw">let </span>_pid = get_current_pid().expect(<span class="string">"Failed to get current PID"</span>);
 
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;apple-sandbox&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"apple-sandbox"</span>))]
             </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>s = System::new();
-                <span class="comment">// First check what happens in case the process isn&#39;t already in our process list.
+                <span class="comment">// First check what happens in case the process isn't already in our process list.
                 </span><span class="macro">assert!</span>(s.refresh_process(_pid));
                 <span class="comment">// Then check that it still returns true if the process is already in our process list.
                 </span><span class="macro">assert!</span>(s.refresh_process(_pid));
@@ -975,24 +977,24 @@
     </span><span class="kw">fn </span>check_cpus_number() {
         <span class="kw">let </span><span class="kw-2">mut </span>s = System::new();
 
-        <span class="comment">// This information isn&#39;t retrieved by default.
+        <span class="comment">// This information isn't retrieved by default.
         </span><span class="macro">assert!</span>(s.cpus().is_empty());
         <span class="kw">if </span>System::IS_SUPPORTED {
             <span class="comment">// The physical cores count is recomputed every time the function is called, so the
             // information must be relevant even with nothing initialized.
             </span><span class="kw">let </span>physical_cores_count = s
                 .physical_core_count()
-                .expect(<span class="string">&quot;failed to get number of physical cores&quot;</span>);
+                .expect(<span class="string">"failed to get number of physical cores"</span>);
 
             s.refresh_cpu();
-            <span class="comment">// The cpus shouldn&#39;t be empty anymore.
+            <span class="comment">// The cpus shouldn't be empty anymore.
             </span><span class="macro">assert!</span>(!s.cpus().is_empty());
 
-            <span class="comment">// In case we are running inside a VM, it&#39;s possible to not have a physical core, only
-            // logical ones, which is why we don&#39;t test `physical_cores_count &gt; 0`.
+            <span class="comment">// In case we are running inside a VM, it's possible to not have a physical core, only
+            // logical ones, which is why we don't test `physical_cores_count &gt; 0`.
             </span><span class="kw">let </span>physical_cores_count2 = s
                 .physical_core_count()
-                .expect(<span class="string">&quot;failed to get number of physical cores&quot;</span>);
+                .expect(<span class="string">"failed to get number of physical cores"</span>);
             <span class="macro">assert!</span>(physical_cores_count2 &lt;= s.cpus().len());
             <span class="macro">assert_eq!</span>(physical_cores_count, physical_cores_count2);
         } <span class="kw">else </span>{
@@ -1006,17 +1008,17 @@
         <span class="kw">if </span>System::IS_SUPPORTED {
             <span class="macro">assert!</span>(
                 !System::SUPPORTED_SIGNALS.is_empty(),
-                <span class="string">&quot;SUPPORTED_SIGNALS shoudn&#39;t be empty on supported systems!&quot;
+                <span class="string">"SUPPORTED_SIGNALS shoudn't be empty on supported systems!"
             </span>);
         } <span class="kw">else </span>{
             <span class="macro">assert!</span>(
                 System::SUPPORTED_SIGNALS.is_empty(),
-                <span class="string">&quot;SUPPORTED_SIGNALS should be empty on not support systems!&quot;
+                <span class="string">"SUPPORTED_SIGNALS should be empty on not support systems!"
             </span>);
         }
     }
 
-    <span class="comment">// Ensure that the CPUs frequency isn&#39;t retrieved until we ask for it.
+    <span class="comment">// Ensure that the CPUs frequency isn't retrieved until we ask for it.
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>check_cpu_frequency() {
         <span class="kw">if </span>!System::IS_SUPPORTED {
@@ -1031,8 +1033,8 @@
         <span class="kw">for </span>proc_ <span class="kw">in </span>s.cpus() {
             <span class="macro">assert_eq!</span>(proc_.frequency(), <span class="number">0</span>);
         }
-        <span class="comment">// In a VM, it&#39;ll fail.
-        </span><span class="kw">if </span>std::env::var(<span class="string">&quot;APPLE_CI&quot;</span>).is_err() &amp;&amp; std::env::var(<span class="string">&quot;FREEBSD_CI&quot;</span>).is_err() {
+        <span class="comment">// In a VM, it'll fail.
+        </span><span class="kw">if </span>std::env::var(<span class="string">"APPLE_CI"</span>).is_err() &amp;&amp; std::env::var(<span class="string">"FREEBSD_CI"</span>).is_err() {
             s.refresh_cpu_specifics(CpuRefreshKind::everything());
             <span class="kw">for </span>proc_ <span class="kw">in </span>s.cpus() {
                 <span class="macro">assert_ne!</span>(proc_.frequency(), <span class="number">0</span>);
@@ -1041,7 +1043,7 @@
     }
 
     <span class="comment">// In case `Process::updated` is misused, `System::refresh_processes` might remove them
-    // so this test ensures that it doesn&#39;t happen.
+    // so this test ensures that it doesn't happen.
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>check_refresh_process_update() {
         <span class="kw">if </span>!System::IS_SUPPORTED {
@@ -1054,7 +1056,7 @@
         <span class="comment">// There should be almost no difference in the processes count.
         </span><span class="macro">assert!</span>(
             (new_total - total).abs() &lt;= <span class="number">5</span>,
-            <span class="string">&quot;{} &lt;= 5&quot;</span>,
+            <span class="string">"{} &lt;= 5"</span>,
             (new_total - total).abs()
         );
     }

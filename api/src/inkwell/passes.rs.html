@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/passes.rs`."><title>passes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/passes.rs`."><title>passes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1373,7 +1375,7 @@
     /// use inkwell::passes::{PassManager, PassManagerBuilder};
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     /// let pass_manager_builder = PassManagerBuilder::create();
     ///
     /// pass_manager_builder.set_optimization_level(Aggressive);
@@ -1465,7 +1467,7 @@
         </span><span class="self">Self</span>: Sized;
 }
 
-<span class="kw">impl </span>PassManagerSubType <span class="kw">for </span>Module&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>PassManagerSubType <span class="kw">for </span>Module&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Input = ();
 
     <span class="kw">unsafe fn </span>create&lt;I: Borrow&lt;<span class="self">Self</span>::Input&gt;&gt;(<span class="kw">_</span>: I) -&gt; LLVMPassManagerRef {
@@ -1478,9 +1480,9 @@
 }
 
 <span class="comment">// With GATs https://github.com/rust-lang/rust/issues/44265 this could be
-// type Input&lt;&#39;a&gt; = &amp;&#39;a Module;
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; PassManagerSubType <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">type </span>Input = Module&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+// type Input&lt;'a&gt; = &amp;'a Module;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; PassManagerSubType <span class="kw">for </span>FunctionValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">type </span>Input = Module&lt;<span class="lifetime">'ctx</span>&gt;;
 
     <span class="kw">unsafe fn </span>create&lt;I: Borrow&lt;<span class="self">Self</span>::Input&gt;&gt;(input: I) -&gt; LLVMPassManagerRef {
         LLVMCreateFunctionPassManagerForModule(input.borrow().module.get())
@@ -1501,7 +1503,7 @@
     sub_type: PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl </span>PassManager&lt;FunctionValue&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+<span class="kw">impl </span>PassManager&lt;FunctionValue&lt;<span class="lifetime">'_</span>&gt;&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `PassManager&lt;T&gt;` type.
     </span><span class="kw">pub fn </span>as_mut_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMPassManagerRef {
         <span class="self">self</span>.pass_manager
@@ -1539,7 +1541,7 @@
         <span class="kw">unsafe </span>{ input.run_in_pass_manager(<span class="self">self</span>) }
     }
 
-    <span class="doccomment">/// This pass promotes &quot;by reference&quot; arguments to be &quot;by value&quot; arguments.
+    <span class="doccomment">/// This pass promotes "by reference" arguments to be "by value" arguments.
     /// In practice, this means looking for internal functions that have pointer
     /// arguments. If it can prove, through the use of alias analysis, that an
     /// argument is only loaded, then it can pass the value into the function
@@ -1701,7 +1703,7 @@
     /// for each pair of compatible instructions. These heuristics
     /// are intended to prevent vectorization in cases where it would
     /// not yield a performance increase of the resulting code.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;llvm4-0&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"llvm4-0"</span>)]
     </span><span class="kw">pub fn </span>add_bb_vectorize_pass(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use </span>llvm_sys::transforms::vectorize::LLVMAddBBVectorizePass;
 
@@ -1819,7 +1821,7 @@
     /// This transformation should be followed by strength reduction after all of
     /// the desired loop transformations have been performed. Additionally, on
     /// targets where it is profitable, the loop could be transformed to count
-    /// down to zero (the &quot;do loop&quot; optimization).
+    /// down to zero (the "do loop" optimization).
     </span><span class="kw">pub fn </span>add_ind_var_simplify_pass(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{ LLVMAddIndVarSimplifyPass(<span class="self">self</span>.pass_manager) }
     }
@@ -1921,7 +1923,7 @@
     ///
     /// If these conditions are true, we can promote the loads
     /// and stores in the loop of the pointer to use a temporary
-    /// alloca&#39;d variable. We then use the mem2reg functionality
+    /// alloca'd variable. We then use the mem2reg functionality
     /// to construct the appropriate SSA form for the variable.
     </span><span class="kw">pub fn </span>add_licm_pass(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{ LLVMAddLICMPass(<span class="self">self</span>.pass_manager) }
@@ -2019,7 +2021,7 @@
     /// as uses. An alloca is transformed by using dominator frontiers
     /// to place phi nodes, then traversing the function in depth-first
     /// order to rewrite loads and stores as appropriate. This is just
-    /// the standard SSA construction algorithm to construct &quot;pruned&quot; SSA form.
+    /// the standard SSA construction algorithm to construct "pruned" SSA form.
     </span><span class="kw">pub fn </span>add_promote_memory_to_register_pass(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">6.0</span>)]
         </span><span class="kw">use </span>llvm_sys::transforms::scalar::LLVMAddPromoteMemoryToRegisterPass;
@@ -2097,7 +2099,7 @@
     /// the result returned by the call, or if the function returns a run-time constant
     /// on all exits from the function. It is possible, though unlikely, that the return
     /// returns something else (like constant 0), and can still be TRE’d. It can be
-    /// TRE&#39;d if all other return instructions in the function return the exact same value.
+    /// TRE'd if all other return instructions in the function return the exact same value.
     ///
     /// 4. If it can prove that callees do not access theier caller stack frame,
     /// they are marked as eligible for tail call elimination (by the code generator).
@@ -2257,9 +2259,9 @@
 
     <span class="attr">#[llvm_versions(<span class="number">7.0</span>..=<span class="number">15.0</span>)]
     </span><span class="kw">pub fn </span>add_aggressive_inst_combiner_pass(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;llvm7-0&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"llvm7-0"</span>))]
         </span><span class="kw">use </span>llvm_sys::transforms::aggressive_instcombine::LLVMAddAggressiveInstCombinerPass;
-        <span class="attr">#[cfg(feature = <span class="string">&quot;llvm7-0&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"llvm7-0"</span>)]
         </span><span class="kw">use </span>llvm_sys::transforms::scalar::LLVMAddAggressiveInstCombinerPass;
 
         <span class="kw">unsafe </span>{ LLVMAddAggressiveInstCombinerPass(<span class="self">self</span>.pass_manager) }

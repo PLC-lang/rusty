@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/context.rs`."><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/context.rs`."><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2184,17 +2186,17 @@
 <span class="kw">use </span>std::ptr;
 <span class="kw">use </span>std::thread_local;
 
-<span class="comment">// The idea of using a Mutex&lt;Context&gt; here and a thread local&#39;d MutexGuard&lt;Context&gt; in
+<span class="comment">// The idea of using a Mutex&lt;Context&gt; here and a thread local'd MutexGuard&lt;Context&gt; in
 // GLOBAL_CTX_LOCK is to ensure two things:
 // 1) Only one thread has access to the global context at a time.
 // 2) The thread has shared access across different points in the thread.
 // This is still technically unsafe because another program in the same process
 // could also be accessing the global context via the C API. `get_global` has been
-// marked unsafe for this reason. Iff this isn&#39;t the case then this should be fully safe.
+// marked unsafe for this reason. Iff this isn't the case then this should be fully safe.
 </span><span class="kw">static </span>GLOBAL_CTX: Lazy&lt;Mutex&lt;Context&gt;&gt; = Lazy::new(|| <span class="kw">unsafe </span>{ Mutex::new(Context::new(LLVMGetGlobalContext())) });
 
 <span class="macro">thread_local! </span>{
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GLOBAL_CTX_LOCK: Lazy&lt;MutexGuard&lt;<span class="lifetime">&#39;static</span>, Context&gt;&gt; = Lazy::new(|| {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GLOBAL_CTX_LOCK: Lazy&lt;MutexGuard&lt;<span class="lifetime">'static</span>, Context&gt;&gt; = Lazy::new(|| {
         GLOBAL_CTX.lock()
     });
 }
@@ -2210,17 +2212,17 @@
         ContextImpl(context)
     }
 
-    <span class="kw">fn </span>create_builder&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Builder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>create_builder&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Builder&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ Builder::new(LLVMCreateBuilderInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>create_module&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; Module&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>create_module&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; Module&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">unsafe </span>{ Module::new(LLVMModuleCreateWithNameInContext(c_string.as_ptr(), <span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>create_module_from_ir&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, memory_buffer: MemoryBuffer) -&gt; <span class="prelude-ty">Result</span>&lt;Module&lt;<span class="lifetime">&#39;ctx</span>&gt;, LLVMString&gt; {
+    <span class="kw">fn </span>create_module_from_ir&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, memory_buffer: MemoryBuffer) -&gt; <span class="prelude-ty">Result</span>&lt;Module&lt;<span class="lifetime">'ctx</span>&gt;, LLVMString&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>module = ptr::null_mut();
         <span class="kw">let </span><span class="kw-2">mut </span>err_str = ptr::null_mut();
 
@@ -2237,30 +2239,30 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Err</span>(LLVMString::new(err_str)) }
     }
 
-    <span class="kw">fn </span>create_inline_asm&lt;<span class="lifetime">&#39;ctx</span>&gt;(
+    <span class="kw">fn </span>create_inline_asm&lt;<span class="lifetime">'ctx</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ty: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
         <span class="kw-2">mut </span>assembly: String,
         <span class="kw-2">mut </span>constraints: String,
         sideeffects: bool,
         alignstack: bool,
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
             InlineAsmDialect,
         &gt;,
         <span class="attr">#[cfg(not(any(
-            feature = <span class="string">&quot;llvm4-0&quot;</span>,
-            feature = <span class="string">&quot;llvm5-0&quot;</span>,
-            feature = <span class="string">&quot;llvm6-0&quot;</span>,
-            feature = <span class="string">&quot;llvm7-0&quot;</span>,
-            feature = <span class="string">&quot;llvm8-0&quot;</span>,
-            feature = <span class="string">&quot;llvm9-0&quot;</span>,
-            feature = <span class="string">&quot;llvm10-0&quot;</span>,
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;
+            feature = <span class="string">"llvm4-0"</span>,
+            feature = <span class="string">"llvm5-0"</span>,
+            feature = <span class="string">"llvm6-0"</span>,
+            feature = <span class="string">"llvm7-0"</span>,
+            feature = <span class="string">"llvm8-0"</span>,
+            feature = <span class="string">"llvm9-0"</span>,
+            feature = <span class="string">"llvm10-0"</span>,
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"
         </span>)))]
         </span>can_throw: bool,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>))]
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
+        <span class="attr">#[cfg(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>))]
         </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMConstInlineAsm(
                 ty.as_type_ref(),
@@ -2270,7 +2272,7 @@
                 alignstack <span class="kw">as </span>i32,
             )
         };
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
         </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{
             LLVMGetInlineAsm(
                 ty.as_type_ref(),
@@ -2282,15 +2284,15 @@
                 alignstack <span class="kw">as </span>i32,
                 dialect.unwrap_or(InlineAsmDialect::ATT).into(),
                 <span class="attr">#[cfg(not(any(
-                    feature = <span class="string">&quot;llvm4-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm5-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm6-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm7-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm8-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm9-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm10-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                    feature = <span class="string">&quot;llvm12-0&quot;
+                    feature = <span class="string">"llvm4-0"</span>,
+                    feature = <span class="string">"llvm5-0"</span>,
+                    feature = <span class="string">"llvm6-0"</span>,
+                    feature = <span class="string">"llvm7-0"</span>,
+                    feature = <span class="string">"llvm8-0"</span>,
+                    feature = <span class="string">"llvm9-0"</span>,
+                    feature = <span class="string">"llvm10-0"</span>,
+                    feature = <span class="string">"llvm11-0"</span>,
+                    feature = <span class="string">"llvm12-0"
                 </span>)))]
                 </span>{
                     can_throw <span class="kw">as </span>i32
@@ -2301,45 +2303,45 @@
         <span class="kw">unsafe </span>{ PointerValue::new(value) }
     }
 
-    <span class="kw">fn </span>void_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>void_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ VoidType::new(LLVMVoidTypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>bool_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>bool_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMInt1TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>i8_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>i8_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMInt8TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>i16_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>i16_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMInt16TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>i32_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>i32_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMInt32TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>i64_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>i64_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMInt64TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
     <span class="comment">// TODO: Call LLVMInt128TypeInContext in applicable versions
-    </span><span class="kw">fn </span>i128_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">fn </span>i128_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.custom_width_int_type(<span class="number">128</span>)
     }
 
-    <span class="kw">fn </span>custom_width_int_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>custom_width_int_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntType::new(LLVMIntTypeInContext(<span class="self">self</span>.<span class="number">0</span>, bits)) }
     }
 
     <span class="attr">#[llvm_versions(<span class="number">6.0</span>..=latest)]
-    </span><span class="kw">fn </span>metadata_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">fn </span>metadata_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ MetadataType::new(LLVMMetadataTypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>ptr_sized_int_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, target_data: <span class="kw-2">&amp;</span>TargetData, address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>ptr_sized_int_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, target_data: <span class="kw-2">&amp;</span>TargetData, address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>int_type_ptr = <span class="kw">match </span>address_space {
             <span class="prelude-val">Some</span>(address_space) =&gt; <span class="kw">unsafe </span>{
                 LLVMIntPtrTypeForASInContext(<span class="self">self</span>.<span class="number">0</span>, target_data.target_data, address_space.<span class="number">0</span>)
@@ -2350,31 +2352,31 @@
         <span class="kw">unsafe </span>{ IntType::new(int_type_ptr) }
     }
 
-    <span class="kw">fn </span>f16_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>f16_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMHalfTypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>f32_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>f32_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMFloatTypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>f64_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>f64_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMDoubleTypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>x86_f80_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>x86_f80_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMX86FP80TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>f128_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>f128_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMFP128TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>ppc_f128_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>ppc_f128_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ FloatType::new(LLVMPPCFP128TypeInContext(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
-    <span class="kw">fn </span>struct_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum], packed: bool) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>struct_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum], packed: bool) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>field_types: Vec&lt;LLVMTypeRef&gt; = field_types.iter().map(|val| val.as_type_ref()).collect();
         <span class="kw">unsafe </span>{
             StructType::new(LLVMStructTypeInContext(
@@ -2386,14 +2388,14 @@
         }
     }
 
-    <span class="kw">fn </span>opaque_struct_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>opaque_struct_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">unsafe </span>{ StructType::new(LLVMStructCreateNamed(<span class="self">self</span>.<span class="number">0</span>, c_string.as_ptr())) }
     }
 
     <span class="attr">#[llvm_versions(<span class="number">12.0</span>..=latest)]
-    </span><span class="kw">fn </span>get_struct_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">fn </span>get_struct_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>ty = <span class="kw">unsafe </span>{ LLVMGetTypeByName2(<span class="self">self</span>.<span class="number">0</span>, c_string.as_ptr()) };
@@ -2404,7 +2406,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(StructType::new(ty)) }
     }
 
-    <span class="kw">fn </span>const_struct&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum], packed: bool) -&gt; StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>const_struct&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum], packed: bool) -&gt; StructValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>args: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             StructValue::new(LLVMConstStructInContext(
@@ -2416,7 +2418,7 @@
         }
     }
 
-    <span class="kw">fn </span>append_basic_block&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>append_basic_block&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">unsafe </span>{
@@ -2425,11 +2427,11 @@
                 function.as_value_ref(),
                 c_string.as_ptr(),
             ))
-            .expect(<span class="string">&quot;Appending basic block should never fail&quot;</span>)
+            .expect(<span class="string">"Appending basic block should never fail"</span>)
         }
     }
 
-    <span class="kw">fn </span>insert_basic_block_after&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>insert_basic_block_after&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">match </span>basic_block.get_next_basic_block() {
             <span class="prelude-val">Some</span>(next_basic_block) =&gt; <span class="self">self</span>.prepend_basic_block(next_basic_block, name),
             <span class="prelude-val">None </span>=&gt; {
@@ -2440,7 +2442,7 @@
         }
     }
 
-    <span class="kw">fn </span>prepend_basic_block&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>prepend_basic_block&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">unsafe </span>{
@@ -2449,11 +2451,11 @@
                 basic_block.basic_block,
                 c_string.as_ptr(),
             ))
-            .expect(<span class="string">&quot;Prepending basic block should never fail&quot;</span>)
+            .expect(<span class="string">"Prepending basic block should never fail"</span>)
         }
     }
 
-    <span class="kw">fn </span>metadata_node&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>metadata_node&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>tuple_values: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             MetadataValue::new(LLVMMDNodeInContext(
@@ -2464,7 +2466,7 @@
         }
     }
 
-    <span class="kw">fn </span>metadata_string&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>str) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>metadata_string&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>str) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(string);
 
         <span class="kw">unsafe </span>{ MetadataValue::new(LLVMMDStringInContext(<span class="self">self</span>.<span class="number">0</span>, c_string.as_ptr(), string.len() <span class="kw">as </span>u32)) }
@@ -2495,7 +2497,7 @@
         <span class="kw">unsafe </span>{ Attribute::new(LLVMCreateTypeAttribute(<span class="self">self</span>.<span class="number">0</span>, kind_id, type_ref.as_type_ref())) }
     }
 
-    <span class="kw">fn </span>const_string&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>[u8], null_terminated: bool) -&gt; ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>const_string&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>[u8], null_terminated: bool) -&gt; ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{
             ArrayValue::new(LLVMConstStringInContext(
                 <span class="self">self</span>.<span class="number">0</span>,
@@ -2508,21 +2510,21 @@
 
     <span class="kw">fn </span>set_diagnostic_handler(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        handler: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
+        handler: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
         void_ptr: <span class="kw-2">*mut </span>c_void,
     ) {
         <span class="kw">unsafe </span>{ LLVMContextSetDiagnosticHandler(<span class="self">self</span>.<span class="number">0</span>, <span class="prelude-val">Some</span>(handler), void_ptr) }
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;Context&gt; <span class="kw">for </span>ContextRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>PartialEq&lt;Context&gt; <span class="kw">for </span>ContextRef&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Context) -&gt; bool {
         <span class="self">self</span>.context == other.context
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;ContextRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; <span class="kw">for </span>Context {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ContextRef&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+<span class="kw">impl </span>PartialEq&lt;ContextRef&lt;<span class="lifetime">'_</span>&gt;&gt; <span class="kw">for </span>Context {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ContextRef&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
         <span class="self">self</span>.context == other.context
     }
 }
@@ -2605,7 +2607,7 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>create_module(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; Module {
@@ -2620,12 +2622,12 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_val = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(fn_val, &quot;entry&quot;);
+    /// let fn_val = module.add_function("my_fn", fn_type, None);
+    /// let basic_block = context.append_basic_block(fn_val, "entry");
     ///
     /// builder.position_at_end(basic_block);
     /// builder.build_return(None);
@@ -2634,7 +2636,7 @@
     ///
     /// let module2 = context.create_module_from_ir(memory_buffer).unwrap();
     /// ```
-    </span><span class="comment">// REVIEW: I haven&#39;t yet been able to find docs or other wrappers that confirm, but my suspicion
+    </span><span class="comment">// REVIEW: I haven't yet been able to find docs or other wrappers that confirm, but my suspicion
     // is that the method needs to take ownership of the MemoryBuffer... otherwise I see what looks like
     // a double free in valgrind when the MemoryBuffer drops so we are `forget`ting MemoryBuffer here
     // for now until we can confirm this is the correct thing to do
@@ -2651,103 +2653,103 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_val = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(fn_val, &quot;entry&quot;);
+    /// let fn_val = module.add_function("my_fn", fn_type, None);
+    /// let basic_block = context.append_basic_block(fn_val, "entry");
     ///
     /// builder.position_at_end(basic_block);
     /// let asm_fn = context.i64_type().fn_type(&amp;[context.i64_type().into(), context.i64_type().into()], false);
     /// let asm = context.create_inline_asm(
     ///     asm_fn,
-    ///     &quot;syscall&quot;.to_string(),
-    ///     &quot;=r,{rax},{rdi}&quot;.to_string(),
+    ///     "syscall".to_string(),
+    ///     "=r,{rax},{rdi}".to_string(),
     ///     true,
     ///     false,
-    ///     #[cfg(not(any(feature = &quot;llvm4-0&quot;, feature = &quot;llvm5-0&quot;, feature = &quot;llvm6-0&quot;)))] None,
+    ///     #[cfg(not(any(feature = "llvm4-0", feature = "llvm5-0", feature = "llvm6-0")))] None,
     ///     #[cfg(not(any(
-    ///         feature = &quot;llvm4-0&quot;,
-    ///         feature = &quot;llvm5-0&quot;,
-    ///         feature = &quot;llvm6-0&quot;,
-    ///         feature = &quot;llvm7-0&quot;,
-    ///         feature = &quot;llvm8-0&quot;,
-    ///         feature = &quot;llvm9-0&quot;,
-    ///         feature = &quot;llvm10-0&quot;,
-    ///         feature = &quot;llvm11-0&quot;,
-    ///         feature = &quot;llvm12-0&quot;
+    ///         feature = "llvm4-0",
+    ///         feature = "llvm5-0",
+    ///         feature = "llvm6-0",
+    ///         feature = "llvm7-0",
+    ///         feature = "llvm8-0",
+    ///         feature = "llvm9-0",
+    ///         feature = "llvm10-0",
+    ///         feature = "llvm11-0",
+    ///         feature = "llvm12-0"
     ///     )))]
     ///     false,
     /// );
     /// let params = &amp;[context.i64_type().const_int(60, false).into(), context.i64_type().const_int(1, false).into()];
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
     /// {
     ///     use inkwell::values::CallableValue;
     ///     let callable_value = CallableValue::try_from(asm).unwrap();
-    ///     builder.build_call(callable_value, params, &quot;exit&quot;);
+    ///     builder.build_call(callable_value, params, "exit");
     /// }
     ///
-    /// #[cfg(any(feature = &quot;llvm15-0&quot;, feature = &quot;llvm16-0&quot;))]
-    /// builder.build_indirect_call(asm_fn, asm, params, &quot;exit&quot;);
+    /// #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    /// builder.build_indirect_call(asm_fn, asm, params, "exit");
     ///
     /// builder.build_return(None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create_inline_asm&lt;<span class="lifetime">&#39;ctx</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>,
-        ty: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span><span class="kw">pub fn </span>create_inline_asm&lt;<span class="lifetime">'ctx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="self">self</span>,
+        ty: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
         assembly: String,
         constraints: String,
         sideeffects: bool,
         alignstack: bool,
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
             InlineAsmDialect,
         &gt;,
         <span class="attr">#[cfg(not(any(
-            feature = <span class="string">&quot;llvm4-0&quot;</span>,
-            feature = <span class="string">&quot;llvm5-0&quot;</span>,
-            feature = <span class="string">&quot;llvm6-0&quot;</span>,
-            feature = <span class="string">&quot;llvm7-0&quot;</span>,
-            feature = <span class="string">&quot;llvm8-0&quot;</span>,
-            feature = <span class="string">&quot;llvm9-0&quot;</span>,
-            feature = <span class="string">&quot;llvm10-0&quot;</span>,
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;
+            feature = <span class="string">"llvm4-0"</span>,
+            feature = <span class="string">"llvm5-0"</span>,
+            feature = <span class="string">"llvm6-0"</span>,
+            feature = <span class="string">"llvm7-0"</span>,
+            feature = <span class="string">"llvm8-0"</span>,
+            feature = <span class="string">"llvm9-0"</span>,
+            feature = <span class="string">"llvm10-0"</span>,
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"
         </span>)))]
         </span>can_throw: bool,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.create_inline_asm(
             ty,
             assembly,
             constraints,
             sideeffects,
             alignstack,
-            <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
             </span>dialect,
             <span class="attr">#[cfg(not(any(
-                feature = <span class="string">&quot;llvm4-0&quot;</span>,
-                feature = <span class="string">&quot;llvm5-0&quot;</span>,
-                feature = <span class="string">&quot;llvm6-0&quot;</span>,
-                feature = <span class="string">&quot;llvm7-0&quot;</span>,
-                feature = <span class="string">&quot;llvm8-0&quot;</span>,
-                feature = <span class="string">&quot;llvm9-0&quot;</span>,
-                feature = <span class="string">&quot;llvm10-0&quot;</span>,
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;
+                feature = <span class="string">"llvm4-0"</span>,
+                feature = <span class="string">"llvm5-0"</span>,
+                feature = <span class="string">"llvm6-0"</span>,
+                feature = <span class="string">"llvm7-0"</span>,
+                feature = <span class="string">"llvm8-0"</span>,
+                feature = <span class="string">"llvm9-0"</span>,
+                feature = <span class="string">"llvm10-0"</span>,
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"
             </span>)))]
             </span>can_throw,
         )
@@ -2924,10 +2926,10 @@
     /// use inkwell::context::Context;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     /// let target_data = execution_engine.get_target_data();
     /// let int_type = context.ptr_sized_int_type(&amp;target_data, None);
@@ -3079,7 +3081,7 @@
     /// let context = Context::create();
     /// let f32_type = context.f32_type();
     /// let i16_type = context.i16_type();
-    /// let struct_type = context.opaque_struct_type(&quot;my_struct&quot;);
+    /// let struct_type = context.opaque_struct_type("my_struct");
     ///
     /// assert_eq!(struct_type.get_field_types(), &amp;[]);
     /// ```
@@ -3097,15 +3099,15 @@
     ///
     /// let context = Context::create();
     ///
-    /// assert!(context.get_struct_type(&quot;foo&quot;).is_none());
+    /// assert!(context.get_struct_type("foo").is_none());
     ///
-    /// let opaque = context.opaque_struct_type(&quot;foo&quot;);
+    /// let opaque = context.opaque_struct_type("foo");
     ///
-    /// assert_eq!(context.get_struct_type(&quot;foo&quot;).unwrap(), opaque);
+    /// assert_eq!(context.get_struct_type("foo").unwrap(), opaque);
     /// ```
     </span><span class="attr">#[inline]
     #[llvm_versions(<span class="number">12.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_struct_type&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_struct_type&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="self">self</span>.context.get_struct_type(name)
     }
 
@@ -3138,22 +3140,22 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let last_basic_block = context.append_basic_block(fn_value, &quot;last&quot;);
+    /// let last_basic_block = context.append_basic_block(fn_value, "last");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), entry_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), last_basic_block);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>append_basic_block&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>append_basic_block&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.append_basic_block(function, name)
     }
 
@@ -3165,25 +3167,25 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let last_basic_block = context.insert_basic_block_after(entry_basic_block, &quot;last&quot;);
+    /// let last_basic_block = context.insert_basic_block_after(entry_basic_block, "last");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), entry_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), last_basic_block);
     /// ```
-    </span><span class="comment">// REVIEW: What happens when using these methods and the BasicBlock doesn&#39;t have a parent?
+    </span><span class="comment">// REVIEW: What happens when using these methods and the BasicBlock doesn't have a parent?
     // Should they be callable at all? Needs testing to see what LLVM will do, I suppose. See below unwrap.
     // Maybe need SubTypes: BasicBlock&lt;HasParent&gt;, BasicBlock&lt;Orphan&gt;?
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>insert_basic_block_after&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>insert_basic_block_after&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.insert_basic_block_after(basic_block, name)
     }
 
@@ -3195,26 +3197,26 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let first_basic_block = context.prepend_basic_block(entry_basic_block, &quot;first&quot;);
+    /// let first_basic_block = context.prepend_basic_block(entry_basic_block, "first");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), first_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), entry_basic_block);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>prepend_basic_block&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>prepend_basic_block&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.prepend_basic_block(basic_block, name)
     }
 
-    <span class="doccomment">/// Creates a `MetadataValue` tuple of heterogeneous types (a &quot;Node&quot;) for the current context. It can be assigned to a value.
+    <span class="doccomment">/// Creates a `MetadataValue` tuple of heterogeneous types (a "Node") for the current context. It can be assigned to a value.
     ///
     /// # Example
     ///
@@ -3231,10 +3233,10 @@
     /// let void_type = context.void_type();
     ///
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let fn_type = void_type.fn_type(&amp;[f32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;my_func&quot;, fn_type, None);
-    /// let entry_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_func", fn_type, None);
+    /// let entry_block = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
@@ -3247,7 +3249,7 @@
     </span><span class="comment">// REVIEW: Maybe more helpful to beginners to call this metadata_tuple?
     // REVIEW: Seems to be unassgned to anything
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>metadata_node&lt;<span class="lifetime">&#39;ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>metadata_node&lt;<span class="lifetime">'ctx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.metadata_node(values)
     }
 
@@ -3259,16 +3261,16 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let md_string = context.metadata_string(&quot;Floats are awesome!&quot;);
+    /// let md_string = context.metadata_string("Floats are awesome!");
     /// let f32_type = context.f32_type();
     /// let f32_one = f32_type.const_float(1.);
     /// let void_type = context.void_type();
     ///
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let fn_type = void_type.fn_type(&amp;[f32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;my_func&quot;, fn_type, None);
-    /// let entry_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_func", fn_type, None);
+    /// let entry_block = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
@@ -3284,7 +3286,7 @@
         <span class="self">self</span>.context.metadata_string(string)
     }
 
-    <span class="doccomment">/// Obtains the index of a metadata kind id. If the string doesn&#39;t exist, LLVM will add it at index `FIRST_CUSTOM_METADATA_KIND_ID` onward.
+    <span class="doccomment">/// Obtains the index of a metadata kind id. If the string doesn't exist, LLVM will add it at index `FIRST_CUSTOM_METADATA_KIND_ID` onward.
     ///
     /// # Example
     ///
@@ -3294,12 +3296,12 @@
     ///
     /// let context = Context::create();
     ///
-    /// assert_eq!(context.get_kind_id(&quot;dbg&quot;), 0);
-    /// assert_eq!(context.get_kind_id(&quot;tbaa&quot;), 1);
-    /// assert_eq!(context.get_kind_id(&quot;prof&quot;), 2);
+    /// assert_eq!(context.get_kind_id("dbg"), 0);
+    /// assert_eq!(context.get_kind_id("tbaa"), 1);
+    /// assert_eq!(context.get_kind_id("prof"), 2);
     ///
-    /// // Custom kind id doesn&#39;t exist in LLVM until now:
-    /// assert_eq!(context.get_kind_id(&quot;foo&quot;), FIRST_CUSTOM_METADATA_KIND_ID);
+    /// // Custom kind id doesn't exist in LLVM until now:
+    /// assert_eq!(context.get_kind_id("foo"), FIRST_CUSTOM_METADATA_KIND_ID);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_kind_id(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; u32 {
@@ -3342,7 +3344,7 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let string_attribute = context.create_string_attribute(&quot;my_key_123&quot;, &quot;my_val&quot;);
+    /// let string_attribute = context.create_string_attribute("my_key_123", "my_val");
     ///
     /// assert!(string_attribute.is_string());
     /// ```
@@ -3360,7 +3362,7 @@
     /// use inkwell::types::AnyType;
     ///
     /// let context = Context::create();
-    /// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);
+    /// let kind_id = Attribute::get_named_enum_kind_id("sret");
     /// let any_type = context.i32_type().as_any_type_enum();
     /// let type_attribute = context.create_type_attribute(
     ///     kind_id,
@@ -3386,9 +3388,9 @@
     /// use inkwell::values::AnyValue;
     ///
     /// let context = Context::create();
-    /// let string = context.const_string(b&quot;my_string&quot;, false);
+    /// let string = context.const_string(b"my_string", false);
     ///
-    /// assert_eq!(string.print_to_string().to_string(), &quot;[9 x i8] c\&quot;my_string\&quot;&quot;);
+    /// assert_eq!(string.print_to_string().to_string(), "[9 x i8] c\"my_string\"");
     /// ```
     </span><span class="comment">// SubTypes: Should return ArrayValue&lt;IntValue&lt;i8&gt;&gt;
     </span><span class="attr">#[inline]
@@ -3400,7 +3402,7 @@
     #[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_diagnostic_handler(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        handler: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
+        handler: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
         void_ptr: <span class="kw-2">*mut </span>c_void,
     ) {
         <span class="self">self</span>.context.set_diagnostic_handler(handler, void_ptr)
@@ -3415,14 +3417,14 @@
     }
 }
 
-<span class="doccomment">/// A `ContextRef` is a smart pointer allowing borrowed access to a type&#39;s `Context`.
+<span class="doccomment">/// A `ContextRef` is a smart pointer allowing borrowed access to a type's `Context`.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) context: ContextImpl,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(context: LLVMContextRef) -&gt; <span class="self">Self </span>{
         ContextRef {
             context: ContextImpl::new(context),
@@ -3441,7 +3443,7 @@
     /// let builder = context.create_builder();
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create_builder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Builder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_builder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Builder&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.create_builder()
     }
 
@@ -3453,10 +3455,10 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create_module(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; Module&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_module(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; Module&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.create_module(name)
     }
 
@@ -3468,12 +3470,12 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_val = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(fn_val, &quot;entry&quot;);
+    /// let fn_val = module.add_function("my_fn", fn_type, None);
+    /// let basic_block = context.append_basic_block(fn_val, "entry");
     ///
     /// builder.position_at_end(basic_block);
     /// builder.build_return(None);
@@ -3482,12 +3484,12 @@
     ///
     /// let module2 = context.create_module_from_ir(memory_buffer).unwrap();
     /// ```
-    </span><span class="comment">// REVIEW: I haven&#39;t yet been able to find docs or other wrappers that confirm, but my suspicion
+    </span><span class="comment">// REVIEW: I haven't yet been able to find docs or other wrappers that confirm, but my suspicion
     // is that the method needs to take ownership of the MemoryBuffer... otherwise I see what looks like
     // a double free in valgrind when the MemoryBuffer drops so we are `forget`ting MemoryBuffer here
     // for now until we can confirm this is the correct thing to do
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>create_module_from_ir(<span class="kw-2">&amp;</span><span class="self">self</span>, memory_buffer: MemoryBuffer) -&gt; <span class="prelude-ty">Result</span>&lt;Module&lt;<span class="lifetime">&#39;ctx</span>&gt;, LLVMString&gt; {
+    </span><span class="kw">pub fn </span>create_module_from_ir(<span class="kw-2">&amp;</span><span class="self">self</span>, memory_buffer: MemoryBuffer) -&gt; <span class="prelude-ty">Result</span>&lt;Module&lt;<span class="lifetime">'ctx</span>&gt;, LLVMString&gt; {
         <span class="self">self</span>.context.create_module_from_ir(memory_buffer)
     }
 
@@ -3499,103 +3501,103 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let builder = context.create_builder();
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_val = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(fn_val, &quot;entry&quot;);
+    /// let fn_val = module.add_function("my_fn", fn_type, None);
+    /// let basic_block = context.append_basic_block(fn_val, "entry");
     ///
     /// builder.position_at_end(basic_block);
     /// let asm_fn = context.i64_type().fn_type(&amp;[context.i64_type().into(), context.i64_type().into()], false);
     /// let asm = context.create_inline_asm(
     ///     asm_fn,
-    ///     &quot;syscall&quot;.to_string(),
-    ///     &quot;=r,{rax},{rdi}&quot;.to_string(),
+    ///     "syscall".to_string(),
+    ///     "=r,{rax},{rdi}".to_string(),
     ///     true,
     ///     false,
-    ///     #[cfg(not(any(feature = &quot;llvm4-0&quot;, feature = &quot;llvm5-0&quot;, feature = &quot;llvm6-0&quot;)))] None,
+    ///     #[cfg(not(any(feature = "llvm4-0", feature = "llvm5-0", feature = "llvm6-0")))] None,
     ///     #[cfg(not(any(
-    ///         feature = &quot;llvm4-0&quot;,
-    ///         feature = &quot;llvm5-0&quot;,
-    ///         feature = &quot;llvm6-0&quot;,
-    ///         feature = &quot;llvm7-0&quot;,
-    ///         feature = &quot;llvm8-0&quot;,
-    ///         feature = &quot;llvm9-0&quot;,
-    ///         feature = &quot;llvm10-0&quot;,
-    ///         feature = &quot;llvm11-0&quot;,
-    ///         feature = &quot;llvm12-0&quot;
+    ///         feature = "llvm4-0",
+    ///         feature = "llvm5-0",
+    ///         feature = "llvm6-0",
+    ///         feature = "llvm7-0",
+    ///         feature = "llvm8-0",
+    ///         feature = "llvm9-0",
+    ///         feature = "llvm10-0",
+    ///         feature = "llvm11-0",
+    ///         feature = "llvm12-0"
     ///     )))]
     ///     false,
     /// );
     /// let params = &amp;[context.i64_type().const_int(60, false).into(), context.i64_type().const_int(1, false).into()];
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
     /// {
     ///     use inkwell::values::CallableValue;
     ///     let callable_value = CallableValue::try_from(asm).unwrap();
-    ///     builder.build_call(callable_value, params, &quot;exit&quot;);
+    ///     builder.build_call(callable_value, params, "exit");
     /// }
     ///
-    /// #[cfg(any(feature = &quot;llvm15-0&quot;, feature = &quot;llvm16-0&quot;))]
-    /// builder.build_indirect_call(asm_fn, asm, params, &quot;exit&quot;);
+    /// #[cfg(any(feature = "llvm15-0", feature = "llvm16-0"))]
+    /// builder.build_indirect_call(asm_fn, asm, params, "exit");
     ///
     /// builder.build_return(None);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>create_inline_asm(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        ty: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        ty: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;,
         assembly: String,
         constraints: String,
         sideeffects: bool,
         alignstack: bool,
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))] </span>dialect: <span class="prelude-ty">Option</span>&lt;
             InlineAsmDialect,
         &gt;,
         <span class="attr">#[cfg(not(any(
-            feature = <span class="string">&quot;llvm4-0&quot;</span>,
-            feature = <span class="string">&quot;llvm5-0&quot;</span>,
-            feature = <span class="string">&quot;llvm6-0&quot;</span>,
-            feature = <span class="string">&quot;llvm7-0&quot;</span>,
-            feature = <span class="string">&quot;llvm8-0&quot;</span>,
-            feature = <span class="string">&quot;llvm9-0&quot;</span>,
-            feature = <span class="string">&quot;llvm10-0&quot;</span>,
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;
+            feature = <span class="string">"llvm4-0"</span>,
+            feature = <span class="string">"llvm5-0"</span>,
+            feature = <span class="string">"llvm6-0"</span>,
+            feature = <span class="string">"llvm7-0"</span>,
+            feature = <span class="string">"llvm8-0"</span>,
+            feature = <span class="string">"llvm9-0"</span>,
+            feature = <span class="string">"llvm10-0"</span>,
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"
         </span>)))]
         </span>can_throw: bool,
-    ) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.create_inline_asm(
             ty,
             assembly,
             constraints,
             sideeffects,
             alignstack,
-            <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
             </span>dialect,
             <span class="attr">#[cfg(not(any(
-                feature = <span class="string">&quot;llvm4-0&quot;</span>,
-                feature = <span class="string">&quot;llvm5-0&quot;</span>,
-                feature = <span class="string">&quot;llvm6-0&quot;</span>,
-                feature = <span class="string">&quot;llvm7-0&quot;</span>,
-                feature = <span class="string">&quot;llvm8-0&quot;</span>,
-                feature = <span class="string">&quot;llvm9-0&quot;</span>,
-                feature = <span class="string">&quot;llvm10-0&quot;</span>,
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;
+                feature = <span class="string">"llvm4-0"</span>,
+                feature = <span class="string">"llvm5-0"</span>,
+                feature = <span class="string">"llvm6-0"</span>,
+                feature = <span class="string">"llvm7-0"</span>,
+                feature = <span class="string">"llvm8-0"</span>,
+                feature = <span class="string">"llvm9-0"</span>,
+                feature = <span class="string">"llvm10-0"</span>,
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"
             </span>)))]
             </span>can_throw,
         )
@@ -3614,7 +3616,7 @@
     /// assert_eq!(void_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>void_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>void_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.void_type()
     }
 
@@ -3632,7 +3634,7 @@
     /// assert_eq!(bool_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>bool_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>bool_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.bool_type()
     }
 
@@ -3650,7 +3652,7 @@
     /// assert_eq!(i8_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>i8_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>i8_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.i8_type()
     }
 
@@ -3668,7 +3670,7 @@
     /// assert_eq!(i16_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>i16_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>i16_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.i16_type()
     }
 
@@ -3686,7 +3688,7 @@
     /// assert_eq!(i32_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>i32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>i32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.i32_type()
     }
 
@@ -3704,7 +3706,7 @@
     /// assert_eq!(i64_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>i64_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>i64_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.i64_type()
     }
 
@@ -3722,7 +3724,7 @@
     /// assert_eq!(i128_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>i128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>i128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.i128_type()
     }
 
@@ -3740,7 +3742,7 @@
     /// assert_eq!(i42_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>custom_width_int_type(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>custom_width_int_type(<span class="kw-2">&amp;</span><span class="self">self</span>, bits: u32) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.custom_width_int_type(bits)
     }
 
@@ -3759,7 +3761,7 @@
     /// ```
     </span><span class="attr">#[inline]
     #[llvm_versions(<span class="number">6.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>metadata_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>metadata_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.metadata_type()
     }
 
@@ -3772,16 +3774,16 @@
     /// use inkwell::context::Context;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     /// let target_data = execution_engine.get_target_data();
     /// let int_type = context.ptr_sized_int_type(&amp;target_data, None);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>ptr_sized_int_type(<span class="kw-2">&amp;</span><span class="self">self</span>, target_data: <span class="kw-2">&amp;</span>TargetData, address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>ptr_sized_int_type(<span class="kw-2">&amp;</span><span class="self">self</span>, target_data: <span class="kw-2">&amp;</span>TargetData, address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.ptr_sized_int_type(target_data, address_space)
     }
 
@@ -3799,7 +3801,7 @@
     /// assert_eq!(f16_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>f16_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>f16_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.f16_type()
     }
 
@@ -3817,7 +3819,7 @@
     /// assert_eq!(f32_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>f32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>f32_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.f32_type()
     }
 
@@ -3835,7 +3837,7 @@
     /// assert_eq!(f64_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>f64_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>f64_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.f64_type()
     }
 
@@ -3853,7 +3855,7 @@
     /// assert_eq!(x86_f80_type.get_context(), context);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>x86_f80_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>x86_f80_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.x86_f80_type()
     }
 
@@ -3872,7 +3874,7 @@
     /// ```
     </span><span class="comment">// IEEE 754-2008’s binary128 floats according to https://internals.rust-lang.org/t/pre-rfc-introduction-of-half-and-quadruple-precision-floats-f16-and-f128/7521
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>f128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>f128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.f128_type()
     }
 
@@ -3893,7 +3895,7 @@
     /// ```
     </span><span class="comment">// Two 64 bits according to https://internals.rust-lang.org/t/pre-rfc-introduction-of-half-and-quadruple-precision-floats-f16-and-f128/7521
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>ppc_f128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>ppc_f128_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.ppc_f128_type()
     }
 
@@ -3913,7 +3915,7 @@
     /// ```
     </span><span class="comment">// REVIEW: AnyType but VoidType? FunctionType?
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], packed: bool) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, field_types: <span class="kw-2">&amp;</span>[BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], packed: bool) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.struct_type(field_types, packed)
     }
 
@@ -3927,12 +3929,12 @@
     /// let context = Context::create();
     /// let f32_type = context.f32_type();
     /// let i16_type = context.i16_type();
-    /// let struct_type = context.opaque_struct_type(&quot;my_struct&quot;);
+    /// let struct_type = context.opaque_struct_type("my_struct");
     ///
     /// assert_eq!(struct_type.get_field_types(), &amp;[]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>opaque_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>opaque_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.opaque_struct_type(name)
     }
 
@@ -3945,15 +3947,15 @@
     ///
     /// let context = Context::create();
     ///
-    /// assert!(context.get_struct_type(&quot;foo&quot;).is_none());
+    /// assert!(context.get_struct_type("foo").is_none());
     ///
-    /// let opaque = context.opaque_struct_type(&quot;foo&quot;);
+    /// let opaque = context.opaque_struct_type("foo");
     ///
-    /// assert_eq!(context.get_struct_type(&quot;foo&quot;).unwrap(), opaque);
+    /// assert_eq!(context.get_struct_type("foo").unwrap(), opaque);
     /// ```
     </span><span class="attr">#[inline]
     #[llvm_versions(<span class="number">12.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="self">self</span>.context.get_struct_type(name)
     }
 
@@ -3974,7 +3976,7 @@
     /// assert_eq!(const_struct.get_type().get_field_types(), &amp;[i16_type.into(), f32_type.into()]);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>const_struct(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], packed: bool) -&gt; StructValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_struct(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;], packed: bool) -&gt; StructValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.const_struct(values, packed)
     }
 
@@ -3986,22 +3988,22 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let last_basic_block = context.append_basic_block(fn_value, &quot;last&quot;);
+    /// let last_basic_block = context.append_basic_block(fn_value, "last");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), entry_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), last_basic_block);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>append_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>append_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, function: FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.append_basic_block(function, name)
     }
 
@@ -4013,25 +4015,25 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let last_basic_block = context.insert_basic_block_after(entry_basic_block, &quot;last&quot;);
+    /// let last_basic_block = context.insert_basic_block_after(entry_basic_block, "last");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), entry_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), last_basic_block);
     /// ```
-    </span><span class="comment">// REVIEW: What happens when using these methods and the BasicBlock doesn&#39;t have a parent?
+    </span><span class="comment">// REVIEW: What happens when using these methods and the BasicBlock doesn't have a parent?
     // Should they be callable at all? Needs testing to see what LLVM will do, I suppose. See below unwrap.
     // Maybe need SubTypes: BasicBlock&lt;HasParent&gt;, BasicBlock&lt;Orphan&gt;?
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>insert_basic_block_after(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>insert_basic_block_after(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.insert_basic_block_after(basic_block, name)
     }
 
@@ -4043,26 +4045,26 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
-    /// let entry_basic_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
+    /// let entry_basic_block = context.append_basic_block(fn_value, "entry");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 1);
     ///
-    /// let first_basic_block = context.prepend_basic_block(entry_basic_block, &quot;first&quot;);
+    /// let first_basic_block = context.prepend_basic_block(entry_basic_block, "first");
     ///
     /// assert_eq!(fn_value.count_basic_blocks(), 2);
     /// assert_eq!(fn_value.get_first_basic_block().unwrap(), first_basic_block);
     /// assert_eq!(fn_value.get_last_basic_block().unwrap(), entry_basic_block);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>prepend_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>prepend_basic_block(<span class="kw-2">&amp;</span><span class="self">self</span>, basic_block: BasicBlock&lt;<span class="lifetime">'ctx</span>&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; BasicBlock&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.prepend_basic_block(basic_block, name)
     }
 
-    <span class="doccomment">/// Creates a `MetadataValue` tuple of heterogeneous types (a &quot;Node&quot;) for the current context. It can be assigned to a value.
+    <span class="doccomment">/// Creates a `MetadataValue` tuple of heterogeneous types (a "Node") for the current context. It can be assigned to a value.
     ///
     /// # Example
     ///
@@ -4079,10 +4081,10 @@
     /// let void_type = context.void_type();
     ///
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let fn_type = void_type.fn_type(&amp;[f32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;my_func&quot;, fn_type, None);
-    /// let entry_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_func", fn_type, None);
+    /// let entry_block = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
@@ -4095,7 +4097,7 @@
     </span><span class="comment">// REVIEW: Maybe more helpful to beginners to call this metadata_tuple?
     // REVIEW: Seems to be unassgned to anything
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>metadata_node(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>metadata_node(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[BasicMetadataValueEnum&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.metadata_node(values)
     }
 
@@ -4107,16 +4109,16 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let md_string = context.metadata_string(&quot;Floats are awesome!&quot;);
+    /// let md_string = context.metadata_string("Floats are awesome!");
     /// let f32_type = context.f32_type();
     /// let f32_one = f32_type.const_float(1.);
     /// let void_type = context.void_type();
     ///
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let fn_type = void_type.fn_type(&amp;[f32_type.into()], false);
-    /// let fn_value = module.add_function(&quot;my_func&quot;, fn_type, None);
-    /// let entry_block = context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// let fn_value = module.add_function("my_func", fn_type, None);
+    /// let entry_block = context.append_basic_block(fn_value, "entry");
     ///
     /// builder.position_at_end(entry_block);
     ///
@@ -4128,11 +4130,11 @@
     /// ```
     </span><span class="comment">// REVIEW: Seems to be unassigned to anything
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>metadata_string(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>str) -&gt; MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>metadata_string(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>str) -&gt; MetadataValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.metadata_string(string)
     }
 
-    <span class="doccomment">/// Obtains the index of a metadata kind id. If the string doesn&#39;t exist, LLVM will add it at index `FIRST_CUSTOM_METADATA_KIND_ID` onward.
+    <span class="doccomment">/// Obtains the index of a metadata kind id. If the string doesn't exist, LLVM will add it at index `FIRST_CUSTOM_METADATA_KIND_ID` onward.
     ///
     /// # Example
     ///
@@ -4142,12 +4144,12 @@
     ///
     /// let context = Context::create();
     ///
-    /// assert_eq!(context.get_kind_id(&quot;dbg&quot;), 0);
-    /// assert_eq!(context.get_kind_id(&quot;tbaa&quot;), 1);
-    /// assert_eq!(context.get_kind_id(&quot;prof&quot;), 2);
+    /// assert_eq!(context.get_kind_id("dbg"), 0);
+    /// assert_eq!(context.get_kind_id("tbaa"), 1);
+    /// assert_eq!(context.get_kind_id("prof"), 2);
     ///
-    /// // Custom kind id doesn&#39;t exist in LLVM until now:
-    /// assert_eq!(context.get_kind_id(&quot;foo&quot;), FIRST_CUSTOM_METADATA_KIND_ID);
+    /// // Custom kind id doesn't exist in LLVM until now:
+    /// assert_eq!(context.get_kind_id("foo"), FIRST_CUSTOM_METADATA_KIND_ID);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>get_kind_id(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; u32 {
@@ -4179,7 +4181,7 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let string_attribute = context.create_string_attribute(&quot;my_key_123&quot;, &quot;my_val&quot;);
+    /// let string_attribute = context.create_string_attribute("my_key_123", "my_val");
     ///
     /// assert!(string_attribute.is_string());
     /// ```
@@ -4197,7 +4199,7 @@
     /// use inkwell::types::AnyType;
     ///
     /// let context = Context::create();
-    /// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);
+    /// let kind_id = Attribute::get_named_enum_kind_id("sret");
     /// let any_type = context.i32_type().as_any_type_enum();
     /// let type_attribute = context.create_type_attribute(
     ///     kind_id,
@@ -4223,20 +4225,20 @@
     /// use inkwell::values::AnyValue;
     ///
     /// let context = Context::create();
-    /// let string = context.const_string(b&quot;my_string&quot;, false);
+    /// let string = context.const_string(b"my_string", false);
     ///
-    /// assert_eq!(string.print_to_string().to_string(), &quot;[9 x i8] c\&quot;my_string\&quot;&quot;);
+    /// assert_eq!(string.print_to_string().to_string(), "[9 x i8] c\"my_string\"");
     /// ```
     </span><span class="comment">// SubTypes: Should return ArrayValue&lt;IntValue&lt;i8&gt;&gt;
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>const_string(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>[u8], null_terminated: bool) -&gt; ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_string(<span class="kw-2">&amp;</span><span class="self">self</span>, string: <span class="kw-2">&amp;</span>[u8], null_terminated: bool) -&gt; ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.context.const_string(string, null_terminated)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_diagnostic_handler(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        handler: <span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
+        handler: <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn</span>(LLVMDiagnosticInfoRef, <span class="kw-2">*mut </span>c_void),
         void_ptr: <span class="kw-2">*mut </span>c_void,
     ) {
         <span class="self">self</span>.context.set_diagnostic_handler(handler, void_ptr)
@@ -4244,19 +4246,19 @@
 }
 
 <span class="doccomment">/// This trait abstracts an LLVM `Context` type and should be implemented with caution.
-</span><span class="kw">pub unsafe trait </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub unsafe trait </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Returns the internal LLVM reference behind the type
     </span><span class="kw">fn </span>as_ctx_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMContextRef;
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsContextRef&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `Context` type.
     </span><span class="kw">fn </span>as_ctx_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMContextRef {
         <span class="self">self</span>.context.<span class="number">0
     </span>}
 }
 
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AsContextRef&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `ContextRef` type.
     </span><span class="kw">fn </span>as_ctx_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMContextRef {
         <span class="self">self</span>.context.<span class="number">0

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-channel-2.2.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../async_channel/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="async_channel"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-channel-2.2.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_channel/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1240,19 +1242,19 @@
 //! # futures_lite::future::block_on(async {
 //! let (s, r) = async_channel::unbounded();
 //!
-//! assert_eq!(s.send(&quot;Hello&quot;).await, Ok(()));
-//! assert_eq!(r.recv().await, Ok(&quot;Hello&quot;));
+//! assert_eq!(s.send("Hello").await, Ok(()));
+//! assert_eq!(r.recv().await, Ok("Hello"));
 //! # });
 //! ```
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 #![forbid(unsafe_code)]
 #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
 </span><span class="kw">extern crate </span>alloc;
@@ -1338,7 +1340,7 @@
 /// # });
 /// ```
 </span><span class="kw">pub fn </span>bounded&lt;T&gt;(cap: usize) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
-    <span class="macro">assert!</span>(cap &gt; <span class="number">0</span>, <span class="string">&quot;capacity cannot be zero&quot;</span>);
+    <span class="macro">assert!</span>(cap &gt; <span class="number">0</span>, <span class="string">"capacity cannot be zero"</span>);
 
     <span class="kw">let </span>channel = Arc::new(Channel {
         queue: ConcurrentQueue::bounded(cap),
@@ -1466,7 +1468,7 @@
     /// assert_eq!(s.send(2).await, Err(SendError(2)));
     /// # });
     /// ```
-    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; Send&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; Send&lt;<span class="lifetime">'_</span>, T&gt; {
         Send::_new(SendInner {
             sender: <span class="self">self</span>,
             msg: <span class="prelude-val">Some</span>(msg),
@@ -1500,7 +1502,7 @@
     /// drop(r);
     /// assert_eq!(s.send_blocking(2), Err(SendError(2)));
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>send_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
         <span class="self">self</span>.send(msg).wait()
     }
@@ -1608,7 +1610,7 @@
         <span class="self">self</span>.channel.queue.len()
     }
 
-    <span class="doccomment">/// Returns the channel capacity if it&#39;s bounded.
+    <span class="doccomment">/// Returns the channel capacity if it's bounded.
     ///
     /// # Examples
     ///
@@ -1681,8 +1683,8 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Sender&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;Sender {{ .. }}&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"Sender {{ .. }}"</span>)
     }
 }
 
@@ -1791,7 +1793,7 @@
     /// assert_eq!(r.recv().await, Err(RecvError));
     /// # });
     /// ```
-    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Recv&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Recv&lt;<span class="lifetime">'_</span>, T&gt; {
         Recv::_new(RecvInner {
             receiver: <span class="self">self</span>,
             listener: <span class="prelude-val">None</span>,
@@ -1827,7 +1829,7 @@
     /// assert_eq!(r.recv_blocking(), Ok(1));
     /// assert_eq!(r.recv_blocking(), Err(RecvError));
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>recv_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
         <span class="self">self</span>.recv().wait()
     }
@@ -1935,7 +1937,7 @@
         <span class="self">self</span>.channel.queue.len()
     }
 
-    <span class="doccomment">/// Returns the channel capacity if it&#39;s bounded.
+    <span class="doccomment">/// Returns the channel capacity if it's bounded.
     ///
     /// # Examples
     ///
@@ -1999,8 +2001,8 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;Receiver {{ .. }}&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"Receiver {{ .. }}"</span>)
     }
 }
 
@@ -2024,7 +2026,7 @@
 <span class="kw">impl</span>&lt;T&gt; Stream <span class="kw">for </span>Receiver&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
-    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="comment">// If this stream is listening for events, first wait for a notification.
             </span>{
@@ -2113,8 +2115,8 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WeakSender&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;WeakSender {{ .. }}&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"WeakSender {{ .. }}"</span>)
     }
 }
 
@@ -2161,8 +2163,8 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WeakReceiver&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;WeakReceiver {{ .. }}&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"WeakReceiver {{ .. }}"</span>)
     }
 }
 
@@ -2173,24 +2175,24 @@
 </span><span class="kw">pub struct </span>SendError&lt;T&gt;(<span class="kw">pub </span>T);
 
 <span class="kw">impl</span>&lt;T&gt; SendError&lt;T&gt; {
-    <span class="doccomment">/// Unwraps the message that couldn&#39;t be sent.
+    <span class="doccomment">/// Unwraps the message that couldn't be sent.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
         <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; std::error::Error <span class="kw">for </span>SendError&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>SendError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;SendError(..)&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"SendError(..)"</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Display <span class="kw">for </span>SendError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;sending into a closed channel&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"sending into a closed channel"</span>)
     }
 }
 
@@ -2205,7 +2207,7 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; TrySendError&lt;T&gt; {
-    <span class="doccomment">/// Unwraps the message that couldn&#39;t be sent.
+    <span class="doccomment">/// Unwraps the message that couldn't be sent.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
         <span class="kw">match </span><span class="self">self </span>{
             TrySendError::Full(t) =&gt; t,
@@ -2230,23 +2232,23 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; std::error::Error <span class="kw">for </span>TrySendError&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>TrySendError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            TrySendError::Full(..) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Full(..)&quot;</span>),
-            TrySendError::Closed(..) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Closed(..)&quot;</span>),
+            TrySendError::Full(..) =&gt; <span class="macro">write!</span>(f, <span class="string">"Full(..)"</span>),
+            TrySendError::Closed(..) =&gt; <span class="macro">write!</span>(f, <span class="string">"Closed(..)"</span>),
         }
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Display <span class="kw">for </span>TrySendError&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            TrySendError::Full(..) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;sending into a full channel&quot;</span>),
-            TrySendError::Closed(..) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;sending into a closed channel&quot;</span>),
+            TrySendError::Full(..) =&gt; <span class="macro">write!</span>(f, <span class="string">"sending into a full channel"</span>),
+            TrySendError::Closed(..) =&gt; <span class="macro">write!</span>(f, <span class="string">"sending into a closed channel"</span>),
         }
     }
 }
@@ -2257,12 +2259,12 @@
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 </span><span class="kw">pub struct </span>RecvError;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>std::error::Error <span class="kw">for </span>RecvError {}
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>RecvError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"receiving from an empty and closed channel"</span>)
     }
 }
 
@@ -2294,14 +2296,14 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>std::error::Error <span class="kw">for </span>TryRecvError {}
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>TryRecvError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            TryRecvError::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;receiving from an empty channel&quot;</span>),
-            TryRecvError::Closed =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;receiving from an empty and closed channel&quot;</span>),
+            TryRecvError::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">"receiving from an empty channel"</span>),
+            TryRecvError::Closed =&gt; <span class="macro">write!</span>(f, <span class="string">"receiving from an empty and closed channel"</span>),
         }
     }
 }
@@ -2309,18 +2311,18 @@
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// A future returned by [`Sender::send()`].
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-    </span><span class="kw">pub struct </span>Send&lt;<span class="lifetime">&#39;a</span>, T&gt;(SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+    </span><span class="kw">pub struct </span>Send&lt;<span class="lifetime">'a</span>, T&gt;(SendInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project! </span>{
     <span class="attr">#[derive(Debug)]
     #[project(!Unpin)]
-    </span><span class="kw">struct </span>SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">struct </span>SendInner&lt;<span class="lifetime">'a</span>, T&gt; {
         <span class="comment">// Reference to the original sender.
-        </span>sender: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Sender&lt;T&gt;,
+        </span>sender: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Sender&lt;T&gt;,
 
         <span class="comment">// The message to send.
         </span>msg: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -2334,11 +2336,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; EventListenerFuture <span class="kw">for </span>SendInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; EventListenerFuture <span class="kw">for </span>SendInner&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt;;
 
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         context: <span class="kw-2">&amp;mut </span>S::Context,
@@ -2368,18 +2370,18 @@
 <span class="macro">easy_wrapper! </span>{
     <span class="doccomment">/// A future returned by [`Receiver::recv()`].
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
-    </span><span class="kw">pub struct </span>Recv&lt;<span class="lifetime">&#39;a</span>, T&gt;(RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;);
-    <span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, not(target_family = <span class="string">&quot;wasm&quot;</span>)))]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+    </span><span class="kw">pub struct </span>Recv&lt;<span class="lifetime">'a</span>, T&gt;(RecvInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;);
+    <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
 <span class="macro">pin_project! </span>{
     <span class="attr">#[derive(Debug)]
     #[project(!Unpin)]
-    </span><span class="kw">struct </span>RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">struct </span>RecvInner&lt;<span class="lifetime">'a</span>, T&gt; {
         <span class="comment">// Reference to the receiver.
-        </span>receiver: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Receiver&lt;T&gt;,
+        </span>receiver: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Receiver&lt;T&gt;,
 
         <span class="comment">// Listener waiting on the channel.
         </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
@@ -2390,11 +2392,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; EventListenerFuture <span class="kw">for </span>RecvInner&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; EventListenerFuture <span class="kw">for </span>RecvInner&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
 
     <span class="doccomment">/// Run this future with the given `Strategy`.
-    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">&#39;x</span>, S: Strategy&lt;<span class="lifetime">&#39;x</span>&gt;&gt;(
+    </span><span class="kw">fn </span>poll_with_strategy&lt;<span class="lifetime">'x</span>, S: Strategy&lt;<span class="lifetime">'x</span>&gt;&gt;(
         <span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
@@ -2420,20 +2422,20 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::process::abort;
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
 </span><span class="kw">fn </span>abort() -&gt; ! {
     <span class="kw">struct </span>PanicOnDrop;
 
     <span class="kw">impl </span>Drop <span class="kw">for </span>PanicOnDrop {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="macro">panic!</span>(<span class="string">&quot;Panic while panicking to abort&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"Panic while panicking to abort"</span>);
         }
     }
 
     <span class="kw">let </span>_bomb = PanicOnDrop;
-    <span class="macro">panic!</span>(<span class="string">&quot;Panic while panicking to abort&quot;</span>)
+    <span class="macro">panic!</span>(<span class="string">"Panic while panicking to abort"</span>)
 }
 </code></pre></div></section></main></body></html>

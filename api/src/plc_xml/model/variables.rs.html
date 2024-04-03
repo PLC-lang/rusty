@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/variables.rs`."><title>variables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/variables.rs`."><title>variables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../plc_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -318,12 +320,12 @@
     <span class="kw">pub fn </span>new(hm: HashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
-            formal_parameter: hm.get_or_err(<span class="string">&quot;formalParameter&quot;</span>)<span class="question-mark">?</span>,
-            negated: hm.get_or_err(<span class="string">&quot;negated&quot;</span>).map(|it| it == <span class="string">&quot;true&quot;</span>)<span class="question-mark">?</span>,
-            ref_local_id: hm.get(<span class="string">&quot;refLocalId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
-            edge: hm.get(<span class="string">&quot;edge&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
-            storage: hm.get(<span class="string">&quot;storage&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
-            enable: hm.get(<span class="string">&quot;enable&quot;</span>).map(|it| it == <span class="string">&quot;true&quot;</span>),
+            formal_parameter: hm.get_or_err(<span class="string">"formalParameter"</span>)<span class="question-mark">?</span>,
+            negated: hm.get_or_err(<span class="string">"negated"</span>).map(|it| it == <span class="string">"true"</span>)<span class="question-mark">?</span>,
+            ref_local_id: hm.get(<span class="string">"refLocalId"</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
+            edge: hm.get(<span class="string">"edge"</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
+            storage: hm.get(<span class="string">"storage"</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
+            enable: hm.get(<span class="string">"enable"</span>).map(|it| it == <span class="string">"true"</span>),
         })
     }
 
@@ -347,24 +349,24 @@
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionBlockVariable&lt;<span class="lifetime">&#39;xml</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">pub </span>kind: VariableKind,
     <span class="kw">pub </span>local_id: usize,
     <span class="kw">pub </span>negated: bool,
-    <span class="kw">pub </span>expression: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
+    <span class="kw">pub </span>expression: Cow&lt;<span class="lifetime">'xml</span>, str&gt;,
     <span class="kw">pub </span>execution_order_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     <span class="kw">pub </span>ref_local_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; FunctionBlockVariable&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">pub fn </span>new(hm: HashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
-            local_id: hm.get_or_err(<span class="string">&quot;localId&quot;</span>).map(|it| it.parse())<span class="question-mark">??</span>,
-            negated: hm.get_or_err(<span class="string">&quot;negated&quot;</span>).map(|it| it == <span class="string">&quot;true&quot;</span>)<span class="question-mark">?</span>,
-            expression: Cow::from(hm.get_or_err(<span class="string">&quot;expression&quot;</span>)<span class="question-mark">?</span>),
-            execution_order_id: hm.get(<span class="string">&quot;executionOrderId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
-            ref_local_id: hm.get(<span class="string">&quot;refLocalId&quot;</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
+            local_id: hm.get_or_err(<span class="string">"localId"</span>).map(|it| it.parse())<span class="question-mark">??</span>,
+            negated: hm.get_or_err(<span class="string">"negated"</span>).map(|it| it == <span class="string">"true"</span>)<span class="question-mark">?</span>,
+            expression: Cow::from(hm.get_or_err(<span class="string">"expression"</span>)<span class="question-mark">?</span>),
+            execution_order_id: hm.get(<span class="string">"executionOrderId"</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
+            ref_local_id: hm.get(<span class="string">"refLocalId"</span>).map(|it| it.parse()).transpose()<span class="question-mark">?</span>,
         })
     }
 
@@ -378,9 +380,9 @@
 
     <span class="kw">fn </span>try_from(value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="kw">match </span>value {
-            <span class="string">b&quot;inputVariables&quot; </span>| <span class="string">b&quot;inVariable&quot; </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::Input),
-            <span class="string">b&quot;outputVariables&quot; </span>| <span class="string">b&quot;outVariable&quot; </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::Output),
-            <span class="string">b&quot;inOutVariables&quot; </span>| <span class="string">b&quot;inOutVariable&quot; </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::InOut),
+            <span class="string">b"inputVariables" </span>| <span class="string">b"inVariable" </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::Input),
+            <span class="string">b"outputVariables" </span>| <span class="string">b"outVariable" </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::Output),
+            <span class="string">b"inOutVariables" </span>| <span class="string">b"inOutVariable" </span>=&gt; <span class="prelude-val">Ok</span>(VariableKind::InOut),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">let </span>value = std::str::from_utf8(value).map_err(Error::Encoding)<span class="question-mark">?</span>;
                 <span class="prelude-val">Err</span>(Error::UnexpectedElement(value.to_string()))
@@ -394,8 +396,8 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;falling&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Edge::Falling),
-            <span class="string">&quot;rising&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Edge::Rising),
+            <span class="string">"falling" </span>=&gt; <span class="prelude-val">Ok</span>(Edge::Falling),
+            <span class="string">"rising" </span>=&gt; <span class="prelude-val">Ok</span>(Edge::Rising),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::UnexpectedElement(s.to_string())),
         }
     }
@@ -406,14 +408,14 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;set&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Storage::Set),
-            <span class="string">&quot;reset&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Storage::Reset),
+            <span class="string">"set" </span>=&gt; <span class="prelude-val">Ok</span>(Storage::Set),
+            <span class="string">"reset" </span>=&gt; <span class="prelude-val">Ok</span>(Storage::Reset),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::UnexpectedElement(s.to_string())),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockVariable&lt;<span class="lifetime">&#39;xml</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>kind = tag.name().as_ref().try_into()<span class="question-mark">?</span>;
@@ -421,16 +423,16 @@
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
-                Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;connection&quot; </span>=&gt; {
+                Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"connection" </span>=&gt; {
                     attributes.extend(get_attributes(tag.attributes())<span class="question-mark">?</span>);
                 }
 
                 Event::Text(tag) =&gt; {
-                    attributes.insert(<span class="string">&quot;expression&quot;</span>.into(), tag.unescape()<span class="question-mark">?</span>.to_string());
+                    attributes.insert(<span class="string">"expression"</span>.into(), tag.unescape()<span class="question-mark">?</span>.to_string());
                 }
 
                 Event::End(tag) =&gt; <span class="kw">match </span>tag.name().as_ref() {
-                    <span class="string">b&quot;inVariable&quot; </span>| <span class="string">b&quot;outVariable&quot; </span>=&gt; {
+                    <span class="string">b"inVariable" </span>| <span class="string">b"outVariable" </span>=&gt; {
                         <span class="kw">break</span>;
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -452,13 +454,13 @@
         <span class="kw">let </span>kind = VariableKind::try_from(tag.name().as_ref())<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
-                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;variable&quot; </span>=&gt; {
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"variable" </span>=&gt; {
                     variables.push(BlockVariable::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>.with_kind(kind))
                 }
                 Event::End(tag)
                     <span class="kw">if </span><span class="macro">matches!</span>(
                         tag.name().as_ref(),
-                        <span class="string">b&quot;inputVariables&quot; </span>| <span class="string">b&quot;outputVariables&quot; </span>| <span class="string">b&quot;inOutVariables&quot;
+                        <span class="string">b"inputVariables" </span>| <span class="string">b"outputVariables" </span>| <span class="string">b"inOutVariables"
                     </span>) =&gt;
                 {
                     <span class="kw">break
@@ -466,9 +468,9 @@
 
                 Event::Eof =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[
-                        <span class="string">b&quot;inputVariables&quot;</span>,
-                        <span class="string">b&quot;outputVariables&quot;</span>,
-                        <span class="string">b&quot;inOutVariables&quot;</span>,
+                        <span class="string">b"inputVariables"</span>,
+                        <span class="string">b"outputVariables"</span>,
+                        <span class="string">b"inOutVariables"</span>,
                     ]))
                 }
                 <span class="kw">_ </span>=&gt; {}
@@ -485,11 +487,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
-                Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;connection&quot; </span>=&gt; {
+                Event::Start(tag) | Event::Empty(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"connection" </span>=&gt; {
                     attributes.extend(get_attributes(tag.attributes())<span class="question-mark">?</span>);
                 }
 
-                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;variable&quot; </span>=&gt; {
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"variable" </span>=&gt; {
                     <span class="kw">break</span>;
                 }
 
@@ -516,7 +518,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_input_variable() {
-        <span class="kw">let </span>content = SInputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
+        <span class="kw">let </span>content = SInputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">""</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -526,7 +528,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_output_variable() {
-        <span class="kw">let </span>content = SOutputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
+        <span class="kw">let </span>content = SOutputVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">""</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -536,7 +538,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_inout_variable() {
-        <span class="kw">let </span>content = SInOutVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">&quot;&quot;</span>)]).serialize();
+        <span class="kw">let </span>content = SInOutVariables::new().children(<span class="macro">vec!</span>[<span class="kw-2">&amp;</span>SVariable::new().with_name(<span class="string">""</span>)]).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -546,7 +548,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fbd_in_variable() {
-        <span class="kw">let </span>content = SInVariable::id(<span class="number">0</span>).with_expression(<span class="string">&quot;a&quot;</span>).serialize();
+        <span class="kw">let </span>content = SInVariable::id(<span class="number">0</span>).with_expression(<span class="string">"a"</span>).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());
@@ -555,7 +557,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>fbd_out_variable() {
-        <span class="kw">let </span>content = SOutVariable::id(<span class="number">0</span>).with_expression(<span class="string">&quot;a&quot;</span>).serialize();
+        <span class="kw">let </span>content = SOutVariable::id(<span class="number">0</span>).with_expression(<span class="string">"a"</span>).serialize();
 
         <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader::new(<span class="kw-2">&amp;</span>content);
         <span class="kw">let </span>tag = get_start_tag(reader.read_event().unwrap());

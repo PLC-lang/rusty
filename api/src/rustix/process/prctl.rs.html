@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/process/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/process/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1151,7 +1153,7 @@
 <a href="#1151" id="1151">1151</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Bindings for the Linux `prctl` system call.
 //!
-//! There are similarities (but also differences) with FreeBSD&#39;s `procctl`
+//! There are similarities (but also differences) with FreeBSD's `procctl`
 //! system call, whose interface is located in the `procctl.rs` file.
 
 </span><span class="attr">#![allow(unsafe_code)]
@@ -1186,7 +1188,7 @@
 /// [Linux: `prctl(PR_GET_PDEATHSIG,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 /// [FreeBSD: `procctl(PROC_PDEATHSIG_STATUS,...)`]: https://man.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_PDEATHSIG&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_PDEATHSIG"</span>)]
 </span><span class="kw">pub fn </span>parent_process_death_signal() -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Signal&gt;&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;c_int&gt;(PR_GET_PDEATHSIG) }.map(Signal::from_raw)
 }
@@ -1202,7 +1204,7 @@
 /// [Linux: `prctl(PR_SET_PDEATHSIG,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 /// [FreeBSD: `procctl(PROC_PDEATHSIG_CTL,...)`]: https://man.freebsd.org/cgi/man.cgi?query=procctl&amp;sektion=2
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_PDEATHSIG&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_PDEATHSIG"</span>)]
 </span><span class="kw">pub fn </span>set_parent_process_death_signal(signal: <span class="prelude-ty">Option</span>&lt;Signal&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>signal = signal.map_or(<span class="number">0_usize</span>, |signal| signal <span class="kw">as </span>usize);
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_PDEATHSIG, signal <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1224,13 +1226,13 @@
 #[repr(i32)]
 </span><span class="kw">pub enum </span>DumpableBehavior {
     <span class="doccomment">/// Not dumpable.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;SUID_DUMP_DISABLE&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"SUID_DUMP_DISABLE"</span>)]
     </span>NotDumpable = SUID_DUMP_DISABLE,
     <span class="doccomment">/// Dumpable.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;SUID_DUMP_USER&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"SUID_DUMP_USER"</span>)]
     </span>Dumpable = SUID_DUMP_USER,
     <span class="doccomment">/// Dumpable but only readable by root.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;SUID_DUMP_ROOT&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"SUID_DUMP_ROOT"</span>)]
     </span>DumpableReadableOnlyByRoot = SUID_DUMP_ROOT,
 }
 
@@ -1247,14 +1249,14 @@
     }
 }
 
-<span class="doccomment">/// Get the current state of the calling process&#39; `dumpable` attribute.
+<span class="doccomment">/// Get the current state of the calling process' `dumpable` attribute.
 ///
 /// # References
 ///  - [`prctl(PR_GET_DUMPABLE,...)`]
 ///
 /// [`prctl(PR_GET_DUMPABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_DUMPABLE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_DUMPABLE"</span>)]
 </span><span class="kw">pub fn </span>dumpable_behavior() -&gt; io::Result&lt;DumpableBehavior&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_DUMPABLE) }.and_then(TryInto::try_into)
 }
@@ -1275,7 +1277,7 @@
 ///
 /// [`prctl(PR_SET_DUMPABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_DUMPABLE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_DUMPABLE"</span>)]
 </span><span class="kw">pub fn </span>set_dumpable_behavior(config: DumpableBehavior) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_DUMPABLE, config <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -1293,11 +1295,11 @@
     #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
     </span><span class="kw">pub struct </span>UnalignedAccessControl: u32 {
         <span class="doccomment">/// Silently fix up unaligned user accesses.
-        </span><span class="attr">#[doc(alias = <span class="string">&quot;NOPRINT&quot;</span>)]
-        #[doc(alias = <span class="string">&quot;PR_UNALIGN_NOPRINT&quot;</span>)]
+        </span><span class="attr">#[doc(alias = <span class="string">"NOPRINT"</span>)]
+        #[doc(alias = <span class="string">"PR_UNALIGN_NOPRINT"</span>)]
         </span><span class="kw">const </span>NO_PRINT = <span class="number">1</span>;
         <span class="doccomment">/// Generate a [`Signal::Bus`] signal on unaligned user access.
-        </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_UNALIGN_SIGBUS&quot;</span>)]
+        </span><span class="attr">#[doc(alias = <span class="string">"PR_UNALIGN_SIGBUS"</span>)]
         </span><span class="kw">const </span>SIGBUS = <span class="number">2</span>;
 
         <span class="doccomment">/// &lt;https://docs.rs/bitflags/*/bitflags/#externally-defined-flags&gt;
@@ -1312,7 +1314,7 @@
 ///
 /// [`prctl(PR_GET_UNALIGN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_UNALIGN&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_UNALIGN"</span>)]
 </span><span class="kw">pub fn </span>unaligned_access_control() -&gt; io::Result&lt;UnalignedAccessControl&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;c_uint&gt;(PR_GET_UNALIGN)<span class="question-mark">? </span>};
     UnalignedAccessControl::from_bits(r).ok_or(io::Errno::RANGE)
@@ -1327,7 +1329,7 @@
 ///
 /// [`prctl(PR_SET_UNALIGN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_UNALIGN&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_UNALIGN"</span>)]
 </span><span class="kw">pub fn </span>set_unaligned_access_control(config: UnalignedAccessControl) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_UNALIGN, config.bits() <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -1345,11 +1347,11 @@
     #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
     </span><span class="kw">pub struct </span>FloatingPointEmulationControl: u32 {
         <span class="doccomment">/// Silently emulate floating point operations accesses.
-        </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_UNALIGN_NOPRINT&quot;</span>)]
+        </span><span class="attr">#[doc(alias = <span class="string">"PR_UNALIGN_NOPRINT"</span>)]
         </span><span class="kw">const </span>NO_PRINT = <span class="number">1</span>;
-        <span class="doccomment">/// Don&#39;t emulate floating point operations, send a [`Signal::Fpe`]
+        <span class="doccomment">/// Don't emulate floating point operations, send a [`Signal::Fpe`]
         /// signal instead.
-        </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_UNALIGN_SIGFPE&quot;</span>)]
+        </span><span class="attr">#[doc(alias = <span class="string">"PR_UNALIGN_SIGFPE"</span>)]
         </span><span class="kw">const </span>SIGFPE = <span class="number">2</span>;
     }
 }
@@ -1361,7 +1363,7 @@
 ///
 /// [`prctl(PR_GET_FPEMU,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_FPEMU&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_FPEMU"</span>)]
 </span><span class="kw">pub fn </span>floating_point_emulation_control() -&gt; io::Result&lt;FloatingPointEmulationControl&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;c_uint&gt;(PR_GET_FPEMU)<span class="question-mark">? </span>};
     FloatingPointEmulationControl::from_bits(r).ok_or(io::Errno::RANGE)
@@ -1376,7 +1378,7 @@
 ///
 /// [`prctl(PR_SET_FPEMU,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_FPEMU&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_FPEMU"</span>)]
 </span><span class="kw">pub fn </span>set_floating_point_emulation_control(
     config: FloatingPointEmulationControl,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1423,7 +1425,7 @@
 ///
 /// [`prctl(PR_GET_FPEXC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_FPEXEC&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_FPEXEC"</span>)]
 </span><span class="kw">pub fn </span>floating_point_exception_mode() -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;FloatingPointExceptionMode&gt;&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;c_uint&gt;(PR_GET_FPEXC) }
         .map(FloatingPointExceptionMode::from_bits)
@@ -1438,7 +1440,7 @@
 ///
 /// [`prctl(PR_SET_FPEXC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_FPEXEC&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_FPEXEC"</span>)]
 </span><span class="kw">pub fn </span>set_floating_point_exception_mode(
     config: <span class="prelude-ty">Option</span>&lt;FloatingPointExceptionMode&gt;,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1485,7 +1487,7 @@
 ///
 /// [`prctl(PR_GET_TIMING,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_TIMING&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_TIMING"</span>)]
 </span><span class="kw">pub fn </span>timing_method() -&gt; io::Result&lt;TimingMethod&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_TIMING) }.and_then(TryInto::try_into)
 }
@@ -1500,7 +1502,7 @@
 ///
 /// [`prctl(PR_SET_TIMING,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_TIMING&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_TIMING"</span>)]
 </span><span class="kw">pub fn </span>set_timing_method(method: TimingMethod) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_TIMING, method <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -1547,7 +1549,7 @@
 ///
 /// [`prctl(PR_GET_ENDIAN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_ENDIAN&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_ENDIAN"</span>)]
 </span><span class="kw">pub fn </span>endian_mode() -&gt; io::Result&lt;EndianMode&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2::&lt;c_uint, <span class="kw">_</span>&gt;(PR_GET_ENDIAN) }
 }
@@ -1566,7 +1568,7 @@
 ///
 /// [`prctl(PR_SET_ENDIAN,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_ENDIAN&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_ENDIAN"</span>)]
 </span><span class="kw">pub unsafe fn </span>set_endian_mode(mode: EndianMode) -&gt; io::Result&lt;()&gt; {
     prctl_2args(PR_SET_ENDIAN, mode <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>).map(|_r| ())
 }
@@ -1610,7 +1612,7 @@
 ///
 /// [`prctl(PR_GET_TSC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_TSC&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_TSC"</span>)]
 </span><span class="kw">pub fn </span>time_stamp_counter_readability() -&gt; io::Result&lt;TimeStampCounterReadability&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2::&lt;c_uint, <span class="kw">_</span>&gt;(PR_GET_TSC) }
 }
@@ -1625,7 +1627,7 @@
 ///
 /// [`prctl(PR_SET_TSC,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_TSC&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_TSC"</span>)]
 </span><span class="kw">pub fn </span>set_time_stamp_counter_readability(
     readability: TimeStampCounterReadability,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1648,8 +1650,8 @@
 /// [`prctl(PR_TASK_PERF_EVENTS_ENABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 /// [`prctl(PR_TASK_PERF_EVENTS_DISABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_TASK_PERF_EVENTS_ENABLE&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_TASK_PERF_EVENTS_DISABLE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_TASK_PERF_EVENTS_ENABLE"</span>)]
+#[doc(alias = <span class="string">"PR_TASK_PERF_EVENTS_DISABLE"</span>)]
 </span><span class="kw">pub fn </span>configure_performance_counters(enable: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>option = <span class="kw">if </span>enable {
         PR_TASK_PERF_EVENTS_ENABLE
@@ -1677,13 +1679,13 @@
 #[repr(u32)]
 </span><span class="kw">pub enum </span>MachineCheckMemoryCorruptionKillPolicy {
     <span class="doccomment">/// Late kill policy.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_MCE_KILL_LATE&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"PR_MCE_KILL_LATE"</span>)]
     </span>Late = PR_MCE_KILL_LATE,
     <span class="doccomment">/// Early kill policy.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_MCE_KILL_EARLY&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"PR_MCE_KILL_EARLY"</span>)]
     </span>Early = PR_MCE_KILL_EARLY,
     <span class="doccomment">/// System-wide default policy.
-    </span><span class="attr">#[doc(alias = <span class="string">&quot;PR_MCE_KILL_DEFAULT&quot;</span>)]
+    </span><span class="attr">#[doc(alias = <span class="string">"PR_MCE_KILL_DEFAULT"</span>)]
     </span>Default = PR_MCE_KILL_DEFAULT,
 }
 
@@ -1707,7 +1709,7 @@
 ///
 /// [`prctl(PR_MCE_KILL_GET,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_MCE_KILL_GET&quot;</span>)]
+#[doc(alias = <span class="string">"PR_MCE_KILL_GET"</span>)]
 </span><span class="kw">pub fn </span>machine_check_memory_corruption_kill_policy(
 ) -&gt; io::Result&lt;MachineCheckMemoryCorruptionKillPolicy&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_1arg(PR_MCE_KILL_GET)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
@@ -1726,7 +1728,7 @@
 ///
 /// [`prctl(PR_MCE_KILL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_MCE_KILL&quot;</span>)]
+#[doc(alias = <span class="string">"PR_MCE_KILL"</span>)]
 </span><span class="kw">pub fn </span>set_machine_check_memory_corruption_kill_policy(
     policy: <span class="prelude-ty">Option</span>&lt;MachineCheckMemoryCorruptionKillPolicy&gt;,
 ) -&gt; io::Result&lt;()&gt; {
@@ -1805,7 +1807,7 @@
 ///
 /// [`prctl(PR_SET_MM,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_MM&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM"</span>)]
 </span><span class="kw">pub unsafe fn </span>set_virtual_memory_map_address(
     option: VirtualMemoryMapAddress,
     address: <span class="prelude-ty">Option</span>&lt;NonNull&lt;c_void&gt;&gt;,
@@ -1822,9 +1824,9 @@
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_EXE_FILE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_MM&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_SET_MM_EXE_FILE&quot;</span>)]
-</span><span class="kw">pub fn </span>set_executable_file(fd: BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;()&gt; {
+#[doc(alias = <span class="string">"PR_SET_MM"</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM_EXE_FILE"</span>)]
+</span><span class="kw">pub fn </span>set_executable_file(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>fd = usize::try_from(fd.as_raw_fd()).map_err(|_r| io::Errno::RANGE)<span class="question-mark">?</span>;
     <span class="kw">unsafe </span>{ prctl_3args(PR_SET_MM, PR_SET_MM_EXE_FILE <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, fd <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -1841,8 +1843,8 @@
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_AUXV,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_MM&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_SET_MM_AUXV&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM"</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM_AUXV"</span>)]
 </span><span class="kw">pub unsafe fn </span>set_auxiliary_vector(auxv: <span class="kw-2">&amp;</span>[<span class="kw-2">*const </span>c_void]) -&gt; io::Result&lt;()&gt; {
     syscalls::prctl(
         PR_SET_MM,
@@ -1861,8 +1863,8 @@
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_MAP_SIZE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_MM&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_SET_MM_MAP_SIZE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM"</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM_MAP_SIZE"</span>)]
 </span><span class="kw">pub fn </span>virtual_memory_map_config_struct_size() -&gt; io::Result&lt;usize&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>value: c_uint = <span class="number">0</span>;
     <span class="kw">let </span>value_ptr = as_mut_ptr(<span class="kw-2">&amp;mut </span>value);
@@ -1920,8 +1922,8 @@
 ///
 /// [`prctl(PR_SET_MM,PR_SET_MM_MAP,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_MM&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_SET_MM_MAP&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM"</span>)]
+#[doc(alias = <span class="string">"PR_SET_MM_MAP"</span>)]
 </span><span class="kw">pub unsafe fn </span>configure_virtual_memory_map(config: <span class="kw-2">&amp;</span>PrctlMmMap) -&gt; io::Result&lt;()&gt; {
     syscalls::prctl(
         PR_SET_MM,
@@ -1960,7 +1962,7 @@
 ///
 /// [`prctl(PR_SET_PTRACER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_PTRACER&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_PTRACER"</span>)]
 </span><span class="kw">pub fn </span>set_ptracer(tracer: PTracer) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>pid = <span class="kw">match </span>tracer {
         PTracer::None =&gt; null_mut(),
@@ -1984,7 +1986,7 @@
 ///
 /// [`prctl(PR_GET_CHILD_SUBREAPER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_CHILD_SUBREAPER&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_CHILD_SUBREAPER"</span>)]
 </span><span class="kw">pub fn </span>child_subreaper() -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Pid&gt;&gt; {
     <span class="kw">unsafe </span>{
         <span class="kw">let </span>r = prctl_get_at_arg2_optional::&lt;c_uint&gt;(PR_GET_CHILD_SUBREAPER)<span class="question-mark">?</span>;
@@ -2001,7 +2003,7 @@
 ///
 /// [`prctl(PR_SET_CHILD_SUBREAPER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_CHILD_SUBREAPER&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_CHILD_SUBREAPER"</span>)]
 </span><span class="kw">pub fn </span>set_child_subreaper(pid: <span class="prelude-ty">Option</span>&lt;Pid&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>pid = pid.map_or(<span class="number">0_usize</span>, |pid| pid.as_raw_nonzero().get() <span class="kw">as </span>usize);
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_CHILD_SUBREAPER, pid <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -2046,7 +2048,7 @@
 ///
 /// [`prctl(PR_GET_FP_MODE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_FP_MODE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_FP_MODE"</span>)]
 </span><span class="kw">pub fn </span>floating_point_mode() -&gt; io::Result&lt;FloatingPointMode&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_FP_MODE)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
     FloatingPointMode::try_from(r)
@@ -2061,7 +2063,7 @@
 ///
 /// [`prctl(PR_SET_FP_MODE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_FP_MODE&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_FP_MODE"</span>)]
 </span><span class="kw">pub fn </span>set_floating_point_mode(mode: FloatingPointMode) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_FP_MODE, mode <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -2148,7 +2150,7 @@
 ///
 /// [`prctl(PR_GET_SPECULATION_CTRL,...)`]: https://www.kernel.org/doc/html/v5.18/userspace-api/spec_ctrl.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_SPECULATION_CTRL&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_SPECULATION_CTRL"</span>)]
 </span><span class="kw">pub fn </span>speculative_feature_state(
     feature: SpeculationFeature,
 ) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;SpeculationFeatureState&gt;&gt; {
@@ -2165,7 +2167,7 @@
 ///
 /// [`prctl(PR_SET_SPECULATION_CTRL,...)`]: https://www.kernel.org/doc/html/v5.18/userspace-api/spec_ctrl.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_SPECULATION_CTRL&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_SPECULATION_CTRL"</span>)]
 </span><span class="kw">pub fn </span>control_speculative_feature(
     feature: SpeculationFeature,
     config: SpeculationFeatureControl,
@@ -2188,7 +2190,7 @@
 ///
 /// [`prctl(PR_GET_IO_FLUSHER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_GET_IO_FLUSHER&quot;</span>)]
+#[doc(alias = <span class="string">"PR_GET_IO_FLUSHER"</span>)]
 </span><span class="kw">pub fn </span>is_io_flusher() -&gt; io::Result&lt;bool&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_IO_FLUSHER) }.map(|r| r != <span class="number">0</span>)
 }
@@ -2203,7 +2205,7 @@
 ///
 /// [`prctl(PR_SET_IO_FLUSHER,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_IO_FLUSHER&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_IO_FLUSHER"</span>)]
 </span><span class="kw">pub fn </span>configure_io_flusher_behavior(enable: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_IO_FLUSHER, usize::from(enable) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
 }
@@ -2221,7 +2223,7 @@
 ///
 /// [`prctl(PR_PAC_GET_ENABLED_KEYS,...)`]: https://www.kernel.org/doc/html/v5.18/arm64/pointer-authentication.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_PAC_GET_ENABLED_KEYS&quot;</span>)]
+#[doc(alias = <span class="string">"PR_PAC_GET_ENABLED_KEYS"</span>)]
 </span><span class="kw">pub fn </span>enabled_pointer_authentication_keys() -&gt; io::Result&lt;PointerAuthenticationKeys&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_1arg(PR_PAC_GET_ENABLED_KEYS)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
     PointerAuthenticationKeys::from_bits(r).ok_or(io::Errno::RANGE)
@@ -2241,7 +2243,7 @@
 ///
 /// [`prctl(PR_PAC_SET_ENABLED_KEYS,...)`]: https://www.kernel.org/doc/html/v5.18/arm64/pointer-authentication.html
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_PAC_SET_ENABLED_KEYS&quot;</span>)]
+#[doc(alias = <span class="string">"PR_PAC_SET_ENABLED_KEYS"</span>)]
 </span><span class="kw">pub unsafe fn </span>configure_pointer_authentication_keys(
     config: <span class="kw">impl </span>Iterator&lt;Item = (PointerAuthenticationKeys, bool)&gt;,
 ) -&gt; io::Result&lt;()&gt; {
@@ -2286,8 +2288,8 @@
 ///
 /// [`prctl(PR_SET_VMA,PR_SET_VMA_ANON_NAME,...)`]: https://lwn.net/Articles/867818/
 </span><span class="attr">#[inline]
-#[doc(alias = <span class="string">&quot;PR_SET_VMA&quot;</span>)]
-#[doc(alias = <span class="string">&quot;PR_SET_VMA_ANON_NAME&quot;</span>)]
+#[doc(alias = <span class="string">"PR_SET_VMA"</span>)]
+#[doc(alias = <span class="string">"PR_SET_VMA_ANON_NAME"</span>)]
 </span><span class="kw">pub fn </span>set_virtual_memory_region_name(region: <span class="kw-2">&amp;</span>[u8], name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{
         syscalls::prctl(

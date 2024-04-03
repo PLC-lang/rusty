@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/quicksort.rs`."><title>quicksort.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rayon-1.9.0/src/slice/quicksort.rs`."><title>quicksort.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rayon/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -914,19 +916,19 @@
 
 <span class="doccomment">/// When dropped, copies from `src` into `dest`.
 </span><span class="attr">#[must_use]
-</span><span class="kw">struct </span>CopyOnDrop&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">struct </span>CopyOnDrop&lt;<span class="lifetime">'a</span>, T&gt; {
     src: <span class="kw-2">*const </span>T,
     dest: <span class="kw-2">*mut </span>T,
     <span class="doccomment">/// `src` is often a local pointer here, make sure we have appropriate
     /// PhantomData so that dropck can protect us.
-    </span>marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;,
+    </span>marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; CopyOnDrop&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; CopyOnDrop&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="doccomment">/// Construct from a source pointer and a destination
     /// Assumes dest lives longer than src, since there is no easy way to
     /// copy down lifetime information from another pointer
-    </span><span class="kw">unsafe fn </span>new(src: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T, dest: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">unsafe fn </span>new(src: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T, dest: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
         CopyOnDrop {
             src,
             dest,
@@ -935,7 +937,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>CopyOnDrop&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>CopyOnDrop&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// SAFETY:  This is a helper class.
         //          Please refer to its usage for correctness.
@@ -964,7 +966,7 @@
     //  2. They cannot overlap because we obtain pointers to difference indices of the slice.
     //     Namely, `i` and `i-1`.
     //  3. If the slice is properly aligned, the elements are properly aligned.
-    //     It is the caller&#39;s responsibility to make sure the slice is properly aligned.
+    //     It is the caller's responsibility to make sure the slice is properly aligned.
     //
     // See comments below for further detail.
     </span><span class="kw">unsafe </span>{
@@ -1010,7 +1012,7 @@
     //  2. They cannot overlap because we obtain pointers to difference indices of the slice.
     //     Namely, `i` and `i+1`.
     //  3. If the slice is properly aligned, the elements are properly aligned.
-    //     It is the caller&#39;s responsibility to make sure the slice is properly aligned.
+    //     It is the caller's responsibility to make sure the slice is properly aligned.
     //
     // See comments below for further detail.
     </span><span class="kw">unsafe </span>{
@@ -1048,7 +1050,7 @@
 {
     <span class="comment">// Maximum number of adjacent out-of-order pairs that will get shifted.
     </span><span class="kw">const </span>MAX_STEPS: usize = <span class="number">5</span>;
-    <span class="comment">// If the slice is shorter than this, don&#39;t shift any elements.
+    <span class="comment">// If the slice is shorter than this, don't shift any elements.
     </span><span class="kw">const </span>SHORTEST_SHIFTING: usize = <span class="number">50</span>;
 
     <span class="kw">let </span>len = v.len();
@@ -1069,7 +1071,7 @@
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
 
-        <span class="comment">// Don&#39;t shift elements on short arrays, that has a performance cost.
+        <span class="comment">// Don't shift elements on short arrays, that has a performance cost.
         </span><span class="kw">if </span>len &lt; SHORTEST_SHIFTING {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
@@ -1083,7 +1085,7 @@
         </span>shift_head(<span class="kw-2">&amp;mut </span>v[i..], is_less);
     }
 
-    <span class="comment">// Didn&#39;t manage to sort the slice in the limited number of steps.
+    <span class="comment">// Didn't manage to sort the slice in the limited number of steps.
     </span><span class="bool-val">false
 </span>}
 
@@ -1208,7 +1210,7 @@
                 rem -= BLOCK;
             }
 
-            <span class="comment">// Adjust block sizes so that the left and right block don&#39;t overlap, but get perfectly
+            <span class="comment">// Adjust block sizes so that the left and right block don't overlap, but get perfectly
             // aligned to cover the whole remaining gap.
             </span><span class="kw">if </span>start_l &lt; end_l {
                 block_r = rem;
@@ -1398,7 +1400,7 @@
         }
         width(v.as_mut_ptr(), l)
     } <span class="kw">else </span>{
-        <span class="comment">// Nothing else to do, we&#39;re done.
+        <span class="comment">// Nothing else to do, we're done.
         </span>width(v.as_mut_ptr(), l)
     }
 }
@@ -1529,7 +1531,7 @@
 </span><span class="kw">fn </span>break_patterns&lt;T&gt;(v: <span class="kw-2">&amp;mut </span>[T]) {
     <span class="kw">let </span>len = v.len();
     <span class="kw">if </span>len &gt;= <span class="number">8 </span>{
-        <span class="comment">// Pseudorandom number generator from the &quot;Xorshift RNGs&quot; paper by George Marsaglia.
+        <span class="comment">// Pseudorandom number generator from the "Xorshift RNGs" paper by George Marsaglia.
         </span><span class="kw">let </span><span class="kw-2">mut </span>random = len <span class="kw">as </span>u32;
         <span class="kw">let </span><span class="kw-2">mut </span>gen_u32 = || {
             random ^= random &lt;&lt; <span class="number">13</span>;
@@ -1549,7 +1551,7 @@
         // The number fits into `usize` because `len` is not greater than `isize::MAX`.
         </span><span class="kw">let </span>modulus = len.next_power_of_two();
 
-        <span class="comment">// Some pivot candidates will be in the nearby of this index. Let&#39;s randomize them.
+        <span class="comment">// Some pivot candidates will be in the nearby of this index. Let's randomize them.
         </span><span class="kw">let </span>pos = len / <span class="number">4 </span>* <span class="number">2</span>;
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -1647,7 +1649,7 @@
 ///
 /// `limit` is the number of allowed imbalanced partitions before switching to `heapsort`. If zero,
 /// this function will immediately switch to heapsort.
-</span><span class="kw">fn </span>recurse&lt;<span class="lifetime">&#39;a</span>, T, F&gt;(<span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T], is_less: <span class="kw-2">&amp;</span>F, <span class="kw-2">mut </span>pred: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;, <span class="kw-2">mut </span>limit: u32)
+</span><span class="kw">fn </span>recurse&lt;<span class="lifetime">'a</span>, T, F&gt;(<span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[T], is_less: <span class="kw-2">&amp;</span>F, <span class="kw-2">mut </span>pred: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T&gt;, <span class="kw-2">mut </span>limit: u32)
 <span class="kw">where
     </span>T: Send,
     F: Fn(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool + Sync,
@@ -1655,12 +1657,12 @@
     <span class="comment">// Slices of up to this length get sorted using insertion sort.
     </span><span class="kw">const </span>MAX_INSERTION: usize = <span class="number">20</span>;
     <span class="comment">// If both partitions are up to this length, we continue sequentially. This number is as small
-    // as possible but so that the overhead of Rayon&#39;s task scheduling is still negligible.
+    // as possible but so that the overhead of Rayon's task scheduling is still negligible.
     </span><span class="kw">const </span>MAX_SEQUENTIAL: usize = <span class="number">2000</span>;
 
     <span class="comment">// True if the last partitioning was reasonably balanced.
     </span><span class="kw">let </span><span class="kw-2">mut </span>was_balanced = <span class="bool-val">true</span>;
-    <span class="comment">// True if the last partitioning didn&#39;t shuffle elements (the slice was already partitioned).
+    <span class="comment">// True if the last partitioning didn't shuffle elements (the slice was already partitioned).
     </span><span class="kw">let </span><span class="kw-2">mut </span>was_partitioned = <span class="bool-val">true</span>;
 
     <span class="kw">loop </span>{
@@ -1680,7 +1682,7 @@
         }
 
         <span class="comment">// If the last partitioning was imbalanced, try breaking patterns in the slice by shuffling
-        // some elements around. Hopefully we&#39;ll choose a better pivot this time.
+        // some elements around. Hopefully we'll choose a better pivot this time.
         </span><span class="kw">if </span>!was_balanced {
             break_patterns(v);
             limit -= <span class="number">1</span>;
@@ -1689,17 +1691,17 @@
         <span class="comment">// Choose a pivot and try guessing whether the slice is already sorted.
         </span><span class="kw">let </span>(pivot, likely_sorted) = choose_pivot(v, is_less);
 
-        <span class="comment">// If the last partitioning was decently balanced and didn&#39;t shuffle elements, and if pivot
+        <span class="comment">// If the last partitioning was decently balanced and didn't shuffle elements, and if pivot
         // selection predicts the slice is likely already sorted...
         </span><span class="kw">if </span>was_balanced &amp;&amp; was_partitioned &amp;&amp; likely_sorted {
             <span class="comment">// Try identifying several out-of-order elements and shifting them to correct
-            // positions. If the slice ends up being completely sorted, we&#39;re done.
+            // positions. If the slice ends up being completely sorted, we're done.
             </span><span class="kw">if </span>partial_insertion_sort(v, is_less) {
                 <span class="kw">return</span>;
             }
         }
 
-        <span class="comment">// If the chosen pivot is equal to the predecessor, then it&#39;s the smallest element in the
+        <span class="comment">// If the chosen pivot is equal to the predecessor, then it's the smallest element in the
         // slice. Partition the slice into elements equal to and elements greater than the pivot.
         // This case is usually hit when the slice contains many duplicate elements.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>p) = pred {
@@ -1794,7 +1796,7 @@
         }
 
         <span class="comment">// Sort using a completely random comparison function.
-        // This will reorder the elements *somehow*, but won&#39;t panic.
+        // This will reorder the elements *somehow*, but won't panic.
         </span><span class="kw">let </span><span class="kw-2">mut </span>v: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">100</span>).collect();
         heapsort(<span class="kw-2">&amp;mut </span>v, <span class="kw-2">&amp;</span>|<span class="kw">_</span>, <span class="kw">_</span>| thread_rng().gen());
         heapsort(<span class="kw-2">&amp;mut </span>v, <span class="kw-2">&amp;</span>|a, b| a &lt; b);

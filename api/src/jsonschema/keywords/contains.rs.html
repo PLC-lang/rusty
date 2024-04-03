@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/contains.rs`."><title>contains.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/contains.rs`."><title>contains.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -472,7 +474,7 @@
 };
 <span class="kw">use </span>serde_json::{Map, Value};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
 </span><span class="kw">use </span><span class="kw">super</span>::helpers::map_get_u64;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContainsValidator {
@@ -482,11 +484,11 @@
 
 <span class="kw">impl </span>ContainsValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;contains&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"contains"</span>);
         <span class="prelude-val">Ok</span>(Box::new(ContainsValidator {
             node: compile_validators(schema, <span class="kw-2">&amp;</span>keyword_context)<span class="question-mark">?</span>,
             schema_path: keyword_context.into_pointer(),
@@ -503,11 +505,11 @@
         </span>}
     }
 
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Array(items) = instance {
             <span class="kw">if </span>items.iter().any(|i| <span class="self">self</span>.node.is_valid(i)) {
                 <span class="kw">return </span>no_error();
@@ -522,11 +524,11 @@
         }
     }
 
-    <span class="kw">fn </span>apply&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">fn </span>apply&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         instance: <span class="kw-2">&amp;</span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; PartialApplication&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; PartialApplication&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>Value::Array(items) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>results = Vec::with_capacity(items.len());
             <span class="kw">let </span><span class="kw-2">mut </span>indices = Vec::new();
@@ -561,8 +563,8 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>ContainsValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;contains: {}&quot;</span>, format_validators(<span class="self">self</span>.node.validators()))
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"contains: {}"</span>, format_validators(<span class="self">self</span>.node.validators()))
     }
 }
 
@@ -577,12 +579,12 @@
 
 <span class="kw">impl </span>MinContainsValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
         min_contains: u64,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;minContains&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"minContains"</span>);
         <span class="prelude-val">Ok</span>(Box::new(MinContainsValidator {
             node: compile_validators(schema, context)<span class="question-mark">?</span>,
             min_contains,
@@ -592,15 +594,15 @@
 }
 
 <span class="kw">impl </span>Validate <span class="kw">for </span>MinContainsValidator {
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Array(items) = instance {
             <span class="comment">// From docs:
-            //   An array instance is valid against &quot;minContains&quot; if the number of elements
-            //   that are valid against the schema for &quot;contains&quot; is greater than, or equal to,
+            //   An array instance is valid against "minContains" if the number of elements
+            //   that are valid against the schema for "contains" is greater than, or equal to,
             //   the value of this keyword.
             </span><span class="kw">let </span><span class="kw-2">mut </span>matches = <span class="number">0</span>;
             <span class="kw">for </span>item <span class="kw">in </span>items {
@@ -654,10 +656,10 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>MinContainsValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;minContains: {}, contains: {}&quot;</span>,
+            <span class="string">"minContains: {}, contains: {}"</span>,
             <span class="self">self</span>.min_contains,
             format_validators(<span class="self">self</span>.node.validators())
         )
@@ -675,12 +677,12 @@
 
 <span class="kw">impl </span>MaxContainsValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
         max_contains: u64,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">&quot;maxContains&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>keyword_context = context.with_path(<span class="string">"maxContains"</span>);
         <span class="prelude-val">Ok</span>(Box::new(MaxContainsValidator {
             node: compile_validators(schema, context)<span class="question-mark">?</span>,
             max_contains,
@@ -690,15 +692,15 @@
 }
 
 <span class="kw">impl </span>Validate <span class="kw">for </span>MaxContainsValidator {
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Array(items) = instance {
             <span class="comment">// From docs:
-            //   An array instance is valid against &quot;maxContains&quot; if the number of elements
-            //   that are valid against the schema for &quot;contains&quot; is less than, or equal to,
+            //   An array instance is valid against "maxContains" if the number of elements
+            //   that are valid against the schema for "contains" is less than, or equal to,
             //   the value of this keyword.
             </span><span class="kw">let </span><span class="kw-2">mut </span>matches = <span class="number">0</span>;
             <span class="kw">for </span>item <span class="kw">in </span>items {
@@ -758,10 +760,10 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>MaxContainsValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;maxContains: {}, contains: {}&quot;</span>,
+            <span class="string">"maxContains: {}, contains: {}"</span>,
             <span class="self">self</span>.max_contains,
             format_validators(<span class="self">self</span>.node.validators())
         )
@@ -782,12 +784,12 @@
 
 <span class="kw">impl </span>MinMaxContainsValidator {
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-        schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+        schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
         context: <span class="kw-2">&amp;</span>CompilationContext,
         min_contains: u64,
         max_contains: u64,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
         <span class="prelude-val">Ok</span>(Box::new(MinMaxContainsValidator {
             node: compile_validators(schema, context)<span class="question-mark">?</span>,
             min_contains,
@@ -798,11 +800,11 @@
 }
 
 <span class="kw">impl </span>Validate <span class="kw">for </span>MinMaxContainsValidator {
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::Array(items) = instance {
             <span class="kw">let </span><span class="kw-2">mut </span>matches = <span class="number">0</span>;
             <span class="kw">for </span>item <span class="kw">in </span>items {
@@ -815,7 +817,7 @@
                     <span class="comment">// Shortcircuit - there should be no more than `self.max_contains` matches
                     </span><span class="kw">if </span>matches &gt; <span class="self">self</span>.max_contains {
                         <span class="kw">return </span>error(ValidationError::contains(
-                            <span class="self">self</span>.schema_path.clone_with(<span class="string">&quot;maxContains&quot;</span>),
+                            <span class="self">self</span>.schema_path.clone_with(<span class="string">"maxContains"</span>),
                             instance_path.into(),
                             instance,
                         ));
@@ -825,7 +827,7 @@
             <span class="kw">if </span>matches &lt; <span class="self">self</span>.min_contains {
                 <span class="comment">// Not enough matches
                 </span>error(ValidationError::contains(
-                    <span class="self">self</span>.schema_path.clone_with(<span class="string">&quot;minContains&quot;</span>),
+                    <span class="self">self</span>.schema_path.clone_with(<span class="string">"minContains"</span>),
                     instance_path.into(),
                     instance,
                 ))
@@ -860,10 +862,10 @@
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>MinMaxContainsValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;minContains: {}, maxContains: {}, contains: {}&quot;</span>,
+            <span class="string">"minContains: {}, maxContains: {}, contains: {}"</span>,
             <span class="self">self</span>.min_contains,
             <span class="self">self</span>.max_contains,
             format_validators(<span class="self">self</span>.node.validators())
@@ -872,36 +874,36 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     context: <span class="kw-2">&amp;</span>CompilationContext,
-) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">match </span>context.config.draft() {
         Draft::Draft4 | Draft::Draft6 | Draft::Draft7 =&gt; {
             <span class="prelude-val">Some</span>(ContainsValidator::compile(schema, context))
         }
-        <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
+        <span class="attr">#[cfg(all(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
         </span>Draft::Draft201909 | Draft::Draft202012 =&gt; compile_contains(parent, schema, context),
-        <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft201909&quot;</span>, not(feature = <span class="string">&quot;draft202012&quot;</span>)))]
+        <span class="attr">#[cfg(all(feature = <span class="string">"draft201909"</span>, not(feature = <span class="string">"draft202012"</span>)))]
         </span>Draft::Draft201909 =&gt; compile_contains(parent, schema, context),
-        <span class="attr">#[cfg(all(feature = <span class="string">&quot;draft202012&quot;</span>, not(feature = <span class="string">&quot;draft201909&quot;</span>)))]
+        <span class="attr">#[cfg(all(feature = <span class="string">"draft202012"</span>, not(feature = <span class="string">"draft201909"</span>)))]
         </span>Draft::Draft202012 =&gt; compile_contains(parent, schema, context),
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;draft201909&quot;</span>, feature = <span class="string">&quot;draft202012&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"draft201909"</span>, feature = <span class="string">"draft202012"</span>))]
 #[inline]
-</span><span class="kw">fn </span>compile_contains&lt;<span class="lifetime">&#39;a</span>&gt;(
-    parent: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+</span><span class="kw">fn </span>compile_contains&lt;<span class="lifetime">'a</span>&gt;(
+    parent: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     context: <span class="kw-2">&amp;</span>CompilationContext,
-) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
-    <span class="kw">let </span>min_contains = <span class="kw">match </span>map_get_u64(parent, context, <span class="string">&quot;minContains&quot;</span>).transpose() {
+) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    <span class="kw">let </span>min_contains = <span class="kw">match </span>map_get_u64(parent, context, <span class="string">"minContains"</span>).transpose() {
         <span class="prelude-val">Ok</span>(n) =&gt; n,
         <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)),
     };
-    <span class="kw">let </span>max_contains = <span class="kw">match </span>map_get_u64(parent, context, <span class="string">&quot;maxContains&quot;</span>).transpose() {
+    <span class="kw">let </span>max_contains = <span class="kw">match </span>map_get_u64(parent, context, <span class="string">"maxContains"</span>).transpose() {
         <span class="prelude-val">Ok</span>(n) =&gt; n,
         <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(err)),
     };
@@ -921,7 +923,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>schema_path() {
-        tests_util::assert_schema_path(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;contains&quot;</span>: {<span class="string">&quot;const&quot;</span>: <span class="number">2</span>}}), <span class="kw-2">&amp;</span><span class="macro">json!</span>([]), <span class="string">&quot;/contains&quot;</span>)
+        tests_util::assert_schema_path(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"contains"</span>: {<span class="string">"const"</span>: <span class="number">2</span>}}), <span class="kw-2">&amp;</span><span class="macro">json!</span>([]), <span class="string">"/contains"</span>)
     }
 }
 </code></pre></div></section></main></body></html>

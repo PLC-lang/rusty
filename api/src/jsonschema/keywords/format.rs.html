@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/keywords/format.rs`."><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -656,26 +658,26 @@
 };
 
 <span class="kw">static </span>DATE_RE: Lazy&lt;Regex&gt; =
-    Lazy::new(|| Regex::new(<span class="string">r&quot;^[0-9]{4}-[0-9]{2}-[0-9]{2}\z&quot;</span>).expect(<span class="string">&quot;Is a valid regex&quot;</span>));
+    Lazy::new(|| Regex::new(<span class="string">r"^[0-9]{4}-[0-9]{2}-[0-9]{2}\z"</span>).expect(<span class="string">"Is a valid regex"</span>));
 <span class="kw">static </span>IRI_REFERENCE_RE: Lazy&lt;Regex&gt; =
-    Lazy::new(|| Regex::new(<span class="string">r&quot;^(\w+:(/?/?))?[^#\\\s]*(#[^\\\s]*)?\z&quot;</span>).expect(<span class="string">&quot;Is a valid regex&quot;</span>));
+    Lazy::new(|| Regex::new(<span class="string">r"^(\w+:(/?/?))?[^#\\\s]*(#[^\\\s]*)?\z"</span>).expect(<span class="string">"Is a valid regex"</span>));
 <span class="kw">static </span>JSON_POINTER_RE: Lazy&lt;Regex&gt; =
-    Lazy::new(|| Regex::new(<span class="string">r&quot;^(/(([^/~])|(~[01]))*)*\z&quot;</span>).expect(<span class="string">&quot;Is a valid regex&quot;</span>));
+    Lazy::new(|| Regex::new(<span class="string">r"^(/(([^/~])|(~[01]))*)*\z"</span>).expect(<span class="string">"Is a valid regex"</span>));
 <span class="kw">static </span>RELATIVE_JSON_POINTER_RE: Lazy&lt;Regex&gt; = Lazy::new(|| {
-    Regex::new(<span class="string">r&quot;^(?:0|[1-9][0-9]*)(?:#|(?:/(?:[^~/]|~0|~1)*)*)\z&quot;</span>).expect(<span class="string">&quot;Is a valid regex&quot;</span>)
+    Regex::new(<span class="string">r"^(?:0|[1-9][0-9]*)(?:#|(?:/(?:[^~/]|~0|~1)*)*)\z"</span>).expect(<span class="string">"Is a valid regex"</span>)
 });
 <span class="kw">static </span>TIME_RE: Lazy&lt;Regex&gt; = Lazy::new(|| {
     Regex::new(
-        <span class="string">r&quot;^([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.[0-9]{6})?(([Zz])|([+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))\z&quot;</span>,
-    ).expect(<span class="string">&quot;Is a valid regex&quot;</span>)
+        <span class="string">r"^([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(\.[0-9]{6})?(([Zz])|([+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))\z"</span>,
+    ).expect(<span class="string">"Is a valid regex"</span>)
 });
 <span class="kw">static </span>URI_REFERENCE_RE: Lazy&lt;Regex&gt; =
-    Lazy::new(|| Regex::new(<span class="string">r&quot;^(\w+:(/?/?))?[^#\\\s]*(#[^\\\s]*)?\z&quot;</span>).expect(<span class="string">&quot;Is a valid regex&quot;</span>));
+    Lazy::new(|| Regex::new(<span class="string">r"^(\w+:(/?/?))?[^#\\\s]*(#[^\\\s]*)?\z"</span>).expect(<span class="string">"Is a valid regex"</span>));
 <span class="kw">static </span>URI_TEMPLATE_RE: Lazy&lt;Regex&gt; = Lazy::new(|| {
     Regex::new(
-        <span class="string">r#&quot;^(?:(?:[^\x00-\x20&quot;&#39;&lt;&gt;%\\^`{|}]|%[0-9a-f]{2})|\{[+#./;?&amp;=,!@|]?(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?(?:,(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?)*})*\z&quot;#
+        <span class="string">r#"^(?:(?:[^\x00-\x20"'&lt;&gt;%\\^`{|}]|%[0-9a-f]{2})|\{[+#./;?&amp;=,!@|]?(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?(?:,(?:[a-z0-9_]|%[0-9a-f]{2})+(?::[1-9][0-9]{0,3}|\*)?)*})*\z"#
     </span>)
-    .expect(<span class="string">&quot;Is a valid regex&quot;</span>)
+    .expect(<span class="string">"Is a valid regex"</span>)
 });
 
 <span class="macro">macro_rules! </span>format_validator {
@@ -684,15 +686,15 @@
             schema_path: JSONPointer,
         }
         <span class="kw">impl </span><span class="macro-nonterminal">$validator </span>{
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(context: <span class="kw-2">&amp;</span>CompilationContext) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-                <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">&quot;format&quot;</span>);
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(context: <span class="kw-2">&amp;</span>CompilationContext) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+                <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">"format"</span>);
                 <span class="prelude-val">Ok</span>(Box::new(<span class="macro-nonterminal">$validator </span>{ schema_path }))
             }
         }
 
         <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span><span class="macro-nonterminal">$validator </span>{
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-                <span class="macro">concat!</span>(<span class="string">&quot;format: &quot;</span>, <span class="macro-nonterminal">$format_name</span>).fmt(f)
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+                <span class="macro">concat!</span>(<span class="string">"format: "</span>, <span class="macro-nonterminal">$format_name</span>).fmt(f)
             }
         }
     };
@@ -700,11 +702,11 @@
 
 <span class="macro">macro_rules! </span>validate {
     (<span class="macro-nonterminal">$format</span>:expr) =&gt; {
-        <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+        <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
-            instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+            instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
             instance_path: <span class="kw-2">&amp;</span>InstancePath,
-        ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+        ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
             <span class="kw">if let </span>Value::String(_item) = instance {
                 <span class="kw">if </span>!<span class="self">self</span>.is_valid(instance) {
                     <span class="kw">return </span>error(ValidationError::format(
@@ -720,23 +722,23 @@
     };
 }
 
-<span class="macro">format_validator!</span>(DateValidator, <span class="string">&quot;date&quot;</span>);
+<span class="macro">format_validator!</span>(DateValidator, <span class="string">"date"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>DateValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;date&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"date"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             <span class="kw">if </span>time::Date::parse(
                 item,
-                <span class="kw-2">&amp;</span><span class="macro">time::macros::format_description!</span>(<span class="string">&quot;[year]-[month]-[day]&quot;</span>),
+                <span class="kw-2">&amp;</span><span class="macro">time::macros::format_description!</span>(<span class="string">"[year]-[month]-[day]"</span>),
             )
             .is_ok()
             {
                 <span class="comment">// Padding with zeroes is ignored by the underlying parser. The most efficient
-                // way to check it will be to use a custom parser that won&#39;t ignore zeroes,
+                // way to check it will be to use a custom parser that won't ignore zeroes,
                 // but this regex will do the trick and costs ~20% extra time in this validator.
                 </span>DATE_RE
                     .is_match(item.as_str())
-                    .expect(<span class="string">&quot;Simple DATE_RE pattern&quot;</span>)
+                    .expect(<span class="string">"Simple DATE_RE pattern"</span>)
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -745,9 +747,9 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(DateTimeValidator, <span class="string">&quot;date-time&quot;</span>);
+<span class="macro">format_validator!</span>(DateTimeValidator, <span class="string">"date-time"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>DateTimeValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;date-time&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"date-time"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             time::OffsetDateTime::parse(item, <span class="kw-2">&amp;</span>time::format_description::well_known::Rfc3339)
@@ -758,7 +760,7 @@
     }
 }
 <span class="kw">fn </span>is_valid_email(email: <span class="kw-2">&amp;</span>str) -&gt; bool {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>) = email.chars().next() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">'.'</span>) = email.chars().next() {
         <span class="comment">// dot before local part is not valid
         </span><span class="kw">return </span><span class="bool-val">false</span>;
     }
@@ -768,18 +770,18 @@
         <span class="kw">match </span>(a, b) {
             <span class="comment">// two subsequent dots inside local part are not valid
             // dot after local part is not valid
-            </span>(<span class="string">&#39;.&#39;</span>, <span class="string">&#39;.&#39;</span>) | (<span class="string">&#39;.&#39;</span>, <span class="string">&#39;@&#39;</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+            </span>(<span class="string">'.'</span>, <span class="string">'.'</span>) | (<span class="string">'.'</span>, <span class="string">'@'</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
             <span class="comment">// The domain part is not validated for simplicity
-            </span>(<span class="kw">_</span>, <span class="string">&#39;@&#39;</span>) =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
+            </span>(<span class="kw">_</span>, <span class="string">'@'</span>) =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
         }
     }
     <span class="bool-val">false
 </span>}
 
-<span class="macro">format_validator!</span>(EmailValidator, <span class="string">&quot;email&quot;</span>);
+<span class="macro">format_validator!</span>(EmailValidator, <span class="string">"email"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>EmailValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;email&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"email"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             is_valid_email(item)
@@ -788,9 +790,9 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(IDNEmailValidator, <span class="string">&quot;idn-email&quot;</span>);
+<span class="macro">format_validator!</span>(IDNEmailValidator, <span class="string">"idn-email"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IDNEmailValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;idn-email&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"idn-email"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             is_valid_email(item)
@@ -799,52 +801,52 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(HostnameValidator, <span class="string">&quot;hostname&quot;</span>);
+<span class="macro">format_validator!</span>(HostnameValidator, <span class="string">"hostname"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>HostnameValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;hostname&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"hostname"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
-            !(item.ends_with(<span class="string">&#39;-&#39;</span>)
-                || item.starts_with(<span class="string">&#39;-&#39;</span>)
+            !(item.ends_with(<span class="string">'-'</span>)
+                || item.starts_with(<span class="string">'-'</span>)
                 || item.is_empty()
                 || bytecount::num_chars(item.as_bytes()) &gt; <span class="number">255
                 </span>|| item
                     .chars()
-                    .any(|c| !(c.is_alphanumeric() || c == <span class="string">&#39;-&#39; </span>|| c == <span class="string">&#39;.&#39;</span>))
+                    .any(|c| !(c.is_alphanumeric() || c == <span class="string">'-' </span>|| c == <span class="string">'.'</span>))
                 || item
-                    .split(<span class="string">&#39;.&#39;</span>)
+                    .split(<span class="string">'.'</span>)
                     .any(|part| bytecount::num_chars(part.as_bytes()) &gt; <span class="number">63</span>))
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(IDNHostnameValidator, <span class="string">&quot;idn-hostname&quot;</span>);
+<span class="macro">format_validator!</span>(IDNHostnameValidator, <span class="string">"idn-hostname"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IDNHostnameValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;idn-hostname&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"idn-hostname"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
-            !(item.ends_with(<span class="string">&#39;-&#39;</span>)
-                || item.starts_with(<span class="string">&#39;-&#39;</span>)
+            !(item.ends_with(<span class="string">'-'</span>)
+                || item.starts_with(<span class="string">'-'</span>)
                 || item.is_empty()
                 || bytecount::num_chars(item.as_bytes()) &gt; <span class="number">255
                 </span>|| item
                     .chars()
-                    .any(|c| !(c.is_alphanumeric() || c == <span class="string">&#39;-&#39; </span>|| c == <span class="string">&#39;.&#39;</span>))
+                    .any(|c| !(c.is_alphanumeric() || c == <span class="string">'-' </span>|| c == <span class="string">'.'</span>))
                 || item
-                    .split(<span class="string">&#39;.&#39;</span>)
+                    .split(<span class="string">'.'</span>)
                     .any(|part| bytecount::num_chars(part.as_bytes()) &gt; <span class="number">63</span>))
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(IpV4Validator, <span class="string">&quot;ipv4&quot;</span>);
+<span class="macro">format_validator!</span>(IpV4Validator, <span class="string">"ipv4"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IpV4Validator {
-    <span class="macro">validate!</span>(<span class="string">&quot;ipv4&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"ipv4"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
-            <span class="kw">if </span>item.starts_with(<span class="string">&#39;0&#39;</span>) {
+            <span class="kw">if </span>item.starts_with(<span class="string">'0'</span>) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
             <span class="kw">match </span>IpAddr::from_str(item.as_str()) {
@@ -857,9 +859,9 @@
     }
 }
 
-<span class="macro">format_validator!</span>(IpV6Validator, <span class="string">&quot;ipv6&quot;</span>);
+<span class="macro">format_validator!</span>(IpV6Validator, <span class="string">"ipv6"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IpV6Validator {
-    <span class="macro">validate!</span>(<span class="string">&quot;ipv6&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"ipv6"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             <span class="kw">match </span>IpAddr::from_str(item.as_str()) {
@@ -871,9 +873,9 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(IRIValidator, <span class="string">&quot;iri&quot;</span>);
+<span class="macro">format_validator!</span>(IRIValidator, <span class="string">"iri"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IRIValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;iri&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"iri"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             Url::from_str(item).is_ok()
@@ -882,9 +884,9 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(URIValidator, <span class="string">&quot;uri&quot;</span>);
+<span class="macro">format_validator!</span>(URIValidator, <span class="string">"uri"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>URIValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;uri&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"uri"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             Url::from_str(item).is_ok()
@@ -893,35 +895,35 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(IRIReferenceValidator, <span class="string">&quot;iri-reference&quot;</span>);
+<span class="macro">format_validator!</span>(IRIReferenceValidator, <span class="string">"iri-reference"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>IRIReferenceValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;iri-reference&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"iri-reference"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             IRI_REFERENCE_RE
                 .is_match(item)
-                .expect(<span class="string">&quot;Simple IRI_REFERENCE_RE pattern&quot;</span>)
+                .expect(<span class="string">"Simple IRI_REFERENCE_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(JSONPointerValidator, <span class="string">&quot;json-pointer&quot;</span>);
+<span class="macro">format_validator!</span>(JSONPointerValidator, <span class="string">"json-pointer"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>JSONPointerValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;json-pointer&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"json-pointer"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             JSON_POINTER_RE
                 .is_match(item)
-                .expect(<span class="string">&quot;Simple JSON_POINTER_RE pattern&quot;</span>)
+                .expect(<span class="string">"Simple JSON_POINTER_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(RegexValidator, <span class="string">&quot;regex&quot;</span>);
+<span class="macro">format_validator!</span>(RegexValidator, <span class="string">"regex"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>RegexValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;regex&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"regex"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             pattern::convert_regex(item).is_ok()
@@ -930,60 +932,60 @@
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(RelativeJSONPointerValidator, <span class="string">&quot;relative-json-pointer&quot;</span>);
+<span class="macro">format_validator!</span>(RelativeJSONPointerValidator, <span class="string">"relative-json-pointer"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>RelativeJSONPointerValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;relative-json-pointer&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"relative-json-pointer"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             RELATIVE_JSON_POINTER_RE
                 .is_match(item)
-                .expect(<span class="string">&quot;Simple RELATIVE_JSON_POINTER_RE pattern&quot;</span>)
+                .expect(<span class="string">"Simple RELATIVE_JSON_POINTER_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(TimeValidator, <span class="string">&quot;time&quot;</span>);
+<span class="macro">format_validator!</span>(TimeValidator, <span class="string">"time"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>TimeValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;time&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"time"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
-            TIME_RE.is_match(item).expect(<span class="string">&quot;Simple TIME_RE pattern&quot;</span>)
+            TIME_RE.is_match(item).expect(<span class="string">"Simple TIME_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(URIReferenceValidator, <span class="string">&quot;uri-reference&quot;</span>);
+<span class="macro">format_validator!</span>(URIReferenceValidator, <span class="string">"uri-reference"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>URIReferenceValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;uri-reference&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"uri-reference"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             URI_REFERENCE_RE
                 .is_match(item)
-                .expect(<span class="string">&quot;Simple URI_REFERENCE_RE pattern&quot;</span>)
+                .expect(<span class="string">"Simple URI_REFERENCE_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
-<span class="macro">format_validator!</span>(URITemplateValidator, <span class="string">&quot;uri-template&quot;</span>);
+<span class="macro">format_validator!</span>(URITemplateValidator, <span class="string">"uri-template"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>URITemplateValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;uri-template&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"uri-template"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             URI_TEMPLATE_RE
                 .is_match(item)
-                .expect(<span class="string">&quot;Simple URI_TEMPLATE_RE pattern&quot;</span>)
+                .expect(<span class="string">"Simple URI_TEMPLATE_RE pattern"</span>)
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
     }
 }
 
-<span class="macro">format_validator!</span>(UUIDValidator, <span class="string">&quot;uuid&quot;</span>);
+<span class="macro">format_validator!</span>(UUIDValidator, <span class="string">"uuid"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>UUIDValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;uuid&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"uuid"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             Uuid::from_str(item.as_str()).is_ok()
@@ -993,9 +995,9 @@
     }
 }
 
-<span class="macro">format_validator!</span>(DurationValidator, <span class="string">&quot;duration&quot;</span>);
+<span class="macro">format_validator!</span>(DurationValidator, <span class="string">"duration"</span>);
 <span class="kw">impl </span>Validate <span class="kw">for </span>DurationValidator {
-    <span class="macro">validate!</span>(<span class="string">&quot;duration&quot;</span>);
+    <span class="macro">validate!</span>(<span class="string">"duration"</span>);
     <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
         <span class="kw">if let </span>Value::String(item) = instance {
             iso8601::duration(item).is_ok()
@@ -1007,16 +1009,16 @@
 
 <span class="kw">struct </span>CustomFormatValidator {
     schema_path: JSONPointer,
-    format_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    format_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     check: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool,
 }
 <span class="kw">impl </span>CustomFormatValidator {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
         context: <span class="kw-2">&amp;</span>CompilationContext,
-        format_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        format_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         check: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; bool,
-    ) -&gt; CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">&quot;format&quot;</span>);
+    ) -&gt; CompilationResult&lt;<span class="lifetime">'a</span>&gt; {
+        <span class="kw">let </span>schema_path = context.as_pointer_with(<span class="string">"format"</span>);
         <span class="prelude-val">Ok</span>(Box::new(CustomFormatValidator {
             schema_path,
             format_name,
@@ -1025,17 +1027,17 @@
     }
 }
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>CustomFormatValidator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;format: {}&quot;</span>, <span class="self">self</span>.format_name)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"format: {}"</span>, <span class="self">self</span>.format_name)
     }
 }
 
 <span class="kw">impl </span>Validate <span class="kw">for </span>CustomFormatValidator {
-    <span class="kw">fn </span>validate&lt;<span class="lifetime">&#39;instance</span>&gt;(
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'instance</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;instance </span>Value,
+        instance: <span class="kw-2">&amp;</span><span class="lifetime">'instance </span>Value,
         instance_path: <span class="kw-2">&amp;</span>InstancePath,
-    ) -&gt; ErrorIterator&lt;<span class="lifetime">&#39;instance</span>&gt; {
+    ) -&gt; ErrorIterator&lt;<span class="lifetime">'instance</span>&gt; {
         <span class="kw">if let </span>Value::String(_item) = instance {
             <span class="kw">if </span>!<span class="self">self</span>.is_valid(instance) {
                 <span class="kw">return </span>error(ValidationError::format(
@@ -1059,11 +1061,11 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">&#39;a</span>&gt;(
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Map&lt;String, Value&gt;,
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile&lt;<span class="lifetime">'a</span>&gt;(
+    <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     context: <span class="kw-2">&amp;</span>CompilationContext,
-) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationResult&lt;<span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">if </span>!context.config.validate_formats() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
@@ -1074,65 +1076,65 @@
         }
         <span class="kw">let </span>draft_version = context.config.draft();
         <span class="kw">match </span>format.as_str() {
-            <span class="string">&quot;date-time&quot; </span>=&gt; <span class="prelude-val">Some</span>(DateTimeValidator::compile(context)),
-            <span class="string">&quot;date&quot; </span>=&gt; <span class="prelude-val">Some</span>(DateValidator::compile(context)),
-            <span class="string">&quot;email&quot; </span>=&gt; <span class="prelude-val">Some</span>(EmailValidator::compile(context)),
-            <span class="string">&quot;hostname&quot; </span>=&gt; <span class="prelude-val">Some</span>(HostnameValidator::compile(context)),
-            <span class="string">&quot;idn-email&quot; </span>=&gt; <span class="prelude-val">Some</span>(IDNEmailValidator::compile(context)),
-            <span class="string">&quot;idn-hostname&quot; </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"date-time" </span>=&gt; <span class="prelude-val">Some</span>(DateTimeValidator::compile(context)),
+            <span class="string">"date" </span>=&gt; <span class="prelude-val">Some</span>(DateValidator::compile(context)),
+            <span class="string">"email" </span>=&gt; <span class="prelude-val">Some</span>(EmailValidator::compile(context)),
+            <span class="string">"hostname" </span>=&gt; <span class="prelude-val">Some</span>(HostnameValidator::compile(context)),
+            <span class="string">"idn-email" </span>=&gt; <span class="prelude-val">Some</span>(IDNEmailValidator::compile(context)),
+            <span class="string">"idn-hostname" </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(IDNHostnameValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;idn-hostname&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"idn-hostname" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(IDNHostnameValidator::compile(context))
             }
-            <span class="string">&quot;ipv4&quot; </span>=&gt; <span class="prelude-val">Some</span>(IpV4Validator::compile(context)),
-            <span class="string">&quot;ipv6&quot; </span>=&gt; <span class="prelude-val">Some</span>(IpV6Validator::compile(context)),
-            <span class="string">&quot;iri-reference&quot; </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"ipv4" </span>=&gt; <span class="prelude-val">Some</span>(IpV4Validator::compile(context)),
+            <span class="string">"ipv6" </span>=&gt; <span class="prelude-val">Some</span>(IpV6Validator::compile(context)),
+            <span class="string">"iri-reference" </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(IRIReferenceValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;iri-reference&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"iri-reference" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(IRIReferenceValidator::compile(context))
             }
-            <span class="string">&quot;iri&quot; </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(IRIValidator::compile(context)),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;iri&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(IRIValidator::compile(context)),
-            <span class="string">&quot;json-pointer&quot; </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"iri" </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; <span class="prelude-val">Some</span>(IRIValidator::compile(context)),
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"iri" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(IRIValidator::compile(context)),
+            <span class="string">"json-pointer" </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(JSONPointerValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;json-pointer&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"json-pointer" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(JSONPointerValidator::compile(context))
             }
-            <span class="string">&quot;regex&quot; </span>=&gt; <span class="prelude-val">Some</span>(RegexValidator::compile(context)),
-            <span class="string">&quot;relative-json-pointer&quot; </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"regex" </span>=&gt; <span class="prelude-val">Some</span>(RegexValidator::compile(context)),
+            <span class="string">"relative-json-pointer" </span><span class="kw">if </span>draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(RelativeJSONPointerValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;relative-json-pointer&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"relative-json-pointer" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(RelativeJSONPointerValidator::compile(context))
             }
-            <span class="string">&quot;time&quot; </span>=&gt; <span class="prelude-val">Some</span>(TimeValidator::compile(context)),
-            <span class="string">&quot;uri-reference&quot; </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"time" </span>=&gt; <span class="prelude-val">Some</span>(TimeValidator::compile(context)),
+            <span class="string">"uri-reference" </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(URIReferenceValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;uri-reference&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"uri-reference" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(URIReferenceValidator::compile(context))
             }
-            <span class="string">&quot;uri-template&quot; </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
+            <span class="string">"uri-template" </span><span class="kw">if </span>draft_version == Draft::Draft6 || draft_version == Draft::Draft7 =&gt; {
                 <span class="prelude-val">Some</span>(URITemplateValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;uri-template&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"uri-template" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(URITemplateValidator::compile(context))
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;uuid&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(UUIDValidator::compile(context)),
-            <span class="string">&quot;uri&quot; </span>=&gt; <span class="prelude-val">Some</span>(URIValidator::compile(context)),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
-            </span><span class="string">&quot;duration&quot; </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"uuid" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; <span class="prelude-val">Some</span>(UUIDValidator::compile(context)),
+            <span class="string">"uri" </span>=&gt; <span class="prelude-val">Some</span>(URIValidator::compile(context)),
+            <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
+            </span><span class="string">"duration" </span><span class="kw">if </span>draft_version == Draft::Draft201909 =&gt; {
                 <span class="prelude-val">Some</span>(DurationValidator::compile(context))
             }
             <span class="kw">_ </span>=&gt; {
@@ -1143,7 +1145,7 @@
                         JSONPointer::default(),
                         context.clone().schema_path.into(),
                         schema,
-                        <span class="string">&quot;unknown format&quot;</span>,
+                        <span class="string">"unknown format"</span>,
                     )));
                 }
             }
@@ -1162,23 +1164,23 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>serde_json::json;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     </span><span class="kw">use </span><span class="kw">crate</span>::schemas::Draft::Draft201909;
     <span class="kw">use crate</span>::{compilation::JSONSchema, error::ValidationErrorKind, tests_util};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ignored_format() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;custom&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
-        <span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"custom"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
+        <span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">"foo"</span>);
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
         <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span>instance))
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_validation() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;email&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
-        <span class="kw">let </span>email_instance = <span class="macro">json!</span>(<span class="string">&quot;email@example.com&quot;</span>);
-        <span class="kw">let </span>not_email_instance = <span class="macro">json!</span>(<span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"email"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
+        <span class="kw">let </span>email_instance = <span class="macro">json!</span>(<span class="string">"email@example.com"</span>);
+        <span class="kw">let </span>not_email_instance = <span class="macro">json!</span>(<span class="string">"foo"</span>);
 
         <span class="kw">let </span>with_validation = JSONSchema::options()
             .should_validate_formats(<span class="bool-val">true</span>)
@@ -1198,24 +1200,24 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ecma_regex() {
         <span class="comment">// See GH-230
-        </span><span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;regex&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
-        <span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">&quot;^\\cc$&quot;</span>);
+        </span><span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"regex"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
+        <span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">"^\\cc$"</span>);
         <span class="kw">let </span>compiled = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).unwrap();
         <span class="macro">assert!</span>(compiled.is_valid(<span class="kw-2">&amp;</span>instance))
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>schema_path() {
-        tests_util::assert_schema_path(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;date&quot;</span>}), <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">&quot;bla&quot;</span>), <span class="string">&quot;/format&quot;</span>)
+        tests_util::assert_schema_path(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"date"</span>}), <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"bla"</span>), <span class="string">"/format"</span>)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     #[test]
     </span><span class="kw">fn </span>uuid() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;uuid&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"uuid"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
 
-        <span class="kw">let </span>passing_instance = <span class="macro">json!</span>(<span class="string">&quot;f308a72c-fa84-11eb-9a03-0242ac130003&quot;</span>);
-        <span class="kw">let </span>failing_instance = <span class="macro">json!</span>(<span class="string">&quot;1&quot;</span>);
+        <span class="kw">let </span>passing_instance = <span class="macro">json!</span>(<span class="string">"f308a72c-fa84-11eb-9a03-0242ac130003"</span>);
+        <span class="kw">let </span>failing_instance = <span class="macro">json!</span>(<span class="string">"1"</span>);
 
         <span class="kw">let </span>compiled = JSONSchema::options()
             .with_draft(Draft201909)
@@ -1229,22 +1231,22 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>uri() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;uri&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"uri"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
 
-        <span class="kw">let </span>passing_instance = <span class="macro">json!</span>(<span class="string">&quot;https://phillip.com&quot;</span>);
-        <span class="kw">let </span>failing_instance = <span class="macro">json!</span>(<span class="string">&quot;redis&quot;</span>);
+        <span class="kw">let </span>passing_instance = <span class="macro">json!</span>(<span class="string">"https://phillip.com"</span>);
+        <span class="kw">let </span>failing_instance = <span class="macro">json!</span>(<span class="string">"redis"</span>);
 
         tests_util::is_valid(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>passing_instance);
         tests_util::is_not_valid(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>failing_instance);
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;draft201909&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"draft201909"</span>)]
     #[test]
     </span><span class="kw">fn </span>duration() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;format&quot;</span>: <span class="string">&quot;duration&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"format"</span>: <span class="string">"duration"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
 
-        <span class="kw">let </span>passing_instances = <span class="macro">vec!</span>[<span class="macro">json!</span>(<span class="string">&quot;P15DT1H22M1.5S&quot;</span>), <span class="macro">json!</span>(<span class="string">&quot;P30D&quot;</span>), <span class="macro">json!</span>(<span class="string">&quot;PT5M&quot;</span>)];
-        <span class="kw">let </span>failing_instances = <span class="macro">vec!</span>[<span class="macro">json!</span>(<span class="string">&quot;15DT1H22M1.5S&quot;</span>), <span class="macro">json!</span>(<span class="string">&quot;unknown&quot;</span>)];
+        <span class="kw">let </span>passing_instances = <span class="macro">vec!</span>[<span class="macro">json!</span>(<span class="string">"P15DT1H22M1.5S"</span>), <span class="macro">json!</span>(<span class="string">"P30D"</span>), <span class="macro">json!</span>(<span class="string">"PT5M"</span>)];
+        <span class="kw">let </span>failing_instances = <span class="macro">vec!</span>[<span class="macro">json!</span>(<span class="string">"15DT1H22M1.5S"</span>), <span class="macro">json!</span>(<span class="string">"unknown"</span>)];
 
         <span class="kw">let </span>compiled = JSONSchema::options()
             .with_draft(Draft201909)
@@ -1262,16 +1264,16 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>unknown_formats_should_not_be_ignored() {
-        <span class="kw">let </span>schema = <span class="macro">json!</span>({ <span class="string">&quot;format&quot;</span>: <span class="string">&quot;custom&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
+        <span class="kw">let </span>schema = <span class="macro">json!</span>({ <span class="string">"format"</span>: <span class="string">"custom"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
         <span class="kw">let </span>validation_error = JSONSchema::options()
             .should_ignore_unknown_formats(<span class="bool-val">false</span>)
             .compile(<span class="kw-2">&amp;</span>schema)
-            .expect_err(<span class="string">&quot;the validation error should be returned&quot;</span>);
+            .expect_err(<span class="string">"the validation error should be returned"</span>);
 
         <span class="macro">assert!</span>(
-            <span class="macro">matches!</span>(validation_error.kind, ValidationErrorKind::Format { format } <span class="kw">if </span>format == <span class="string">&quot;unknown format&quot;</span>)
+            <span class="macro">matches!</span>(validation_error.kind, ValidationErrorKind::Format { format } <span class="kw">if </span>format == <span class="string">"unknown format"</span>)
         );
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;\&quot;custom\&quot;&quot;</span>, validation_error.instance.to_string())
+        <span class="macro">assert_eq!</span>(<span class="string">"\"custom\""</span>, validation_error.instance.to_string())
     }
 }
 </code></pre></div></section></main></body></html>

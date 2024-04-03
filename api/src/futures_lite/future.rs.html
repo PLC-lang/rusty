@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/future.rs`."><title>future.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../futures_lite/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="futures_lite"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.2.0/src/future.rs`."><title>future.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../futures_lite/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -772,7 +774,7 @@
 //!
 //! # spin_on::spin_on(async {
 //! for step in 0..3 {
-//!     println!(&quot;step {}&quot;, step);
+//!     println!("step {}", step);
 //!
 //!     // Give other tasks a chance to run.
 //!     future::yield_now().await;
@@ -780,7 +782,7 @@
 //! # });
 //! ```
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">extern crate </span>alloc;
 
 <span class="attr">#[doc(no_inline)]
@@ -791,16 +793,16 @@
 
 <span class="kw">use </span>pin_project_lite::pin_project;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::{
     any::Any,
     panic::{catch_unwind, AssertUnwindSafe, UnwindSafe},
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">use </span>fastrand::Rng;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::boxed::Box;
 <span class="kw">use </span>core::task::{Context, Poll};
 
@@ -817,7 +819,7 @@
 ///
 /// assert_eq!(val, 3);
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub fn </span>block_on&lt;T&gt;(future: <span class="kw">impl </span>Future&lt;Output = T&gt;) -&gt; T {
     <span class="kw">use </span>core::cell::RefCell;
     <span class="kw">use </span>core::task::Waker;
@@ -890,7 +892,7 @@
 
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`poll_once()`] function.
-    </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>PollOnce&lt;F&gt; {
         <span class="attr">#[pin]
         </span>f: F,
@@ -898,8 +900,8 @@
 }
 
 <span class="kw">impl</span>&lt;F&gt; fmt::Debug <span class="kw">for </span>PollOnce&lt;F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;PollOnce&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"PollOnce"</span>).finish()
     }
 }
 
@@ -909,7 +911,7 @@
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Option</span>&lt;T&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">match </span><span class="self">self</span>.project().f.poll(cx) {
             Poll::Ready(t) =&gt; Poll::Ready(<span class="prelude-val">Some</span>(t)),
             Poll::Pending =&gt; Poll::Ready(<span class="prelude-val">None</span>),
@@ -926,7 +928,7 @@
 /// use std::task::{Context, Poll};
 ///
 /// # spin_on::spin_on(async {
-/// fn f(_: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;i32&gt; {
+/// fn f(_: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;i32&gt; {
 ///     Poll::Ready(7)
 /// }
 ///
@@ -935,32 +937,32 @@
 /// ```
 </span><span class="kw">pub fn </span>poll_fn&lt;T, F&gt;(f: F) -&gt; PollFn&lt;F&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt;,
+    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;T&gt;,
 {
     PollFn { f }
 }
 
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`poll_fn()`] function.
-    </span><span class="attr">#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    </span><span class="attr">#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>PollFn&lt;F&gt; {
         f: F,
     }
 }
 
 <span class="kw">impl</span>&lt;F&gt; fmt::Debug <span class="kw">for </span>PollFn&lt;F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;PollFn&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"PollFn"</span>).finish()
     }
 }
 
 <span class="kw">impl</span>&lt;T, F&gt; Future <span class="kw">for </span>PollFn&lt;F&gt;
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt;,
+    </span>F: FnMut(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;T&gt;,
 {
     <span class="kw">type </span>Output = T;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;T&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;T&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         (this.f)(cx)
     }
@@ -970,7 +972,7 @@
 ///
 /// This function is useful when we want to cooperatively give time to the task scheduler. It is
 /// generally a good idea to yield inside loops because that way we make sure long-running tasks
-/// don&#39;t prevent other tasks from running.
+/// don't prevent other tasks from running.
 ///
 /// # Examples
 ///
@@ -987,13 +989,13 @@
 
 <span class="doccomment">/// Future for the [`yield_now()`] function.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+#[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
 </span><span class="kw">pub struct </span>YieldNow(bool);
 
 <span class="kw">impl </span>Future <span class="kw">for </span>YieldNow {
     <span class="kw">type </span>Output = ();
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.<span class="number">0 </span>{
             <span class="self">self</span>.<span class="number">0 </span>= <span class="bool-val">true</span>;
             cx.waker().wake_by_ref();
@@ -1034,7 +1036,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`zip()`] function.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>Zip&lt;F1, F2&gt;
     <span class="kw">where
         </span>F1: Future,
@@ -1068,7 +1070,7 @@
 {
     <span class="kw">type </span>Output = (F1::Output, F2::Output);
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.output1.is_none() {
@@ -1117,7 +1119,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`try_zip()`] function.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>TryZip&lt;F1, T1, F2, T2&gt; {
         <span class="attr">#[pin]
         </span>future1: F1,
@@ -1135,7 +1137,7 @@
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(T1, T2), E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.output1.is_none() {
@@ -1189,7 +1191,7 @@
 <span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`or()`] function and the [`FutureExt::or()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>Or&lt;F1, F2&gt; {
         <span class="attr">#[pin]
         </span>future1: F1,
@@ -1205,7 +1207,7 @@
 {
     <span class="kw">type </span>Output = T;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if let </span>Poll::Ready(t) = this.future1.poll(cx) {
@@ -1239,7 +1241,7 @@
 /// let res = future::race(ready(1), ready(2)).await;
 /// # })
 /// ```
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;race&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
+</span><span class="attr">#[cfg(all(feature = <span class="string">"race"</span>, feature = <span class="string">"std"</span>))]
 </span><span class="kw">pub fn </span>race&lt;T, F1, F2&gt;(future1: F1, future2: F2) -&gt; Race&lt;F1, F2&gt;
 <span class="kw">where
     </span>F1: Future&lt;Output = T&gt;,
@@ -1276,7 +1278,7 @@
 /// let res = future::race_with_seed(ready(1), ready(2), SEED).await;
 /// # })
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">pub fn </span>race_with_seed&lt;T, F1, F2&gt;(future1: F1, future2: F2, seed: u64) -&gt; Race&lt;F1, F2&gt;
 <span class="kw">where
     </span>F1: Future&lt;Output = T&gt;,
@@ -1289,11 +1291,11 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`race()`] function and the [`FutureExt::race()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>Race&lt;F1, F2&gt; {
         <span class="attr">#[pin]
         </span>future1: F1,
@@ -1303,7 +1305,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;race&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"race"</span>)]
 </span><span class="kw">impl</span>&lt;T, F1, F2&gt; Future <span class="kw">for </span>Race&lt;F1, F2&gt;
 <span class="kw">where
     </span>F1: Future&lt;Output = T&gt;,
@@ -1311,7 +1313,7 @@
 {
     <span class="kw">type </span>Output = T;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">if </span>this.rng.bool() {
@@ -1333,28 +1335,28 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="macro">pin_project! </span>{
     <span class="doccomment">/// Future for the [`FutureExt::catch_unwind()`] method.
     </span><span class="attr">#[derive(Debug)]
-    #[must_use = <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>CatchUnwind&lt;F&gt; {
         <span class="attr">#[pin]
         </span>inner: F,
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;F: Future + UnwindSafe&gt; Future <span class="kw">for </span>CatchUnwind&lt;F&gt; {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;F::Output, Box&lt;<span class="kw">dyn </span>Any + Send&gt;&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span>this = <span class="self">self</span>.project();
         catch_unwind(AssertUnwindSafe(|| this.inner.poll(cx)))<span class="question-mark">?</span>.map(<span class="prelude-val">Ok</span>)
     }
 }
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -1365,10 +1367,10 @@
 /// let f1: future::Boxed&lt;i32&gt; = async { 1 + 2 }.boxed();
 /// let f2: future::Boxed&lt;i32&gt; = Box::pin(async { 1 + 2 });
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>Boxed&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + Send + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>Boxed&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + Send + <span class="lifetime">'static</span>&gt;&gt;;
 
-<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + &#39;static&gt;&gt;`.
+<span class="doccomment">/// Type alias for `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + 'static&gt;&gt;`.
 ///
 /// # Examples
 ///
@@ -1379,13 +1381,13 @@
 /// let f1: future::BoxedLocal&lt;i32&gt; = async { 1 + 2 }.boxed_local();
 /// let f2: future::BoxedLocal&lt;i32&gt; = Box::pin(async { 1 + 2 });
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub type </span>BoxedLocal&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <span class="lifetime">&#39;static</span>&gt;&gt;;
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">pub type </span>BoxedLocal&lt;T&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = T&gt; + <span class="lifetime">'static</span>&gt;&gt;;
 
 <span class="doccomment">/// Extension trait for [`Future`].
 </span><span class="kw">pub trait </span>FutureExt: Future {
     <span class="doccomment">/// A convenience for calling [`Future::poll()`] on `!`[`Unpin`] types.
-    </span><span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt;
+    </span><span class="kw">fn </span>poll(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Unpin,
     {
@@ -1442,7 +1444,7 @@
     /// let res = ready(1).race(ready(2)).await;
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;race&quot;</span>))]
+    </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, feature = <span class="string">"race"</span>))]
     </span><span class="kw">fn </span>race&lt;F&gt;(<span class="self">self</span>, other: F) -&gt; Race&lt;<span class="self">Self</span>, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
@@ -1470,7 +1472,7 @@
     /// assert!(fut2.await.is_err());
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>catch_unwind(<span class="self">self</span>) -&gt; CatchUnwind&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized + UnwindSafe,
@@ -1478,7 +1480,7 @@
         CatchUnwind { inner: <span class="self">self </span>}
     }
 
-    <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + Send + &#39;a`.
+    <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + Send + 'a`.
     ///
     /// # Examples
     ///
@@ -1486,7 +1488,7 @@
     /// use futures_lite::future::{self, FutureExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let a = future::ready(&#39;a&#39;);
+    /// let a = future::ready('a');
     /// let b = future::pending();
     ///
     /// // Futures of different types can be stored in
@@ -1494,15 +1496,15 @@
     /// let futures = vec![a.boxed(), b.boxed()];
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="self">Self</span>::Output&gt; + Send + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="self">Self</span>::Output&gt; + Send + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + Send + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + &#39;a`.
+    <span class="doccomment">/// Boxes the future and changes its type to `dyn Future + 'a`.
     ///
     /// # Examples
     ///
@@ -1510,7 +1512,7 @@
     /// use futures_lite::future::{self, FutureExt};
     ///
     /// # spin_on::spin_on(async {
-    /// let a = future::ready(&#39;a&#39;);
+    /// let a = future::ready('a');
     /// let b = future::pending();
     ///
     /// // Futures of different types can be stored in
@@ -1518,10 +1520,10 @@
     /// let futures = vec![a.boxed_local(), b.boxed_local()];
     /// # })
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">fn </span>boxed_local&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="self">Self</span>::Output&gt; + <span class="lifetime">&#39;a</span>&gt;&gt;
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">fn </span>boxed_local&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="self">Self</span>::Output&gt; + <span class="lifetime">'a</span>&gt;&gt;
     <span class="kw">where
-        </span><span class="self">Self</span>: Sized + <span class="lifetime">&#39;a</span>,
+        </span><span class="self">Self</span>: Sized + <span class="lifetime">'a</span>,
     {
         Box::pin(<span class="self">self</span>)
     }

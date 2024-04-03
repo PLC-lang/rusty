@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/notify.rs`."><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../event_listener/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="event_listener"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/notify.rs`."><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../event_listener/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -623,7 +625,7 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! The `Notification` trait for specifying notification.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{<span class="self">self</span>, Ordering};
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>core::fmt;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>__private::Internal;
@@ -746,7 +748,7 @@
     }
 }
 
-<span class="doccomment">/// Don&#39;t emit a fence for this notification.
+<span class="doccomment">/// Don't emit a fence for this notification.
 </span><span class="attr">#[derive(Debug, Clone)]
 #[doc(hidden)]
 </span><span class="kw">pub struct </span>Relaxed&lt;N: <span class="question-mark">?</span>Sized&gt;(N);
@@ -769,7 +771,7 @@
     }
 
     <span class="kw">fn </span>fence(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) {
-        <span class="comment">// Don&#39;t emit a fence.
+        <span class="comment">// Don't emit a fence.
     </span>}
 
     <span class="kw">fn </span>count(<span class="kw-2">&amp;</span><span class="self">self</span>, i: Internal) -&gt; usize {
@@ -782,7 +784,7 @@
 }
 
 <span class="doccomment">/// Use a tag to notify listeners.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 #[derive(Debug, Clone)]
 #[doc(hidden)]
 </span><span class="kw">pub struct </span>Tag&lt;N: <span class="question-mark">?</span>Sized, T&gt; {
@@ -790,7 +792,7 @@
     inner: N,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;N: <span class="question-mark">?</span>Sized, T&gt; Tag&lt;N, T&gt; {
     <span class="doccomment">/// Create a new `Tag` with the given tag and notification.
     </span><span class="kw">fn </span>new(tag: T, inner: N) -&gt; <span class="self">Self
@@ -801,7 +803,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;N, T&gt; NotificationPrivate <span class="kw">for </span>Tag&lt;N, T&gt;
 <span class="kw">where
     </span>N: Notification + <span class="question-mark">?</span>Sized,
@@ -827,32 +829,32 @@
 }
 
 <span class="doccomment">/// Use a function to generate a tag to notify listeners.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 #[doc(hidden)]
 </span><span class="kw">pub struct </span>TagWith&lt;N: <span class="question-mark">?</span>Sized, F&gt; {
     tag: F,
     inner: N,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;N: fmt::Debug, F&gt; fmt::Debug <span class="kw">for </span>TagWith&lt;N, F&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">struct </span>Ellipses;
 
         <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Ellipses {
-            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-                f.write_str(<span class="string">&quot;..&quot;</span>)
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+                f.write_str(<span class="string">".."</span>)
             }
         }
 
-        f.debug_struct(<span class="string">&quot;TagWith&quot;</span>)
-            .field(<span class="string">&quot;tag&quot;</span>, <span class="kw-2">&amp;</span>Ellipses)
-            .field(<span class="string">&quot;inner&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+        f.debug_struct(<span class="string">"TagWith"</span>)
+            .field(<span class="string">"tag"</span>, <span class="kw-2">&amp;</span>Ellipses)
+            .field(<span class="string">"inner"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner)
             .finish()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;N, F&gt; TagWith&lt;N, F&gt; {
     <span class="doccomment">/// Create a new `TagFn` with the given tag function and notification.
     </span><span class="kw">fn </span>new(tag: F, inner: N) -&gt; <span class="self">Self </span>{
@@ -860,7 +862,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;N, F, T&gt; NotificationPrivate <span class="kw">for </span>TagWith&lt;N, F&gt;
 <span class="kw">where
     </span>N: Notification + <span class="question-mark">?</span>Sized,
@@ -916,7 +918,7 @@
     }
 
     <span class="kw">fn </span>fence(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) {
-        <span class="comment">// Don&#39;t emit a fence.
+        <span class="comment">// Don't emit a fence.
     </span>}
 
     <span class="kw">fn </span>count(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Internal) -&gt; usize {
@@ -987,7 +989,7 @@
 
     <span class="doccomment">/// The notification type.
     ///
-    /// Tells what kind of underlying type that the [`Notification`] is. You probably don&#39;t need to worry about
+    /// Tells what kind of underlying type that the [`Notification`] is. You probably don't need to worry about
     /// this.
     </span><span class="kw">type </span>Notify: Notification&lt;Tag = <span class="self">Self</span>::Tag&gt;;
 
@@ -1011,7 +1013,7 @@
     <span class="doccomment">/// Convert this value into an additional notification.
     ///
     /// By default, notifications ignore listeners that are already notified. Generally, this happens when there
-    /// is an [`EventListener`] that has been woken up, but hasn&#39;t been polled to completion or waited on yet.
+    /// is an [`EventListener`] that has been woken up, but hasn't been polled to completion or waited on yet.
     /// For instance, if you have three notified listeners and you call `event.notify(5)`, only two listeners
     /// will be woken up.
     ///
@@ -1050,10 +1052,10 @@
         Additional::new(<span class="self">self</span>.into_notification())
     }
 
-    <span class="doccomment">/// Don&#39;t emit a fence for this notification.
+    <span class="doccomment">/// Don't emit a fence for this notification.
     ///
     /// Usually, notifications emit a `SeqCst` atomic fence before any listeners are woken up. This ensures
-    /// that notification state isn&#39;t inconsistent before any wakers are woken up. However, it may be
+    /// that notification state isn't inconsistent before any wakers are woken up. However, it may be
     /// desirable to omit this fence in certain cases.
     ///
     /// - You are running the [`Event`] on a single thread, where no synchronization needs to occur.
@@ -1119,7 +1121,7 @@
     /// assert_eq!(listener1.wait(), true);
     /// assert_eq!(listener2.wait(), false);
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>tag&lt;T: Clone&gt;(<span class="self">self</span>, tag: T) -&gt; Tag&lt;<span class="self">Self</span>::Notify, T&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
@@ -1153,7 +1155,7 @@
     /// assert_eq!(listener1.wait(), true);
     /// assert_eq!(listener2.wait(), false);
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>tag_with&lt;T, F&gt;(<span class="self">self</span>, tag: F) -&gt; TagWith&lt;<span class="self">Self</span>::Notify, F&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
@@ -1181,10 +1183,10 @@
             <span class="attr">#[allow(unused_comparisons)]
             </span><span class="kw">fn </span>into_notification(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Notify {
                 <span class="kw">if </span><span class="self">self </span>&lt; <span class="number">0 </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;negative notification count&quot;</span>);
+                    <span class="macro">panic!</span>(<span class="string">"negative notification count"</span>);
                 }
 
-                Notify::new(<span class="self">self</span>.try_into().expect(<span class="string">&quot;overflow&quot;</span>))
+                Notify::new(<span class="self">self</span>.try_into().expect(<span class="string">"overflow"</span>))
             }
         }
 
@@ -1197,7 +1199,7 @@
 <span class="doccomment">/// Equivalent to `atomic::fence(Ordering::SeqCst)`, but in some cases faster.
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>full_fence() {
-    <span class="attr">#[cfg(all(any(target_arch = <span class="string">&quot;x86&quot;</span>, target_arch = <span class="string">&quot;x86_64&quot;</span>), not(miri), not(loom)))]
+    <span class="attr">#[cfg(all(any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>), not(miri), not(loom)))]
     </span>{
         <span class="kw">use </span>core::{arch::asm, cell::UnsafeCell};
         <span class="comment">// HACK(stjepang): On x86 architectures there are two different ways of executing
@@ -1213,10 +1215,10 @@
         // does not change the flag, should be slightly more efficient.
         // Refs: https://www.felixcloutier.com/x86/not
         </span><span class="kw">unsafe </span>{
-            <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
-            </span><span class="macro">asm!</span>(<span class="string">&quot;lock not qword ptr [{0}]&quot;</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
-            <span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
-            </span><span class="macro">asm!</span>(<span class="string">&quot;lock not dword ptr [{0:e}]&quot;</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
+            <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
+            </span><span class="macro">asm!</span>(<span class="string">"lock not qword ptr [{0}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
+            <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
+            </span><span class="macro">asm!</span>(<span class="string">"lock not dword ptr [{0:e}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
         }
         <span class="kw">return</span>;
     }
@@ -1227,7 +1229,7 @@
 }
 
 <span class="kw">mod </span>__private {
-    <span class="doccomment">/// Make sure the NotificationPrivate trait can&#39;t be implemented outside of this crate.
+    <span class="doccomment">/// Make sure the NotificationPrivate trait can't be implemented outside of this crate.
     </span><span class="attr">#[doc(hidden)]
     #[derive(Debug)]
     </span><span class="kw">pub struct </span>Internal(());

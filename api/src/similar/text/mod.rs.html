@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/text/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/text/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -776,12 +778,12 @@
 <span class="kw">use </span>std::time::{Duration, Instant};
 
 <span class="kw">mod </span>abstraction;
-<span class="attr">#[cfg(feature = <span class="string">&quot;inline&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"inline"</span>)]
 </span><span class="kw">mod </span>inline;
 <span class="kw">mod </span>utils;
 
 <span class="kw">pub use </span><span class="self">self</span>::abstraction::{DiffableStr, DiffableStrRef};
-<span class="attr">#[cfg(feature = <span class="string">&quot;inline&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"inline"</span>)]
 </span><span class="kw">pub use </span><span class="self">self</span>::inline::InlineChange;
 
 <span class="kw">use </span><span class="self">self</span>::utils::{upper_seq_ratio, QuickSeqRatio};
@@ -827,7 +829,7 @@
     <span class="doccomment">/// Sets a deadline for the diff operation.
     ///
     /// By default a diff will take as long as it takes.  For certain diff
-    /// algorithms like Myer&#39;s and Patience a maximum running time can be
+    /// algorithms like Myer's and Patience a maximum running time can be
     /// defined after which the algorithm gives up and approximates.
     </span><span class="kw">pub fn </span>deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>, deadline: Instant) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.deadline = <span class="prelude-val">Some</span>(Deadline::Absolute(deadline));
@@ -865,24 +867,24 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let diff = TextDiff::configure().diff_lines(&quot;a\nb\nc&quot;, &quot;a\nb\nC&quot;);
+    /// let diff = TextDiff::configure().diff_lines("a\nb\nc", "a\nb\nC");
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;a\n&quot;),
-    ///    (ChangeTag::Equal, &quot;b\n&quot;),
-    ///    (ChangeTag::Delete, &quot;c&quot;),
-    ///    (ChangeTag::Insert, &quot;C&quot;),
+    ///    (ChangeTag::Equal, "a\n"),
+    ///    (ChangeTag::Equal, "b\n"),
+    ///    (ChangeTag::Delete, "c"),
+    ///    (ChangeTag::Insert, "C"),
     /// ]);
     /// ```
-    </span><span class="kw">pub fn </span>diff_lines&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">pub fn </span>diff_lines&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         <span class="self">self</span>.diff(
             Cow::Owned(old.as_diffable_str().tokenize_lines()),
             Cow::Owned(new.as_diffable_str().tokenize_lines()),
@@ -903,26 +905,26 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let diff = TextDiff::configure().diff_words(&quot;foo bar baz&quot;, &quot;foo BAR baz&quot;);
+    /// let diff = TextDiff::configure().diff_words("foo bar baz", "foo BAR baz");
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;foo&quot;),
-    ///    (ChangeTag::Equal, &quot; &quot;),
-    ///    (ChangeTag::Delete, &quot;bar&quot;),
-    ///    (ChangeTag::Insert, &quot;BAR&quot;),
-    ///    (ChangeTag::Equal, &quot; &quot;),
-    ///    (ChangeTag::Equal, &quot;baz&quot;),
+    ///    (ChangeTag::Equal, "foo"),
+    ///    (ChangeTag::Equal, " "),
+    ///    (ChangeTag::Delete, "bar"),
+    ///    (ChangeTag::Insert, "BAR"),
+    ///    (ChangeTag::Equal, " "),
+    ///    (ChangeTag::Equal, "baz"),
     /// ]);
     /// ```
-    </span><span class="kw">pub fn </span>diff_words&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">pub fn </span>diff_words&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         <span class="self">self</span>.diff(
             Cow::Owned(old.as_diffable_str().tokenize_words()),
             Cow::Owned(new.as_diffable_str().tokenize_words()),
@@ -941,28 +943,28 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let diff = TextDiff::configure().diff_chars(&quot;abcdef&quot;, &quot;abcDDf&quot;);
+    /// let diff = TextDiff::configure().diff_chars("abcdef", "abcDDf");
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;a&quot;),
-    ///    (ChangeTag::Equal, &quot;b&quot;),
-    ///    (ChangeTag::Equal, &quot;c&quot;),
-    ///    (ChangeTag::Delete, &quot;d&quot;),
-    ///    (ChangeTag::Delete, &quot;e&quot;),
-    ///    (ChangeTag::Insert, &quot;D&quot;),
-    ///    (ChangeTag::Insert, &quot;D&quot;),
-    ///    (ChangeTag::Equal, &quot;f&quot;),
+    ///    (ChangeTag::Equal, "a"),
+    ///    (ChangeTag::Equal, "b"),
+    ///    (ChangeTag::Equal, "c"),
+    ///    (ChangeTag::Delete, "d"),
+    ///    (ChangeTag::Delete, "e"),
+    ///    (ChangeTag::Insert, "D"),
+    ///    (ChangeTag::Insert, "D"),
+    ///    (ChangeTag::Equal, "f"),
     /// ]);
     /// ```
-    </span><span class="kw">pub fn </span>diff_chars&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">pub fn </span>diff_chars&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         <span class="self">self</span>.diff(
             Cow::Owned(old.as_diffable_str().tokenize_chars()),
             Cow::Owned(new.as_diffable_str().tokenize_chars()),
@@ -987,27 +989,27 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let diff = TextDiff::configure().diff_unicode_words(&quot;ah(be)ce&quot;, &quot;ah(ah)ce&quot;);
+    /// let diff = TextDiff::configure().diff_unicode_words("ah(be)ce", "ah(ah)ce");
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;ah&quot;),
-    ///    (ChangeTag::Equal, &quot;(&quot;),
-    ///    (ChangeTag::Delete, &quot;be&quot;),
-    ///    (ChangeTag::Insert, &quot;ah&quot;),
-    ///    (ChangeTag::Equal, &quot;)&quot;),
-    ///    (ChangeTag::Equal, &quot;ce&quot;),
+    ///    (ChangeTag::Equal, "ah"),
+    ///    (ChangeTag::Equal, "("),
+    ///    (ChangeTag::Delete, "be"),
+    ///    (ChangeTag::Insert, "ah"),
+    ///    (ChangeTag::Equal, ")"),
+    ///    (ChangeTag::Equal, "ce"),
     /// ]);
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-    </span><span class="kw">pub fn </span>diff_unicode_words&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+    </span><span class="kw">pub fn </span>diff_unicode_words&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         <span class="self">self</span>.diff(
             Cow::Owned(old.as_diffable_str().tokenize_unicode_words()),
             Cow::Owned(new.as_diffable_str().tokenize_unicode_words()),
@@ -1028,26 +1030,26 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let diff = TextDiff::configure().diff_graphemes(&quot;💩🇦🇹🦠&quot;, &quot;💩🇦🇱❄️&quot;);
+    /// let diff = TextDiff::configure().diff_graphemes("💩🇦🇹🦠", "💩🇦🇱❄️");
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
     ///     .map(|x| (x.tag(), x.value()))
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;💩&quot;),
-    ///    (ChangeTag::Delete, &quot;🇦🇹&quot;),
-    ///    (ChangeTag::Delete, &quot;🦠&quot;),
-    ///    (ChangeTag::Insert, &quot;🇦🇱&quot;),
-    ///    (ChangeTag::Insert, &quot;❄️&quot;),
+    ///    (ChangeTag::Equal, "💩"),
+    ///    (ChangeTag::Delete, "🇦🇹"),
+    ///    (ChangeTag::Delete, "🦠"),
+    ///    (ChangeTag::Insert, "🇦🇱"),
+    ///    (ChangeTag::Insert, "❄️"),
     /// ]);
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-    </span><span class="kw">pub fn </span>diff_graphemes&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+    </span><span class="kw">pub fn </span>diff_graphemes&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         <span class="self">self</span>.diff(
             Cow::Owned(old.as_diffable_str().tokenize_graphemes()),
             Cow::Owned(new.as_diffable_str().tokenize_graphemes()),
@@ -1060,8 +1062,8 @@
     /// ```rust
     /// use similar::{TextDiff, ChangeTag};
     ///
-    /// let old = &amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];
-    /// let new = &amp;[&quot;foo&quot;, &quot;BAR&quot;, &quot;baz&quot;];
+    /// let old = &amp;["foo", "bar", "baz"];
+    /// let new = &amp;["foo", "BAR", "baz"];
     /// let diff = TextDiff::configure().diff_slices(old, new);
     /// let changes: Vec&lt;_&gt; = diff
     ///     .iter_all_changes()
@@ -1069,26 +1071,26 @@
     ///     .collect();
     ///
     /// assert_eq!(changes, vec![
-    ///    (ChangeTag::Equal, &quot;foo&quot;),
-    ///    (ChangeTag::Delete, &quot;bar&quot;),
-    ///    (ChangeTag::Insert, &quot;BAR&quot;),
-    ///    (ChangeTag::Equal, &quot;baz&quot;),
+    ///    (ChangeTag::Equal, "foo"),
+    ///    (ChangeTag::Delete, "bar"),
+    ///    (ChangeTag::Insert, "BAR"),
+    ///    (ChangeTag::Equal, "baz"),
     /// ]);
     /// ```
-    </span><span class="kw">pub fn </span>diff_slices&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">pub fn </span>diff_slices&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T],
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T],
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">'old </span>T],
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">'new </span>T],
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
         <span class="self">self</span>.diff(Cow::Borrowed(old), Cow::Borrowed(new), <span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>diff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>diff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        old: Cow&lt;<span class="lifetime">&#39;bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T]&gt;,
-        new: Cow&lt;<span class="lifetime">&#39;bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T]&gt;,
+        old: Cow&lt;<span class="lifetime">'bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">'old </span>T]&gt;,
+        new: Cow&lt;<span class="lifetime">'bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">'new </span>T]&gt;,
         newline_terminated: bool,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
         <span class="kw">let </span>deadline = <span class="self">self</span>.deadline.map(|x| x.into_instant());
         <span class="kw">let </span>ops = <span class="kw">if </span>old.len() &gt; <span class="number">100 </span>|| new.len() &gt; <span class="number">100 </span>{
             <span class="kw">let </span>ih = IdentifyDistinct::&lt;u32&gt;::new(<span class="kw-2">&amp;</span>old[..], <span class="number">0</span>..old.len(), <span class="kw-2">&amp;</span>new[..], <span class="number">0</span>..new.len());
@@ -1128,15 +1130,15 @@
 /// the [`TextDiffConfig`] created by [`TextDiff::configure`].
 ///
 /// Requires the `text` feature.
-</span><span class="kw">pub struct </span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
-    old: Cow&lt;<span class="lifetime">&#39;bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T]&gt;,
-    new: Cow&lt;<span class="lifetime">&#39;bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T]&gt;,
+</span><span class="kw">pub struct </span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; {
+    old: Cow&lt;<span class="lifetime">'bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">'old </span>T]&gt;,
+    new: Cow&lt;<span class="lifetime">'bufs</span>, [<span class="kw-2">&amp;</span><span class="lifetime">'new </span>T]&gt;,
     ops: Vec&lt;DiffOp&gt;,
     newline_terminated: bool,
     algorithm: Algorithm,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, str&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, str&gt; {
     <span class="doccomment">/// Configures a text differ before diffing.
     </span><span class="kw">pub fn </span>configure() -&gt; TextDiffConfig {
         TextDiffConfig::default()
@@ -1146,9 +1148,9 @@
     ///
     /// For more information see [`TextDiffConfig::diff_lines`].
     </span><span class="kw">pub fn </span>from_lines&lt;T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         TextDiff::configure().diff_lines(old, new)
     }
 
@@ -1156,9 +1158,9 @@
     ///
     /// For more information see [`TextDiffConfig::diff_words`].
     </span><span class="kw">pub fn </span>from_words&lt;T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         TextDiff::configure().diff_words(old, new)
     }
 
@@ -1166,9 +1168,9 @@
     ///
     /// For more information see [`TextDiffConfig::diff_chars`].
     </span><span class="kw">pub fn </span>from_chars&lt;T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         TextDiff::configure().diff_chars(old, new)
     }
 
@@ -1177,11 +1179,11 @@
     /// For more information see [`TextDiffConfig::diff_unicode_words`].
     ///
     /// This requires the `unicode` feature.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">pub fn </span>from_unicode_words&lt;T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         TextDiff::configure().diff_unicode_words(old, new)
     }
 
@@ -1190,23 +1192,23 @@
     /// For more information see [`TextDiffConfig::diff_graphemes`].
     ///
     /// This requires the `unicode` feature.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
     </span><span class="kw">pub fn </span>from_graphemes&lt;T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T,
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T::Output&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'old </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'new </span>T,
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T::Output&gt; {
         TextDiff::configure().diff_graphemes(old, new)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new</span>&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T: DiffableStr + <span class="question-mark">?</span>Sized + <span class="lifetime">'old </span>+ <span class="lifetime">'new</span>&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
     <span class="doccomment">/// Creates a diff of arbitrary slices.
     ///
     /// For more information see [`TextDiffConfig::diff_slices`].
     </span><span class="kw">pub fn </span>from_slices(
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T],
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T],
-    ) -&gt; TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">'old </span>T],
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'bufs </span>[<span class="kw-2">&amp;</span><span class="lifetime">'new </span>T],
+    ) -&gt; TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
         TextDiff::configure().diff_slices(old, new)
     }
 
@@ -1224,23 +1226,23 @@
     }
 
     <span class="doccomment">/// Returns all old slices.
-    </span><span class="kw">pub fn </span>old_slices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>T] {
+    </span><span class="kw">pub fn </span>old_slices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'old </span>T] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.old
     }
 
     <span class="doccomment">/// Returns all new slices.
-    </span><span class="kw">pub fn </span>new_slices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>T] {
+    </span><span class="kw">pub fn </span>new_slices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'new </span>T] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.new
     }
 
-    <span class="doccomment">/// Return a measure of the sequences&#39; similarity in the range `0..=1`.
+    <span class="doccomment">/// Return a measure of the sequences' similarity in the range `0..=1`.
     ///
     /// A ratio of `1.0` means the two sequences are a complete match, a
     /// ratio of `0.0` would indicate completely distinct sequences.
     ///
     /// ```rust
     /// # use similar::TextDiff;
-    /// let diff = TextDiff::from_chars(&quot;abcd&quot;, &quot;bcde&quot;);
+    /// let diff = TextDiff::from_chars("abcd", "bcde");
     /// assert_eq!(diff.ratio(), 0.75);
     /// ```
     </span><span class="kw">pub fn </span>ratio(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
@@ -1253,14 +1255,14 @@
     /// ways in which a change could be encoded (insert/delete vs replace), look
     /// up the value from the appropriate slice and also handle correct index
     /// handling.
-    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">&#39;x</span>, <span class="lifetime">&#39;slf</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;slf </span><span class="self">self</span>,
+    </span><span class="kw">pub fn </span>iter_changes&lt;<span class="lifetime">'x</span>, <span class="lifetime">'slf</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>,
         op: <span class="kw-2">&amp;</span>DiffOp,
-    ) -&gt; ChangesIter&lt;<span class="lifetime">&#39;slf</span>, [<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T], [<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T], <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T&gt;
+    ) -&gt; ChangesIter&lt;<span class="lifetime">'slf</span>, [<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T], [<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T], <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;x</span>: <span class="lifetime">&#39;slf</span>,
-        <span class="lifetime">&#39;old</span>: <span class="lifetime">&#39;x</span>,
-        <span class="lifetime">&#39;new</span>: <span class="lifetime">&#39;x</span>,
+        </span><span class="lifetime">'x</span>: <span class="lifetime">'slf</span>,
+        <span class="lifetime">'old</span>: <span class="lifetime">'x</span>,
+        <span class="lifetime">'new</span>: <span class="lifetime">'x</span>,
     {
         op.iter_changes(<span class="self">self</span>.old_slices(), <span class="self">self</span>.new_slices())
     }
@@ -1281,17 +1283,17 @@
     ///
     /// This is a shortcut for combining [`TextDiff::ops`] with
     /// [`TextDiff::iter_changes`].
-    </span><span class="kw">pub fn </span>iter_all_changes&lt;<span class="lifetime">&#39;x</span>, <span class="lifetime">&#39;slf</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;slf </span><span class="self">self</span>) -&gt; AllChangesIter&lt;<span class="lifetime">&#39;slf</span>, <span class="lifetime">&#39;x</span>, T&gt;
+    </span><span class="kw">pub fn </span>iter_all_changes&lt;<span class="lifetime">'x</span>, <span class="lifetime">'slf</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>) -&gt; AllChangesIter&lt;<span class="lifetime">'slf</span>, <span class="lifetime">'x</span>, T&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;x</span>: <span class="lifetime">&#39;slf </span>+ <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new</span>,
-        <span class="lifetime">&#39;old</span>: <span class="lifetime">&#39;x</span>,
-        <span class="lifetime">&#39;new</span>: <span class="lifetime">&#39;x</span>,
+        </span><span class="lifetime">'x</span>: <span class="lifetime">'slf </span>+ <span class="lifetime">'old </span>+ <span class="lifetime">'new</span>,
+        <span class="lifetime">'old</span>: <span class="lifetime">'x</span>,
+        <span class="lifetime">'new</span>: <span class="lifetime">'x</span>,
     {
         AllChangesIter::new(<span class="kw-2">&amp;</span><span class="self">self</span>.old[..], <span class="kw-2">&amp;</span><span class="self">self</span>.new[..], <span class="self">self</span>.ops())
     }
 
     <span class="doccomment">/// Utility to return a unified diff formatter.
-    </span><span class="kw">pub fn </span>unified_diff&lt;<span class="lifetime">&#39;diff</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;diff </span><span class="self">self</span>) -&gt; UnifiedDiff&lt;<span class="lifetime">&#39;diff</span>, <span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt; {
+    </span><span class="kw">pub fn </span>unified_diff&lt;<span class="lifetime">'diff</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'diff </span><span class="self">self</span>) -&gt; UnifiedDiff&lt;<span class="lifetime">'diff</span>, <span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt; {
         UnifiedDiff::from_text_diff(<span class="self">self</span>)
     }
 
@@ -1307,13 +1309,13 @@
     /// splitting over word splitting depending on the feature flag.
     ///
     /// Requires the `inline` feature.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;inline&quot;</span>)]
-    </span><span class="kw">pub fn </span>iter_inline_changes&lt;<span class="lifetime">&#39;slf</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;slf </span><span class="self">self</span>,
+    </span><span class="attr">#[cfg(feature = <span class="string">"inline"</span>)]
+    </span><span class="kw">pub fn </span>iter_inline_changes&lt;<span class="lifetime">'slf</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>,
         op: <span class="kw-2">&amp;</span>DiffOp,
-    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = InlineChange&lt;<span class="lifetime">&#39;slf</span>, T&gt;&gt; + <span class="lifetime">&#39;_
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = InlineChange&lt;<span class="lifetime">'slf</span>, T&gt;&gt; + <span class="lifetime">'_
     </span><span class="kw">where
-        </span><span class="lifetime">&#39;slf</span>: <span class="lifetime">&#39;old </span>+ <span class="lifetime">&#39;new</span>,
+        </span><span class="lifetime">'slf</span>: <span class="lifetime">'old </span>+ <span class="lifetime">'new</span>,
     {
         inline::iter_inline_changes(<span class="self">self</span>, op)
     }
@@ -1327,21 +1329,21 @@
 /// ```
 /// # use similar::get_close_matches;
 /// let matches = get_close_matches(
-///     &quot;appel&quot;,
-///     &amp;[&quot;ape&quot;, &quot;apple&quot;, &quot;peach&quot;, &quot;puppy&quot;][..],
+///     "appel",
+///     &amp;["ape", "apple", "peach", "puppy"][..],
 ///     3,
 ///     0.6
 /// );
-/// assert_eq!(matches, vec![&quot;apple&quot;, &quot;ape&quot;]);
+/// assert_eq!(matches, vec!["apple", "ape"]);
 /// ```
 ///
 /// Requires the `text` feature.
-</span><span class="kw">pub fn </span>get_close_matches&lt;<span class="lifetime">&#39;a</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="kw">pub fn </span>get_close_matches&lt;<span class="lifetime">'a</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt;(
     word: <span class="kw-2">&amp;</span>T,
-    possibilities: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T],
+    possibilities: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T],
     n: usize,
     cutoff: f32,
-) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; {
+) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>matches = BinaryHeap::new();
     <span class="kw">let </span>seq1 = word.tokenize_chars();
     <span class="kw">let </span>quick_ratio = QuickSeqRatio::new(<span class="kw-2">&amp;</span>seq1);
@@ -1356,7 +1358,7 @@
         <span class="kw">let </span>diff = TextDiff::from_slices(<span class="kw-2">&amp;</span>seq1, <span class="kw-2">&amp;</span>seq2);
         <span class="kw">let </span>ratio = diff.ratio();
         <span class="kw">if </span>ratio &gt;= cutoff {
-            <span class="comment">// we&#39;re putting the word itself in reverse in so that matches with
+            <span class="comment">// we're putting the word itself in reverse in so that matches with
             // the same ratio are ordered lexicographically.
             </span>matches.push(((ratio * std::u32::MAX <span class="kw">as </span>f32) <span class="kw">as </span>u32, Reverse(possibility)));
         }
@@ -1377,8 +1379,8 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_captured_ops() {
     <span class="kw">let </span>diff = TextDiff::from_lines(
-        <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n&quot;</span>,
-        <span class="string">&quot;Hello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>,
+        <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n"</span>,
+        <span class="string">"Hello World\nsome amazing stuff here\nsome more stuff here\n"</span>,
     );
     <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw-2">&amp;</span>diff.ops());
 }
@@ -1386,8 +1388,8 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_captured_word_ops() {
     <span class="kw">let </span>diff = TextDiff::from_words(
-        <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n&quot;</span>,
-        <span class="string">&quot;Hello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>,
+        <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n"</span>,
+        <span class="string">"Hello World\nsome amazing stuff here\nsome more stuff here\n"</span>,
     );
     <span class="kw">let </span>changes = diff
         .ops()
@@ -1400,21 +1402,21 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_unified_diff() {
     <span class="kw">let </span>diff = TextDiff::from_lines(
-        <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n&quot;</span>,
-        <span class="string">&quot;Hello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>,
+        <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n"</span>,
+        <span class="string">"Hello World\nsome amazing stuff here\nsome more stuff here\n"</span>,
     );
     <span class="macro">assert!</span>(diff.newline_terminated());
     <span class="macro">insta::assert_snapshot!</span>(<span class="kw-2">&amp;</span>diff
         .unified_diff()
         .context_radius(<span class="number">3</span>)
-        .header(<span class="string">&quot;old&quot;</span>, <span class="string">&quot;new&quot;</span>)
+        .header(<span class="string">"old"</span>, <span class="string">"new"</span>)
         .to_string());
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_line_ops() {
-    <span class="kw">let </span>a = <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n&quot;</span>;
-    <span class="kw">let </span>b = <span class="string">&quot;Hello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>;
+    <span class="kw">let </span>a = <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n"</span>;
+    <span class="kw">let </span>b = <span class="string">"Hello World\nsome amazing stuff here\nsome more stuff here\n"</span>;
     <span class="kw">let </span>diff = TextDiff::from_lines(a, b);
     <span class="macro">assert!</span>(diff.newline_terminated());
     <span class="kw">let </span>changes = diff
@@ -1424,7 +1426,7 @@
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
     <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw-2">&amp;</span>changes);
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"bytes"</span>)]
     </span>{
         <span class="kw">let </span>byte_diff = TextDiff::from_lines(a.as_bytes(), b.as_bytes());
         <span class="kw">let </span>byte_changes = byte_diff
@@ -1440,7 +1442,7 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_virtual_newlines() {
-    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">&quot;a\nb&quot;</span>, <span class="string">&quot;a\nc\n&quot;</span>);
+    <span class="kw">let </span>diff = TextDiff::from_lines(<span class="string">"a\nb"</span>, <span class="string">"a\nc\n"</span>);
     <span class="macro">assert!</span>(diff.newline_terminated());
     <span class="kw">let </span>changes = diff
         .ops()
@@ -1452,62 +1454,62 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_char_diff() {
-    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">&quot;Hello World&quot;</span>, <span class="string">&quot;Hallo Welt&quot;</span>);
+    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">"Hello World"</span>, <span class="string">"Hallo Welt"</span>);
     <span class="macro">insta::assert_debug_snapshot!</span>(diff.ops());
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;bytes&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"bytes"</span>)]
     </span>{
-        <span class="kw">let </span>byte_diff = TextDiff::from_chars(<span class="string">&quot;Hello World&quot;</span>.as_bytes(), <span class="string">&quot;Hallo Welt&quot;</span>.as_bytes());
+        <span class="kw">let </span>byte_diff = TextDiff::from_chars(<span class="string">"Hello World"</span>.as_bytes(), <span class="string">"Hallo Welt"</span>.as_bytes());
         <span class="macro">assert_eq!</span>(diff.ops(), byte_diff.ops());
     }
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_ratio() {
-    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">&quot;abcd&quot;</span>, <span class="string">&quot;bcde&quot;</span>);
+    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">"abcd"</span>, <span class="string">"bcde"</span>);
     <span class="macro">assert_eq!</span>(diff.ratio(), <span class="number">0.75</span>);
-    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>);
+    <span class="kw">let </span>diff = TextDiff::from_chars(<span class="string">""</span>, <span class="string">""</span>);
     <span class="macro">assert_eq!</span>(diff.ratio(), <span class="number">1.0</span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_get_close_matches() {
-    <span class="kw">let </span>matches = get_close_matches(<span class="string">&quot;appel&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;ape&quot;</span>, <span class="string">&quot;apple&quot;</span>, <span class="string">&quot;peach&quot;</span>, <span class="string">&quot;puppy&quot;</span>][..], <span class="number">3</span>, <span class="number">0.6</span>);
-    <span class="macro">assert_eq!</span>(matches, <span class="macro">vec!</span>[<span class="string">&quot;apple&quot;</span>, <span class="string">&quot;ape&quot;</span>]);
+    <span class="kw">let </span>matches = get_close_matches(<span class="string">"appel"</span>, <span class="kw-2">&amp;</span>[<span class="string">"ape"</span>, <span class="string">"apple"</span>, <span class="string">"peach"</span>, <span class="string">"puppy"</span>][..], <span class="number">3</span>, <span class="number">0.6</span>);
+    <span class="macro">assert_eq!</span>(matches, <span class="macro">vec!</span>[<span class="string">"apple"</span>, <span class="string">"ape"</span>]);
     <span class="kw">let </span>matches = get_close_matches(
-        <span class="string">&quot;hulo&quot;</span>,
+        <span class="string">"hulo"</span>,
         <span class="kw-2">&amp;</span>[
-            <span class="string">&quot;hi&quot;</span>, <span class="string">&quot;hulu&quot;</span>, <span class="string">&quot;hali&quot;</span>, <span class="string">&quot;hoho&quot;</span>, <span class="string">&quot;amaz&quot;</span>, <span class="string">&quot;zulo&quot;</span>, <span class="string">&quot;blah&quot;</span>, <span class="string">&quot;hopp&quot;</span>, <span class="string">&quot;uulo&quot;</span>, <span class="string">&quot;aulo&quot;</span>,
+            <span class="string">"hi"</span>, <span class="string">"hulu"</span>, <span class="string">"hali"</span>, <span class="string">"hoho"</span>, <span class="string">"amaz"</span>, <span class="string">"zulo"</span>, <span class="string">"blah"</span>, <span class="string">"hopp"</span>, <span class="string">"uulo"</span>, <span class="string">"aulo"</span>,
         ][..],
         <span class="number">5</span>,
         <span class="number">0.7</span>,
     );
-    <span class="macro">assert_eq!</span>(matches, <span class="macro">vec!</span>[<span class="string">&quot;aulo&quot;</span>, <span class="string">&quot;hulu&quot;</span>, <span class="string">&quot;uulo&quot;</span>, <span class="string">&quot;zulo&quot;</span>]);
+    <span class="macro">assert_eq!</span>(matches, <span class="macro">vec!</span>[<span class="string">"aulo"</span>, <span class="string">"hulu"</span>, <span class="string">"uulo"</span>, <span class="string">"zulo"</span>]);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_lifetimes_on_iter() {
     <span class="kw">use </span><span class="kw">crate</span>::Change;
 
-    <span class="kw">fn </span>diff_lines&lt;<span class="lifetime">&#39;x</span>, T&gt;(old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T, new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T) -&gt; Vec&lt;Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output&gt;&gt;
+    <span class="kw">fn </span>diff_lines&lt;<span class="lifetime">'x</span>, T&gt;(old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T, new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T) -&gt; Vec&lt;Change&lt;<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output&gt;&gt;
     <span class="kw">where
         </span>T: DiffableStrRef + <span class="question-mark">?</span>Sized,
     {
         TextDiff::from_lines(old, new).iter_all_changes().collect()
     }
 
-    <span class="kw">let </span>a = <span class="string">&quot;1\n2\n3\n&quot;</span>.to_string();
-    <span class="kw">let </span>b = <span class="string">&quot;1\n99\n3\n&quot;</span>.to_string();
+    <span class="kw">let </span>a = <span class="string">"1\n2\n3\n"</span>.to_string();
+    <span class="kw">let </span>b = <span class="string">"1\n99\n3\n"</span>.to_string();
     <span class="kw">let </span>changes = diff_lines(<span class="kw-2">&amp;</span>a, <span class="kw-2">&amp;</span>b);
     <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw-2">&amp;</span>changes);
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">fn </span>test_serde() {
     <span class="kw">let </span>diff = TextDiff::from_lines(
-        <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n\nAha stuff here\nand more stuff&quot;</span>,
-        <span class="string">&quot;Stuff\nHello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>,
+        <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n\nAha stuff here\nand more stuff"</span>,
+        <span class="string">"Stuff\nHello World\nsome amazing stuff here\nsome more stuff here\n"</span>,
     );
     <span class="kw">let </span>changes = diff
         .ops()
@@ -1519,11 +1521,11 @@
 }
 
 <span class="attr">#[test]
-#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">fn </span>test_serde_ops() {
     <span class="kw">let </span>diff = TextDiff::from_lines(
-        <span class="string">&quot;Hello World\nsome stuff here\nsome more stuff here\n\nAha stuff here\nand more stuff&quot;</span>,
-        <span class="string">&quot;Stuff\nHello World\nsome amazing stuff here\nsome more stuff here\n&quot;</span>,
+        <span class="string">"Hello World\nsome stuff here\nsome more stuff here\n\nAha stuff here\nand more stuff"</span>,
+        <span class="string">"Stuff\nHello World\nsome amazing stuff here\nsome more stuff here\n"</span>,
     );
     <span class="kw">let </span>changes = diff.ops();
     <span class="kw">let </span>json = serde_json::to_string_pretty(<span class="kw-2">&amp;</span>changes).unwrap();
@@ -1533,11 +1535,11 @@
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_regression_issue_37() {
     <span class="kw">let </span>config = TextDiffConfig::default();
-    <span class="kw">let </span>diff = config.diff_lines(<span class="string">&quot;\u{18}\n\n&quot;</span>, <span class="string">&quot;\n\n\r&quot;</span>);
+    <span class="kw">let </span>diff = config.diff_lines(<span class="string">"\u{18}\n\n"</span>, <span class="string">"\n\n\r"</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>output = diff.unified_diff();
     <span class="macro">assert_eq!</span>(
         output.context_radius(<span class="number">0</span>).to_string(),
-        <span class="string">&quot;@@ -1 +1,0 @@\n-\u{18}\n@@ -2,0 +2,2 @@\n+\n+\r&quot;
+        <span class="string">"@@ -1 +1,0 @@\n-\u{18}\n@@ -2,0 +2,2 @@\n+\n+\r"
     </span>);
 }
 </code></pre></div></section></main></body></html>

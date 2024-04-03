@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/action.rs`."><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_xml/src/model/action.rs`."><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="plc_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../plc_xml/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -164,19 +166,19 @@
 <span class="kw">use </span><span class="kw">super</span>::body::Body;
 
 <span class="attr">#[derive(Debug, Default)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Action&lt;<span class="lifetime">&#39;xml</span>&gt; {
-    <span class="kw">pub </span>name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
-    <span class="kw">pub </span>type_name: Cow&lt;<span class="lifetime">&#39;xml</span>, str&gt;,
-    <span class="kw">pub </span>body: Body&lt;<span class="lifetime">&#39;xml</span>&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Action&lt;<span class="lifetime">'xml</span>&gt; {
+    <span class="kw">pub </span>name: Cow&lt;<span class="lifetime">'xml</span>, str&gt;,
+    <span class="kw">pub </span>type_name: Cow&lt;<span class="lifetime">'xml</span>, str&gt;,
+    <span class="kw">pub </span>body: Body&lt;<span class="lifetime">'xml</span>&gt;,
 }
 
-<span class="kw">impl </span>Action&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Action&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         Action { name: name.to_string().into(), ..Default::default() }
     }
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>Vec&lt;Action&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Vec&lt;Action&lt;<span class="lifetime">'_</span>&gt;&gt; {
     <span class="kw">fn </span>visit(
         reader: <span class="kw-2">&amp;mut </span>Reader,
         _tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;,
@@ -184,11 +186,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event()<span class="question-mark">? </span>{
-                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;action&quot; </span>=&gt; {
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"action" </span>=&gt; {
                     res.push(Action::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>);
                 }
-                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;actions&quot; </span>=&gt; <span class="kw">break</span>,
-                Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b&quot;actions&quot;</span>])),
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"actions" </span>=&gt; <span class="kw">break</span>,
+                Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b"actions"</span>])),
                 <span class="kw">_ </span>=&gt; {}
             }
         }
@@ -197,7 +199,7 @@
     }
 }
 
-<span class="kw">impl </span>Parseable <span class="kw">for </span>Action&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Action&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>visit(
         reader: <span class="kw-2">&amp;mut </span>Reader,
         tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;,
@@ -205,15 +207,15 @@
         <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
         <span class="kw">let </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="prelude-val">Some</span>(name) = attributes.get(<span class="string">&quot;name&quot;</span>) <span class="kw">else </span>{ <span class="macro">todo!</span>() };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(name) = attributes.get(<span class="string">"name"</span>) <span class="kw">else </span>{ <span class="macro">todo!</span>() };
         <span class="kw">let </span><span class="kw-2">mut </span>action = Action::new(name);
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event()<span class="question-mark">? </span>{
-                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;body&quot; </span>=&gt; {
+                Event::Start(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"body" </span>=&gt; {
                     action.body = Body::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                 }
-                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b&quot;action&quot; </span>=&gt; <span class="kw">break</span>,
-                Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b&quot;actions&quot;</span>])),
+                Event::End(tag) <span class="kw">if </span>tag.name().as_ref() == <span class="string">b"action" </span>=&gt; <span class="kw">break</span>,
+                Event::Eof =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedEndOfFile(<span class="macro">vec!</span>[<span class="string">b"actions"</span>])),
                 <span class="kw">_ </span>=&gt; {}
             }
         }
@@ -230,13 +232,13 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>list_of_actions_parsed_to_model() {
-        <span class="kw">let </span>src = <span class="string">r###&quot;
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;pou xmlns=&quot;http://www.plcopen.org/xml/tc6_0201&quot; name=&quot;program_0&quot; pouType=&quot;program&quot;&gt;
+        <span class="kw">let </span>src = <span class="string">r###"
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;pou xmlns="http://www.plcopen.org/xml/tc6_0201" name="program_0" pouType="program"&gt;
     &lt;interface&gt;
         &lt;localVars/&gt;
         &lt;addData&gt;
-            &lt;data name=&quot;www.bachmann.at/plc/plcopenxml&quot; handleUnknown=&quot;implementation&quot;&gt;
+            &lt;data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation"&gt;
                 &lt;textDeclaration&gt;
                     &lt;content&gt;
 PROGRAM program_0
@@ -249,28 +251,28 @@ END_VAR
         &lt;/addData&gt;
     &lt;/interface&gt;
     &lt;actions&gt;
-        &lt;action name=&quot;newAction&quot;&gt;
+        &lt;action name="newAction"&gt;
             &lt;body&gt;
                 &lt;FBD&gt;
-                    &lt;block localId=&quot;1&quot; width=&quot;80&quot; height=&quot;60&quot; typeName=&quot;foo&quot; executionOrderId=&quot;0&quot;&gt;
-                        &lt;position x=&quot;420&quot; y=&quot;110&quot;/&gt;
+                    &lt;block localId="1" width="80" height="60" typeName="foo" executionOrderId="0"&gt;
+                        &lt;position x="420" y="110"/&gt;
                         &lt;inputVariables&gt;
-                            &lt;variable formalParameter=&quot;IN1&quot; negated=&quot;false&quot;&gt;
+                            &lt;variable formalParameter="IN1" negated="false"&gt;
                                 &lt;connectionPointIn&gt;
-                                    &lt;relPosition x=&quot;0&quot; y=&quot;30&quot;/&gt;
+                                    &lt;relPosition x="0" y="30"/&gt;
                                 &lt;/connectionPointIn&gt;
                             &lt;/variable&gt;
-                            &lt;variable formalParameter=&quot;IN2&quot; negated=&quot;false&quot;&gt;
+                            &lt;variable formalParameter="IN2" negated="false"&gt;
                                 &lt;connectionPointIn&gt;
-                                    &lt;relPosition x=&quot;0&quot; y=&quot;50&quot;/&gt;
+                                    &lt;relPosition x="0" y="50"/&gt;
                                 &lt;/connectionPointIn&gt;
                             &lt;/variable&gt;
                         &lt;/inputVariables&gt;
                         &lt;inOutVariables/&gt;
                         &lt;outputVariables&gt;
-                            &lt;variable formalParameter=&quot;OUT&quot; negated=&quot;false&quot;&gt;
+                            &lt;variable formalParameter="OUT" negated="false"&gt;
                                 &lt;connectionPointOut&gt;
-                                    &lt;relPosition x=&quot;80&quot; y=&quot;30&quot;/&gt;
+                                    &lt;relPosition x="80" y="30"/&gt;
                                 &lt;/connectionPointOut&gt;
                             &lt;/variable&gt;
                         &lt;/outputVariables&gt;
@@ -278,16 +280,16 @@ END_VAR
                 &lt;/FBD&gt;
             &lt;/body&gt;
         &lt;/action&gt;
-        &lt;action name=&quot;newAction2&quot;&gt;
+        &lt;action name="newAction2"&gt;
             &lt;body&gt;
                 &lt;FBD&gt;
-                    &lt;inOutVariable localId=&quot;1&quot; height=&quot;20&quot; width=&quot;80&quot; negatedIn=&quot;false&quot; storageIn=&quot;none&quot; negatedOut=&quot;false&quot;&gt;
-                        &lt;position x=&quot;200&quot; y=&quot;70&quot;/&gt;
+                    &lt;inOutVariable localId="1" height="20" width="80" negatedIn="false" storageIn="none" negatedOut="false"&gt;
+                        &lt;position x="200" y="70"/&gt;
                         &lt;connectionPointIn&gt;
-                            &lt;relPosition x=&quot;0&quot; y=&quot;10&quot;/&gt;
+                            &lt;relPosition x="0" y="10"/&gt;
                         &lt;/connectionPointIn&gt;
                         &lt;connectionPointOut&gt;
-                            &lt;relPosition x=&quot;80&quot; y=&quot;10&quot;/&gt;
+                            &lt;relPosition x="80" y="10"/&gt;
                         &lt;/connectionPointOut&gt;
                         &lt;expression&gt;a&lt;/expression&gt;
                     &lt;/inOutVariable&gt;
@@ -299,7 +301,7 @@ END_VAR
         &lt;FBD/&gt;
     &lt;/body&gt;
 &lt;/pou&gt;
-        &quot;###</span>;
+        "###</span>;
 
         <span class="macro">assert_debug_snapshot!</span>(xml_parser::visit(src).unwrap())
     }

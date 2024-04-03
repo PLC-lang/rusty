@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/compile.rs`."><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/fancy-regex-0.11.0/src/compile.rs`."><title>compile.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../fancy_regex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -731,7 +733,7 @@
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the &quot;Software&quot;), to deal
+// of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -740,7 +742,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -762,7 +764,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::RegexOptions;
 <span class="kw">use </span><span class="kw">crate</span>::Result;
 
-<span class="comment">// I&#39;m thinking it probably doesn&#39;t make a lot of sense having this split
+<span class="comment">// I'm thinking it probably doesn't make a lot of sense having this split
 // out from Compiler.
 </span><span class="kw">struct </span>VMBuilder {
     prog: Vec&lt;Insn&gt;,
@@ -791,7 +793,7 @@
         <span class="self">self</span>.prog.len()
     }
 
-    <span class="comment">// would &quot;emit&quot; be a better name?
+    <span class="comment">// would "emit" be a better name?
     </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, insn: Insn) {
         <span class="self">self</span>.prog.push(insn);
     }
@@ -799,7 +801,7 @@
     <span class="kw">fn </span>set_jmp_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jmp_pc: usize, target: usize) {
         <span class="kw">match </span><span class="self">self</span>.prog[jmp_pc] {
             Insn::Jmp(<span class="kw-2">ref mut </span>next) =&gt; <span class="kw-2">*</span>next = target,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;mutating instruction other than Jmp&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"mutating instruction other than Jmp"</span>),
         }
     }
 
@@ -807,7 +809,7 @@
         <span class="kw">match </span><span class="self">self</span>.prog[split_pc] {
             Insn::Split(<span class="kw">_</span>, <span class="kw-2">ref mut </span>y) <span class="kw">if </span>second =&gt; <span class="kw-2">*</span>y = target,
             Insn::Split(<span class="kw-2">ref mut </span>x, <span class="kw">_</span>) =&gt; <span class="kw-2">*</span>x = target,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;mutating instruction other than Split&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"mutating instruction other than Split"</span>),
         }
     }
 
@@ -817,7 +819,7 @@
             | Insn::RepeatNg { <span class="kw-2">ref mut </span>next, .. }
             | Insn::RepeatEpsilonGr { <span class="kw-2">ref mut </span>next, .. }
             | Insn::RepeatEpsilonNg { <span class="kw-2">ref mut </span>next, .. } =&gt; <span class="kw-2">*</span>next = target,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;mutating instruction other than Repeat&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"mutating instruction other than Repeat"</span>),
         }
     }
 }
@@ -835,7 +837,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, hard: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, hard: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>!hard &amp;&amp; !info.hard {
             <span class="comment">// easy case, delegate entire subexpr
             </span><span class="kw">return </span><span class="self">self</span>.compile_delegate(info);
@@ -882,7 +884,7 @@
             }
             Expr::AtomicGroup(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// TODO optimization: atomic insns are not needed if the
-                // child doesn&#39;t do any backtracking.
+                // child doesn't do any backtracking.
                 </span><span class="self">self</span>.b.add(Insn::BeginAtomic);
                 <span class="self">self</span>.visit(<span class="kw-2">&amp;</span>info.children[<span class="number">0</span>], <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.b.add(Insn::EndAtomic);
@@ -948,13 +950,13 @@
         </span>F: FnMut(<span class="kw-2">&amp;mut </span>Compiler, usize) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;,
     {
         <span class="comment">// here we use atomic group functionality to be able to remove the program counter
-        // relating to the split instruction&#39;s second position if the conditional succeeds
-        // This is to ensure that if the condition succeeds, but the &quot;true&quot; branch from the
-        // conditional fails, that it wouldn&#39;t jump to the &quot;false&quot; branch.
+        // relating to the split instruction's second position if the conditional succeeds
+        // This is to ensure that if the condition succeeds, but the "true" branch from the
+        // conditional fails, that it wouldn't jump to the "false" branch.
         </span><span class="self">self</span>.b.add(Insn::BeginAtomic);
 
         <span class="kw">let </span>split_pc = <span class="self">self</span>.b.pc();
-        <span class="comment">// add the split instruction - we will update it&#39;s second pc later
+        <span class="comment">// add the split instruction - we will update it's second pc later
         </span><span class="self">self</span>.b.add(Insn::Split(split_pc + <span class="number">1</span>, usize::MAX));
 
         <span class="comment">// add the conditional expression
@@ -979,7 +981,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>compile_concat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, hard: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_concat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, hard: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="comment">// First: determine a prefix which is constant size and not hard.
         </span><span class="kw">let </span>prefix_end = info
             .children
@@ -1016,7 +1018,7 @@
 
     <span class="kw">fn </span>compile_repeat(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;,
+        info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;,
         lo: usize,
         hi: usize,
         greedy: bool,
@@ -1103,7 +1105,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>compile_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>info.children[<span class="number">0</span>];
         <span class="kw">match </span>la {
             LookBehind =&gt; {
@@ -1145,7 +1147,7 @@
         }
     }
 
-    <span class="kw">fn </span>compile_positive_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_positive_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>save = <span class="self">self</span>.b.newsave();
         <span class="self">self</span>.b.add(Insn::Save(save));
         <span class="self">self</span>.compile_lookaround_inner(inner, la)<span class="question-mark">?</span>;
@@ -1153,7 +1155,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>compile_negative_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_negative_lookaround(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>pc = <span class="self">self</span>.b.pc();
         <span class="self">self</span>.b.add(Insn::Split(pc + <span class="number">1</span>, usize::MAX));
         <span class="self">self</span>.compile_lookaround_inner(inner, la)<span class="question-mark">?</span>;
@@ -1163,7 +1165,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>compile_lookaround_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_lookaround_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;, la: LookAround) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>la == LookBehind || la == LookBehindNeg {
             <span class="kw">if </span>!inner.const_size {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CompileError(CompileError::LookBehindNotConst));
@@ -1173,7 +1175,7 @@
         <span class="self">self</span>.visit(inner, <span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn </span>compile_delegates(<span class="kw-2">&amp;mut </span><span class="self">self</span>, infos: <span class="kw-2">&amp;</span>[Info&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>compile_delegates(<span class="kw-2">&amp;mut </span><span class="self">self</span>, infos: <span class="kw-2">&amp;</span>[Info&lt;<span class="lifetime">'_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>infos.is_empty() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -1227,7 +1229,7 @@
 }
 
 <span class="doccomment">/// Compile the analyzed expressions into a program.
-</span><span class="kw">pub fn </span>compile(info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Prog&gt; {
+</span><span class="kw">pub fn </span>compile(info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Prog&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>c = Compiler::new(info.end_group);
     c.visit(info, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
     c.b.add(Insn::End);
@@ -1246,7 +1248,7 @@
 <span class="kw">impl </span>DelegateBuilder {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            re: <span class="string">&quot;^&quot;</span>.to_string(),
+            re: <span class="string">"^"</span>.to_string(),
             min_size: <span class="number">0</span>,
             const_size: <span class="bool-val">true</span>,
             looks_left: <span class="bool-val">false</span>,
@@ -1255,7 +1257,7 @@
         }
     }
 
-    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>DelegateBuilder {
+    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: <span class="kw-2">&amp;</span>Info&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>DelegateBuilder {
         <span class="comment">// TODO: might want to detect case of a group with no captures
         //  inside, so we can run find() instead of captures()
 
@@ -1271,24 +1273,24 @@
         // ensure correct grouping in these cases:
         //
         // If we have multiple expressions, we are building a concat.
-        // Without grouping, we&#39;d turn [&quot;a&quot;, &quot;b|c&quot;] into &quot;^ab|c&quot;. But we
-        // want &quot;^a(?:b|c)&quot;.
+        // Without grouping, we'd turn ["a", "b|c"] into "^ab|c". But we
+        // want "^a(?:b|c)".
         //
         // Even with a single expression, because we add `^` at the
-        // beginning, we need a group. Otherwise `[&quot;a|b&quot;]` would be turned
-        // into `&quot;^a|b&quot;` instead of `&quot;^(?:a|b)&quot;`.
+        // beginning, we need a group. Otherwise `["a|b"]` would be turned
+        // into `"^a|b"` instead of `"^(?:a|b)"`.
         </span>info.expr.to_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>.re, <span class="number">1</span>);
         <span class="self">self
     </span>}
 
     <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, options: <span class="kw-2">&amp;</span>RegexOptions) -&gt; <span class="prelude-ty">Result</span>&lt;Insn&gt; {
-        <span class="kw">let </span>start_group = <span class="self">self</span>.start_group.expect(<span class="string">&quot;Expected at least one expression&quot;</span>);
+        <span class="kw">let </span>start_group = <span class="self">self</span>.start_group.expect(<span class="string">"Expected at least one expression"</span>);
         <span class="kw">let </span>end_group = <span class="self">self</span>.end_group;
 
         <span class="kw">let </span>compiled = compile_inner(<span class="kw-2">&amp;</span><span class="self">self</span>.re, options)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.looks_left {
-            <span class="comment">// The &quot;s&quot; flag is for allowing `.` to match `\n`
-            </span><span class="kw">let </span>inner1 = [<span class="string">&quot;^(?s:.)&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.re[<span class="number">1</span>..]].concat();
+            <span class="comment">// The "s" flag is for allowing `.` to match `\n`
+            </span><span class="kw">let </span>inner1 = [<span class="string">"^(?s:.)"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.re[<span class="number">1</span>..]].concat();
             <span class="kw">let </span>compiled1 = compile_inner(<span class="kw-2">&amp;</span>inner1, options)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(Insn::Delegate {
                 inner: Box::new(compiled),
@@ -1325,15 +1327,15 @@
         <span class="kw">let </span>tree = ExprTree {
             expr: Expr::Alt(<span class="macro">vec!</span>[
                 Expr::Literal {
-                    val: <span class="string">&quot;a&quot;</span>.into(),
+                    val: <span class="string">"a"</span>.into(),
                     casei: <span class="bool-val">false</span>,
                 },
                 Expr::Literal {
-                    val: <span class="string">&quot;b&quot;</span>.into(),
+                    val: <span class="string">"b"</span>.into(),
                     casei: <span class="bool-val">false</span>,
                 },
                 Expr::Literal {
-                    val: <span class="string">&quot;c&quot;</span>.into(),
+                    val: <span class="string">"c"</span>.into(),
                     casei: <span class="bool-val">false</span>,
                 },
             ]),
@@ -1343,89 +1345,89 @@
         <span class="kw">let </span>info = analyze(<span class="kw-2">&amp;</span>tree).unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>c = Compiler::new(<span class="number">0</span>);
-        <span class="comment">// Force &quot;hard&quot; so that compiler doesn&#39;t just delegate
+        <span class="comment">// Force "hard" so that compiler doesn't just delegate
         </span>c.visit(<span class="kw-2">&amp;</span>info, <span class="bool-val">true</span>).unwrap();
         c.b.add(Insn::End);
 
         <span class="kw">let </span>prog = c.b.prog;
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">8</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">8</span>, <span class="string">"prog: {:?}"</span>, prog);
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], Split(<span class="number">1</span>, <span class="number">3</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;a&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"a"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], Jmp(<span class="number">7</span>));
         <span class="macro">assert_matches!</span>(prog[<span class="number">3</span>], Split(<span class="number">4</span>, <span class="number">6</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"b"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">5</span>], Jmp(<span class="number">7</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"c"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">7</span>], End);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>look_around_pattern_can_be_delegated() {
-        <span class="kw">let </span>prog = compile_prog(<span class="string">&quot;(?=ab*)c&quot;</span>);
+        <span class="kw">let </span>prog = compile_prog(<span class="string">"(?=ab*)c"</span>);
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">5</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">5</span>, <span class="string">"prog: {:?}"</span>, prog);
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], Save(<span class="number">0</span>));
-        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">1</span>], <span class="string">&quot;^ab*&quot;</span>);
+        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">1</span>], <span class="string">"^ab*"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], Restore(<span class="number">0</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">3</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">3</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"c"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], End);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>easy_concat_can_delegate_end() {
-        <span class="kw">let </span>prog = compile_prog(<span class="string">&quot;(?!x)(?:a|ab)x*&quot;</span>);
+        <span class="kw">let </span>prog = compile_prog(<span class="string">"(?!x)(?:a|ab)x*"</span>);
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">5</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">5</span>, <span class="string">"prog: {:?}"</span>, prog);
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], Split(<span class="number">1</span>, <span class="number">3</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;x&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"x"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], FailNegativeLookAround);
-        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">3</span>], <span class="string">&quot;^(?:a|ab)x*&quot;</span>);
+        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">3</span>], <span class="string">"^(?:a|ab)x*"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], End);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hard_concat_can_delegate_const_size_end() {
-        <span class="kw">let </span>prog = compile_prog(<span class="string">&quot;(?:(?!x)(?:a|b)c)x*&quot;</span>);
+        <span class="kw">let </span>prog = compile_prog(<span class="string">"(?:(?!x)(?:a|b)c)x*"</span>);
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">6</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">6</span>, <span class="string">"prog: {:?}"</span>, prog);
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], Split(<span class="number">1</span>, <span class="number">3</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;x&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"x"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], FailNegativeLookAround);
-        assert_delegate_sized(<span class="kw-2">&amp;</span>prog[<span class="number">3</span>], <span class="string">&quot;^(?:a|b)c&quot;</span>);
-        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">4</span>], <span class="string">&quot;^x*&quot;</span>);
+        assert_delegate_sized(<span class="kw-2">&amp;</span>prog[<span class="number">3</span>], <span class="string">"^(?:a|b)c"</span>);
+        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">4</span>], <span class="string">"^x*"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">5</span>], End);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hard_concat_can_not_delegate_variable_end() {
-        <span class="kw">let </span>prog = compile_prog(<span class="string">&quot;(?:(?!x)(?:a|ab))x*&quot;</span>);
+        <span class="kw">let </span>prog = compile_prog(<span class="string">"(?:(?!x)(?:a|ab))x*"</span>);
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">9</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">9</span>, <span class="string">"prog: {:?}"</span>, prog);
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], Split(<span class="number">1</span>, <span class="number">3</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;x&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"x"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], FailNegativeLookAround);
         <span class="macro">assert_matches!</span>(prog[<span class="number">3</span>], Split(<span class="number">4</span>, <span class="number">6</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;a&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"a"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">5</span>], Jmp(<span class="number">7</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;ab&quot;</span>);
-        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">7</span>], <span class="string">&quot;^x*&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"ab"</span>);
+        assert_delegate(<span class="kw-2">&amp;</span>prog[<span class="number">7</span>], <span class="string">"^x*"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">8</span>], End);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>conditional_expression_can_be_compiled() {
-        <span class="kw">let </span>prog = compile_prog(<span class="string">r&quot;(?(ab)c|d)&quot;</span>);
+        <span class="kw">let </span>prog = compile_prog(<span class="string">r"(?(ab)c|d)"</span>);
 
-        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">8</span>, <span class="string">&quot;prog: {:?}&quot;</span>, prog);
+        <span class="macro">assert_eq!</span>(prog.len(), <span class="number">8</span>, <span class="string">"prog: {:?}"</span>, prog);
 
         <span class="macro">assert_matches!</span>(prog[<span class="number">0</span>], BeginAtomic);
         <span class="macro">assert_matches!</span>(prog[<span class="number">1</span>], Split(<span class="number">2</span>, <span class="number">6</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;ab&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">2</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"ab"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">3</span>], EndAtomic);
-        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">4</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"c"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">5</span>], Jmp(<span class="number">7</span>));
-        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">&quot;d&quot;</span>);
+        <span class="macro">assert_matches!</span>(prog[<span class="number">6</span>], Lit(<span class="kw-2">ref </span>l) <span class="kw">if </span>l == <span class="string">"d"</span>);
         <span class="macro">assert_matches!</span>(prog[<span class="number">7</span>], End);
     }
 
@@ -1442,7 +1444,7 @@
                 <span class="macro">assert_eq!</span>(inner.as_str(), re);
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;Expected Insn::Delegate but was {:#?}&quot;</span>, insn);
+                <span class="macro">panic!</span>(<span class="string">"Expected Insn::Delegate but was {:#?}"</span>, insn);
             }
         }
     }
@@ -1453,7 +1455,7 @@
                 <span class="macro">assert_eq!</span>(inner.as_str(), re);
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;Expected Insn::DelegateSized but was {:#?}&quot;</span>, insn);
+                <span class="macro">panic!</span>(<span class="string">"Expected Insn::DelegateSized but was {:#?}"</span>, insn);
             }
         }
     }

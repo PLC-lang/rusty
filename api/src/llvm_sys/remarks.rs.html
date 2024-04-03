@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/llvm-sys-140.1.3/src/remarks.rs`."><title>remarks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="llvm_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/llvm-sys-140.1.3/src/remarks.rs`."><title>remarks.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="llvm_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../llvm_sys/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -151,7 +153,7 @@
 <span class="doccomment">/// String containing a buffer and a length. The buffer is not guaranteed to be zero-terminated.
 </span><span class="kw">pub type </span>LLVMRemarkStringRef = <span class="kw-2">*mut </span>LLVMRemarkOpaqueString;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Returns the buffer holding the string.
     </span><span class="kw">pub fn </span>LLVMRemarkStringGetData(String: LLVMRemarkStringRef) -&gt; <span class="kw-2">*const </span>::libc::c_char;
 
@@ -164,7 +166,7 @@
 <span class="doccomment">/// DebugLoc containing File, Line and Column.
 </span><span class="kw">pub type </span>LLVMRemarkDebugLocRef = <span class="kw-2">*mut </span>LLVMRemarkOpaqueDebugLoc;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Return the path to the source file for a debug location.
     </span><span class="kw">pub fn </span>LLVMRemarkDebugLocGetSourceFilePath(DL: LLVMRemarkDebugLocRef) -&gt; LLVMRemarkStringRef;
 
@@ -177,12 +179,12 @@
 
 <span class="kw">pub enum </span>LLVMRemarkOpaqueArg {}
 
-<span class="doccomment">/// Element of the &quot;Args&quot; list. The key might give more information about what
-/// the semantics of the value are, e.g. &quot;Callee&quot; will tell you that the value
+<span class="doccomment">/// Element of the "Args" list. The key might give more information about what
+/// the semantics of the value are, e.g. "Callee" will tell you that the value
 /// is a symbol that names a function.
 </span><span class="kw">pub type </span>LLVMRemarkArgRef = <span class="kw-2">*mut </span>LLVMRemarkOpaqueArg;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Returns the key of an argument. The key defines what the value is, and the
     /// same key can appear multiple times in the list of arguments.
     </span><span class="kw">pub fn </span>LLVMRemarkArgGetKey(Arg: LLVMRemarkArgRef) -&gt; LLVMRemarkStringRef;
@@ -198,7 +200,7 @@
 <span class="doccomment">/// A remark emitted by the compiler.
 </span><span class="kw">pub type </span>LLVMRemarkEntryRef = <span class="kw-2">*mut </span>LLVMRemarkOpaqueEntry;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Free the resources used by the remark entry.
     </span><span class="kw">pub fn </span>LLVMRemarkEntryDispose(Remark: LLVMRemarkEntryRef);
 
@@ -224,7 +226,7 @@
     <span class="doccomment">/// The number of arguments the remark holds.
     </span><span class="kw">pub fn </span>LLVMRemarkEntryGetNumArgs(Remark: LLVMRemarkEntryRef) -&gt; u32;
 
-    <span class="doccomment">/// Get a new iterator to iterate over a remark&#39;s argument.
+    <span class="doccomment">/// Get a new iterator to iterate over a remark's argument.
     </span><span class="kw">pub fn </span>LLVMRemarkEntryGetFirstArg(Remark: LLVMRemarkEntryRef) -&gt; LLVMRemarkArgRef;
 
     <span class="doccomment">/// Get the next argument in Remark from the position of It.
@@ -237,7 +239,7 @@
 <span class="kw">pub enum </span>LLVMRemarkOpaqueParser {}
 <span class="kw">pub type </span>LLVMRemarkParserRef = <span class="kw-2">*mut </span>LLVMRemarkOpaqueParser;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Creates a remark parser that can be used to parse the buffer located in
     /// Buf of size Size bytes.
     </span><span class="kw">pub fn </span>LLVMRemarkParserCreateYAML(Buf: <span class="kw-2">*const </span>::libc::c_void, Size: u64)
@@ -262,7 +264,7 @@
 
 <span class="kw">pub const </span>REMARKS_API_VERSION: u32 = <span class="number">1</span>;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
+<span class="kw">extern </span><span class="string">"C" </span>{
     <span class="doccomment">/// Returns the version of the remarks library.
     </span><span class="kw">pub fn </span>LLVMRemarkVersion() -&gt; u32;
 }

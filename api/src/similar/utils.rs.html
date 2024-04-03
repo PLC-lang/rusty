@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/similar-2.4.0/src/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="similar" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../similar/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -413,12 +415,12 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Utilities for common diff related operations.
 //!
 //! This module provides specialized utilities and simplified diff operations
-//! for common operations.  It&#39;s useful when you want to work with text diffs
-//! and you&#39;re interested in getting vectors of these changes directly.
+//! for common operations.  It's useful when you want to work with text diffs
+//! and you're interested in getting vectors of these changes directly.
 //!
 //! # Slice Remapping
 //!
-//! When working with [`TextDiff`] it&#39;s common that one takes advantage of the
+//! When working with [`TextDiff`] it's common that one takes advantage of the
 //! built-in tokenization of the differ.  This for instance lets you do
 //! grapheme level diffs.  This is implemented by the differ generating rather
 //! small slices of strings and running a diff algorithm over them.
@@ -444,13 +446,13 @@
     capture_diff_slices, Algorithm, ChangeTag, DiffOp, DiffableStr, DiffableStrRef, TextDiff,
 };
 
-<span class="kw">struct </span>SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
+<span class="kw">struct </span>SliceRemapper&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    source: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
     indexes: Vec&lt;Range&lt;usize&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt; {
-    <span class="kw">fn </span>new(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T, slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T]) -&gt; SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; SliceRemapper&lt;<span class="lifetime">'x</span>, T&gt; {
+    <span class="kw">fn </span>new(source: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T, slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T]) -&gt; SliceRemapper&lt;<span class="lifetime">'x</span>, T&gt; {
         <span class="kw">let </span>indexes = slices
             .iter()
             .scan(<span class="number">0</span>, |state, item| {
@@ -463,18 +465,18 @@
         SliceRemapper { source, indexes }
     }
 
-    <span class="kw">fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T&gt; {
+    <span class="kw">fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T&gt; {
         <span class="kw">let </span>start = <span class="self">self</span>.indexes.get(range.start)<span class="question-mark">?</span>.start;
         <span class="kw">let </span>end = <span class="self">self</span>.indexes.get(range.end - <span class="number">1</span>)<span class="question-mark">?</span>.end;
         <span class="prelude-val">Some</span>(<span class="self">self</span>.source.slice(start..end))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; Index&lt;Range&lt;usize&gt;&gt; <span class="kw">for </span>SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; Index&lt;Range&lt;usize&gt;&gt; <span class="kw">for </span>SliceRemapper&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="self">self</span>.slice(range).expect(<span class="string">&quot;out of bounds&quot;</span>)
+        <span class="self">self</span>.slice(range).expect(<span class="string">"out of bounds"</span>)
     }
 }
 
@@ -491,8 +493,8 @@
 /// use similar::{ChangeTag, TextDiff};
 /// use similar::utils::TextDiffRemapper;
 ///
-/// let old = &quot;yo! foo bar baz&quot;;
-/// let new = &quot;yo! foo bor baz&quot;;
+/// let old = "yo! foo bar baz";
+/// let new = "yo! foo bor baz";
 /// let diff = TextDiff::from_words(old, new);
 /// let remapper = TextDiffRemapper::from_text_diff(&amp;diff, old, new);
 /// let changes: Vec&lt;_&gt; = diff.ops()
@@ -501,24 +503,24 @@
 ///     .collect();
 ///
 /// assert_eq!(changes, vec![
-///     (ChangeTag::Equal, &quot;yo! foo &quot;),
-///     (ChangeTag::Delete, &quot;bar&quot;),
-///     (ChangeTag::Insert, &quot;bor&quot;),
-///     (ChangeTag::Equal, &quot; baz&quot;)
+///     (ChangeTag::Equal, "yo! foo "),
+///     (ChangeTag::Delete, "bar"),
+///     (ChangeTag::Insert, "bor"),
+///     (ChangeTag::Equal, " baz")
 /// ]);
-</span><span class="kw">pub struct </span>TextDiffRemapper&lt;<span class="lifetime">&#39;x</span>, T: <span class="question-mark">?</span>Sized&gt; {
-    old: SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt;,
-    new: SliceRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt;,
+</span><span class="kw">pub struct </span>TextDiffRemapper&lt;<span class="lifetime">'x</span>, T: <span class="question-mark">?</span>Sized&gt; {
+    old: SliceRemapper&lt;<span class="lifetime">'x</span>, T&gt;,
+    new: SliceRemapper&lt;<span class="lifetime">'x</span>, T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; TextDiffRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'x</span>, T: DiffableStr + <span class="question-mark">?</span>Sized&gt; TextDiffRemapper&lt;<span class="lifetime">'x</span>, T&gt; {
     <span class="doccomment">/// Creates a new remapper from strings and slices.
     </span><span class="kw">pub fn </span>new(
-        old_slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T],
-        new_slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T],
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    ) -&gt; TextDiffRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt; {
+        old_slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T],
+        new_slices: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T],
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    ) -&gt; TextDiffRemapper&lt;<span class="lifetime">'x</span>, T&gt; {
         TextDiffRemapper {
             old: SliceRemapper::new(old, old_slices),
             new: SliceRemapper::new(new, new_slices),
@@ -526,14 +528,14 @@
     }
 
     <span class="doccomment">/// Creates a new remapper from a text diff and the original strings.
-    </span><span class="kw">pub fn </span>from_text_diff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>&gt;(
-        diff: <span class="kw-2">&amp;</span>TextDiff&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;bufs</span>, T&gt;,
-        old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-        new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    ) -&gt; TextDiffRemapper&lt;<span class="lifetime">&#39;x</span>, T&gt;
+    </span><span class="kw">pub fn </span>from_text_diff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>&gt;(
+        diff: <span class="kw-2">&amp;</span>TextDiff&lt;<span class="lifetime">'old</span>, <span class="lifetime">'new</span>, <span class="lifetime">'bufs</span>, T&gt;,
+        old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+        new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    ) -&gt; TextDiffRemapper&lt;<span class="lifetime">'x</span>, T&gt;
     <span class="kw">where
-        </span><span class="lifetime">&#39;old</span>: <span class="lifetime">&#39;x</span>,
-        <span class="lifetime">&#39;new</span>: <span class="lifetime">&#39;x</span>,
+        </span><span class="lifetime">'old</span>: <span class="lifetime">'x</span>,
+        <span class="lifetime">'new</span>: <span class="lifetime">'x</span>,
     {
         TextDiffRemapper {
             old: SliceRemapper::new(old, diff.old_slices()),
@@ -542,12 +544,12 @@
     }
 
     <span class="doccomment">/// Slices into the old string.
-    </span><span class="kw">pub fn </span>slice_old(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T&gt; {
+    </span><span class="kw">pub fn </span>slice_old(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T&gt; {
         <span class="self">self</span>.old.slice(range)
     }
 
     <span class="doccomment">/// Slices into the new string.
-    </span><span class="kw">pub fn </span>slice_new(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T&gt; {
+    </span><span class="kw">pub fn </span>slice_new(<span class="kw-2">&amp;</span><span class="self">self</span>, range: Range&lt;usize&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'x </span>T&gt; {
         <span class="self">self</span>.new.slice(range)
     }
 
@@ -559,7 +561,7 @@
     ///
     /// This method can panic if the input strings passed to the constructor
     /// are incompatible with the input strings passed to the diffing algorithm.
-    </span><span class="kw">pub fn </span>iter_slices(<span class="kw-2">&amp;</span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>DiffOp) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T)&gt; {
+    </span><span class="kw">pub fn </span>iter_slices(<span class="kw-2">&amp;</span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>DiffOp) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T)&gt; {
         <span class="comment">// note: this is equivalent to the code in `DiffOp::iter_slices`.  It is
         // a copy/paste because the slicing currently cannot be well abstracted
         // because of lifetime issues caused by the `Index` trait.
@@ -600,7 +602,7 @@
                 <span class="self">self</span>.new.slice(new_index..new_index + new_len),
             ))),
         }
-        .map(|(tag, opt_val)| (tag, opt_val.expect(<span class="string">&quot;slice out of bounds&quot;</span>)))
+        .map(|(tag, opt_val)| (tag, opt_val.expect(<span class="string">"slice out of bounds"</span>)))
     }
 }
 
@@ -613,19 +615,19 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_slices;
 ///
-/// let old = &quot;foo\nbar\nbaz&quot;.lines().collect::&lt;Vec&lt;_&gt;&gt;();
-/// let new = &quot;foo\nbar\nBAZ&quot;.lines().collect::&lt;Vec&lt;_&gt;&gt;();
+/// let old = "foo\nbar\nbaz".lines().collect::&lt;Vec&lt;_&gt;&gt;();
+/// let new = "foo\nbar\nBAZ".lines().collect::&lt;Vec&lt;_&gt;&gt;();
 /// assert_eq!(diff_slices(Algorithm::Myers, &amp;old, &amp;new), vec![
-///     (ChangeTag::Equal, &amp;[&quot;foo&quot;, &quot;bar&quot;][..]),
-///     (ChangeTag::Delete, &amp;[&quot;baz&quot;][..]),
-///     (ChangeTag::Insert, &amp;[&quot;BAZ&quot;][..]),
+///     (ChangeTag::Equal, &amp;["foo", "bar"][..]),
+///     (ChangeTag::Delete, &amp;["baz"][..]),
+///     (ChangeTag::Insert, &amp;["BAZ"][..]),
 /// ]);
 /// ```
-</span><span class="kw">pub fn </span>diff_slices&lt;<span class="lifetime">&#39;x</span>, T: PartialEq + Hash + Ord&gt;(
+</span><span class="kw">pub fn </span>diff_slices&lt;<span class="lifetime">'x</span>, T: PartialEq + Hash + Ord&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>[T],
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>[T],
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>[T])&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>[T],
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>[T],
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>[T])&gt; {
     capture_diff_slices(alg, old, new)
         .iter()
         .flat_map(|op| op.iter_slices(old, new))
@@ -642,18 +644,18 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_chars;
 ///
-/// assert_eq!(diff_chars(Algorithm::Myers, &quot;foobarbaz&quot;, &quot;fooBARbaz&quot;), vec![
-///     (ChangeTag::Equal, &quot;foo&quot;),
-///     (ChangeTag::Delete, &quot;bar&quot;),
-///     (ChangeTag::Insert, &quot;BAR&quot;),
-///     (ChangeTag::Equal, &quot;baz&quot;),
+/// assert_eq!(diff_chars(Algorithm::Myers, "foobarbaz", "fooBARbaz"), vec![
+///     (ChangeTag::Equal, "foo"),
+///     (ChangeTag::Delete, "bar"),
+///     (ChangeTag::Insert, "BAR"),
+///     (ChangeTag::Equal, "baz"),
 /// ]);
 /// ```
-</span><span class="kw">pub fn </span>diff_chars&lt;<span class="lifetime">&#39;x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="kw">pub fn </span>diff_chars&lt;<span class="lifetime">'x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output)&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output)&gt; {
     <span class="kw">let </span>old = old.as_diffable_str();
     <span class="kw">let </span>new = new.as_diffable_str();
     <span class="kw">let </span>diff = TextDiff::configure().algorithm(alg).diff_chars(old, new);
@@ -674,18 +676,18 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_words;
 ///
-/// assert_eq!(diff_words(Algorithm::Myers, &quot;foo bar baz&quot;, &quot;foo bor baz&quot;), vec![
-///     (ChangeTag::Equal, &quot;foo &quot;),
-///     (ChangeTag::Delete, &quot;bar&quot;),
-///     (ChangeTag::Insert, &quot;bor&quot;),
-///     (ChangeTag::Equal, &quot; baz&quot;),
+/// assert_eq!(diff_words(Algorithm::Myers, "foo bar baz", "foo bor baz"), vec![
+///     (ChangeTag::Equal, "foo "),
+///     (ChangeTag::Delete, "bar"),
+///     (ChangeTag::Insert, "bor"),
+///     (ChangeTag::Equal, " baz"),
 /// ]);
 /// ```
-</span><span class="kw">pub fn </span>diff_words&lt;<span class="lifetime">&#39;x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="kw">pub fn </span>diff_words&lt;<span class="lifetime">'x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output)&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output)&gt; {
     <span class="kw">let </span>old = old.as_diffable_str();
     <span class="kw">let </span>new = new.as_diffable_str();
     <span class="kw">let </span>diff = TextDiff::configure().algorithm(alg).diff_words(old, new);
@@ -706,26 +708,26 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_unicode_words;
 ///
-/// let old = &quot;The quick (\&quot;brown\&quot;) fox can&#39;t jump 32.3 feet, right?&quot;;
-/// let new = &quot;The quick (\&quot;brown\&quot;) fox can&#39;t jump 9.84 meters, right?&quot;;
+/// let old = "The quick (\"brown\") fox can't jump 32.3 feet, right?";
+/// let new = "The quick (\"brown\") fox can't jump 9.84 meters, right?";
 /// assert_eq!(diff_unicode_words(Algorithm::Myers, old, new), vec![
-///     (ChangeTag::Equal, &quot;The quick (\&quot;brown\&quot;) fox can\&#39;t jump &quot;),
-///     (ChangeTag::Delete, &quot;32.3&quot;),
-///     (ChangeTag::Insert, &quot;9.84&quot;),
-///     (ChangeTag::Equal, &quot; &quot;),
-///     (ChangeTag::Delete, &quot;feet&quot;),
-///     (ChangeTag::Insert, &quot;meters&quot;),
-///     (ChangeTag::Equal, &quot;, right?&quot;)
+///     (ChangeTag::Equal, "The quick (\"brown\") fox can\'t jump "),
+///     (ChangeTag::Delete, "32.3"),
+///     (ChangeTag::Insert, "9.84"),
+///     (ChangeTag::Equal, " "),
+///     (ChangeTag::Delete, "feet"),
+///     (ChangeTag::Insert, "meters"),
+///     (ChangeTag::Equal, ", right?")
 /// ]);
 /// ```
 ///
 /// This requires the `unicode` feature.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-</span><span class="kw">pub fn </span>diff_unicode_words&lt;<span class="lifetime">&#39;x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+</span><span class="kw">pub fn </span>diff_unicode_words&lt;<span class="lifetime">'x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output)&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output)&gt; {
     <span class="kw">let </span>old = old.as_diffable_str();
     <span class="kw">let </span>new = new.as_diffable_str();
     <span class="kw">let </span>diff = TextDiff::configure()
@@ -748,25 +750,25 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_graphemes;
 ///
-/// let old = &quot;The flag of Austria is 🇦🇹&quot;;
-/// let new = &quot;The flag of Albania is 🇦🇱&quot;;
+/// let old = "The flag of Austria is 🇦🇹";
+/// let new = "The flag of Albania is 🇦🇱";
 /// assert_eq!(diff_graphemes(Algorithm::Myers, old, new), vec![
-///     (ChangeTag::Equal, &quot;The flag of A&quot;),
-///     (ChangeTag::Delete, &quot;ustr&quot;),
-///     (ChangeTag::Insert, &quot;lban&quot;),
-///     (ChangeTag::Equal, &quot;ia is &quot;),
-///     (ChangeTag::Delete, &quot;🇦🇹&quot;),
-///     (ChangeTag::Insert, &quot;🇦🇱&quot;),
+///     (ChangeTag::Equal, "The flag of A"),
+///     (ChangeTag::Delete, "ustr"),
+///     (ChangeTag::Insert, "lban"),
+///     (ChangeTag::Equal, "ia is "),
+///     (ChangeTag::Delete, "🇦🇹"),
+///     (ChangeTag::Insert, "🇦🇱"),
 /// ]);
 /// ```
 ///
 /// This requires the `unicode` feature.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;unicode&quot;</span>)]
-</span><span class="kw">pub fn </span>diff_graphemes&lt;<span class="lifetime">&#39;x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="attr">#[cfg(feature = <span class="string">"unicode"</span>)]
+</span><span class="kw">pub fn </span>diff_graphemes&lt;<span class="lifetime">'x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output)&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output)&gt; {
     <span class="kw">let </span>old = old.as_diffable_str();
     <span class="kw">let </span>new = new.as_diffable_str();
     <span class="kw">let </span>diff = TextDiff::configure()
@@ -789,19 +791,19 @@
 /// use similar::{Algorithm, ChangeTag};
 /// use similar::utils::diff_lines;
 ///
-/// assert_eq!(diff_lines(Algorithm::Myers, &quot;foo\nbar\nbaz\nblah&quot;, &quot;foo\nbar\nbaz\nblurgh&quot;), vec![
-///     (ChangeTag::Equal, &quot;foo\n&quot;),
-///     (ChangeTag::Equal, &quot;bar\n&quot;),
-///     (ChangeTag::Equal, &quot;baz\n&quot;),
-///     (ChangeTag::Delete, &quot;blah&quot;),
-///     (ChangeTag::Insert, &quot;blurgh&quot;),
+/// assert_eq!(diff_lines(Algorithm::Myers, "foo\nbar\nbaz\nblah", "foo\nbar\nbaz\nblurgh"), vec![
+///     (ChangeTag::Equal, "foo\n"),
+///     (ChangeTag::Equal, "bar\n"),
+///     (ChangeTag::Equal, "baz\n"),
+///     (ChangeTag::Delete, "blah"),
+///     (ChangeTag::Insert, "blurgh"),
 /// ]);
 /// ```
-</span><span class="kw">pub fn </span>diff_lines&lt;<span class="lifetime">&#39;x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="kw">pub fn </span>diff_lines&lt;<span class="lifetime">'x</span>, T: DiffableStrRef + <span class="question-mark">?</span>Sized&gt;(
     alg: Algorithm,
-    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T,
-) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">&#39;x </span>T::Output)&gt; {
+    old: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T,
+) -&gt; Vec&lt;(ChangeTag, <span class="kw-2">&amp;</span><span class="lifetime">'x </span>T::Output)&gt; {
     TextDiff::configure()
         .algorithm(alg)
         .diff_lines(old, new)
@@ -812,14 +814,14 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_remapper() {
-    <span class="kw">let </span>a = <span class="string">&quot;foo bar baz&quot;</span>;
+    <span class="kw">let </span>a = <span class="string">"foo bar baz"</span>;
     <span class="kw">let </span>words = a.tokenize_words();
     <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>words);
     <span class="kw">let </span>remap = SliceRemapper::new(a, <span class="kw-2">&amp;</span>words);
-    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;foo bar&quot;</span>));
-    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">1</span>..<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">&quot; bar&quot;</span>));
-    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;foo&quot;</span>));
-    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">5</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;foo bar baz&quot;</span>));
+    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">"foo bar"</span>));
+    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">1</span>..<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="string">" bar"</span>));
+    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="string">"foo"</span>));
+    <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">5</span>), <span class="prelude-val">Some</span>(<span class="string">"foo bar baz"</span>));
     <span class="macro">assert_eq!</span>(remap.slice(<span class="number">0</span>..<span class="number">6</span>), <span class="prelude-val">None</span>);
 }
 </code></pre></div></section></main></body></html>

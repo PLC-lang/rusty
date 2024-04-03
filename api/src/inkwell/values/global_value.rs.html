@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/global_value.rs`."><title>global_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/values/global_value.rs`."><title>global_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -365,11 +367,11 @@
 <span class="comment">// REVIEW: GlobalValues are always PointerValues. With SubTypes, we should
 // compress this into a PointerValue&lt;Global&gt; type
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
-</span><span class="kw">pub struct </span>GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    global_value: Value&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
+    global_value: Value&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(value: LLVMValueRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!value.is_null());
 
@@ -388,7 +390,7 @@
         <span class="self">self</span>.global_value.set_name(name)
     }
 
-    <span class="kw">pub fn </span>get_previous_global(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_previous_global(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetPreviousGlobal(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>value.is_null() {
@@ -398,7 +400,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(GlobalValue::new(value)) }
     }
 
-    <span class="kw">pub fn </span>get_next_global(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_next_global(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetNextGlobal(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>value.is_null() {
@@ -418,7 +420,7 @@
         <span class="kw">unsafe </span>{ LLVMSetDLLStorageClass(<span class="self">self</span>.as_value_ref(), dll_storage_class.into()) }
     }
 
-    <span class="kw">pub fn </span>get_initializer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>get_initializer(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetInitializer(<span class="self">self</span>.as_value_ref()) };
 
         <span class="kw">if </span>value.is_null() {
@@ -429,7 +431,7 @@
     }
 
     <span class="comment">// SubType: This input type should be tied to the BasicType
-    </span><span class="kw">pub fn </span>set_initializer(<span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="kw">dyn </span>BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    </span><span class="kw">pub fn </span>set_initializer(<span class="self">self</span>, value: <span class="kw-2">&amp;</span><span class="kw">dyn </span>BasicValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">unsafe </span>{ LLVMSetInitializer(<span class="self">self</span>.as_value_ref(), value.as_value_ref()) }
     }
 
@@ -448,7 +450,7 @@
         ThreadLocalMode::new(thread_local_mode)
     }
 
-    <span class="comment">// REVIEW: Does this have any bad behavior if it isn&#39;t thread local or just a noop?
+    <span class="comment">// REVIEW: Does this have any bad behavior if it isn't thread local or just a noop?
     // or should it call self.set_thread_local(true)?
     </span><span class="kw">pub fn </span>set_thread_local_mode(<span class="self">self</span>, thread_local_mode: <span class="prelude-ty">Option</span>&lt;ThreadLocalMode&gt;) {
         <span class="kw">let </span>thread_local_mode = <span class="kw">match </span>thread_local_mode {
@@ -469,14 +471,14 @@
     ///
     /// let context = Context::create();
     /// let builder = context.create_builder();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_func&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_func", fn_type, None);
     ///
     /// assert!(fn_value.as_global_value().is_declaration());
     ///
-    /// context.append_basic_block(fn_value, &quot;entry&quot;);
+    /// context.append_basic_block(fn_value, "entry");
     ///
     /// assert!(!fn_value.as_global_value().is_declaration());
     /// ```
@@ -550,7 +552,7 @@
         LLVMDeleteGlobal(<span class="self">self</span>.as_value_ref())
     }
 
-    <span class="kw">pub fn </span>as_pointer_value(<span class="self">self</span>) -&gt; PointerValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>as_pointer_value(<span class="self">self</span>) -&gt; PointerValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ PointerValue::new(<span class="self">self</span>.as_value_ref()) }
     }
 
@@ -564,7 +566,7 @@
 
     <span class="doccomment">/// Sets a metadata of the given type on the GlobalValue
     </span><span class="attr">#[llvm_versions(<span class="number">8.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>set_metadata(<span class="self">self</span>, metadata: MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;, kind_id: u32) {
+    </span><span class="kw">pub fn </span>set_metadata(<span class="self">self</span>, metadata: MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;, kind_id: u32) {
         <span class="kw">unsafe </span>{ LLVMGlobalSetMetadata(<span class="self">self</span>.as_value_ref(), kind_id, metadata.as_metadata_ref()) }
     }
 
@@ -615,19 +617,19 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsValueRef <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_value_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMValueRef {
         <span class="self">self</span>.global_value.value
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 
-<span class="doccomment">/// This enum determines the significance of a `GlobalValue`&#39;s address.
+<span class="doccomment">/// This enum determines the significance of a `GlobalValue`'s address.
 </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
 #[llvm_enum(LLVMUnnamedAddr)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

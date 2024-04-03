@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/time_delta.rs`."><title>time_delta.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/time_delta.rs`."><title>time_delta.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1299,12 +1301,12 @@
 </span><span class="kw">use </span>core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 <span class="kw">use </span>core::time::Duration;
 <span class="kw">use </span>core::{fmt, i64};
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::error::Error;
 
 <span class="kw">use crate</span>::{expect, try_opt};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;rkyv&quot;</span>, feature = <span class="string">&quot;rkyv-16&quot;</span>, feature = <span class="string">&quot;rkyv-32&quot;</span>, feature = <span class="string">&quot;rkyv-64&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"rkyv"</span>, feature = <span class="string">"rkyv-16"</span>, feature = <span class="string">"rkyv-32"</span>, feature = <span class="string">"rkyv-64"</span>))]
 </span><span class="kw">use </span>rkyv::{Archive, Deserialize, Serialize};
 
 <span class="doccomment">/// The number of nanoseconds in a microsecond.
@@ -1337,12 +1339,12 @@
 /// instance `abs()` can be called without any checks.
 </span><span class="attr">#[derive(Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 #[cfg_attr(
-    any(feature = <span class="string">&quot;rkyv&quot;</span>, feature = <span class="string">&quot;rkyv-16&quot;</span>, feature = <span class="string">&quot;rkyv-32&quot;</span>, feature = <span class="string">&quot;rkyv-64&quot;</span>),
+    any(feature = <span class="string">"rkyv"</span>, feature = <span class="string">"rkyv-16"</span>, feature = <span class="string">"rkyv-32"</span>, feature = <span class="string">"rkyv-64"</span>),
     derive(Archive, Deserialize, Serialize),
     archive(compare(PartialEq, PartialOrd)),
     archive_attr(derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash))
 )]
-#[cfg_attr(feature = <span class="string">&quot;rkyv-validation&quot;</span>, archive(check_bytes))]
+#[cfg_attr(feature = <span class="string">"rkyv-validation"</span>, archive(check_bytes))]
 </span><span class="kw">pub struct </span>TimeDelta {
     secs: i64,
     nanos: i32, <span class="comment">// Always 0 &lt;= nanos &lt; NANOS_PER_SEC
@@ -1388,9 +1390,9 @@
     /// Panics when the duration is out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_weeks` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_weeks` instead"</span>)]
     </span><span class="kw">pub const fn </span>weeks(weeks: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_weeks(weeks), <span class="string">&quot;TimeDelta::weeks out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_weeks(weeks), <span class="string">"TimeDelta::weeks out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of weeks.
@@ -1416,9 +1418,9 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_days` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_days` instead"</span>)]
     </span><span class="kw">pub const fn </span>days(days: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_days(days), <span class="string">&quot;TimeDelta::days out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_days(days), <span class="string">"TimeDelta::days out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of days.
@@ -1443,9 +1445,9 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_hours` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_hours` instead"</span>)]
     </span><span class="kw">pub const fn </span>hours(hours: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_hours(hours), <span class="string">&quot;TimeDelta::hours out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_hours(hours), <span class="string">"TimeDelta::hours out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of hours.
@@ -1469,9 +1471,9 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_minutes` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_minutes` instead"</span>)]
     </span><span class="kw">pub const fn </span>minutes(minutes: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_minutes(minutes), <span class="string">&quot;TimeDelta::minutes out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_minutes(minutes), <span class="string">"TimeDelta::minutes out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of minutes.
@@ -1494,9 +1496,9 @@
     /// (in this context, this is the same as `i64::MIN / 1_000` due to rounding).
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_seconds` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_seconds` instead"</span>)]
     </span><span class="kw">pub const fn </span>seconds(seconds: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_seconds(seconds), <span class="string">&quot;TimeDelta::seconds out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_seconds(seconds), <span class="string">"TimeDelta::seconds out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of seconds.
@@ -1518,9 +1520,9 @@
     /// Panics when the `TimeDelta` would be out of bounds, i.e. when `milliseconds` is more than
     /// `i64::MAX` or less than `-i64::MAX`. Notably, this is not the same as `i64::MIN`.
     </span><span class="attr">#[inline]
-    #[deprecated(since = <span class="string">&quot;0.4.35&quot;</span>, note = <span class="string">&quot;Use `TimeDelta::try_milliseconds` instead&quot;</span>)]
+    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_milliseconds` instead"</span>)]
     </span><span class="kw">pub const fn </span>milliseconds(milliseconds: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_milliseconds(milliseconds), <span class="string">&quot;TimeDelta::milliseconds out of bounds&quot;</span>)
+        <span class="macro">expect!</span>(TimeDelta::try_milliseconds(milliseconds), <span class="string">"TimeDelta::milliseconds out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of milliseconds.
@@ -1531,7 +1533,7 @@
     /// than `i64::MAX` or less than `-i64::MAX`. Notably, this is not the same as `i64::MIN`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>try_milliseconds(milliseconds: i64) -&gt; <span class="prelude-ty">Option</span>&lt;TimeDelta&gt; {
-        <span class="comment">// We don&#39;t need to compare against MAX, as this function accepts an
+        <span class="comment">// We don't need to compare against MAX, as this function accepts an
         // i64, and MAX is aligned to i64::MAX milliseconds.
         </span><span class="kw">if </span>milliseconds &lt; -i64::MAX {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1724,7 +1726,7 @@
         <span class="prelude-val">Ok</span>(Duration::new(<span class="self">self</span>.secs <span class="kw">as </span>u64, <span class="self">self</span>.nanos <span class="kw">as </span>u32))
     }
 
-    <span class="doccomment">/// This duplicates `Neg::neg` because trait methods can&#39;t be const yet.
+    <span class="doccomment">/// This duplicates `Neg::neg` because trait methods can't be const yet.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>neg(<span class="self">self</span>) -&gt; TimeDelta {
         <span class="kw">let </span>(secs_diff, nanos) = <span class="kw">match </span><span class="self">self</span>.nanos {
             <span class="number">0 </span>=&gt; (<span class="number">0</span>, <span class="number">0</span>),
@@ -1751,7 +1753,7 @@
     <span class="kw">type </span>Output = TimeDelta;
 
     <span class="kw">fn </span>add(<span class="self">self</span>, rhs: TimeDelta) -&gt; TimeDelta {
-        <span class="self">self</span>.checked_add(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">&quot;`TimeDelta + TimeDelta` overflowed&quot;</span>)
+        <span class="self">self</span>.checked_add(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">"`TimeDelta + TimeDelta` overflowed"</span>)
     }
 }
 
@@ -1759,20 +1761,20 @@
     <span class="kw">type </span>Output = TimeDelta;
 
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: TimeDelta) -&gt; TimeDelta {
-        <span class="self">self</span>.checked_sub(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">&quot;`TimeDelta - TimeDelta` overflowed&quot;</span>)
+        <span class="self">self</span>.checked_sub(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">"`TimeDelta - TimeDelta` overflowed"</span>)
     }
 }
 
 <span class="kw">impl </span>AddAssign <span class="kw">for </span>TimeDelta {
     <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: TimeDelta) {
-        <span class="kw">let </span>new = <span class="self">self</span>.checked_add(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">&quot;`TimeDelta + TimeDelta` overflowed&quot;</span>);
+        <span class="kw">let </span>new = <span class="self">self</span>.checked_add(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">"`TimeDelta + TimeDelta` overflowed"</span>);
         <span class="kw-2">*</span><span class="self">self </span>= new;
     }
 }
 
 <span class="kw">impl </span>SubAssign <span class="kw">for </span>TimeDelta {
     <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: TimeDelta) {
-        <span class="kw">let </span>new = <span class="self">self</span>.checked_sub(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">&quot;`TimeDelta - TimeDelta` overflowed&quot;</span>);
+        <span class="kw">let </span>new = <span class="self">self</span>.checked_sub(<span class="kw-2">&amp;</span>rhs).expect(<span class="string">"`TimeDelta - TimeDelta` overflowed"</span>);
         <span class="kw-2">*</span><span class="self">self </span>= new;
     }
 }
@@ -1809,8 +1811,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; core::iter::Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TimeDelta&gt; <span class="kw">for </span>TimeDelta {
-    <span class="kw">fn </span>sum&lt;I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TimeDelta&gt;&gt;(iter: I) -&gt; TimeDelta {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; core::iter::Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>TimeDelta&gt; <span class="kw">for </span>TimeDelta {
+    <span class="kw">fn </span>sum&lt;I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TimeDelta&gt;&gt;(iter: I) -&gt; TimeDelta {
         iter.fold(TimeDelta::zero(), |acc, x| acc + <span class="kw-2">*</span>x)
     }
 }
@@ -1828,18 +1830,18 @@
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="comment">// technically speaking, negative duration is not valid ISO 8601,
         // but we need to print it anyway.
-        </span><span class="kw">let </span>(abs, sign) = <span class="kw">if </span><span class="self">self</span>.secs &lt; <span class="number">0 </span>{ (-<span class="kw-2">*</span><span class="self">self</span>, <span class="string">&quot;-&quot;</span>) } <span class="kw">else </span>{ (<span class="kw-2">*</span><span class="self">self</span>, <span class="string">&quot;&quot;</span>) };
+        </span><span class="kw">let </span>(abs, sign) = <span class="kw">if </span><span class="self">self</span>.secs &lt; <span class="number">0 </span>{ (-<span class="kw-2">*</span><span class="self">self</span>, <span class="string">"-"</span>) } <span class="kw">else </span>{ (<span class="kw-2">*</span><span class="self">self</span>, <span class="string">""</span>) };
 
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}P&quot;</span>, sign)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{}P"</span>, sign)<span class="question-mark">?</span>;
         <span class="comment">// Plenty of ways to encode an empty string. `P0D` is short and not too strange.
         </span><span class="kw">if </span>abs.secs == <span class="number">0 </span>&amp;&amp; abs.nanos == <span class="number">0 </span>{
-            <span class="kw">return </span>f.write_str(<span class="string">&quot;0D&quot;</span>);
+            <span class="kw">return </span>f.write_str(<span class="string">"0D"</span>);
         }
 
-        f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;T{}&quot;</span>, abs.secs))<span class="question-mark">?</span>;
+        f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"T{}"</span>, abs.secs))<span class="question-mark">?</span>;
 
         <span class="kw">if </span>abs.nanos &gt; <span class="number">0 </span>{
-            <span class="comment">// Count the number of significant digits, while removing all trailing zero&#39;s.
+            <span class="comment">// Count the number of significant digits, while removing all trailing zero's.
             </span><span class="kw">let </span><span class="kw-2">mut </span>figures = <span class="number">9usize</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>fraction_digits = abs.nanos;
             <span class="kw">loop </span>{
@@ -1851,9 +1853,9 @@
                 fraction_digits = div;
                 figures -= <span class="number">1</span>;
             }
-            f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;.{:01$}&quot;</span>, fraction_digits, figures))<span class="question-mark">?</span>;
+            f.write_fmt(<span class="macro">format_args!</span>(<span class="string">".{:01$}"</span>, fraction_digits, figures))<span class="question-mark">?</span>;
         }
-        f.write_str(<span class="string">&quot;S&quot;</span>)<span class="question-mark">?</span>;
+        f.write_str(<span class="string">"S"</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -1869,15 +1871,15 @@
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>OutOfRangeError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;Source duration value is out of range for the target type&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">"Source duration value is out of range for the target type"</span>)
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl </span>Error <span class="kw">for </span>OutOfRangeError {
     <span class="attr">#[allow(deprecated)]
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="string">&quot;out of range error&quot;
+        <span class="string">"out of range error"
     </span>}
 }
 
@@ -1886,8 +1888,8 @@
     (this.div_euclid(other), this.rem_euclid(other))
 }
 
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;arbitrary&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))]
-</span><span class="kw">impl </span>arbitrary::Arbitrary&lt;<span class="lifetime">&#39;_</span>&gt; <span class="kw">for </span>TimeDelta {
+<span class="attr">#[cfg(all(feature = <span class="string">"arbitrary"</span>, feature = <span class="string">"std"</span>))]
+</span><span class="kw">impl </span>arbitrary::Arbitrary&lt;<span class="lifetime">'_</span>&gt; <span class="kw">for </span>TimeDelta {
     <span class="kw">fn </span>arbitrary(u: <span class="kw-2">&amp;mut </span>arbitrary::Unstructured) -&gt; arbitrary::Result&lt;TimeDelta&gt; {
         <span class="kw">const </span>MIN_SECS: i64 = -i64::MAX / MILLIS_PER_SEC - <span class="number">1</span>;
         <span class="kw">const </span>MAX_SECS: i64 = i64::MAX / MILLIS_PER_SEC;
@@ -1975,7 +1977,7 @@
 
     <span class="attr">#[test]
     #[allow(deprecated)]
-    #[should_panic(expected = <span class="string">&quot;TimeDelta::seconds out of bounds&quot;</span>)]
+    #[should_panic(expected = <span class="string">"TimeDelta::seconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_seconds_max_overflow_panic() {
         <span class="kw">let _ </span>= TimeDelta::seconds(i64::MAX / <span class="number">1_000 </span>+ <span class="number">1</span>);
     }
@@ -1997,7 +1999,7 @@
 
     <span class="attr">#[test]
     #[allow(deprecated)]
-    #[should_panic(expected = <span class="string">&quot;TimeDelta::seconds out of bounds&quot;</span>)]
+    #[should_panic(expected = <span class="string">"TimeDelta::seconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_seconds_min_underflow_panic() {
         <span class="kw">let _ </span>= TimeDelta::seconds(-i64::MAX / <span class="number">1_000 </span>- <span class="number">1</span>);
     }
@@ -2060,7 +2062,7 @@
 
     <span class="attr">#[test]
     #[allow(deprecated)]
-    #[should_panic(expected = <span class="string">&quot;TimeDelta::milliseconds out of bounds&quot;</span>)]
+    #[should_panic(expected = <span class="string">"TimeDelta::milliseconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_milliseconds_min_underflow_panic() {
         <span class="comment">// Here we ensure that trying to create a value one millisecond below the
         // minimum storable value will fail. This test is necessary because the
@@ -2455,28 +2457,28 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_duration_fmt() {
-        <span class="macro">assert_eq!</span>(TimeDelta::zero().to_string(), <span class="string">&quot;P0D&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::try_days(<span class="number">42</span>).unwrap().to_string(), <span class="string">&quot;PT3628800S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::try_days(-<span class="number">42</span>).unwrap().to_string(), <span class="string">&quot;-PT3628800S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::try_seconds(<span class="number">42</span>).unwrap().to_string(), <span class="string">&quot;PT42S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::try_milliseconds(<span class="number">42</span>).unwrap().to_string(), <span class="string">&quot;PT0.042S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::microseconds(<span class="number">42</span>).to_string(), <span class="string">&quot;PT0.000042S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::nanoseconds(<span class="number">42</span>).to_string(), <span class="string">&quot;PT0.000000042S&quot;</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::zero().to_string(), <span class="string">"P0D"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::try_days(<span class="number">42</span>).unwrap().to_string(), <span class="string">"PT3628800S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::try_days(-<span class="number">42</span>).unwrap().to_string(), <span class="string">"-PT3628800S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::try_seconds(<span class="number">42</span>).unwrap().to_string(), <span class="string">"PT42S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::try_milliseconds(<span class="number">42</span>).unwrap().to_string(), <span class="string">"PT0.042S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::microseconds(<span class="number">42</span>).to_string(), <span class="string">"PT0.000042S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::nanoseconds(<span class="number">42</span>).to_string(), <span class="string">"PT0.000000042S"</span>);
         <span class="macro">assert_eq!</span>(
             (TimeDelta::try_days(<span class="number">7</span>).unwrap() + TimeDelta::try_milliseconds(<span class="number">6543</span>).unwrap())
                 .to_string(),
-            <span class="string">&quot;PT604806.543S&quot;
+            <span class="string">"PT604806.543S"
         </span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::try_seconds(-<span class="number">86_401</span>).unwrap().to_string(), <span class="string">&quot;-PT86401S&quot;</span>);
-        <span class="macro">assert_eq!</span>(TimeDelta::nanoseconds(-<span class="number">1</span>).to_string(), <span class="string">&quot;-PT0.000000001S&quot;</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::try_seconds(-<span class="number">86_401</span>).unwrap().to_string(), <span class="string">"-PT86401S"</span>);
+        <span class="macro">assert_eq!</span>(TimeDelta::nanoseconds(-<span class="number">1</span>).to_string(), <span class="string">"-PT0.000000001S"</span>);
 
         <span class="comment">// the format specifier should have no effect on `TimeDelta`
         </span><span class="macro">assert_eq!</span>(
             <span class="macro">format!</span>(
-                <span class="string">&quot;{:30}&quot;</span>,
+                <span class="string">"{:30}"</span>,
                 TimeDelta::try_days(<span class="number">1</span>).unwrap() + TimeDelta::try_milliseconds(<span class="number">2345</span>).unwrap()
             ),
-            <span class="string">&quot;PT86402.345S&quot;
+            <span class="string">"PT86402.345S"
         </span>);
     }
 
@@ -2530,12 +2532,12 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_duration_const() {
-        <span class="kw">const </span>ONE_WEEK: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_weeks(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
-        <span class="kw">const </span>ONE_DAY: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_days(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
-        <span class="kw">const </span>ONE_HOUR: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_hours(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
-        <span class="kw">const </span>ONE_MINUTE: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_minutes(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
-        <span class="kw">const </span>ONE_SECOND: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_seconds(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
-        <span class="kw">const </span>ONE_MILLI: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_milliseconds(<span class="number">1</span>), <span class="string">&quot;&quot;</span>);
+        <span class="kw">const </span>ONE_WEEK: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_weeks(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_DAY: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_days(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_HOUR: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_hours(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_MINUTE: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_minutes(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_SECOND: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_seconds(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_MILLI: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_milliseconds(<span class="number">1</span>), <span class="string">""</span>);
         <span class="kw">const </span>ONE_MICRO: TimeDelta = TimeDelta::microseconds(<span class="number">1</span>);
         <span class="kw">const </span>ONE_NANO: TimeDelta = TimeDelta::nanoseconds(<span class="number">1</span>);
         <span class="kw">let </span>combo: TimeDelta = ONE_WEEK
@@ -2563,7 +2565,7 @@
     }
 
     <span class="attr">#[test]
-    #[cfg(feature = <span class="string">&quot;rkyv-validation&quot;</span>)]
+    #[cfg(feature = <span class="string">"rkyv-validation"</span>)]
     </span><span class="kw">fn </span>test_rkyv_validation() {
         <span class="kw">let </span>duration = TimeDelta::try_seconds(<span class="number">1</span>).unwrap();
         <span class="kw">let </span>bytes = rkyv::to_bytes::&lt;<span class="kw">_</span>, <span class="number">16</span>&gt;(<span class="kw-2">&amp;</span>duration).unwrap();

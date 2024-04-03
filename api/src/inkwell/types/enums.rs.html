@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/enums.rs`."><title>enums.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/enums.rs`."><title>enums.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -650,14 +652,14 @@
     ($(<span class="attr">#[<span class="macro-nonterminal">$enum_attrs</span>:meta]</span>)* <span class="macro-nonterminal">$enum_name</span>:ident: { $($(<span class="attr">#[<span class="macro-nonterminal">$variant_attrs</span>:meta]</span>)* <span class="macro-nonterminal">$args</span>:ident,)+ }) =&gt; (
         <span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
         </span>$(<span class="attr">#[<span class="macro-nonterminal">$enum_attrs</span>]</span>)*
-        <span class="kw">pub enum </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        <span class="kw">pub enum </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">'ctx</span>&gt; {
             $(
                 $(<span class="attr">#[<span class="macro-nonterminal">$variant_attrs</span>]</span>)*
-                <span class="macro-nonterminal">$args</span>(<span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">&#39;ctx</span>&gt;),
+                <span class="macro-nonterminal">$args</span>(<span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">'ctx</span>&gt;),
             )*
         }
 
-        <span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">'_</span>&gt; {
             <span class="kw">fn </span>as_type_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMTypeRef {
                 <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
                     $(
@@ -668,16 +670,16 @@
         }
 
         $(
-            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; From&lt;<span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+            <span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; From&lt;<span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">'ctx</span>&gt; {
                 <span class="kw">fn </span>from(value: <span class="macro-nonterminal">$args</span>) -&gt; <span class="macro-nonterminal">$enum_name </span>{
                     <span class="macro-nonterminal">$enum_name</span>::<span class="macro-nonterminal">$args</span>(value)
                 }
             }
 
-            <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TryFrom&lt;<span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+            <span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TryFrom&lt;<span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$args</span>&lt;<span class="lifetime">'ctx</span>&gt; {
                 <span class="kw">type </span>Error = ();
 
-                <span class="kw">fn </span>try_from(value: <span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+                <span class="kw">fn </span>try_from(value: <span class="macro-nonterminal">$enum_name</span>&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
                     <span class="kw">match </span>value {
                         <span class="macro-nonterminal">$enum_name</span>::<span class="macro-nonterminal">$args</span>(ty) =&gt; <span class="prelude-val">Ok</span>(ty),
                         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
@@ -703,7 +705,7 @@
         </span>PointerType,
         <span class="doccomment">/// A contiguous heterogeneous container type.
         </span>StructType,
-        <span class="doccomment">/// A contiguous homogeneous &quot;SIMD&quot; container type.
+        <span class="doccomment">/// A contiguous homogeneous "SIMD" container type.
         </span>VectorType,
         <span class="doccomment">/// A valueless type.
         </span>VoidType,
@@ -722,7 +724,7 @@
         </span>PointerType,
         <span class="doccomment">/// A contiguous heterogeneous container type.
         </span>StructType,
-        <span class="doccomment">/// A contiguous homogeneous &quot;SIMD&quot; container type.
+        <span class="doccomment">/// A contiguous homogeneous "SIMD" container type.
         </span>VectorType,
     }
 }
@@ -738,60 +740,60 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::ArrayType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::FloatType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::IntType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::PointerType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::StructType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::VectorType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_metadata_type(<span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_metadata_type(<span class="self">self</span>) -&gt; MetadataType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicMetadataTypeEnum::MetadataType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected another variant"</span>, <span class="self">self</span>);
         }
     }
 
@@ -837,11 +839,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create `AnyTypeEnum` from [`LLVMTypeRef`]
     ///
     /// # Safety
-    /// Undefined behavior, if referenced type isn&#39;t part of `AnyTypeEnum`
+    /// Undefined behavior, if referenced type isn't part of `AnyTypeEnum`
     </span><span class="kw">pub unsafe fn </span>new(type_: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>LLVMGetTypeKind(type_) {
             LLVMTypeKind::LLVMVoidTypeKind =&gt; AnyTypeEnum::VoidType(VoidType::new(type_)),
@@ -852,15 +854,15 @@
             | LLVMTypeKind::LLVMFP128TypeKind
             | LLVMTypeKind::LLVMPPC_FP128TypeKind =&gt; AnyTypeEnum::FloatType(FloatType::new(type_)),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>LLVMTypeKind::LLVMBFloatTypeKind =&gt; AnyTypeEnum::FloatType(FloatType::new(type_)),
-            LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Label&quot;</span>),
+            LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"FIXME: Unsupported type: Label"</span>),
             LLVMTypeKind::LLVMIntegerTypeKind =&gt; AnyTypeEnum::IntType(IntType::new(type_)),
             LLVMTypeKind::LLVMFunctionTypeKind =&gt; AnyTypeEnum::FunctionType(FunctionType::new(type_)),
             LLVMTypeKind::LLVMStructTypeKind =&gt; AnyTypeEnum::StructType(StructType::new(type_)),
@@ -868,97 +870,97 @@
             LLVMTypeKind::LLVMPointerTypeKind =&gt; AnyTypeEnum::PointerType(PointerType::new(type_)),
             LLVMTypeKind::LLVMVectorTypeKind =&gt; AnyTypeEnum::VectorType(VectorType::new(type_)),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>LLVMTypeKind::LLVMScalableVectorTypeKind =&gt; AnyTypeEnum::VectorType(VectorType::new(type_)),
             <span class="comment">// FIXME: should inkwell support metadata as AnyType?
-            </span>LLVMTypeKind::LLVMMetadataTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Metadata type is not supported as AnyType.&quot;</span>),
-            LLVMTypeKind::LLVMX86_MMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: MMX&quot;</span>),
+            </span>LLVMTypeKind::LLVMMetadataTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"Metadata type is not supported as AnyType."</span>),
+            LLVMTypeKind::LLVMX86_MMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"FIXME: Unsupported type: MMX"</span>),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
-            </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: AMX&quot;</span>),
-            LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Token&quot;</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;llvm16-0&quot;</span>)]
-            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: TargetExt&quot;</span>),
+            </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"FIXME: Unsupported type: AMX"</span>),
+            LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"FIXME: Unsupported type: Token"</span>),
+            <span class="attr">#[cfg(feature = <span class="string">"llvm16-0"</span>)]
+            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"FIXME: Unsupported type: TargetExt"</span>),
         }
     }
 
     <span class="doccomment">/// This will panic if type is a void or function type.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_basic_type_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_basic_type_enum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ BasicTypeEnum::new(<span class="self">self</span>.as_type_ref()) }
     }
 
-    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::ArrayType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the ArrayType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the ArrayType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::FloatType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the FloatType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the FloatType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_function_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_function_type(<span class="self">self</span>) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::FunctionType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the FunctionType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the FunctionType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::IntType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the IntType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the IntType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::PointerType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the PointerType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the PointerType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::StructType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the StructType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the StructType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::VectorType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the VectorType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the VectorType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_void_type(<span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_void_type(<span class="self">self</span>) -&gt; VoidType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>AnyTypeEnum::VoidType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the VoidType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the VoidType variant"</span>, <span class="self">self</span>);
         }
     }
 
@@ -994,7 +996,7 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, AnyTypeEnum::VoidType(<span class="kw">_</span>))
     }
 
-    <span class="kw">pub fn </span>size_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    <span class="kw">pub fn </span>size_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             AnyTypeEnum::ArrayType(t) =&gt; t.size_of(),
             AnyTypeEnum::FloatType(t) =&gt; <span class="prelude-val">Some</span>(t.size_of()),
@@ -1022,11 +1024,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create `BasicTypeEnum` from [`LLVMTypeRef`]
     ///
     /// # Safety
-    /// Undefined behavior, if referenced type isn&#39;t part of basic type enum.
+    /// Undefined behavior, if referenced type isn't part of basic type enum.
     </span><span class="kw">pub unsafe fn </span>new(type_: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>LLVMGetTypeKind(type_) {
             LLVMTypeKind::LLVMHalfTypeKind
@@ -1036,12 +1038,12 @@
             | LLVMTypeKind::LLVMFP128TypeKind
             | LLVMTypeKind::LLVMPPC_FP128TypeKind =&gt; BasicTypeEnum::FloatType(FloatType::new(type_)),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>LLVMTypeKind::LLVMBFloatTypeKind =&gt; BasicTypeEnum::FloatType(FloatType::new(type_)),
             LLVMTypeKind::LLVMIntegerTypeKind =&gt; BasicTypeEnum::IntType(IntType::new(type_)),
@@ -1050,80 +1052,80 @@
             LLVMTypeKind::LLVMArrayTypeKind =&gt; BasicTypeEnum::ArrayType(ArrayType::new(type_)),
             LLVMTypeKind::LLVMVectorTypeKind =&gt; BasicTypeEnum::VectorType(VectorType::new(type_)),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>LLVMTypeKind::LLVMScalableVectorTypeKind =&gt; BasicTypeEnum::VectorType(VectorType::new(type_)),
-            LLVMTypeKind::LLVMMetadataTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported basic type: Metadata&quot;</span>),
+            LLVMTypeKind::LLVMMetadataTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported basic type: Metadata"</span>),
             <span class="comment">// see https://llvm.org/docs/LangRef.html#x86-mmx-type
-            </span>LLVMTypeKind::LLVMX86_MMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported basic type: MMX&quot;</span>),
+            </span>LLVMTypeKind::LLVMX86_MMXTypeKind =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported basic type: MMX"</span>),
             <span class="comment">// see https://llvm.org/docs/LangRef.html#x86-amx-type
             </span><span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
-            </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: AMX&quot;</span>),
-            LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Label&quot;</span>),
-            LLVMTypeKind::LLVMVoidTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: VoidType&quot;</span>),
-            LLVMTypeKind::LLVMFunctionTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: FunctionType&quot;</span>),
-            LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Token&quot;</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;llvm16-0&quot;</span>)]
-            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: TargetExt&quot;</span>),
+            </span>LLVMTypeKind::LLVMX86_AMXTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: AMX"</span>),
+            LLVMTypeKind::LLVMLabelTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: Label"</span>),
+            LLVMTypeKind::LLVMVoidTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: VoidType"</span>),
+            LLVMTypeKind::LLVMFunctionTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: FunctionType"</span>),
+            LLVMTypeKind::LLVMTokenTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: Token"</span>),
+            <span class="attr">#[cfg(feature = <span class="string">"llvm16-0"</span>)]
+            </span>LLVMTypeKind::LLVMTargetExtTypeKind =&gt; <span class="macro">unreachable!</span>(<span class="string">"Unsupported basic type: TargetExt"</span>),
         }
     }
 
-    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_array_type(<span class="self">self</span>) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::ArrayType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the ArrayType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the ArrayType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_float_type(<span class="self">self</span>) -&gt; FloatType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::FloatType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the FloatType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the FloatType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_int_type(<span class="self">self</span>) -&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::IntType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the IntType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the IntType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_pointer_type(<span class="self">self</span>) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::PointerType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the PointerType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the PointerType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_struct_type(<span class="self">self</span>) -&gt; StructType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::StructType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the StructType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the StructType variant"</span>, <span class="self">self</span>);
         }
     }
 
-    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub fn </span>into_vector_type(<span class="self">self</span>) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">if let </span>BasicTypeEnum::VectorType(t) = <span class="self">self </span>{
             t
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected the VectorType variant&quot;</span>, <span class="self">self</span>);
+            <span class="macro">panic!</span>(<span class="string">"Found {:?} but expected the VectorType variant"</span>, <span class="self">self</span>);
         }
     }
 
@@ -1162,7 +1164,7 @@
     /// let f32_type = context.f32_type().as_basic_type_enum();
     /// let f32_zero = f32_type.const_zero();
     /// ```
-    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; BasicValueEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             BasicTypeEnum::ArrayType(ty) =&gt; ty.const_zero().as_basic_value_enum(),
             BasicTypeEnum::FloatType(ty) =&gt; ty.const_zero().as_basic_value_enum(),
@@ -1186,10 +1188,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TryFrom&lt;AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TryFrom&lt;AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">type </span>Error = ();
 
-    <span class="kw">fn </span>try_from(value: AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(value: AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="kw">use </span>AnyTypeEnum::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>value {
             ArrayType(at) =&gt; at.into(),
@@ -1203,10 +1205,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TryFrom&lt;AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TryFrom&lt;AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">type </span>Error = ();
 
-    <span class="kw">fn </span>try_from(value: AnyTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(value: AnyTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="kw">use </span>AnyTypeEnum::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>value {
             ArrayType(at) =&gt; at.into(),
@@ -1220,10 +1222,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TryFrom&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TryFrom&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">type </span>Error = ();
 
-    <span class="kw">fn </span>try_from(value: BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(value: BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="kw">use </span>BasicMetadataTypeEnum::<span class="kw-2">*</span>;
         <span class="prelude-val">Ok</span>(<span class="kw">match </span>value {
             ArrayType(at) =&gt; at.into(),
@@ -1237,8 +1239,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; From&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>from(value: BasicTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; From&lt;BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>from(value: BasicTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">use </span>BasicTypeEnum::<span class="kw-2">*</span>;
         <span class="kw">match </span>value {
             ArrayType(at) =&gt; at.into(),
@@ -1251,21 +1253,21 @@
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>AnyTypeEnum&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>AnyTypeEnum&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>BasicTypeEnum&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>BasicMetadataTypeEnum&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 </code></pre></div></section></main></body></html>

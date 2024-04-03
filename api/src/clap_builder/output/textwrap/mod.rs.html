@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/textwrap/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../clap_builder/index.html"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="clap_builder"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.2/src/output/textwrap/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../clap_builder/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -123,98 +125,98 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Fork of `textwrap` crate
 //!
 //! Benefits of forking:
-//! - Pull in only what we need rather than relying on the compiler to remove what we don&#39;t need
+//! - Pull in only what we need rather than relying on the compiler to remove what we don't need
 //! - `LineWrapper` is able to incrementally wrap which will help with `StyledStr
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>core;
-<span class="attr">#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"wrap_help"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>word_separators;
-<span class="attr">#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"wrap_help"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>wrap_algorithms;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"wrap_help"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrap(content: <span class="kw-2">&amp;</span>str, hard_width: usize) -&gt; String {
     <span class="kw">let </span><span class="kw-2">mut </span>wrapper = wrap_algorithms::LineWrapper::new(hard_width);
     <span class="kw">let </span><span class="kw-2">mut </span>total = Vec::new();
-    <span class="kw">for </span>line <span class="kw">in </span>content.split_inclusive(<span class="string">&#39;\n&#39;</span>) {
+    <span class="kw">for </span>line <span class="kw">in </span>content.split_inclusive(<span class="string">'\n'</span>) {
         wrapper.reset();
         <span class="kw">let </span>line = word_separators::find_words_ascii_space(line).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         total.extend(wrapper.wrap(line));
     }
-    total.join(<span class="string">&quot;&quot;</span>)
+    total.join(<span class="string">""</span>)
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;wrap_help&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"wrap_help"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrap(content: <span class="kw-2">&amp;</span>str, _hard_width: usize) -&gt; String {
     content.to_owned()
 }
 
 <span class="attr">#[cfg(test)]
-#[cfg(feature = <span class="string">&quot;wrap_help&quot;</span>)]
+#[cfg(feature = <span class="string">"wrap_help"</span>)]
 </span><span class="kw">mod </span>test {
-    <span class="doccomment">/// Compatibility shim to keep textwrap&#39;s tests
+    <span class="doccomment">/// Compatibility shim to keep textwrap's tests
     </span><span class="kw">fn </span>wrap(content: <span class="kw-2">&amp;</span>str, hard_width: usize) -&gt; Vec&lt;String&gt; {
         <span class="kw">super</span>::wrap(content, hard_width)
             .trim_end()
-            .split(<span class="string">&#39;\n&#39;</span>)
+            .split(<span class="string">'\n'</span>)
             .map(|s| s.to_owned())
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>no_wrap() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo&quot;</span>, <span class="number">10</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo"</span>, <span class="number">10</span>), <span class="macro">vec!</span>[<span class="string">"foo"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>wrap_simple() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo bar baz&quot;</span>, <span class="number">5</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="string">&quot;baz&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo bar baz"</span>, <span class="number">5</span>), <span class="macro">vec!</span>[<span class="string">"foo"</span>, <span class="string">"bar"</span>, <span class="string">"baz"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_be_or_not() {
         <span class="macro">assert_eq!</span>(
-            wrap(<span class="string">&quot;To be, or not to be, that is the question.&quot;</span>, <span class="number">10</span>),
-            <span class="macro">vec!</span>[<span class="string">&quot;To be, or&quot;</span>, <span class="string">&quot;not to be,&quot;</span>, <span class="string">&quot;that is&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;question.&quot;</span>]
+            wrap(<span class="string">"To be, or not to be, that is the question."</span>, <span class="number">10</span>),
+            <span class="macro">vec!</span>[<span class="string">"To be, or"</span>, <span class="string">"not to be,"</span>, <span class="string">"that is"</span>, <span class="string">"the"</span>, <span class="string">"question."</span>]
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>multiple_words_on_first_line() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo bar baz&quot;</span>, <span class="number">10</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo bar&quot;</span>, <span class="string">&quot;baz&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo bar baz"</span>, <span class="number">10</span>), <span class="macro">vec!</span>[<span class="string">"foo bar"</span>, <span class="string">"baz"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>long_word() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo&quot;</span>, <span class="number">0</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo"</span>, <span class="number">0</span>), <span class="macro">vec!</span>[<span class="string">"foo"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>long_words() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo bar&quot;</span>, <span class="number">0</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo bar"</span>, <span class="number">0</span>), <span class="macro">vec!</span>[<span class="string">"foo"</span>, <span class="string">"bar"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>max_width() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo bar&quot;</span>, usize::MAX), <span class="macro">vec!</span>[<span class="string">&quot;foo bar&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"foo bar"</span>, usize::MAX), <span class="macro">vec!</span>[<span class="string">"foo bar"</span>]);
 
-        <span class="kw">let </span>text = <span class="string">&quot;Hello there! This is some English text. \
-                    It should not be wrapped given the extents below.&quot;</span>;
+        <span class="kw">let </span>text = <span class="string">"Hello there! This is some English text. \
+                    It should not be wrapped given the extents below."</span>;
         <span class="macro">assert_eq!</span>(wrap(text, usize::MAX), <span class="macro">vec!</span>[text]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>leading_whitespace() {
-        <span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;  foo bar&quot;</span>, <span class="number">6</span>), <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>, <span class="string">&quot;  bar&quot;</span>]);
+        <span class="macro">assert_eq!</span>(wrap(<span class="string">"  foo bar"</span>, <span class="number">6</span>), <span class="macro">vec!</span>[<span class="string">"  foo"</span>, <span class="string">"  bar"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>leading_whitespace_empty_first_line() {
         <span class="comment">// If there is no space for the first word, the first line
         // will be empty. This is because the string is split into
-        // words like [&quot; &quot;, &quot;foobar &quot;, &quot;baz&quot;], which puts &quot;foobar &quot; on
+        // words like [" ", "foobar ", "baz"], which puts "foobar " on
         // the second line. We never output trailing whitespace
-        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">&quot; foobar baz&quot;</span>, <span class="number">6</span>), <span class="macro">vec!</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot; foobar&quot;</span>, <span class="string">&quot; baz&quot;</span>]);
+        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">" foobar baz"</span>, <span class="number">6</span>), <span class="macro">vec!</span>[<span class="string">""</span>, <span class="string">" foobar"</span>, <span class="string">" baz"</span>]);
     }
 
     <span class="attr">#[test]
@@ -222,7 +224,7 @@
         <span class="comment">// Whitespace is only significant inside a line. After a line
         // gets too long and is broken, the first word starts in
         // column zero and is not indented.
-        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;foo     bar     baz  &quot;</span>, <span class="number">5</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>, <span class="string">&quot;baz&quot;</span>]);
+        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">"foo     bar     baz  "</span>, <span class="number">5</span>), <span class="macro">vec!</span>[<span class="string">"foo"</span>, <span class="string">"bar"</span>, <span class="string">"baz"</span>]);
     }
 
     <span class="attr">#[test]
@@ -230,8 +232,8 @@
         <span class="comment">// We did not reset the in_whitespace flag correctly and did
         // not handle single-character words after a line break.
         </span><span class="macro">assert_eq!</span>(
-            wrap(<span class="string">&quot;aaabbbccc x yyyzzzwww&quot;</span>, <span class="number">9</span>),
-            <span class="macro">vec!</span>[<span class="string">&quot;aaabbbccc&quot;</span>, <span class="string">&quot;x&quot;</span>, <span class="string">&quot;yyyzzzwww&quot;</span>]
+            wrap(<span class="string">"aaabbbccc x yyyzzzwww"</span>, <span class="number">9</span>),
+            <span class="macro">vec!</span>[<span class="string">"aaabbbccc"</span>, <span class="string">"x"</span>, <span class="string">"yyyzzzwww"</span>]
         );
     }
 
@@ -239,7 +241,7 @@
     </span><span class="kw">fn </span>issue_129() {
         <span class="comment">// The dash is an em-dash which takes up four bytes. We used
         // to panic since we tried to index into the character.
-        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">&quot;x – x&quot;</span>, <span class="number">1</span>), <span class="macro">vec!</span>[<span class="string">&quot;x&quot;</span>, <span class="string">&quot;–&quot;</span>, <span class="string">&quot;x&quot;</span>]);
+        </span><span class="macro">assert_eq!</span>(wrap(<span class="string">"x – x"</span>, <span class="number">1</span>), <span class="macro">vec!</span>[<span class="string">"x"</span>, <span class="string">"–"</span>, <span class="string">"x"</span>]);
     }
 }
 </code></pre></div></section></main></body></html>

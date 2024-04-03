@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/resolver.rs`."><title>resolver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/jsonschema-0.17.1/src/resolver.rs`."><title>resolver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../jsonschema/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -658,13 +660,13 @@
 /// impl SchemaResolver for MyCustomResolver {
 ///     fn resolve(&amp;self, root_schema: &amp;Value, url: &amp;Url, _original_reference: &amp;str) -&gt; Result&lt;Arc&lt;Value&gt;, SchemaResolverError&gt; {
 ///         match url.scheme() {
-///             &quot;json-schema&quot; =&gt; {
-///                 Err(anyhow!(&quot;cannot resolve schema without root schema ID&quot;))
+///             "json-schema" =&gt; {
+///                 Err(anyhow!("cannot resolve schema without root schema ID"))
 ///             },
-///             &quot;http&quot; | &quot;https&quot; =&gt; {
-///                 Ok(Arc::new(json!({ &quot;description&quot;: &quot;an external schema&quot; })))
+///             "http" | "https" =&gt; {
+///                 Ok(Arc::new(json!({ "description": "an external schema" })))
 ///             }
-///             _ =&gt; Err(anyhow!(&quot;scheme is not supported&quot;))
+///             _ =&gt; Err(anyhow!("scheme is not supported"))
 ///         }
 ///     }
 /// }
@@ -672,7 +674,7 @@
 </span><span class="kw">pub trait </span>SchemaResolver: Send + Sync {
     <span class="doccomment">/// Resolve an external schema via an URL.
     ///
-    /// Relative URLs are resolved based on the root schema&#39;s ID,
+    /// Relative URLs are resolved based on the root schema's ID,
     /// if there is no root schema ID available, the scheme `json-schema` is used
     /// and any relative paths are turned into absolutes.
     ///
@@ -697,40 +699,40 @@
         _reference: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Value&gt;, SchemaResolverError&gt; {
         <span class="kw">match </span>url.scheme() {
-            <span class="string">&quot;http&quot; </span>| <span class="string">&quot;https&quot; </span>=&gt; {
-                <span class="attr">#[cfg(all(feature = <span class="string">&quot;reqwest&quot;</span>, not(feature = <span class="string">&quot;resolve-http&quot;</span>)))]
+            <span class="string">"http" </span>| <span class="string">"https" </span>=&gt; {
+                <span class="attr">#[cfg(all(feature = <span class="string">"reqwest"</span>, not(feature = <span class="string">"resolve-http"</span>)))]
                 </span>{
-                    <span class="macro">compile_error!</span>(<span class="string">&quot;the `reqwest` feature does not enable HTTP schema resolving anymore, use the `resolve-http` feature instead&quot;</span>);
+                    <span class="macro">compile_error!</span>(<span class="string">"the `reqwest` feature does not enable HTTP schema resolving anymore, use the `resolve-http` feature instead"</span>);
                 }
-                <span class="attr">#[cfg(any(feature = <span class="string">&quot;resolve-http&quot;</span>, test))]
+                <span class="attr">#[cfg(any(feature = <span class="string">"resolve-http"</span>, test))]
                 </span>{
                     <span class="kw">let </span>response = reqwest::blocking::get(url.as_str())<span class="question-mark">?</span>;
                     <span class="kw">let </span>document: Value = response.json()<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(Arc::new(document))
                 }
-                <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;resolve-http&quot;</span>, test)))]
-                </span><span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;`resolve-http` feature or a custom resolver is required to resolve external schemas via HTTP&quot;</span>))
+                <span class="attr">#[cfg(not(any(feature = <span class="string">"resolve-http"</span>, test)))]
+                </span><span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">"`resolve-http` feature or a custom resolver is required to resolve external schemas via HTTP"</span>))
             }
-            <span class="string">&quot;file&quot; </span>=&gt; {
-                <span class="attr">#[cfg(any(feature = <span class="string">&quot;resolve-file&quot;</span>, test))]
+            <span class="string">"file" </span>=&gt; {
+                <span class="attr">#[cfg(any(feature = <span class="string">"resolve-file"</span>, test))]
                 </span>{
                     <span class="kw">if let </span><span class="prelude-val">Ok</span>(path) = url.to_file_path() {
                         <span class="kw">let </span>f = std::fs::File::open(path)<span class="question-mark">?</span>;
                         <span class="kw">let </span>document: Value = serde_json::from_reader(f)<span class="question-mark">?</span>;
                         <span class="prelude-val">Ok</span>(Arc::new(document))
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;invalid file path&quot;</span>))
+                        <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">"invalid file path"</span>))
                     }
                 }
-                <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;resolve-file&quot;</span>, test)))]
+                <span class="attr">#[cfg(not(any(feature = <span class="string">"resolve-file"</span>, test)))]
                 </span>{
-                    <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;`resolve-file` feature or a custom resolver is required to resolve external schemas via files&quot;</span>))
+                    <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">"`resolve-file` feature or a custom resolver is required to resolve external schemas via files"</span>))
                 }
             }
-            <span class="string">&quot;json-schema&quot; </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
-                <span class="string">&quot;cannot resolve relative external schema without root schema ID&quot;
+            <span class="string">"json-schema" </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
+                <span class="string">"cannot resolve relative external schema without root schema ID"
             </span>)),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;unknown scheme {}&quot;</span>, url.scheme())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">"unknown scheme {}"</span>, url.scheme())),
         }
     }
 }
@@ -746,23 +748,23 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Resolver {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Resolver&quot;</span>)
-            .field(<span class="string">&quot;root_schema&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.root_schema)
-            .field(<span class="string">&quot;schemas&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.schemas)
-            .field(<span class="string">&quot;store&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.store)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"Resolver"</span>)
+            .field(<span class="string">"root_schema"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.root_schema)
+            .field(<span class="string">"schemas"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.schemas)
+            .field(<span class="string">"store"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.store)
             .finish()
     }
 }
 
 <span class="kw">impl </span>Resolver {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;<span class="lifetime">'a</span>&gt;(
         external_resolver: Arc&lt;<span class="kw">dyn </span>SchemaResolver&gt;,
         draft: Draft,
         scope: <span class="kw-2">&amp;</span>Url,
         schema: Arc&lt;Value&gt;,
         store: AHashMap&lt;String, Arc&lt;Value&gt;&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Resolver, ValidationError&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Resolver, ValidationError&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>schemas: AHashMap&lt;String, Arc&lt;Value&gt;&gt; = AHashMap::new();
         <span class="comment">// traverse the schema and store all named ones under their canonical ids
         </span>find_schemas(draft, <span class="kw-2">&amp;</span>schema, scope, <span class="kw-2">&amp;mut </span>|id, schema| {
@@ -782,7 +784,7 @@
     ///   - the root document (`DEFAULT_ROOT_URL`) case;
     ///   - named subschema that is stored in `self.schemas`;
     ///   - document from a remote location;
-    </span><span class="kw">fn </span>resolve_url(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span>Url, orig_ref: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Value&gt;, ValidationError&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">fn </span>resolve_url(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span>Url, orig_ref: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Value&gt;, ValidationError&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span>url.as_str() {
             DEFAULT_ROOT_URL =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.root_schema.clone()),
             url_str =&gt; <span class="kw">match </span><span class="self">self</span>.schemas.get(url_str) {
@@ -818,7 +820,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>resource = url.clone();
         resource.set_fragment(<span class="prelude-val">None</span>);
         <span class="kw">let </span>fragment =
-            percent_encoding::percent_decode_str(url.fragment().unwrap_or(<span class="string">&quot;&quot;</span>)).decode_utf8()<span class="question-mark">?</span>;
+            percent_encoding::percent_decode_str(url.fragment().unwrap_or(<span class="string">""</span>)).decode_utf8()<span class="question-mark">?</span>;
 
         <span class="comment">// Location-independent identifiers are searched before trying to resolve by
         // fragment-less url
@@ -853,28 +855,28 @@
 
 <span class="doccomment">/// Find all sub-schemas in the document and execute callback on each of them.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_schemas&lt;<span class="lifetime">&#39;a</span>, F&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_schemas&lt;<span class="lifetime">'a</span>, F&gt;(
     draft: Draft,
-    schema: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    schema: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     base_url: <span class="kw-2">&amp;</span>Url,
     callback: <span class="kw-2">&amp;mut </span>F,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value&gt;, url::ParseError&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value&gt;, url::ParseError&gt;
 <span class="kw">where
-    </span>F: FnMut(String, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value&gt;,
+    </span>F: FnMut(String, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value&gt;,
 {
     <span class="kw">match </span>schema {
         Value::Object(item) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(url) = id_of(draft, schema) {
                 <span class="kw">let </span><span class="kw-2">mut </span>new_url = base_url.join(url)<span class="question-mark">?</span>;
                 <span class="comment">// Empty fragments are discouraged and are not distinguishable absent fragments
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) = new_url.fragment() {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="string">""</span>) = new_url.fragment() {
                     new_url.set_fragment(<span class="prelude-val">None</span>);
                 }
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = callback(new_url.to_string(), schema) {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(x));
                 }
                 <span class="kw">for </span>(key, subschema) <span class="kw">in </span>item {
-                    <span class="kw">if </span>key == <span class="string">&quot;enum&quot; </span>|| key == <span class="string">&quot;const&quot; </span>{
+                    <span class="kw">if </span>key == <span class="string">"enum" </span>|| key == <span class="string">"const" </span>{
                         <span class="kw">continue</span>;
                     }
                     <span class="kw">let </span>result = find_schemas(draft, subschema, <span class="kw-2">&amp;</span>new_url, callback)<span class="question-mark">?</span>;
@@ -884,7 +886,7 @@
                 }
             } <span class="kw">else </span>{
                 <span class="kw">for </span>(key, subschema) <span class="kw">in </span>item {
-                    <span class="kw">if </span>key == <span class="string">&quot;enum&quot; </span>|| key == <span class="string">&quot;const&quot; </span>{
+                    <span class="kw">if </span>key == <span class="string">"enum" </span>|| key == <span class="string">"const" </span>{
                         <span class="kw">continue</span>;
                     }
                     <span class="kw">let </span>result = find_schemas(draft, subschema, base_url, callback)<span class="question-mark">?</span>;
@@ -908,12 +910,12 @@
 }
 
 <span class="doccomment">/// Searching twice is better than unconditionally allocating a String twice
-</span><span class="kw">trait </span>MaybeReplaceExt&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;;
+</span><span class="kw">trait </span>MaybeReplaceExt&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; MaybeReplaceExt&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
-    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; MaybeReplaceExt&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {
+    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
         <span class="kw">if </span>memchr::memmem::find(<span class="self">self</span>.as_bytes(), needle.as_bytes()).is_some() {
             <span class="self">self</span>.replace(needle, replacement).into()
         } <span class="kw">else </span>{
@@ -922,8 +924,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; MaybeReplaceExt&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
-    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;a</span>, str&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; MaybeReplaceExt&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>Cow&lt;<span class="lifetime">'a</span>, str&gt; {
+    <span class="kw">fn </span>maybe_replace(<span class="self">self</span>, needle: <span class="kw-2">&amp;</span>str, replacement: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
         <span class="kw">if </span>memchr::memmem::find(<span class="self">self</span>.as_bytes(), needle.as_bytes()).is_some() {
             <span class="self">self</span>.replace(needle, replacement).into()
         } <span class="kw">else </span>{
@@ -933,18 +935,18 @@
 }
 
 <span class="doccomment">/// Based on `serde_json`, but tracks folders in the traversed documents.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pointer&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pointer&lt;<span class="lifetime">'a</span>&gt;(
     draft: Draft,
-    document: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    document: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
     pointer: <span class="kw-2">&amp;</span>str,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value)&gt; {
-    <span class="kw">if </span>!pointer.starts_with(<span class="string">&#39;/&#39;</span>) {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value)&gt; {
+    <span class="kw">if </span>!pointer.starts_with(<span class="string">'/'</span>) {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
     <span class="kw">let </span>tokens = pointer
-        .split(<span class="string">&#39;/&#39;</span>)
+        .split(<span class="string">'/'</span>)
         .skip(<span class="number">1</span>)
-        .map(|x| x.maybe_replace(<span class="string">&quot;~1&quot;</span>, <span class="string">&quot;/&quot;</span>).maybe_replace(<span class="string">&quot;~0&quot;</span>, <span class="string">&quot;~&quot;</span>));
+        .map(|x| x.maybe_replace(<span class="string">"~1"</span>, <span class="string">"/"</span>).maybe_replace(<span class="string">"~0"</span>, <span class="string">"~"</span>));
     <span class="kw">let </span><span class="kw-2">mut </span>target = document;
     <span class="kw">let </span><span class="kw-2">mut </span>folders = <span class="macro">vec!</span>[];
 
@@ -969,7 +971,7 @@
 }
 
 <span class="kw">fn </span>parse_index(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="kw">if </span>s.starts_with(<span class="string">&#39;+&#39;</span>) || (s.starts_with(<span class="string">&#39;0&#39;</span>) &amp;&amp; s.len() != <span class="number">1</span>) {
+    <span class="kw">if </span>s.starts_with(<span class="string">'+'</span>) || (s.starts_with(<span class="string">'0'</span>) &amp;&amp; s.len() != <span class="number">1</span>) {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
         s.parse().ok()
@@ -987,7 +989,7 @@
         Resolver::new(
             Arc::new(DefaultResolver),
             Draft::Draft7,
-            <span class="kw-2">&amp;</span>Url::parse(<span class="string">&quot;json-schema:///&quot;</span>).unwrap(),
+            <span class="kw-2">&amp;</span>Url::parse(<span class="string">"json-schema:///"</span>).unwrap(),
             Arc::new(schema.clone()),
             AHashMap::new(),
         )
@@ -997,7 +999,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>only_keyword() {
         <span class="comment">// When only one keyword is specified
-        </span><span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>});
+        </span><span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>});
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
         <span class="comment">// Then in the resolver schema there should be no schemas
         </span><span class="macro">assert_eq!</span>(resolver.schemas.len(), <span class="number">0</span>);
@@ -1007,9 +1009,9 @@
     </span><span class="kw">fn </span>sub_schema_in_object() {
         <span class="comment">// When only one sub-schema is specified inside an object
         </span><span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;allOf&quot;</span>: [{<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;#foo&quot;</span>}],
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;A&quot;</span>: {<span class="string">&quot;$id&quot;</span>: <span class="string">&quot;#foo&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>}
+            <span class="string">"allOf"</span>: [{<span class="string">"$ref"</span>: <span class="string">"#foo"</span>}],
+            <span class="string">"definitions"</span>: {
+                <span class="string">"A"</span>: {<span class="string">"$id"</span>: <span class="string">"#foo"</span>, <span class="string">"type"</span>: <span class="string">"integer"</span>}
             }
         });
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
@@ -1018,9 +1020,9 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;json-schema:///#foo&quot;</span>)
+                .get(<span class="string">"json-schema:///#foo"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A"</span>)
         );
     }
 
@@ -1028,10 +1030,10 @@
     </span><span class="kw">fn </span>sub_schemas_in_array() {
         <span class="comment">// When sub-schemas are specified inside an array
         </span><span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;A&quot;</span>: [
-                    {<span class="string">&quot;$id&quot;</span>: <span class="string">&quot;#foo&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>},
-                    {<span class="string">&quot;$id&quot;</span>: <span class="string">&quot;#bar&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>},
+            <span class="string">"definitions"</span>: {
+                <span class="string">"A"</span>: [
+                    {<span class="string">"$id"</span>: <span class="string">"#foo"</span>, <span class="string">"type"</span>: <span class="string">"integer"</span>},
+                    {<span class="string">"$id"</span>: <span class="string">"#bar"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>},
                 ]
             }
         });
@@ -1041,16 +1043,16 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;json-schema:///#foo&quot;</span>)
+                .get(<span class="string">"json-schema:///#foo"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A/0&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A/0"</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;json-schema:///#bar&quot;</span>)
+                .get(<span class="string">"json-schema:///#bar"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A/1&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A/1"</span>)
         );
     }
 
@@ -1058,29 +1060,29 @@
     </span><span class="kw">fn </span>root_schema_id() {
         <span class="comment">// When the root schema has an ID
         </span><span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/tree&quot;</span>,
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;node&quot;</span>: {
-                    <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/node&quot;</span>,
-                    <span class="string">&quot;description&quot;</span>: <span class="string">&quot;node&quot;</span>,
-                    <span class="string">&quot;properties&quot;</span>: {
-                        <span class="string">&quot;subtree&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;tree&quot;</span>},
-                        <span class="string">&quot;value&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;number&quot;</span>}
+            <span class="string">"$id"</span>: <span class="string">"http://localhost:1234/tree"</span>,
+            <span class="string">"definitions"</span>: {
+                <span class="string">"node"</span>: {
+                    <span class="string">"$id"</span>: <span class="string">"http://localhost:1234/node"</span>,
+                    <span class="string">"description"</span>: <span class="string">"node"</span>,
+                    <span class="string">"properties"</span>: {
+                        <span class="string">"subtree"</span>: {<span class="string">"$ref"</span>: <span class="string">"tree"</span>},
+                        <span class="string">"value"</span>: {<span class="string">"type"</span>: <span class="string">"number"</span>}
                     },
-                    <span class="string">&quot;required&quot;</span>: [<span class="string">&quot;value&quot;</span>],
-                    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;
+                    <span class="string">"required"</span>: [<span class="string">"value"</span>],
+                    <span class="string">"type"</span>: <span class="string">"object"
                 </span>}
             },
-            <span class="string">&quot;description&quot;</span>: <span class="string">&quot;tree of nodes&quot;</span>,
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;meta&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>},
-                <span class="string">&quot;nodes&quot;</span>: {
-                    <span class="string">&quot;items&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;node&quot;</span>},
-                    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;
+            <span class="string">"description"</span>: <span class="string">"tree of nodes"</span>,
+            <span class="string">"properties"</span>: {
+                <span class="string">"meta"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+                <span class="string">"nodes"</span>: {
+                    <span class="string">"items"</span>: {<span class="string">"$ref"</span>: <span class="string">"node"</span>},
+                    <span class="string">"type"</span>: <span class="string">"array"
                 </span>}
             },
-            <span class="string">&quot;required&quot;</span>: [<span class="string">&quot;meta&quot;</span>, <span class="string">&quot;nodes&quot;</span>],
-            <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;
+            <span class="string">"required"</span>: [<span class="string">"meta"</span>, <span class="string">"nodes"</span>],
+            <span class="string">"type"</span>: <span class="string">"object"
         </span>});
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
         <span class="comment">// Then in the resolver schema there should be root &amp; sub-schema
@@ -1088,25 +1090,25 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/tree&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/tree"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;&quot;</span>)
+            schema.pointer(<span class="string">""</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/node&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/node"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/node&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/node"</span>)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>location_independent_with_absolute_uri() {
         <span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;allOf&quot;</span>: [{<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;http://localhost:1234/bar#foo&quot;</span>}],
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;A&quot;</span>: {<span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/bar#foo&quot;</span>, <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>}
+            <span class="string">"allOf"</span>: [{<span class="string">"$ref"</span>: <span class="string">"http://localhost:1234/bar#foo"</span>}],
+            <span class="string">"definitions"</span>: {
+                <span class="string">"A"</span>: {<span class="string">"$id"</span>: <span class="string">"http://localhost:1234/bar#foo"</span>, <span class="string">"type"</span>: <span class="string">"integer"</span>}
             }
         });
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
@@ -1114,24 +1116,24 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/bar#foo&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/bar#foo"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A"</span>)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>location_independent_with_absolute_uri_base_change() {
         <span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/root&quot;</span>,
-            <span class="string">&quot;allOf&quot;</span>:[{<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;http://localhost:1234/nested.json#foo&quot;</span>}],
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;A&quot;</span>: {
-                    <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;nested.json&quot;</span>,
-                    <span class="string">&quot;definitions&quot;</span>: {
-                        <span class="string">&quot;B&quot;</span>: {
-                            <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;#foo&quot;</span>,
-                            <span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;
+            <span class="string">"$id"</span>: <span class="string">"http://localhost:1234/root"</span>,
+            <span class="string">"allOf"</span>:[{<span class="string">"$ref"</span>: <span class="string">"http://localhost:1234/nested.json#foo"</span>}],
+            <span class="string">"definitions"</span>: {
+                <span class="string">"A"</span>: {
+                    <span class="string">"$id"</span>: <span class="string">"nested.json"</span>,
+                    <span class="string">"definitions"</span>: {
+                        <span class="string">"B"</span>: {
+                            <span class="string">"$id"</span>: <span class="string">"#foo"</span>,
+                            <span class="string">"type"</span>: <span class="string">"integer"
                         </span>}
                     }
                 }
@@ -1142,33 +1144,33 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/root&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/root"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;&quot;</span>)
+            schema.pointer(<span class="string">""</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/nested.json&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/nested.json"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A"</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/nested.json#foo&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/nested.json#foo"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/A/definitions/B&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/A/definitions/B"</span>)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>base_uri_change() {
         <span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/&quot;</span>,
-            <span class="string">&quot;items&quot;</span>: {
-                <span class="string">&quot;$id&quot;</span>:<span class="string">&quot;folder/&quot;</span>,
-                <span class="string">&quot;items&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;folderInteger.json&quot;</span>}
+            <span class="string">"$id"</span>: <span class="string">"http://localhost:1234/"</span>,
+            <span class="string">"items"</span>: {
+                <span class="string">"$id"</span>:<span class="string">"folder/"</span>,
+                <span class="string">"items"</span>: {<span class="string">"$ref"</span>: <span class="string">"folderInteger.json"</span>}
             }
         });
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
@@ -1176,70 +1178,70 @@
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;&quot;</span>)
+            schema.pointer(<span class="string">""</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/folder/&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/folder/"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/items&quot;</span>)
+            schema.pointer(<span class="string">"/items"</span>)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>base_uri_change_folder() {
         <span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;http://localhost:1234/scope_change_defs1.json&quot;</span>,
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;baz&quot;</span>: {
-                    <span class="string">&quot;$id&quot;</span>: <span class="string">&quot;folder/&quot;</span>,
-                    <span class="string">&quot;items&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;folderInteger.json&quot;</span>},
-                    <span class="string">&quot;type&quot;</span>:<span class="string">&quot;array&quot;
+            <span class="string">"$id"</span>: <span class="string">"http://localhost:1234/scope_change_defs1.json"</span>,
+            <span class="string">"definitions"</span>: {
+                <span class="string">"baz"</span>: {
+                    <span class="string">"$id"</span>: <span class="string">"folder/"</span>,
+                    <span class="string">"items"</span>: {<span class="string">"$ref"</span>: <span class="string">"folderInteger.json"</span>},
+                    <span class="string">"type"</span>:<span class="string">"array"
                 </span>}
             },
-            <span class="string">&quot;properties&quot;</span>: {
-                <span class="string">&quot;list&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;#/definitions/baz&quot;</span>}
+            <span class="string">"properties"</span>: {
+                <span class="string">"list"</span>: {<span class="string">"$ref"</span>: <span class="string">"#/definitions/baz"</span>}
             },
-            <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;
+            <span class="string">"type"</span>: <span class="string">"object"
         </span>});
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
         <span class="macro">assert_eq!</span>(resolver.schemas.len(), <span class="number">2</span>);
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/scope_change_defs1.json&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/scope_change_defs1.json"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;&quot;</span>)
+            schema.pointer(<span class="string">""</span>)
         );
         <span class="macro">assert_eq!</span>(
             resolver
                 .schemas
-                .get(<span class="string">&quot;http://localhost:1234/folder/&quot;</span>)
+                .get(<span class="string">"http://localhost:1234/folder/"</span>)
                 .map(AsRef::as_ref),
-            schema.pointer(<span class="string">&quot;/definitions/baz&quot;</span>)
+            schema.pointer(<span class="string">"/definitions/baz"</span>)
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>resolve_ref() {
         <span class="kw">let </span>schema = <span class="macro">json!</span>({
-            <span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;#/definitions/c&quot;</span>,
-            <span class="string">&quot;definitions&quot;</span>: {
-                <span class="string">&quot;a&quot;</span>: {<span class="string">&quot;type&quot;</span>: <span class="string">&quot;integer&quot;</span>},
-                <span class="string">&quot;b&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;#/definitions/a&quot;</span>},
-                <span class="string">&quot;c&quot;</span>: {<span class="string">&quot;$ref&quot;</span>: <span class="string">&quot;#/definitions/b&quot;</span>}
+            <span class="string">"$ref"</span>: <span class="string">"#/definitions/c"</span>,
+            <span class="string">"definitions"</span>: {
+                <span class="string">"a"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>},
+                <span class="string">"b"</span>: {<span class="string">"$ref"</span>: <span class="string">"#/definitions/a"</span>},
+                <span class="string">"c"</span>: {<span class="string">"$ref"</span>: <span class="string">"#/definitions/b"</span>}
             }
         });
         <span class="kw">let </span>resolver = make_resolver(<span class="kw-2">&amp;</span>schema);
-        <span class="kw">let </span>url = Url::parse(<span class="string">&quot;json-schema:///#/definitions/a&quot;</span>).unwrap();
+        <span class="kw">let </span>url = Url::parse(<span class="string">"json-schema:///#/definitions/a"</span>).unwrap();
         <span class="kw">let </span>(resource, resolved) = resolver
-            .resolve_fragment(Draft::Draft7, <span class="kw-2">&amp;</span>url, <span class="string">&quot;#/definitions/a&quot;</span>)
+            .resolve_fragment(Draft::Draft7, <span class="kw-2">&amp;</span>url, <span class="string">"#/definitions/a"</span>)
             .unwrap();
-        <span class="macro">assert_eq!</span>(resource, Url::parse(<span class="string">&quot;json-schema:///&quot;</span>).unwrap());
-        <span class="macro">assert_eq!</span>(resolved.as_ref(), schema.pointer(<span class="string">&quot;/definitions/a&quot;</span>).unwrap());
+        <span class="macro">assert_eq!</span>(resource, Url::parse(<span class="string">"json-schema:///"</span>).unwrap());
+        <span class="macro">assert_eq!</span>(resolved.as_ref(), schema.pointer(<span class="string">"/definitions/a"</span>).unwrap());
     }
 }
 </code></pre></div></section></main></body></html>

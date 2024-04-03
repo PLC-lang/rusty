@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/int_type.rs`."><title>int_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/types/int_type.rs`."><title>int_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -460,36 +462,36 @@
     <span class="doccomment">/// Is the string valid for the given radix?
     </span><span class="kw">pub fn </span>matches_str(<span class="kw-2">&amp;</span><span class="self">self</span>, slice: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="comment">// drop 1 optional + or -
-        </span><span class="kw">let </span>slice = slice.strip_prefix(|c| c == <span class="string">&#39;+&#39; </span>|| c == <span class="string">&#39;-&#39;</span>).unwrap_or(slice);
+        </span><span class="kw">let </span>slice = slice.strip_prefix(|c| c == <span class="string">'+' </span>|| c == <span class="string">'-'</span>).unwrap_or(slice);
 
         <span class="comment">// there must be at least 1 actual digit
         </span><span class="kw">if </span>slice.is_empty() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
 
-        <span class="comment">// and all digits must be in the radix&#39; character set
+        <span class="comment">// and all digits must be in the radix' character set
         </span><span class="kw">let </span><span class="kw-2">mut </span>it = slice.chars();
         <span class="kw">match </span><span class="self">self </span>{
-            StringRadix::Binary =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;1&#39;</span>)),
-            StringRadix::Octal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;7&#39;</span>)),
-            StringRadix::Decimal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39;</span>)),
-            StringRadix::Hexadecimal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;f&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;F&#39;</span>)),
-            StringRadix::Alphanumeric =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">&#39;0&#39;</span>..=<span class="string">&#39;9&#39; </span>| <span class="string">&#39;a&#39;</span>..=<span class="string">&#39;z&#39; </span>| <span class="string">&#39;A&#39;</span>..=<span class="string">&#39;Z&#39;</span>)),
+            StringRadix::Binary =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">'0'</span>..=<span class="string">'1'</span>)),
+            StringRadix::Octal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">'0'</span>..=<span class="string">'7'</span>)),
+            StringRadix::Decimal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">'0'</span>..=<span class="string">'9'</span>)),
+            StringRadix::Hexadecimal =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'f' </span>| <span class="string">'A'</span>..=<span class="string">'F'</span>)),
+            StringRadix::Alphanumeric =&gt; it.all(|c| <span class="macro">matches!</span>(c, <span class="string">'0'</span>..=<span class="string">'9' </span>| <span class="string">'a'</span>..=<span class="string">'z' </span>| <span class="string">'A'</span>..=<span class="string">'Z'</span>)),
         }
     }
 }
 
 <span class="doccomment">/// An `IntType` is the type of an integer constant or variable.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-</span><span class="kw">pub struct </span>IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    int_type: Type&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>IntType&lt;<span class="lifetime">'ctx</span>&gt; {
+    int_type: Type&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; IntType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; IntType&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create `IntType` from [`LLVMTypeRef`]
     ///
     /// # Safety
-    /// Undefined behavior, if referenced type isn&#39;t int type
+    /// Undefined behavior, if referenced type isn't int type
     </span><span class="kw">pub unsafe fn </span>new(int_type: LLVMTypeRef) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!int_type.is_null());
 
@@ -498,7 +500,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates an `IntValue` repesenting a constant value of this `IntType`. It will be automatically assigned this `IntType`&#39;s `Context`.
+    <span class="doccomment">/// Creates an `IntValue` repesenting a constant value of this `IntType`. It will be automatically assigned this `IntType`'s `Context`.
     ///
     /// # Example
     /// ```no_run
@@ -510,7 +512,7 @@
     /// let i32_value = i32_type.const_int(42, false);
     /// ```
     </span><span class="comment">// TODOC: Maybe better explain sign extension
-    </span><span class="kw">pub fn </span>const_int(<span class="self">self</span>, value: u64, sign_extend: bool) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_int(<span class="self">self</span>, value: u64, sign_extend: bool) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntValue::new(LLVMConstInt(<span class="self">self</span>.as_type_ref(), value, sign_extend <span class="kw">as </span>i32)) }
     }
 
@@ -528,21 +530,21 @@
     ///
     /// let context = Context::create();
     /// let i8_type = context.i8_type();
-    /// let i8_val = i8_type.const_int_from_string(&quot;0121&quot;, StringRadix::Decimal).unwrap();
+    /// let i8_val = i8_type.const_int_from_string("0121", StringRadix::Decimal).unwrap();
     ///
-    /// assert_eq!(i8_val.print_to_string().to_string(), &quot;i8 121&quot;);
+    /// assert_eq!(i8_val.print_to_string().to_string(), "i8 121");
     ///
-    /// let i8_val = i8_type.const_int_from_string(&quot;0121&quot;, StringRadix::try_from(10).unwrap()).unwrap();
+    /// let i8_val = i8_type.const_int_from_string("0121", StringRadix::try_from(10).unwrap()).unwrap();
     ///
-    /// assert_eq!(i8_val.print_to_string().to_string(), &quot;i8 16&quot;);
+    /// assert_eq!(i8_val.print_to_string().to_string(), "i8 16");
     ///
-    /// let i8_val = i8_type.const_int_from_string(&quot;0121&quot;, StringRadix::Binary);
+    /// let i8_val = i8_type.const_int_from_string("0121", StringRadix::Binary);
     /// assert!(i8_val.is_none());
     ///
-    /// let i8_val = i8_type.const_int_from_string(&quot;ABCD&quot;, StringRadix::Binary);
+    /// let i8_val = i8_type.const_int_from_string("ABCD", StringRadix::Binary);
     /// assert!(i8_val.is_none());
     /// ```
-    </span><span class="kw">pub fn </span>const_int_from_string(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>str, radix: StringRadix) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>const_int_from_string(<span class="self">self</span>, slice: <span class="kw-2">&amp;</span>str, radix: StringRadix) -&gt; <span class="prelude-ty">Option</span>&lt;IntValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">if </span>!radix.matches_str(slice) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -568,7 +570,7 @@
     /// let i64_type = context.i64_type();
     /// let i64_val = i64_type.const_int_arbitrary_precision(&amp;[1, 2]);
     /// ```
-    </span><span class="kw">pub fn </span>const_int_arbitrary_precision(<span class="self">self</span>, words: <span class="kw-2">&amp;</span>[u64]) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_int_arbitrary_precision(<span class="self">self</span>, words: <span class="kw-2">&amp;</span>[u64]) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{
             IntValue::new(LLVMConstIntOfArbitraryPrecision(
                 <span class="self">self</span>.as_type_ref(),
@@ -578,7 +580,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates an `IntValue` representing a constant value of all one bits of this `IntType`. It will be automatically assigned this `IntType`&#39;s `Context`.
+    <span class="doccomment">/// Creates an `IntValue` representing a constant value of all one bits of this `IntType`. It will be automatically assigned this `IntType`'s `Context`.
     ///
     /// # Example
     /// ```no_run
@@ -589,7 +591,7 @@
     /// let i32_type = context.i32_type();
     /// let i32_ptr_value = i32_type.const_all_ones();
     /// ```
-    </span><span class="kw">pub fn </span>const_all_ones(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_all_ones(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntValue::new(LLVMConstAllOnes(<span class="self">self</span>.as_type_ref())) }
     }
 
@@ -605,9 +607,9 @@
     /// let i8_type = context.i8_type();
     /// let i8_zero = i8_type.const_zero();
     ///
-    /// assert_eq!(i8_zero.print_to_string().to_string(), &quot;i8 0&quot;);
+    /// assert_eq!(i8_zero.print_to_string().to_string(), "i8 0");
     /// ```
-    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_zero(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntValue::new(<span class="self">self</span>.int_type.const_zero()) }
     }
 
@@ -622,7 +624,7 @@
     /// let i8_type = context.i8_type();
     /// let fn_type = i8_type.fn_type(&amp;[], false);
     /// ```
-    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">&#39;ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>fn_type(<span class="self">self</span>, param_types: <span class="kw-2">&amp;</span>[BasicMetadataTypeEnum&lt;<span class="lifetime">'ctx</span>&gt;], is_var_args: bool) -&gt; FunctionType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.fn_type(param_types, is_var_args)
     }
 
@@ -640,7 +642,7 @@
     /// assert_eq!(i8_array_type.len(), 3);
     /// assert_eq!(i8_array_type.get_element_type().into_int_type(), i8_type);
     /// ```
-    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>array_type(<span class="self">self</span>, size: u32) -&gt; ArrayType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.array_type(size)
     }
 
@@ -658,7 +660,7 @@
     /// assert_eq!(i8_vector_type.get_size(), 3);
     /// assert_eq!(i8_vector_type.get_element_type().into_int_type(), i8_type);
     /// ```
-    </span><span class="kw">pub fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>vec_type(<span class="self">self</span>, size: u32) -&gt; VectorType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.vec_type(size)
     }
 
@@ -674,7 +676,7 @@
     ///
     /// assert_eq!(i8_type.get_context(), context);
     /// ```
-    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_context(<span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.get_context()
     }
 
@@ -689,7 +691,7 @@
     /// let i8_type = context.i8_type();
     /// let i8_type_size = i8_type.size_of();
     /// ```
-    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>size_of(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.size_of().unwrap()
     }
 
@@ -704,7 +706,7 @@
     /// let i8_type = context.i8_type();
     /// let i8_type_alignment = i8_type.get_alignment();
     /// ```
-    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_alignment(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.get_alignment()
     }
 
@@ -721,21 +723,21 @@
     /// let i8_ptr_type = i8_type.ptr_type(AddressSpace::default());
     ///
     /// #[cfg(any(
-    ///     feature = &quot;llvm4-0&quot;,
-    ///     feature = &quot;llvm5-0&quot;,
-    ///     feature = &quot;llvm6-0&quot;,
-    ///     feature = &quot;llvm7-0&quot;,
-    ///     feature = &quot;llvm8-0&quot;,
-    ///     feature = &quot;llvm9-0&quot;,
-    ///     feature = &quot;llvm10-0&quot;,
-    ///     feature = &quot;llvm11-0&quot;,
-    ///     feature = &quot;llvm12-0&quot;,
-    ///     feature = &quot;llvm13-0&quot;,
-    ///     feature = &quot;llvm14-0&quot;
+    ///     feature = "llvm4-0",
+    ///     feature = "llvm5-0",
+    ///     feature = "llvm6-0",
+    ///     feature = "llvm7-0",
+    ///     feature = "llvm8-0",
+    ///     feature = "llvm9-0",
+    ///     feature = "llvm10-0",
+    ///     feature = "llvm11-0",
+    ///     feature = "llvm12-0",
+    ///     feature = "llvm13-0",
+    ///     feature = "llvm14-0"
     /// ))]
     /// assert_eq!(i8_ptr_type.get_element_type().into_int_type(), i8_type);
     /// ```
-    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>ptr_type(<span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">self</span>.int_type.ptr_type(address_space)
     }
 
@@ -772,12 +774,12 @@
     ///
     /// assert!(i8_undef.is_undef());
     /// ```
-    </span><span class="kw">pub fn </span>get_undef(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_undef(<span class="self">self</span>) -&gt; IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ IntValue::new(<span class="self">self</span>.int_type.get_undef()) }
     }
 
     <span class="doccomment">/// Creates a `GenericValue` for use with `ExecutionEngine`s.
-    </span><span class="kw">pub fn </span>create_generic_value(<span class="self">self</span>, value: u64, is_signed: bool) -&gt; GenericValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>create_generic_value(<span class="self">self</span>, value: u64, is_signed: bool) -&gt; GenericValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ GenericValue::new(LLVMCreateGenericValueOfInt(<span class="self">self</span>.as_type_ref(), value, is_signed <span class="kw">as </span>i32)) }
     }
 
@@ -795,7 +797,7 @@
     ///
     /// assert!(i8_array.is_const());
     /// ```
-    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">&#39;ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>const_array(<span class="self">self</span>, values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ctx</span>&gt;]) -&gt; ArrayValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>values: Vec&lt;LLVMValueRef&gt; = values.iter().map(|val| val.as_value_ref()).collect();
         <span class="kw">unsafe </span>{
             ArrayValue::new(LLVMConstArray(
@@ -807,15 +809,15 @@
     }
 }
 
-<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>IntType&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">unsafe impl </span>AsTypeRef <span class="kw">for </span>IntType&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>as_type_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LLVMTypeRef {
         <span class="self">self</span>.int_type.ty
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>IntType&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.print_to_string())
+<span class="kw">impl </span>Display <span class="kw">for </span>IntType&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.print_to_string())
     }
 }
 </code></pre></div></section></main></body></html>

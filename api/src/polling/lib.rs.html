@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-3.5.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../polling/index.html"><img src="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png" alt="polling"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/polling-3.5.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polling" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../polling/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1109,7 +1111,7 @@
 //! - [IOCP](https://learn.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports): Windows, Wine (version 7.13+)
 //!
 //! By default, polling is done in oneshot mode, which means interest in I/O events needs to
-//! be re-enabled after an event is delivered if we&#39;re interested in the next event of the same
+//! be re-enabled after an event is delivered if we're interested in the next event of the same
 //! kind. However, level and edge triggered modes are also available for certain operating
 //! systems. See the documentation of the [`PollMode`] type for more information.
 //!
@@ -1122,7 +1124,7 @@
 //! use std::net::TcpListener;
 //!
 //! // Create a TCP listener.
-//! let socket = TcpListener::bind(&quot;127.0.0.1:8000&quot;)?;
+//! let socket = TcpListener::bind("127.0.0.1:8000")?;
 //! socket.set_nonblocking(true)?;
 //! let key = 7; // Arbitrary key identifying the socket.
 //!
@@ -1157,10 +1159,10 @@
 #![allow(clippy::useless_conversion, clippy::unnecessary_cast, unused_unsafe)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"
 </span>)]
 
 </span><span class="kw">use </span>std::cell::Cell;
@@ -1181,43 +1183,43 @@
         <span class="kw">mod </span>poll;
         <span class="kw">use </span>poll <span class="kw">as </span>sys;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;linux&quot;</span>,
-        target_os = <span class="string">&quot;android&quot;</span>,
-        target_os = <span class="string">&quot;redox&quot;
+        target_os = <span class="string">"linux"</span>,
+        target_os = <span class="string">"android"</span>,
+        target_os = <span class="string">"redox"
     </span>))] </span>{
         <span class="kw">mod </span>epoll;
         <span class="kw">use </span>epoll <span class="kw">as </span>sys;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;illumos&quot;</span>,
-        target_os = <span class="string">&quot;solaris&quot;</span>,
+        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"solaris"</span>,
     ))] </span>{
         <span class="kw">mod </span>port;
         <span class="kw">use </span>port <span class="kw">as </span>sys;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;ios&quot;</span>,
-        target_os = <span class="string">&quot;tvos&quot;</span>,
-        target_os = <span class="string">&quot;watchos&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
     ))] </span>{
         <span class="kw">mod </span>kqueue;
         <span class="kw">use </span>kqueue <span class="kw">as </span>sys;
     } <span class="kw">else if </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;vxworks&quot;</span>,
-        target_os = <span class="string">&quot;fuchsia&quot;</span>,
-        target_os = <span class="string">&quot;horizon&quot;</span>,
+        target_os = <span class="string">"vxworks"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"horizon"</span>,
         unix,
     ))] </span>{
         <span class="kw">mod </span>poll;
         <span class="kw">use </span>poll <span class="kw">as </span>sys;
-    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">&quot;windows&quot;</span>)] </span>{
+    } <span class="kw">else if </span><span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)] </span>{
         <span class="kw">mod </span>iocp;
         <span class="kw">use </span>iocp <span class="kw">as </span>sys;
     } <span class="kw">else </span>{
-        <span class="macro">compile_error!</span>(<span class="string">&quot;polling does not support this target OS&quot;</span>);
+        <span class="macro">compile_error!</span>(<span class="string">"polling does not support this target OS"</span>);
     }
 }
 
@@ -1469,17 +1471,17 @@
     ///     let event = match event {
     ///         Some(event) =&gt; event,
     ///         None =&gt; {
-    ///             println!(&quot;no event&quot;);
+    ///             println!("no event");
     ///             return Ok(());
     ///         },
     ///     };
     ///
-    ///     println!(&quot;event: {:?}&quot;, event);
+    ///     println!("event: {:?}", event);
     ///     if event
     ///         .is_connect_failed()
     ///         .unwrap_or_default()
     ///     {
-    ///         println!(&quot;connect failed&quot;);
+    ///         println!("connect failed");
     ///     }
     ///
     ///     Ok(())
@@ -1550,7 +1552,7 @@
     <span class="doccomment">/// Adds a file descriptor or socket to the poller.
     ///
     /// A file descriptor or socket is considered readable or writable when a read or write
-    /// operation on it would not block. This doesn&#39;t mean the read or write operation will
+    /// operation on it would not block. This doesn't mean the read or write operation will
     /// succeed, it only means the operation will return immediately.
     ///
     /// If interest is set in both readability and writability, the two kinds of events might be
@@ -1562,7 +1564,7 @@
     /// - `Event { key: 7, readable: false, writable: true }`
     ///
     /// Note that interest in I/O events needs to be re-enabled using
-    /// [`modify()`][`Poller::modify()`] again after an event is delivered if we&#39;re interested in
+    /// [`modify()`][`Poller::modify()`] again after an event is delivered if we're interested in
     /// the next event of the same kind.
     ///
     /// It is possible to register interest in the same file descriptor or socket using multiple
@@ -1571,7 +1573,7 @@
     /// underlying platform. When registering multiple sources into one event, the user should
     /// be careful to accommodate for events lost to other pollers.
     ///
-    /// One may also register one source into other, non-`polling` event loops, like GLib&#39;s
+    /// One may also register one source into other, non-`polling` event loops, like GLib's
     /// context. While the plumbing will vary from platform to platform, in general the [`Poller`]
     /// will act as if the source was registered with another [`Poller`], with the same caveats
     /// as above.
@@ -1596,7 +1598,7 @@
     /// ```no_run
     /// use polling::{Event, Poller};
     ///
-    /// let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// let source = std::net::TcpListener::bind("127.0.0.1:0")?;
     /// source.set_nonblocking(true)?;
     /// let key = 7;
     ///
@@ -1635,7 +1637,7 @@
         <span class="kw">if </span>interest.key == NOTIFY_KEY {
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <span class="string">&quot;the key is not allowed to be `usize::MAX`&quot;</span>,
+                <span class="string">"the key is not allowed to be `usize::MAX`"</span>,
             ));
         }
         <span class="self">self</span>.poller.add(source.raw(), interest, mode)
@@ -1650,7 +1652,7 @@
     /// [`add()`][`Poller::add()`].
     ///
     /// Note that interest in I/O events needs to be re-enabled using
-    /// [`modify()`][`Poller::modify()`] again after an event is delivered if we&#39;re interested in
+    /// [`modify()`][`Poller::modify()`] again after an event is delivered if we're interested in
     /// the next event of the same kind.
     ///
     /// # Errors
@@ -1666,7 +1668,7 @@
     ///
     /// ```no_run
     /// # use polling::{Event, Poller};
-    /// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// # let source = std::net::TcpListener::bind("127.0.0.1:0")?;
     /// # let key = 7;
     /// # let poller = Poller::new()?;
     /// # unsafe { poller.add(&amp;source, Event::none(key))?; }
@@ -1678,7 +1680,7 @@
     ///
     /// ```no_run
     /// # use polling::{Event, Poller};
-    /// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// # let source = std::net::TcpListener::bind("127.0.0.1:0")?;
     /// # let key = 7;
     /// # let poller = Poller::new()?;
     /// # unsafe { poller.add(&amp;source, Event::none(key))?; }
@@ -1693,7 +1695,7 @@
     /// # use polling::{Event, Poller};
     /// # let poller = Poller::new()?;
     /// # let key = 7;
-    /// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// # let source = std::net::TcpListener::bind("127.0.0.1:0")?;
     /// # unsafe { poller.add(&amp;source, Event::none(key))? };
     /// poller.modify(&amp;source, Event::writable(key))?;
     /// # poller.delete(&amp;source)?;
@@ -1704,7 +1706,7 @@
     ///
     /// ```no_run
     /// # use polling::{Event, Poller};
-    /// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// # let source = std::net::TcpListener::bind("127.0.0.1:0")?;
     /// # let key = 7;
     /// # let poller = Poller::new()?;
     /// # unsafe { poller.add(&amp;source, Event::none(key))?; }
@@ -1740,7 +1742,7 @@
         <span class="kw">if </span>interest.key == NOTIFY_KEY {
             <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <span class="string">&quot;the key is not allowed to be `usize::MAX`&quot;</span>,
+                <span class="string">"the key is not allowed to be `usize::MAX`"</span>,
             ));
         }
         <span class="self">self</span>.poller.modify(source.source(), interest, mode)
@@ -1757,7 +1759,7 @@
     /// use polling::{Event, Poller};
     /// use std::net::TcpListener;
     ///
-    /// let socket = TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// let socket = TcpListener::bind("127.0.0.1:0")?;
     /// socket.set_nonblocking(true)?;
     /// let key = 7;
     ///
@@ -1795,7 +1797,7 @@
     /// use std::net::TcpListener;
     /// use std::time::Duration;
     ///
-    /// let socket = TcpListener::bind(&quot;127.0.0.1:0&quot;)?;
+    /// let socket = TcpListener::bind("127.0.0.1:0")?;
     /// socket.set_nonblocking(true)?;
     /// let key = 7;
     ///
@@ -1810,7 +1812,7 @@
     /// # std::io::Result::Ok(())
     /// ```
     </span><span class="kw">pub fn </span>wait(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span>Events, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; io::Result&lt;usize&gt; {
-        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;Poller::wait&quot;</span>, <span class="question-mark">?</span>timeout);
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"Poller::wait"</span>, <span class="question-mark">?</span>timeout);
         <span class="kw">let </span>_enter = span.enter();
 
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(_lock) = <span class="self">self</span>.lock.try_lock() {
@@ -1839,7 +1841,7 @@
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(events.len());
             }
         } <span class="kw">else </span>{
-            <span class="macro">tracing::trace!</span>(<span class="string">&quot;wait: skipping because another thread is already waiting on I/O&quot;</span>);
+            <span class="macro">tracing::trace!</span>(<span class="string">"wait: skipping because another thread is already waiting on I/O"</span>);
             <span class="prelude-val">Ok</span>(<span class="number">0</span>)
         }
     }
@@ -1867,7 +1869,7 @@
     /// # std::io::Result::Ok(())
     /// ```
     </span><span class="kw">pub fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;Poller::notify&quot;</span>);
+        <span class="kw">let </span>span = <span class="macro">tracing::trace_span!</span>(<span class="string">"Poller::notify"</span>);
         <span class="kw">let </span>_enter = span.enter();
 
         <span class="kw">if </span><span class="self">self
@@ -1912,10 +1914,10 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="comment">// ESP-IDF has a low amount of RAM, so we use a smaller default capacity.
-        </span><span class="attr">#[cfg(target_os = <span class="string">&quot;espidf&quot;</span>)]
+        </span><span class="attr">#[cfg(target_os = <span class="string">"espidf"</span>)]
         </span><span class="kw">const </span>DEFAULT_CAPACITY: usize = <span class="number">32</span>;
 
-        <span class="attr">#[cfg(not(target_os = <span class="string">&quot;espidf&quot;</span>))]
+        <span class="attr">#[cfg(not(target_os = <span class="string">"espidf"</span>))]
         </span><span class="kw">const </span>DEFAULT_CAPACITY: usize = <span class="number">1024</span>;
 
         <span class="self">Self</span>::with_capacity(NonZeroUsize::new(DEFAULT_CAPACITY).unwrap())
@@ -1959,7 +1961,7 @@
     /// # Ok(()) }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.events.iter().filter(|ev| ev.key != NOTIFY_KEY)
     }
 
@@ -2035,43 +2037,43 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Events {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.write_str(<span class="string">&quot;Events { .. }&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="string">"Events { .. }"</span>)
     }
 }
 
 <span class="attr">#[cfg(all(
     any(
-        target_os = <span class="string">&quot;linux&quot;</span>,
-        target_os = <span class="string">&quot;android&quot;</span>,
-        target_os = <span class="string">&quot;illumos&quot;</span>,
-        target_os = <span class="string">&quot;solaris&quot;</span>,
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;ios&quot;</span>,
-        target_os = <span class="string">&quot;tvos&quot;</span>,
-        target_os = <span class="string">&quot;watchos&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">"linux"</span>,
+        target_os = <span class="string">"android"</span>,
+        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"solaris"</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
     ),
     not(polling_test_poll_backend),
 ))]
 #[cfg_attr(
     docsrs,
     doc(cfg(any(
-        target_os = <span class="string">&quot;linux&quot;</span>,
-        target_os = <span class="string">&quot;android&quot;</span>,
-        target_os = <span class="string">&quot;illumos&quot;</span>,
-        target_os = <span class="string">&quot;solaris&quot;</span>,
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;ios&quot;</span>,
-        target_os = <span class="string">&quot;tvos&quot;</span>,
-        target_os = <span class="string">&quot;watchos&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;</span>,
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">"linux"</span>,
+        target_os = <span class="string">"android"</span>,
+        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"solaris"</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
     )))
 )]
 </span><span class="kw">mod </span>raw_fd_impl {
@@ -2085,7 +2087,7 @@
     }
 
     <span class="kw">impl </span>AsFd <span class="kw">for </span>Poller {
-        <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
             <span class="self">self</span>.poller.as_fd()
         }
     }
@@ -2104,14 +2106,14 @@
     }
 
     <span class="kw">impl </span>AsHandle <span class="kw">for </span>Poller {
-        <span class="kw">fn </span>as_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">fn </span>as_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">'_</span>&gt; {
             <span class="self">self</span>.poller.as_handle()
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Poller {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="self">self</span>.poller.fmt(f)
     }
 }
@@ -2141,7 +2143,7 @@
         <span class="doccomment">/// A resource with a borrowed file descriptor.
         </span><span class="kw">pub trait </span>AsSource: AsFd {
             <span class="doccomment">/// Returns the borrowed file descriptor.
-            </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+            </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
                 <span class="self">self</span>.as_fd()
             }
         }
@@ -2171,7 +2173,7 @@
         <span class="doccomment">/// A resource with a borrowed socket.
         </span><span class="kw">pub trait </span>AsSource: AsSocket {
             <span class="doccomment">/// Returns the borrowed socket.
-            </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedSocket&lt;<span class="lifetime">&#39;_</span>&gt; {
+            </span><span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedSocket&lt;<span class="lifetime">'_</span>&gt; {
                 <span class="self">self</span>.as_socket()
             }
         }

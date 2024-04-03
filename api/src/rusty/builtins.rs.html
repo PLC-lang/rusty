@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/builtins.rs`."><title>builtins.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/builtins.rs`."><title>builtins.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -982,16 +984,16 @@
 
 <span class="comment">// Defines a set of functions that are always included in a compiled application
 </span><span class="macro">lazy_static! </span>{
-    <span class="kw">static </span><span class="kw-2">ref </span>BUILTIN: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, BuiltIn&gt; = HashMap::from([
+    <span class="kw">static </span><span class="kw-2">ref </span>BUILTIN: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, BuiltIn&gt; = HashMap::from([
         (
-            <span class="string">&quot;ADR&quot;</span>,
+            <span class="string">"ADR"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION ADR&lt;U: ANY&gt; : LWORD
+                decl: <span class="string">"FUNCTION ADR&lt;U: ANY&gt; : LWORD
                 VAR_INPUT
                     in : U;
                 END_VAR
                 END_FUNCTION
-            &quot;</span>,
+            "</span>,
                 annotation: <span class="prelude-val">None</span>,
                 validation: <span class="prelude-val">None</span>,
                 generic_name_resolver: no_generic_name_resolver,
@@ -1002,7 +1004,7 @@
                             .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                            <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
+                            <span class="string">"Expected exactly one parameter for REF"</span>,
                             location,
                         ))
                     }
@@ -1010,14 +1012,14 @@
             },
         ),
         (
-            <span class="string">&quot;REF&quot;</span>,
+            <span class="string">"REF"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION REF&lt;U: ANY&gt; : REF_TO U
+                decl: <span class="string">"FUNCTION REF&lt;U: ANY&gt; : REF_TO U
                 VAR_INPUT
                     in : U;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, <span class="kw">_</span>, operator, parameters, <span class="kw">_</span>| {
                     <span class="comment">// invalid amount of parameters is checked during validation
                     </span><span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{ <span class="kw">return</span>; };
@@ -1037,7 +1039,7 @@
 
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
-                            return_type: ptr_type, qualified_name: <span class="string">&quot;REF&quot;</span>.to_string(), call_name: <span class="prelude-val">None
+                            return_type: ptr_type, qualified_name: <span class="string">"REF"</span>.to_string(), call_name: <span class="prelude-val">None
                         </span>}
                     );
                 }),
@@ -1061,7 +1063,7 @@
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                            <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
+                            <span class="string">"Expected exactly one parameter for REF"</span>,
                             location,
                         ))
                     }
@@ -1069,15 +1071,15 @@
             },
         ),
         (
-            <span class="string">&quot;MUX&quot;</span>,
+            <span class="string">"MUX"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION MUX&lt;U: ANY&gt; : U
+                decl: <span class="string">"FUNCTION MUX&lt;U: ANY&gt; : U
                 VAR_INPUT
                     K : DINT;
                     args : {sized} U...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation : <span class="prelude-val">None</span>,
                 validation: <span class="prelude-val">None</span>,
                 generic_name_resolver: no_generic_name_resolver,
@@ -1086,26 +1088,26 @@
                     <span class="kw">let </span>context = llvm.context;
                     <span class="kw">let </span>builder = <span class="kw-2">&amp;</span>llvm.builder;
 
-                    <span class="kw">let </span>function_context = generator.get_function_context(params.first().expect(<span class="string">&quot;Param 0 exists&quot;</span>))<span class="question-mark">?</span>;
-                    <span class="kw">let </span>insert_block = builder.get_insert_block().expect(<span class="string">&quot;Builder should have a block at this point&quot;</span>);
+                    <span class="kw">let </span>function_context = generator.get_function_context(params.first().expect(<span class="string">"Param 0 exists"</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let </span>insert_block = builder.get_insert_block().expect(<span class="string">"Builder should have a block at this point"</span>);
 
                     <span class="comment">//Generate an access from the first param
                     </span><span class="kw">if let </span>(<span class="kw-2">&amp;</span>[k], params) = params.split_at(<span class="number">1</span>) {
                         <span class="kw">let </span>type_hint = params.first()
-                        .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for MUX&quot;</span>, location.clone()))
+                        .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Invalid signature for MUX"</span>, location.clone()))
                         .and_then(|it| generator.get_type_hint_info_for(it))<span class="question-mark">?</span>;
                         <span class="comment">//Create a temp var
                         </span><span class="kw">let </span>result_type = generator.llvm_index.get_associated_type(type_hint.get_name())<span class="question-mark">?</span>;
-                        <span class="kw">let </span>result_var = generator.llvm.create_local_variable(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span>result_type);
+                        <span class="kw">let </span>result_var = generator.llvm.create_local_variable(<span class="string">""</span>, <span class="kw-2">&amp;</span>result_type);
                         <span class="kw">let </span>k = generator.generate_expression(k)<span class="question-mark">?</span>;
 
                         <span class="kw">let </span><span class="kw-2">mut </span>blocks = <span class="macro">vec!</span>[];
                         <span class="kw">for </span>it <span class="kw">in </span>params.iter() {
-                            <span class="kw">let </span>block = context.append_basic_block(function_context.function, <span class="string">&quot;&quot;</span>);
+                            <span class="kw">let </span>block = context.append_basic_block(function_context.function, <span class="string">""</span>);
                             blocks.push((<span class="kw-2">*</span>it,block))
                         }
 
-                        <span class="kw">let </span>continue_block = context.append_basic_block(function_context.function, <span class="string">&quot;continue_block&quot;</span>);
+                        <span class="kw">let </span>continue_block = context.append_basic_block(function_context.function, <span class="string">"continue_block"</span>);
                         <span class="kw">let </span>cases = blocks.into_iter().enumerate().map::&lt;<span class="prelude-ty">Result</span>&lt;(IntValue, BasicBlock), Diagnostic&gt;, <span class="kw">_</span>&gt;(|(index, (it, block))| {
                             <span class="kw">let </span>value = context.i32_type().const_int(index <span class="kw">as </span>u64, <span class="bool-val">false</span>);
                             builder.position_at_end(block);
@@ -1119,22 +1121,22 @@
                         builder.position_at_end(continue_block);
                         <span class="prelude-val">Ok</span>(ExpressionValue::LValue(result_var))
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for MUX&quot;</span>, location))
+                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid signature for MUX"</span>, location))
                     }
                 }
             },
         ),
         (
-            <span class="string">&quot;SEL&quot;</span>,
+            <span class="string">"SEL"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION SEL&lt;U: ANY&gt; : U
+                decl: <span class="string">"FUNCTION SEL&lt;U: ANY&gt; : U
                 VAR_INPUT
                     G   : BOOL;
                     IN0 : U;
                     IN1 : U;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">None</span>,
                 validation: <span class="prelude-val">None</span>,
                 generic_name_resolver: no_generic_name_resolver,
@@ -1156,7 +1158,7 @@
                             generator.generate_expression(in1)<span class="question-mark">?
                         </span>};
                         <span class="comment">// generate an llvm select instruction
-                        </span><span class="kw">let </span>sel = generator.llvm.builder.build_select(cond, in1, in0, <span class="string">&quot;&quot;</span>);
+                        </span><span class="kw">let </span>sel = generator.llvm.builder.build_select(cond, in1, in0, <span class="string">""</span>);
 
                         <span class="kw">if </span>sel.is_pointer_value(){
                             <span class="prelude-val">Ok</span>(ExpressionValue::LValue(sel.into_pointer_value()))
@@ -1164,20 +1166,20 @@
                             <span class="prelude-val">Ok</span>(ExpressionValue::RValue(sel))
                         }
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for SEL&quot;</span>, location))
+                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid signature for SEL"</span>, location))
                     }
 
                 }
             }
         ),
         (
-            <span class="string">&quot;MOVE&quot;</span>,
+            <span class="string">"MOVE"</span>,
             BuiltIn {
-                decl : <span class="string">&quot;FUNCTION MOVE&lt;U: ANY&gt; : U
+                decl : <span class="string">"FUNCTION MOVE&lt;U: ANY&gt; : U
                 VAR_INPUT
                     in : U;
                 END_VAR
-                END_FUNCTION&quot;</span>,
+                END_FUNCTION"</span>,
                 annotation: <span class="prelude-val">None</span>,
                 validation: <span class="prelude-val">None</span>,
                 generic_name_resolver: no_generic_name_resolver,
@@ -1185,19 +1187,19 @@
                     <span class="kw">if </span>params.len() == <span class="number">1 </span>{
                         generator.generate_expression(params[<span class="number">0</span>]).map(ExpressionValue::RValue)
                     } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;MOVE expects exactly one parameter&quot;</span>, location))
+                        <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"MOVE expects exactly one parameter"</span>, location))
                     }
                 }
             }
         ),
         (
-            <span class="string">&quot;SIZEOF&quot;</span>,
+            <span class="string">"SIZEOF"</span>,
             BuiltIn {
-                decl : <span class="string">&quot;FUNCTION SIZEOF&lt;U: ANY&gt; : ULINT
+                decl : <span class="string">"FUNCTION SIZEOF&lt;U: ANY&gt; : ULINT
                 VAR_INPUT
                     in : U;
                 END_VAR
-                END_FUNCTION&quot;</span>,
+                END_FUNCTION"</span>,
                 annotation: <span class="prelude-val">None</span>,
                 validation: <span class="prelude-val">None</span>,
                 generic_name_resolver: no_generic_name_resolver,
@@ -1213,14 +1215,14 @@
                         <span class="comment">// return size of llvm type
                         </span><span class="kw">let </span>size = generator.llvm_index
                             .get_associated_type(type_name)
-                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">&quot;Could not find associated data type: {type_name}&quot;</span>), location.clone())
+                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"Could not find associated data type: {type_name}"</span>), location.clone())
                             )<span class="question-mark">?</span>.size_of()
-                            .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Parameter type is not sized.&quot;</span>, location.clone()))<span class="question-mark">?
+                            .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Parameter type is not sized."</span>, location.clone()))<span class="question-mark">?
                             </span>.as_basic_value_enum();
                             <span class="prelude-val">Ok</span>(ExpressionValue::RValue(size))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                            <span class="string">&quot;Expected exactly one parameter for SIZEOF&quot;</span>,
+                            <span class="string">"Expected exactly one parameter for SIZEOF"</span>,
                             location,
                         ))
                     }
@@ -1228,16 +1230,16 @@
             }
         ),
         (
-            <span class="string">&quot;LOWER_BOUND&quot;</span>,
+            <span class="string">"LOWER_BOUND"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt; : DINT
+                decl: <span class="string">"FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt; : DINT
                 VAR_IN_OUT
                     arr : U;
                 END_VAR
                 VAR_INPUT
                     dim : T;
                 END_VAR
-                END_FUNCTION&quot;</span>,
+                END_FUNCTION"</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, <span class="kw">_</span>, <span class="kw">_</span>, parameters, <span class="kw">_</span>| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -1251,16 +1253,16 @@
             }
         ),
         (
-            <span class="string">&quot;UPPER_BOUND&quot;</span>,
+            <span class="string">"UPPER_BOUND"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION UPPER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt; : DINT
+                decl: <span class="string">"FUNCTION UPPER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt; : DINT
                 VAR_IN_OUT
                     arr : U;
                 END_VAR
                 VAR_INPUT
                     dim : T;
                 END_VAR
-                END_FUNCTION&quot;</span>,
+                END_FUNCTION"</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, <span class="kw">_</span>, <span class="kw">_</span>, parameters, <span class="kw">_</span>| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -1275,14 +1277,14 @@
         ),
         <span class="comment">// Arithmetic functions
         </span>(
-            <span class="string">&quot;ADD&quot;</span>,
+            <span class="string">"ADD"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION ADD&lt;T: ANY_NUM&gt; : T
+                decl: <span class="string">"FUNCTION ADD&lt;T: ANY_NUM&gt; : T
                     VAR_INPUT
                         args: {sized} T...;
                     END_VAR
                     END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1295,19 +1297,19 @@
                 }),
                 generic_name_resolver,
                 code: |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;ADD is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"ADD is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;MUL&quot;</span>,
+            <span class="string">"MUL"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION MUL&lt;T: ANY_NUM&gt; : T
+                decl: <span class="string">"FUNCTION MUL&lt;T: ANY_NUM&gt; : T
                 VAR_INPUT
                     args: {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1320,20 +1322,20 @@
                 }),
                 generic_name_resolver,
                 code: |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;MUL is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"MUL is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;SUB&quot;</span>,
+            <span class="string">"SUB"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION SUB&lt;T1: ANY, T2: ANY&gt; : T1
+                decl: <span class="string">"FUNCTION SUB&lt;T1: ANY, T2: ANY&gt; : T1
                 VAR_INPUT
                     IN1 : T1;
                     IN2 : T2;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1345,20 +1347,20 @@
                 }),
                 generic_name_resolver,
                 code: |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;SUB is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"SUB is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;DIV&quot;</span>,
+            <span class="string">"DIV"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION DIV&lt;T1: ANY, T2: ANY&gt; : T1
+                decl: <span class="string">"FUNCTION DIV&lt;T1: ANY, T2: ANY&gt; : T1
                 VAR_INPUT
                     IN1 : T1;
                     IN2 : T2;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1370,20 +1372,20 @@
                 }),
                 generic_name_resolver,
                 code: |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;DIV is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"DIV is not generated as a function call"</span>);
                 }
             }
         ),
         <span class="comment">// TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
         </span>(
-            <span class="string">&quot;GT&quot;</span>,
+            <span class="string">"GT"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION GT&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION GT&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1395,19 +1397,19 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;GT is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"GT is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;GE&quot;</span>,
+            <span class="string">"GE"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION GE&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION GE&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1419,19 +1421,19 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;GE is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"GE is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;EQ&quot;</span>,
+            <span class="string">"EQ"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION EQ&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION EQ&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1443,19 +1445,19 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;EQ is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"EQ is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;LE&quot;</span>,
+            <span class="string">"LE"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION LE&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION LE&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1467,19 +1469,19 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;LE is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"LE is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;LT&quot;</span>,
+            <span class="string">"LT"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION LT&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION LT&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1491,20 +1493,20 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;LT is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"LT is not generated as a function call"</span>);
                 }
             }
         ),
         (
-            <span class="string">&quot;NE&quot;</span>,
+            <span class="string">"NE"</span>,
             BuiltIn {
-                decl: <span class="string">&quot;FUNCTION NE&lt;T: ANY_ELEMENTARY&gt; : BOOL
+                decl: <span class="string">"FUNCTION NE&lt;T: ANY_ELEMENTARY&gt; : BOOL
                 VAR_INPUT
                     IN1 : T;
                     IN2 : T;
                 END_VAR
                 END_FUNCTION
-                &quot;</span>,
+                "</span>,
                 annotation: <span class="prelude-val">Some</span>(|annotator, statement, operator, parameters, ctx| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
                         <span class="kw">return</span>;
@@ -1516,7 +1518,7 @@
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code : |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;NE is not generated as a function call&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"NE is not generated as a function call"</span>);
                 }
             }
         ),
@@ -1638,7 +1640,7 @@
     </span><span class="kw">let </span>find_biggest_param_type_name = |annotator: <span class="kw-2">&amp;</span>TypeAnnotator| {
         <span class="kw">let </span><span class="kw-2">mut </span>bigger = annotator
             .annotation_map
-            .get_type_or_void(params_flattened.first().expect(<span class="string">&quot;must have this parameter&quot;</span>), annotator.index);
+            .get_type_or_void(params_flattened.first().expect(<span class="string">"must have this parameter"</span>), annotator.index);
 
         <span class="kw">for </span>param <span class="kw">in </span>params_flattened.iter().skip(<span class="number">1</span>) {
             <span class="kw">let </span>right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
@@ -1652,7 +1654,7 @@
 
     <span class="comment">// create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    </span><span class="kw">let </span>left = (<span class="kw-2">*</span>params_flattened.first().expect(<span class="string">&quot;Must exist&quot;</span>)).clone();
+    </span><span class="kw">let </span>left = (<span class="kw-2">*</span>params_flattened.first().expect(<span class="string">"Must exist"</span>)).clone();
     <span class="kw">let </span>new_statement = params_flattened.into_iter().skip(<span class="number">1</span>).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
@@ -1719,11 +1721,11 @@
             <span class="kw">if </span>!idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">&quot;Invalid type nature for generic argument. {} is no {}&quot;</span>,
+                        <span class="string">"Invalid type nature for generic argument. {} is no {}"</span>,
                         idx_type.get_name(),
                         TypeNature::Int
                     ))
-                    .with_error_code(<span class="string">&quot;E062&quot;</span>)
+                    .with_error_code(<span class="string">"E062"</span>)
                     .with_location(idx.get_location()),
                 )
             }
@@ -1741,8 +1743,8 @@
 
                 <span class="kw">if </span>dimension_idx &lt; <span class="number">1 </span>|| dimension_idx &gt; n_dimensions {
                     validator.push_diagnostic(
-                        Diagnostic::new(<span class="string">&quot;Index out of bound&quot;</span>)
-                            .with_error_code(<span class="string">&quot;E046&quot;</span>)
+                        Diagnostic::new(<span class="string">"Index out of bound"</span>)
+                            .with_error_code(<span class="string">"E046"</span>)
                             .with_location(operator.get_location()),
                     )
                 }
@@ -1757,12 +1759,12 @@
 
 <span class="doccomment">/// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
 /// arguments are incorrect.
-</span><span class="kw">fn </span>generate_variable_length_array_bound_function&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    generator: <span class="kw-2">&amp;</span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
+</span><span class="kw">fn </span>generate_variable_length_array_bound_function&lt;<span class="lifetime">'ink</span>&gt;(
+    generator: <span class="kw-2">&amp;</span>ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
     is_lower: bool,
     location: SourceLocation,
-) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span>llvm = generator.llvm;
     <span class="kw">let </span>builder = <span class="kw-2">&amp;</span>generator.llvm.builder;
     <span class="kw">let </span>data_type_information =
@@ -1772,23 +1774,23 @@
     // once we abort codegen on critical errors, revisit and change to unreachable where possible
     </span><span class="kw">if </span>!data_type_information.is_vla() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-            <span class="macro">format!</span>(<span class="string">&quot;Expected VLA type, received {}&quot;</span>, data_type_information.get_name()),
+            <span class="macro">format!</span>(<span class="string">"Expected VLA type, received {}"</span>, data_type_information.get_name()),
             location,
         ));
     };
 
     <span class="kw">let </span>vla = generator.generate_lvalue(params[<span class="number">0</span>]).unwrap();
-    <span class="kw">let </span>dim = builder.build_struct_gep(vla, <span class="number">1</span>, <span class="string">&quot;dim&quot;</span>).unwrap();
+    <span class="kw">let </span>dim = builder.build_struct_gep(vla, <span class="number">1</span>, <span class="string">"dim"</span>).unwrap();
 
     <span class="kw">let </span>accessor = <span class="kw">match </span>params[<span class="number">1</span>].get_stmt() {
         <span class="comment">// e.g. LOWER_BOUND(arr, 1)
         </span>AstStatement::Literal(kind) =&gt; {
             <span class="kw">let </span>AstLiteral::Integer(value) = kind <span class="kw">else </span>{
                 <span class="kw">let </span><span class="prelude-val">Some</span>(type_name) = get_literal_actual_signed_type_name(kind, <span class="bool-val">false</span>) <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;type cannot be VOID&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"type cannot be VOID"</span>)
                 };
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Invalid literal type. Expected INT type, received {type_name} type&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"Invalid literal type. Expected INT type, received {type_name} type"</span>),
                     location,
                 ));
             };
@@ -1804,7 +1806,7 @@
 
             <span class="kw">if </span>!value.is_int_value() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Expected INT value, found {}&quot;</span>, value.get_type()),
+                    <span class="macro">format!</span>(<span class="string">"Expected INT value, found {}"</span>, value.get_type()),
                     location,
                 ));
             };
@@ -1823,12 +1825,12 @@
                 builder.build_int_sub(
                     expression_value.into_int_value(),
                     llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>),
-                    <span class="string">&quot;&quot;</span>,
+                    <span class="string">""</span>,
                 ),
-                <span class="string">&quot;&quot;</span>,
+                <span class="string">""</span>,
             );
             <span class="kw">if </span>!is_lower {
-                builder.build_int_add(offset, llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">&quot;&quot;</span>)
+                builder.build_int_add(offset, llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">""</span>)
             } <span class="kw">else </span>{
                 offset
             }
@@ -1836,23 +1838,23 @@
     };
 
     <span class="kw">let </span>gep_bound =
-        <span class="kw">unsafe </span>{ llvm.builder.build_in_bounds_gep(dim, <span class="kw-2">&amp;</span>[llvm.i32_type().const_zero(), accessor], <span class="string">&quot;&quot;</span>) };
-    <span class="kw">let </span>bound = llvm.builder.build_load(gep_bound, <span class="string">&quot;&quot;</span>);
+        <span class="kw">unsafe </span>{ llvm.builder.build_in_bounds_gep(dim, <span class="kw-2">&amp;</span>[llvm.i32_type().const_zero(), accessor], <span class="string">""</span>) };
+    <span class="kw">let </span>bound = llvm.builder.build_load(gep_bound, <span class="string">""</span>);
 
     <span class="prelude-val">Ok</span>(ExpressionValue::RValue(bound))
 }
 
 <span class="kw">type </span>AnnotationFunction = <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>TypeAnnotator, <span class="kw-2">&amp;</span>AstNode, <span class="kw-2">&amp;</span>AstNode, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;, VisitorContext);
 <span class="kw">type </span>GenericNameResolver = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>[GenericBinding], <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;) -&gt; String;
-<span class="kw">type </span>CodegenFunction = <span class="kw">for</span>&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; <span class="kw">fn</span>(
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
+<span class="kw">type </span>CodegenFunction = <span class="kw">for</span>&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; <span class="kw">fn</span>(
+    <span class="kw-2">&amp;</span><span class="lifetime">'b </span>ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;,
     <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
     SourceLocation,
-) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt;;
+) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt;;
 <span class="kw">type </span>ValidationFunction = <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Validator, <span class="kw-2">&amp;</span>AstNode, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;, <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap, <span class="kw-2">&amp;</span>Index);
 
 <span class="kw">pub struct </span>BuiltIn {
-    decl: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    decl: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     annotation: <span class="prelude-ty">Option</span>&lt;AnnotationFunction&gt;,
     validation: <span class="prelude-ty">Option</span>&lt;ValidationFunction&gt;,
     generic_name_resolver: GenericNameResolver,
@@ -1860,12 +1862,12 @@
 }
 
 <span class="kw">impl </span>BuiltIn {
-    <span class="kw">pub fn </span>codegen&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;(
+    <span class="kw">pub fn </span>codegen&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        generator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
+        generator: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>ExpressionCodeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;,
         params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
         location: SourceLocation,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         (<span class="self">self</span>.code)(generator, params, location)
     }
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AnnotationFunction&gt; {
@@ -1882,11 +1884,11 @@
 }
 
 <span class="kw">pub fn </span>parse_built_ins(id_provider: IdProvider) -&gt; CompilationUnit {
-    <span class="kw">let </span>src = BUILTIN.iter().map(|(<span class="kw">_</span>, it)| it.decl).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;().join(<span class="string">&quot; &quot;</span>);
+    <span class="kw">let </span>src = BUILTIN.iter().map(|(<span class="kw">_</span>, it)| it.decl).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;().join(<span class="string">" "</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>unit = parser::parse(
         lexer::lex_with_ids(<span class="kw-2">&amp;</span>src, id_provider.clone(), SourceLocationFactory::internal(<span class="kw-2">&amp;</span>src)),
         LinkageType::BuiltIn,
-        <span class="string">&quot;&lt;builtin&gt;&quot;</span>,
+        <span class="string">"&lt;builtin&gt;"</span>,
     )
     .<span class="number">0</span>;
 
@@ -1895,7 +1897,7 @@
 }
 
 <span class="doccomment">/// Returns the requested function from the builtin index or None
-</span><span class="kw">pub fn </span>get_builtin(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>BuiltIn&gt; {
+</span><span class="kw">pub fn </span>get_builtin(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>BuiltIn&gt; {
     BUILTIN.get(name.to_uppercase().as_str())
 }
 </code></pre></div></section></main></body></html>

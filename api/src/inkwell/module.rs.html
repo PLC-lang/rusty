@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/module.rs`."><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/inkwell-0.2.0/src/module.rs`."><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../inkwell/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1724,33 +1726,33 @@
 <span class="attr">#[llvm_enum(LLVMLinkage)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 </span><span class="doccomment">/// This enum defines how to link a global variable or function in a module. The variant documenation is
-/// mostly taken straight from LLVM&#39;s own documentation except for some minor clarification.
+/// mostly taken straight from LLVM's own documentation except for some minor clarification.
 ///
 /// It is illegal for a function declaration to have any linkage type other than external or extern_weak.
 ///
 /// All Global Variables, Functions and Aliases can have one of the following DLL storage class: `DLLImport`
 /// &amp; `DLLExport`.
-</span><span class="comment">// REVIEW: Maybe this should go into it&#39;s own module?
+</span><span class="comment">// REVIEW: Maybe this should go into it's own module?
 </span><span class="kw">pub enum </span>Linkage {
     <span class="doccomment">/// `Appending` linkage may only be applied to global variables of pointer to array type. When two global
     /// variables with appending linkage are linked together, the two global arrays are appended together.
-    /// This is the LLVM, typesafe, equivalent of having the system linker append together &quot;sections&quot; with
-    /// identical names when .o files are linked. Unfortunately this doesn&#39;t correspond to any feature in .o
+    /// This is the LLVM, typesafe, equivalent of having the system linker append together "sections" with
+    /// identical names when .o files are linked. Unfortunately this doesn't correspond to any feature in .o
     /// files, so it can only be used for variables like llvm.global_ctors which llvm interprets specially.
     </span><span class="attr">#[llvm_variant(LLVMAppendingLinkage)]
     </span>Appending,
     <span class="doccomment">/// Globals with `AvailableExternally` linkage are never emitted into the object file corresponding to
-    /// the LLVM module. From the linker&#39;s perspective, an `AvailableExternally` global is equivalent to an
+    /// the LLVM module. From the linker's perspective, an `AvailableExternally` global is equivalent to an
     /// external declaration. They exist to allow inlining and other optimizations to take place given
     /// knowledge of the definition of the global, which is known to be somewhere outside the module. Globals
     /// with `AvailableExternally` linkage are allowed to be discarded at will, and allow inlining and other
     /// optimizations. This linkage type is only allowed on definitions, not declarations.
     </span><span class="attr">#[llvm_variant(LLVMAvailableExternallyLinkage)]
     </span>AvailableExternally,
-    <span class="doccomment">/// `Common` linkage is most similar to &quot;weak&quot; linkage, but they are used for tentative definitions
-    /// in C, such as &quot;int X;&quot; at global scope. Symbols with Common linkage are merged in the same way as
+    <span class="doccomment">/// `Common` linkage is most similar to "weak" linkage, but they are used for tentative definitions
+    /// in C, such as "int X;" at global scope. Symbols with Common linkage are merged in the same way as
     /// weak symbols, and they may not be deleted if unreferenced. `Common` symbols may not have an explicit
-    /// section, must have a zero initializer, and may not be marked &#39;constant&#39;. Functions and aliases may
+    /// section, must have a zero initializer, and may not be marked 'constant'. Functions and aliases may
     /// not have `Common` linkage.
     </span><span class="attr">#[llvm_variant(LLVMCommonLinkage)]
     </span>Common,
@@ -1778,7 +1780,7 @@
     </span><span class="attr">#[llvm_variant(LLVMGhostLinkage)]
     </span>Ghost,
     <span class="doccomment">/// Similar to private, but the value shows as a local symbol (STB_LOCAL in the case of ELF) in the object
-    /// file. This corresponds to the notion of the &#39;static&#39; keyword in C.
+    /// file. This corresponds to the notion of the 'static' keyword in C.
     </span><span class="attr">#[llvm_variant(LLVMInternalLinkage)]
     </span>Internal,
     <span class="doccomment">/// FIXME: Unknown linkage type
@@ -1801,8 +1803,8 @@
     </span><span class="attr">#[llvm_variant(LLVMLinkOnceODRAutoHideLinkage)]
     </span>LinkOnceODRAutoHide,
     <span class="doccomment">/// Some languages allow differing globals to be merged, such as two functions with different semantics.
-    /// Other languages, such as C++, ensure that only equivalent globals are ever merged (the &quot;one definition
-    /// rule&quot; — &quot;ODR&quot;). Such languages can use the `LinkOnceODR` and `WeakODR` linkage types to indicate that
+    /// Other languages, such as C++, ensure that only equivalent globals are ever merged (the "one definition
+    /// rule" — "ODR"). Such languages can use the `LinkOnceODR` and `WeakODR` linkage types to indicate that
     /// the global will only be merged with equivalent globals. These linkage types are otherwise the same
     /// as their non-odr versions.
     </span><span class="attr">#[llvm_variant(LLVMLinkOnceODRLinkage)]
@@ -1818,8 +1820,8 @@
     </span><span class="attr">#[llvm_variant(LLVMWeakAnyLinkage)]
     </span>WeakAny,
     <span class="doccomment">/// Some languages allow differing globals to be merged, such as two functions with different semantics.
-    /// Other languages, such as C++, ensure that only equivalent globals are ever merged (the &quot;one definition
-    /// rule&quot; — &quot;ODR&quot;). Such languages can use the `LinkOnceODR` and `WeakODR` linkage types to indicate that
+    /// Other languages, such as C++, ensure that only equivalent globals are ever merged (the "one definition
+    /// rule" — "ODR"). Such languages can use the `LinkOnceODR` and `WeakODR` linkage types to indicate that
     /// the global will only be merged with equivalent globals. These linkage types are otherwise the same
     /// as their non-odr versions.
     </span><span class="attr">#[llvm_variant(LLVMWeakODRLinkage)]
@@ -1829,14 +1831,14 @@
 <span class="doccomment">/// Represents a reference to an LLVM `Module`.
 /// The underlying module will be disposed when dropping this object.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>Module&lt;<span class="lifetime">'ctx</span>&gt; {
     data_layout: RefCell&lt;<span class="prelude-ty">Option</span>&lt;DataLayout&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) module: Cell&lt;LLVMModuleRef&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) owned_by_ee: RefCell&lt;<span class="prelude-ty">Option</span>&lt;ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;&gt;,
-    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Context&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) owned_by_ee: RefCell&lt;<span class="prelude-ty">Option</span>&lt;ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt;&gt;&gt;,
+    _marker: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Context&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Module&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Module&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>new(module: LLVMModuleRef) -&gt; <span class="self">Self </span>{
         <span class="macro">debug_assert!</span>(!module.is_null());
 
@@ -1866,19 +1868,19 @@
     /// use inkwell::types::FunctionType;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     ///
     /// let fn_type = context.f32_type().fn_type(&amp;[], false);
-    /// let fn_val = module.add_function(&quot;my_function&quot;, fn_type, None);
+    /// let fn_val = module.add_function("my_function", fn_type, None);
     ///
-    /// assert_eq!(fn_val.get_name().to_str(), Ok(&quot;my_function&quot;));
+    /// assert_eq!(fn_val.get_name().to_str(), Ok("my_function"));
     /// assert_eq!(fn_val.get_linkage(), Linkage::External);
     /// ```
-    </span><span class="kw">pub fn </span>add_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, ty: FunctionType&lt;<span class="lifetime">&#39;ctx</span>&gt;, linkage: <span class="prelude-ty">Option</span>&lt;Linkage&gt;) -&gt; FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>add_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, ty: FunctionType&lt;<span class="lifetime">'ctx</span>&gt;, linkage: <span class="prelude-ty">Option</span>&lt;Linkage&gt;) -&gt; FunctionValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>fn_value = <span class="kw">unsafe </span>{
             FunctionValue::new(LLVMAddFunction(<span class="self">self</span>.module.get(), c_string.as_ptr(), ty.as_type_ref()))
-                .expect(<span class="string">&quot;add_function should always succeed in adding a new function&quot;</span>)
+                .expect(<span class="string">"add_function should always succeed in adding a new function"</span>)
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(linkage) = linkage {
@@ -1896,11 +1898,11 @@
     /// use inkwell::module::Module;
     ///
     /// let local_context = Context::create();
-    /// let local_module = local_context.create_module(&quot;my_module&quot;);
+    /// let local_module = local_context.create_module("my_module");
     ///
     /// assert_eq!(local_module.get_context(), local_context);
     /// ```
-    </span><span class="kw">pub fn </span>get_context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ContextRef&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">unsafe </span>{ ContextRef::new(LLVMGetModuleContext(<span class="self">self</span>.module.get())) }
     }
 
@@ -1912,17 +1914,17 @@
     /// use inkwell::module::Module;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
     /// assert!(module.get_first_function().is_none());
     ///
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     ///
     /// assert_eq!(fn_value, module.get_first_function().unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>get_first_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_first_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetFirstFunction(<span class="self">self</span>.module.get())) }
     }
 
@@ -1934,17 +1936,17 @@
     /// use inkwell::module::Module;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
     /// assert!(module.get_last_function().is_none());
     ///
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     ///
     /// assert_eq!(fn_value, module.get_last_function().unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>get_last_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_last_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetLastFunction(<span class="self">self</span>.module.get())) }
     }
 
@@ -1956,17 +1958,17 @@
     /// use inkwell::module::Module;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
-    /// assert!(module.get_function(&quot;my_fn&quot;).is_none());
+    /// assert!(module.get_function("my_fn").is_none());
     ///
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     ///
-    /// assert_eq!(fn_value, module.get_function(&quot;my_fn&quot;).unwrap());
+    /// assert_eq!(fn_value, module.get_function("my_fn").unwrap());
     /// ```
-    </span><span class="kw">pub fn </span>get_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_function(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">unsafe </span>{ FunctionValue::new(LLVMGetNamedFunction(<span class="self">self</span>.module.get(), c_string.as_ptr())) }
@@ -1979,26 +1981,26 @@
     /// use inkwell::module::Module;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
-    /// assert!(module.get_function(&quot;my_fn&quot;).is_none());
+    /// assert!(module.get_function("my_fn").is_none());
     ///
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let fn_value = module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// let fn_value = module.add_function("my_fn", fn_type, None);
     ///
     /// let names: Vec&lt;String&gt; = module
     ///     .get_functions()
     ///     .map(|f| f.get_name().to_string_lossy().to_string())
     ///     .collect();
     ///
-    /// assert_eq!(vec![&quot;my_fn&quot;.to_owned()], names);
+    /// assert_eq!(vec!["my_fn".to_owned()], names);
     /// ```
-    </span><span class="kw">pub fn </span>get_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FunctionIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FunctionIterator&lt;<span class="lifetime">'ctx</span>&gt; {
         FunctionIterator::from_module(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Gets a named `StructType` from this `Module`&#39;s `Context`.
+    <span class="doccomment">/// Gets a named `StructType` from this `Module`'s `Context`.
     ///
     /// # Example
     ///
@@ -2006,17 +2008,17 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     ///
-    /// assert!(module.get_struct_type(&quot;foo&quot;).is_none());
+    /// assert!(module.get_struct_type("foo").is_none());
     ///
-    /// let opaque = context.opaque_struct_type(&quot;foo&quot;);
+    /// let opaque = context.opaque_struct_type("foo");
     ///
-    /// assert_eq!(module.get_struct_type(&quot;foo&quot;).unwrap(), opaque);
+    /// assert_eq!(module.get_struct_type("foo").unwrap(), opaque);
     /// ```
     ///
     </span><span class="attr">#[llvm_versions(<span class="number">4.0</span>..=<span class="number">11.0</span>)]
-    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>struct_type = <span class="kw">unsafe </span>{ LLVMGetTypeByName(<span class="self">self</span>.module.get(), c_string.as_ptr()) };
@@ -2028,7 +2030,7 @@
         <span class="kw">unsafe </span>{ <span class="prelude-val">Some</span>(StructType::new(struct_type)) }
     }
 
-    <span class="doccomment">/// Gets a named `StructType` from this `Module`&#39;s `Context`.
+    <span class="doccomment">/// Gets a named `StructType` from this `Module`'s `Context`.
     ///
     /// # Example
     ///
@@ -2036,16 +2038,16 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     ///
-    /// assert!(module.get_struct_type(&quot;foo&quot;).is_none());
+    /// assert!(module.get_struct_type("foo").is_none());
     ///
-    /// let opaque = context.opaque_struct_type(&quot;foo&quot;);
+    /// let opaque = context.opaque_struct_type("foo");
     ///
-    /// assert_eq!(module.get_struct_type(&quot;foo&quot;).unwrap(), opaque);
+    /// assert_eq!(module.get_struct_type("foo").unwrap(), opaque);
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">12.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_struct_type(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;StructType&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="self">self</span>.get_context().get_struct_type(name)
     }
 
@@ -2059,10 +2061,10 @@
     ///
     /// Target::initialize_x86(&amp;Default::default());
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
-    /// let triple = TargetTriple::create(&quot;x86_64-pc-linux-gnu&quot;);
+    /// let module = context.create_module("mod");
+    /// let triple = TargetTriple::create("x86_64-pc-linux-gnu");
     ///
-    /// assert_eq!(module.get_triple(), TargetTriple::create(&quot;&quot;));
+    /// assert_eq!(module.get_triple(), TargetTriple::create(""));
     ///
     /// module.set_triple(&amp;triple);
     ///
@@ -2073,7 +2075,7 @@
     }
 
     <span class="doccomment">/// Gets the `TargetTriple` assigned to this `Module`. If none has been
-    /// assigned, the triple will default to &quot;&quot;.
+    /// assigned, the triple will default to "".
     ///
     /// # Example
     ///
@@ -2083,17 +2085,17 @@
     ///
     /// Target::initialize_x86(&amp;Default::default());
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
-    /// let triple = TargetTriple::create(&quot;x86_64-pc-linux-gnu&quot;);
+    /// let module = context.create_module("mod");
+    /// let triple = TargetTriple::create("x86_64-pc-linux-gnu");
     ///
-    /// assert_eq!(module.get_triple(), TargetTriple::create(&quot;&quot;));
+    /// assert_eq!(module.get_triple(), TargetTriple::create(""));
     ///
     /// module.set_triple(&amp;triple);
     ///
     /// assert_eq!(module.get_triple(), triple);
     /// ```
     </span><span class="kw">pub fn </span>get_triple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TargetTriple {
-        <span class="comment">// REVIEW: This isn&#39;t an owned LLVMString, is it? If so, need to deallocate.
+        <span class="comment">// REVIEW: This isn't an owned LLVMString, is it? If so, need to deallocate.
         </span><span class="kw">let </span>target_str = <span class="kw">unsafe </span>{ LLVMGetTarget(<span class="self">self</span>.module.get()) };
 
         <span class="kw">unsafe </span>{ TargetTriple::new(LLVMString::create_from_c_str(CStr::from_ptr(target_str))) }
@@ -2107,24 +2109,24 @@
     /// use inkwell::module::Module;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let execution_engine = module.create_execution_engine().unwrap();
     ///
     /// assert_eq!(module.get_context(), context);
     /// ```
     </span><span class="comment">// SubType: ExecutionEngine&lt;Basic?&gt;
-    </span><span class="kw">pub fn </span>create_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt;, LLVMString&gt; {
+    </span><span class="kw">pub fn </span>create_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt;, LLVMString&gt; {
         Target::initialize_native(<span class="kw-2">&amp;</span>InitializationConfig::default()).map_err(|<span class="kw-2">mut </span>err_string| {
-            err_string.push(<span class="string">&#39;\0&#39;</span>);
+            err_string.push(<span class="string">'\0'</span>);
 
             LLVMString::create_from_str(<span class="kw-2">&amp;</span>err_string)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.owned_by_ee.borrow().is_some() {
-            <span class="kw">let </span>string = <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
+            <span class="kw">let </span>string = <span class="string">"This module is already owned by an ExecutionEngine.\0"</span>;
             <span class="kw">return </span><span class="prelude-val">Err</span>(LLVMString::create_from_str(string));
         }
 
@@ -2161,24 +2163,24 @@
     /// use inkwell::module::Module;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let execution_engine = module.create_interpreter_execution_engine().unwrap();
     ///
     /// assert_eq!(module.get_context(), context);
     /// ```
     </span><span class="comment">// SubType: ExecutionEngine&lt;Interpreter&gt;
-    </span><span class="kw">pub fn </span>create_interpreter_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt;, LLVMString&gt; {
+    </span><span class="kw">pub fn </span>create_interpreter_execution_engine(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt;, LLVMString&gt; {
         Target::initialize_native(<span class="kw-2">&amp;</span>InitializationConfig::default()).map_err(|<span class="kw-2">mut </span>err_string| {
-            err_string.push(<span class="string">&#39;\0&#39;</span>);
+            err_string.push(<span class="string">'\0'</span>);
 
             LLVMString::create_from_str(<span class="kw-2">&amp;</span>err_string)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.owned_by_ee.borrow().is_some() {
-            <span class="kw">let </span>string = <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
+            <span class="kw">let </span>string = <span class="string">"This module is already owned by an ExecutionEngine.\0"</span>;
             <span class="kw">return </span><span class="prelude-val">Err</span>(LLVMString::create_from_str(string));
         }
 
@@ -2217,10 +2219,10 @@
     /// use inkwell::module::Module;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     ///
     /// assert_eq!(module.get_context(), context);
@@ -2229,15 +2231,15 @@
     </span><span class="kw">pub fn </span>create_jit_execution_engine(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         opt_level: OptimizationLevel,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">&#39;ctx</span>&gt;, LLVMString&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExecutionEngine&lt;<span class="lifetime">'ctx</span>&gt;, LLVMString&gt; {
         Target::initialize_native(<span class="kw-2">&amp;</span>InitializationConfig::default()).map_err(|<span class="kw-2">mut </span>err_string| {
-            err_string.push(<span class="string">&#39;\0&#39;</span>);
+            err_string.push(<span class="string">'\0'</span>);
 
             LLVMString::create_from_str(<span class="kw-2">&amp;</span>err_string)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.owned_by_ee.borrow().is_some() {
-            <span class="kw">let </span>string = <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
+            <span class="kw">let </span>string = <span class="string">"This module is already owned by an ExecutionEngine.\0"</span>;
             <span class="kw">return </span><span class="prelude-val">Err</span>(LLVMString::create_from_str(string));
         }
 
@@ -2277,19 +2279,19 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     /// let i8_type = context.i8_type();
-    /// let global = module.add_global(i8_type, Some(AddressSpace::from(1u16)), &quot;my_global&quot;);
+    /// let global = module.add_global(i8_type, Some(AddressSpace::from(1u16)), "my_global");
     ///
     /// assert_eq!(module.get_first_global().unwrap(), global);
     /// assert_eq!(module.get_last_global().unwrap(), global);
     /// ```
-    </span><span class="kw">pub fn </span>add_global&lt;T: BasicType&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(
+    </span><span class="kw">pub fn </span>add_global&lt;T: BasicType&lt;<span class="lifetime">'ctx</span>&gt;&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         type_: T,
         address_space: <span class="prelude-ty">Option</span>&lt;AddressSpace&gt;,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; GlobalValue&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
 
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{
@@ -2316,18 +2318,18 @@
     ///
     /// use std::path::Path;
     ///
-    /// let mut path = Path::new(&quot;module.bc&quot;);
+    /// let mut path = Path::new("module.bc");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
     ///
-    /// module.add_function(&quot;my_fn&quot;, fn_type, None);
+    /// module.add_function("my_fn", fn_type, None);
     /// module.write_bitcode_to_path(&amp;path);
     /// ```
     </span><span class="kw">pub fn </span>write_bitcode_to_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
-        <span class="kw">let </span>path_str = path.to_str().expect(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
+        <span class="kw">let </span>path_str = path.to_str().expect(<span class="string">"Did not find a valid Unicode path string"</span>);
         <span class="kw">let </span>c_string = to_c_str(path_str);
 
         <span class="kw">unsafe </span>{ LLVMWriteBitcodeToFile(<span class="self">self</span>.module.get(), c_string.as_ptr()) == <span class="number">0 </span>}
@@ -2364,11 +2366,11 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     /// let void_type = context.void_type();
     /// let fn_type = void_type.fn_type(&amp;[], false);
-    /// let f = module.add_function(&quot;f&quot;, fn_type, None);
-    /// let basic_block = context.append_basic_block(f, &quot;entry&quot;);
+    /// let f = module.add_function("f", fn_type, None);
+    /// let basic_block = context.append_basic_block(f, "entry");
     /// let builder = context.create_builder();
     ///
     /// builder.position_at_end(basic_block);
@@ -2421,10 +2423,10 @@
     /// use inkwell::context::Context;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     /// let target_data = execution_engine.get_target_data();
     /// let data_layout = target_data.get_data_layout();
@@ -2435,7 +2437,7 @@
     /// ```
     </span><span class="kw">pub fn </span>get_data_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;DataLayout&gt; {
         Ref::map(<span class="self">self</span>.data_layout.borrow(), |l| {
-            l.as_ref().expect(<span class="string">&quot;DataLayout should always exist until Drop&quot;</span>)
+            l.as_ref().expect(<span class="string">"DataLayout should always exist until Drop"</span>)
         })
     }
 
@@ -2450,10 +2452,10 @@
     /// use inkwell::context::Context;
     /// use inkwell::targets::{InitializationConfig, Target};
     ///
-    /// Target::initialize_native(&amp;InitializationConfig::default()).expect(&quot;Failed to initialize native target&quot;);
+    /// Target::initialize_native(&amp;InitializationConfig::default()).expect("Failed to initialize native target");
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;sum&quot;);
+    /// let module = context.create_module("sum");
     /// let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
     /// let target_data = execution_engine.get_target_data();
     /// let data_layout = target_data.get_data_layout();
@@ -2487,7 +2489,7 @@
         <span class="kw">let </span>path_str = path
             .as_ref()
             .to_str()
-            .expect(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
+            .expect(<span class="string">"Did not find a valid Unicode path string"</span>);
         <span class="kw">let </span>path = to_c_str(path_str);
         <span class="kw">let </span><span class="kw-2">mut </span>err_string = MaybeUninit::uninit();
         <span class="kw">let </span>return_code = <span class="kw">unsafe </span>{
@@ -2514,7 +2516,7 @@
 
     <span class="doccomment">/// Sets the inline assembly for the `Module`.
     </span><span class="kw">pub fn </span>set_inline_assembly(<span class="kw-2">&amp;</span><span class="self">self</span>, asm: <span class="kw-2">&amp;</span>str) {
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>))]
         </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMSetModuleInlineAsm;
 
@@ -2522,7 +2524,7 @@
 
             <span class="kw">unsafe </span>{ LLVMSetModuleInlineAsm(<span class="self">self</span>.module.get(), c_string.as_ptr()) }
         }
-        <span class="attr">#[cfg(not(any(feature = <span class="string">&quot;llvm4-0&quot;</span>, feature = <span class="string">&quot;llvm5-0&quot;</span>, feature = <span class="string">&quot;llvm6-0&quot;</span>)))]
+        <span class="attr">#[cfg(not(any(feature = <span class="string">"llvm4-0"</span>, feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>)))]
         </span>{
             <span class="kw">use </span>llvm_sys::core::LLVMSetModuleInlineAsm2;
 
@@ -2531,7 +2533,7 @@
     }
 
     <span class="comment">// REVIEW: Should module take ownership of metadata?
-    // REVIEW: Should we return a MetadataValue for the global since it&#39;s its own value?
+    // REVIEW: Should we return a MetadataValue for the global since it's its own value?
     // it would be the last item in get_global_metadata I believe
     // TODOC: Appends your metadata to a global MetadataValue&lt;Node&gt; indexed by key
     </span><span class="doccomment">/// Appends a `MetaDataValue` to a global list indexed by a particular key.
@@ -2542,23 +2544,23 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let bool_type = context.bool_type();
     /// let f32_type = context.f32_type();
     /// let bool_val = bool_type.const_int(0, false);
     /// let f32_val = f32_type.const_float(0.0);
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 0);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 0);
     ///
-    /// let md_string = context.metadata_string(&quot;lots of metadata here&quot;);
+    /// let md_string = context.metadata_string("lots of metadata here");
     /// let md_node = context.metadata_node(&amp;[bool_val.into(), f32_val.into()]);
     ///
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_string).unwrap();
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_node).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_string).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_node).unwrap();
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 2);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 2);
     ///
-    /// let global_md = module.get_global_metadata(&quot;my_md&quot;);
+    /// let global_md = module.get_global_metadata("my_md");
     ///
     /// assert_eq!(global_md.len(), 2);
     ///
@@ -2570,9 +2572,9 @@
     /// assert_eq!(md_1[0].into_int_value(), bool_val);
     /// assert_eq!(md_1[1].into_float_value(), f32_val);
     /// ```
-    </span><span class="kw">pub fn </span>add_global_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, metadata: <span class="kw-2">&amp;</span>MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    </span><span class="kw">pub fn </span>add_global_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, metadata: <span class="kw-2">&amp;</span>MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">if </span>!metadata.is_node() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"metadata is expected to be a node."</span>);
         }
 
         <span class="kw">let </span>c_string = to_c_str(key);
@@ -2592,23 +2594,23 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let bool_type = context.bool_type();
     /// let f32_type = context.f32_type();
     /// let bool_val = bool_type.const_int(0, false);
     /// let f32_val = f32_type.const_float(0.0);
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 0);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 0);
     ///
-    /// let md_string = context.metadata_string(&quot;lots of metadata here&quot;);
+    /// let md_string = context.metadata_string("lots of metadata here");
     /// let md_node = context.metadata_node(&amp;[bool_val.into(), f32_val.into()]);
     ///
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_string).unwrap();
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_node).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_string).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_node).unwrap();
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 2);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 2);
     ///
-    /// let global_md = module.get_global_metadata(&quot;my_md&quot;);
+    /// let global_md = module.get_global_metadata("my_md");
     ///
     /// assert_eq!(global_md.len(), 2);
     ///
@@ -2635,23 +2637,23 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     /// let bool_type = context.bool_type();
     /// let f32_type = context.f32_type();
     /// let bool_val = bool_type.const_int(0, false);
     /// let f32_val = f32_type.const_float(0.0);
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 0);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 0);
     ///
-    /// let md_string = context.metadata_string(&quot;lots of metadata here&quot;);
+    /// let md_string = context.metadata_string("lots of metadata here");
     /// let md_node = context.metadata_node(&amp;[bool_val.into(), f32_val.into()]);
     ///
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_string).unwrap();
-    /// module.add_global_metadata(&quot;my_md&quot;, &amp;md_node).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_string).unwrap();
+    /// module.add_global_metadata("my_md", &amp;md_node).unwrap();
     ///
-    /// assert_eq!(module.get_global_metadata_size(&quot;my_md&quot;), 2);
+    /// assert_eq!(module.get_global_metadata_size("my_md"), 2);
     ///
-    /// let global_md = module.get_global_metadata(&quot;my_md&quot;);
+    /// let global_md = module.get_global_metadata("my_md");
     ///
     /// assert_eq!(global_md.len(), 2);
     ///
@@ -2663,7 +2665,7 @@
     /// assert_eq!(md_1[0].into_int_value(), bool_val);
     /// assert_eq!(md_1[1].into_float_value(), f32_val);
     /// ```
-    </span><span class="kw">pub fn </span>get_global_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_global_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>c_string = to_c_str(key);
         <span class="kw">let </span>count = <span class="self">self</span>.get_global_metadata_size(key) <span class="kw">as </span>usize;
 
@@ -2689,15 +2691,15 @@
     ///
     /// let context = Context::create();
     /// let i8_type = context.i8_type();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     ///
     /// assert!(module.get_first_global().is_none());
     ///
-    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);
+    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), "my_global");
     ///
     /// assert_eq!(module.get_first_global().unwrap(), global);
     /// ```
-    </span><span class="kw">pub fn </span>get_first_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_first_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetFirstGlobal(<span class="self">self</span>.module.get()) };
 
         <span class="kw">if </span>value.is_null() {
@@ -2716,16 +2718,16 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     /// let i8_type = context.i8_type();
     ///
     /// assert!(module.get_last_global().is_none());
     ///
-    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);
+    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), "my_global");
     ///
     /// assert_eq!(module.get_last_global().unwrap(), global);
     /// ```
-    </span><span class="kw">pub fn </span>get_last_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_last_global(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetLastGlobal(<span class="self">self</span>.module.get()) };
 
         <span class="kw">if </span>value.is_null() {
@@ -2744,16 +2746,16 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
+    /// let module = context.create_module("mod");
     /// let i8_type = context.i8_type();
     ///
-    /// assert!(module.get_global(&quot;my_global&quot;).is_none());
+    /// assert!(module.get_global("my_global").is_none());
     ///
-    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);
+    /// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), "my_global");
     ///
-    /// assert_eq!(module.get_global(&quot;my_global&quot;).unwrap(), global);
+    /// assert_eq!(module.get_global("my_global").unwrap(), global);
     /// ```
-    </span><span class="kw">pub fn </span>get_global(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_global(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">let </span>c_string = to_c_str(name);
         <span class="kw">let </span>value = <span class="kw">unsafe </span>{ LLVMGetNamedGlobal(<span class="self">self</span>.module.get(), c_string.as_ptr()) };
 
@@ -2765,7 +2767,7 @@
     }
 
     <span class="doccomment">/// An iterator over the globals in this `Module`.
-    </span><span class="kw">pub fn </span>get_globals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GlobalIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>get_globals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GlobalIterator&lt;<span class="lifetime">'ctx</span>&gt; {
         GlobalIterator::from_module(<span class="self">self</span>)
     }
 
@@ -2779,7 +2781,7 @@
     /// use inkwell::memory_buffer::MemoryBuffer;
     /// use std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo/bar.bc&quot;);
+    /// let path = Path::new("foo/bar.bc");
     /// let context = Context::create();
     /// let buffer = MemoryBuffer::create_from_file(&amp;path).unwrap();
     /// let module = Module::parse_bitcode_from_buffer(&amp;buffer, &amp;context);
@@ -2789,13 +2791,13 @@
     /// ```
     </span><span class="kw">pub fn </span>parse_bitcode_from_buffer(
         buffer: <span class="kw-2">&amp;</span>MemoryBuffer,
-        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, LLVMString&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>module = MaybeUninit::uninit();
         <span class="kw">let </span><span class="kw-2">mut </span>err_string = MaybeUninit::uninit();
 
         <span class="comment">// LLVM has a newer version of this function w/o the error result since 3.8 but this deprecated function
-        // hasen&#39;t yet been removed even in LLVM 8. Seems fine to use instead of switching to their
+        // hasen't yet been removed even in LLVM 8. Seems fine to use instead of switching to their
         // error diagnostics handler for now.
         </span><span class="attr">#[allow(deprecated)]
         </span><span class="kw">let </span>success = <span class="kw">unsafe </span>{
@@ -2825,7 +2827,7 @@
     /// use inkwell::module::Module;
     /// use std::path::Path;
     ///
-    /// let path = Path::new(&quot;foo/bar.bc&quot;);
+    /// let path = Path::new("foo/bar.bc");
     /// let context = Context::create();
     /// let module = Module::parse_bitcode_from_path(&amp;path, &amp;context);
     ///
@@ -2836,7 +2838,7 @@
     // by reusing create_from_file instead. This is basically just a convenience function.
     </span><span class="kw">pub fn </span>parse_bitcode_from_path&lt;P: AsRef&lt;Path&gt;&gt;(
         path: P,
-        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        context: <span class="kw">impl </span>AsContextRef&lt;<span class="lifetime">'ctx</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, LLVMString&gt; {
         <span class="kw">let </span>buffer = MemoryBuffer::create_from_file(path.as_ref())<span class="question-mark">?</span>;
 
@@ -2851,9 +2853,9 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     ///
-    /// assert_eq!(module.get_name().to_str(), Ok(&quot;my_mdoule&quot;));
+    /// assert_eq!(module.get_name().to_str(), Ok("my_mdoule"));
     /// ```
     </span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CStr {
         <span class="kw">let </span><span class="kw-2">mut </span>length = <span class="number">0</span>;
@@ -2870,11 +2872,11 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_module&quot;);
+    /// let module = context.create_module("my_module");
     ///
-    /// module.set_name(&quot;my_module2&quot;);
+    /// module.set_name("my_module2");
     ///
-    /// assert_eq!(module.get_name().to_str(), Ok(&quot;my_module2&quot;));
+    /// assert_eq!(module.get_name().to_str(), Ok("my_module2"));
     /// ```
     </span><span class="kw">pub fn </span>set_name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
         <span class="kw">unsafe </span>{ LLVMSetModuleIdentifier(<span class="self">self</span>.module.get(), name.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>::libc::c_char, name.len()) }
@@ -2888,14 +2890,14 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
-    /// assert_eq!(module.get_source_file_name().to_str(), Ok(&quot;my_mod&quot;));
+    /// assert_eq!(module.get_source_file_name().to_str(), Ok("my_mod"));
     ///
-    /// module.set_source_file_name(&quot;my_mod.rs&quot;);
+    /// module.set_source_file_name("my_mod.rs");
     ///
-    /// assert_eq!(module.get_name().to_str(), Ok(&quot;my_mod&quot;));
-    /// assert_eq!(module.get_source_file_name().to_str(), Ok(&quot;my_mod.rs&quot;));
+    /// assert_eq!(module.get_name().to_str(), Ok("my_mod"));
+    /// assert_eq!(module.get_source_file_name().to_str(), Ok("my_mod.rs"));
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
     </span><span class="kw">pub fn </span>get_source_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CStr {
@@ -2915,14 +2917,14 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;my_mod&quot;);
+    /// let module = context.create_module("my_mod");
     ///
-    /// assert_eq!(module.get_source_file_name().to_str(), Ok(&quot;my_mod&quot;));
+    /// assert_eq!(module.get_source_file_name().to_str(), Ok("my_mod"));
     ///
-    /// module.set_source_file_name(&quot;my_mod.rs&quot;);
+    /// module.set_source_file_name("my_mod.rs");
     ///
-    /// assert_eq!(module.get_name().to_str(), Ok(&quot;my_mod&quot;));
-    /// assert_eq!(module.get_source_file_name().to_str(), Ok(&quot;my_mod.rs&quot;));
+    /// assert_eq!(module.get_name().to_str(), Ok("my_mod"));
+    /// assert_eq!(module.get_source_file_name().to_str(), Ok("my_mod.rs"));
     /// ```
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
     </span><span class="kw">pub fn </span>set_source_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>, file_name: <span class="kw-2">&amp;</span>str) {
@@ -2945,14 +2947,14 @@
     /// use inkwell::context::Context;
     ///
     /// let context = Context::create();
-    /// let module = context.create_module(&quot;mod&quot;);
-    /// let module2 = context.create_module(&quot;mod2&quot;);
+    /// let module = context.create_module("mod");
+    /// let module2 = context.create_module("mod2");
     ///
     /// assert!(module.link_in_module(module2).is_ok());
     /// ```
     </span><span class="kw">pub fn </span>link_in_module(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LLVMString&gt; {
         <span class="kw">if </span>other.owned_by_ee.borrow().is_some() {
-            <span class="kw">let </span>string = <span class="string">&quot;Cannot link a module which is already owned by an ExecutionEngine.\0&quot;</span>;
+            <span class="kw">let </span>string = <span class="string">"Cannot link a module which is already owned by an ExecutionEngine.\0"</span>;
             <span class="kw">return </span><span class="prelude-val">Err</span>(LLVMString::create_from_str(string));
         }
 
@@ -2965,7 +2967,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>char_ptr: <span class="kw-2">*mut </span>::libc::c_char = ptr::null_mut();
         <span class="kw">let </span>char_ptr_ptr = <span class="kw-2">&amp;mut </span>char_ptr <span class="kw">as </span><span class="kw-2">*mut *mut </span>::libc::c_char <span class="kw">as </span><span class="kw-2">*mut *mut </span>c_void <span class="kw">as </span><span class="kw-2">*mut </span>c_void;
 
-        <span class="comment">// Newer LLVM versions don&#39;t use an out ptr anymore which was really straightforward...
+        <span class="comment">// Newer LLVM versions don't use an out ptr anymore which was really straightforward...
         // Here we assign an error handler to extract the error message, if any, for us.
         </span>context.set_diagnostic_handler(get_error_str_diagnostic_handler, char_ptr_ptr);
 
@@ -2999,7 +3001,7 @@
     /// when returned from this function.
     </span><span class="comment">// SubTypes: Might need to return Option&lt;BVE, MV&lt;Enum&gt;, or MV&lt;String&gt;&gt;
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>get_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;&gt; {
         <span class="kw">use </span>llvm_sys::core::LLVMMetadataAsValue;
 
         <span class="kw">let </span>flag = <span class="kw">unsafe </span>{ LLVMGetModuleFlag(<span class="self">self</span>.module.get(), key.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>::libc::c_char, key.len()) };
@@ -3016,7 +3018,7 @@
     <span class="doccomment">/// Append a `MetadataValue` as a module wide flag. Note that using the same key twice
     /// will likely invalidate the module.
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>add_metadata_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, behavior: FlagBehavior, flag: MetadataValue&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    </span><span class="kw">pub fn </span>add_metadata_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, behavior: FlagBehavior, flag: MetadataValue&lt;<span class="lifetime">'ctx</span>&gt;) {
         <span class="kw">let </span>md = flag.as_metadata_ref();
 
         <span class="kw">unsafe </span>{
@@ -3034,7 +3036,7 @@
     /// will likely invalidate the module.
     </span><span class="comment">// REVIEW: What happens if value is not const?
     </span><span class="attr">#[llvm_versions(<span class="number">7.0</span>..=latest)]
-    </span><span class="kw">pub fn </span>add_basic_value_flag&lt;BV: BasicValue&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, behavior: FlagBehavior, flag: BV) {
+    </span><span class="kw">pub fn </span>add_basic_value_flag&lt;BV: BasicValue&lt;<span class="lifetime">'ctx</span>&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str, behavior: FlagBehavior, flag: BV) {
         <span class="kw">use </span>llvm_sys::core::LLVMValueAsMetadata;
 
         <span class="kw">let </span>md = <span class="kw">unsafe </span>{ LLVMValueAsMetadata(flag.as_value_ref()) };
@@ -3084,24 +3086,24 @@
         split_debug_inlining: bool,
         debug_info_for_profiling: bool,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sysroot: <span class="kw-2">&amp;</span>str,
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;llvm11-0&quot;</span>,
-            feature = <span class="string">&quot;llvm12-0&quot;</span>,
-            feature = <span class="string">&quot;llvm13-0&quot;</span>,
-            feature = <span class="string">&quot;llvm14-0&quot;</span>,
-            feature = <span class="string">&quot;llvm15-0&quot;</span>,
-            feature = <span class="string">&quot;llvm16-0&quot;
+            feature = <span class="string">"llvm11-0"</span>,
+            feature = <span class="string">"llvm12-0"</span>,
+            feature = <span class="string">"llvm13-0"</span>,
+            feature = <span class="string">"llvm14-0"</span>,
+            feature = <span class="string">"llvm15-0"</span>,
+            feature = <span class="string">"llvm16-0"
         </span>))]
         </span>sdk: <span class="kw-2">&amp;</span>str,
-    ) -&gt; (DebugInfoBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt;, DICompileUnit&lt;<span class="lifetime">&#39;ctx</span>&gt;) {
+    ) -&gt; (DebugInfoBuilder&lt;<span class="lifetime">'ctx</span>&gt;, DICompileUnit&lt;<span class="lifetime">'ctx</span>&gt;) {
         DebugInfoBuilder::new(
             <span class="self">self</span>,
             allow_unresolved,
@@ -3118,21 +3120,21 @@
             split_debug_inlining,
             debug_info_for_profiling,
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>sysroot,
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;llvm11-0&quot;</span>,
-                feature = <span class="string">&quot;llvm12-0&quot;</span>,
-                feature = <span class="string">&quot;llvm13-0&quot;</span>,
-                feature = <span class="string">&quot;llvm14-0&quot;</span>,
-                feature = <span class="string">&quot;llvm15-0&quot;</span>,
-                feature = <span class="string">&quot;llvm16-0&quot;
+                feature = <span class="string">"llvm11-0"</span>,
+                feature = <span class="string">"llvm12-0"</span>,
+                feature = <span class="string">"llvm13-0"</span>,
+                feature = <span class="string">"llvm14-0"</span>,
+                feature = <span class="string">"llvm15-0"</span>,
+                feature = <span class="string">"llvm16-0"
             </span>))]
             </span>sdk,
         )
@@ -3140,7 +3142,7 @@
 
     <span class="doccomment">/// Construct and run a set of passes over a module.
     /// This function takes a string with the passes that should be used.
-    /// The format of this string is the same as opt&#39;s -passes argument for the new pass manager.
+    /// The format of this string is the same as opt's -passes argument for the new pass manager.
     /// Individual passes may be specified, separated by commas.
     /// Full pipelines may also be invoked using default&lt;O3&gt; and friends.
     /// See opt for full reference of the Passes format.
@@ -3168,14 +3170,14 @@
     }
 }
 
-<span class="kw">impl </span>Clone <span class="kw">for </span>Module&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Clone <span class="kw">for </span>Module&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="comment">// REVIEW: Is this just a LLVM 6 bug? We could conditionally compile this assertion for affected versions
         </span><span class="kw">let </span>verify = <span class="self">self</span>.verify();
 
         <span class="macro">assert!</span>(
             verify.is_ok(),
-            <span class="string">&quot;Cloning a Module seems to segfault when module is not valid. We are preventing that here. Error: {}&quot;</span>,
+            <span class="string">"Cloning a Module seems to segfault when module is not valid. We are preventing that here. Error: {}"</span>,
             verify.unwrap_err()
         );
 
@@ -3185,7 +3187,7 @@
 
 <span class="comment">// Module owns the data layout string, so LLVMDisposeModule will deallocate it for us.
 // which is why DataLayout must be called with `new_borrowed`
-</span><span class="kw">impl </span>Drop <span class="kw">for </span>Module&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>Module&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.owned_by_ee.borrow_mut().take().is_none() {
             <span class="kw">unsafe </span>{
@@ -3233,18 +3235,18 @@
 
 <span class="doccomment">/// Iterate over all `FunctionValue`s in an llvm module
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FunctionIterator&lt;<span class="lifetime">&#39;ctx</span>&gt;(FunctionIteratorInner&lt;<span class="lifetime">&#39;ctx</span>&gt;);
+</span><span class="kw">pub struct </span>FunctionIterator&lt;<span class="lifetime">'ctx</span>&gt;(FunctionIteratorInner&lt;<span class="lifetime">'ctx</span>&gt;);
 
 <span class="doccomment">/// Inner type so the variants are not publicly visible
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>FunctionIteratorInner&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">enum </span>FunctionIteratorInner&lt;<span class="lifetime">'ctx</span>&gt; {
     Empty,
-    Start(FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;),
-    Previous(FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;),
+    Start(FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;),
+    Previous(FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; FunctionIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>from_module(module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; FunctionIterator&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>from_module(module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">use </span>FunctionIteratorInner::<span class="kw-2">*</span>;
 
         <span class="kw">match </span>module.get_first_function() {
@@ -3254,8 +3256,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Iterator <span class="kw">for </span>FunctionIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">type </span>Item = FunctionValue&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Iterator <span class="kw">for </span>FunctionIterator&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">type </span>Item = FunctionValue&lt;<span class="lifetime">'ctx</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">use </span>FunctionIteratorInner::<span class="kw-2">*</span>;
@@ -3281,18 +3283,18 @@
 
 <span class="doccomment">/// Iterate over all `GlobalValue`s in an llvm module
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>GlobalIterator&lt;<span class="lifetime">&#39;ctx</span>&gt;(GlobalIteratorInner&lt;<span class="lifetime">&#39;ctx</span>&gt;);
+</span><span class="kw">pub struct </span>GlobalIterator&lt;<span class="lifetime">'ctx</span>&gt;(GlobalIteratorInner&lt;<span class="lifetime">'ctx</span>&gt;);
 
 <span class="doccomment">/// Inner type so the variants are not publicly visible
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>GlobalIteratorInner&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">enum </span>GlobalIteratorInner&lt;<span class="lifetime">'ctx</span>&gt; {
     Empty,
-    Start(GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;),
-    Previous(GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;),
+    Start(GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;),
+    Previous(GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; GlobalIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>from_module(module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; GlobalIterator&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>from_module(module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">use </span>GlobalIteratorInner::<span class="kw-2">*</span>;
 
         <span class="kw">match </span>module.get_first_global() {
@@ -3302,8 +3304,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; Iterator <span class="kw">for </span>GlobalIterator&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">type </span>Item = GlobalValue&lt;<span class="lifetime">&#39;ctx</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; Iterator <span class="kw">for </span>GlobalIterator&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">type </span>Item = GlobalValue&lt;<span class="lifetime">'ctx</span>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">use </span>GlobalIteratorInner::<span class="kw-2">*</span>;

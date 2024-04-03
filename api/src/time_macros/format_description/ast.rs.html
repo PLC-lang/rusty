@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-macros-0.2.17/src/format_description/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-macros-0.2.17/src/format_description/ast.rs`."><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../time_macros/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -256,72 +258,72 @@
 
 <span class="kw">use super</span>::{lexer, unused, Error, Location, Spanned, SpannedValue, Unused};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Item&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Literal(Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;),
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Item&lt;<span class="lifetime">'a</span>&gt; {
+    Literal(Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;),
     EscapedBracket {
         _first: Unused&lt;Location&gt;,
         _second: Unused&lt;Location&gt;,
     },
     Component {
         _opening_bracket: Unused&lt;Location&gt;,
-        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;&gt;,
-        name: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;,
-        modifiers: Box&lt;[Modifier&lt;<span class="lifetime">&#39;a</span>&gt;]&gt;,
-        _trailing_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;&gt;,
+        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;&gt;,
+        name: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;,
+        modifiers: Box&lt;[Modifier&lt;<span class="lifetime">'a</span>&gt;]&gt;,
+        _trailing_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;&gt;,
         _closing_bracket: Unused&lt;Location&gt;,
     },
     Optional {
         opening_bracket: Location,
-        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;&gt;,
-        _optional_kw: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;,
-        _whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;,
-        nested_format_description: NestedFormatDescription&lt;<span class="lifetime">&#39;a</span>&gt;,
+        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;&gt;,
+        _optional_kw: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;,
+        _whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;,
+        nested_format_description: NestedFormatDescription&lt;<span class="lifetime">'a</span>&gt;,
         closing_bracket: Location,
     },
     First {
         opening_bracket: Location,
-        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;&gt;,
-        _first_kw: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;,
-        _whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;,
-        nested_format_descriptions: Box&lt;[NestedFormatDescription&lt;<span class="lifetime">&#39;a</span>&gt;]&gt;,
+        _leading_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;&gt;,
+        _first_kw: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;,
+        _whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;,
+        nested_format_descriptions: Box&lt;[NestedFormatDescription&lt;<span class="lifetime">'a</span>&gt;]&gt;,
         closing_bracket: Location,
     },
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>NestedFormatDescription&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>NestedFormatDescription&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) _opening_bracket: Unused&lt;Location&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) items: Box&lt;[Item&lt;<span class="lifetime">&#39;a</span>&gt;]&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) items: Box&lt;[Item&lt;<span class="lifetime">'a</span>&gt;]&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) _closing_bracket: Unused&lt;Location&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) _trailing_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) _trailing_whitespace: Unused&lt;<span class="prelude-ty">Option</span>&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Modifier&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) _leading_whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) key: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Modifier&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) _leading_whitespace: Unused&lt;Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) key: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) _colon: Unused&lt;Location&gt;,
-    <span class="kw">pub</span>(<span class="kw">super</span>) value: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) value: Spanned&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse&lt;
-    <span class="lifetime">&#39;item</span>: <span class="lifetime">&#39;iter</span>,
-    <span class="lifetime">&#39;iter</span>,
-    I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">&#39;item</span>&gt;, Error&gt;&gt;,
+    <span class="lifetime">'item</span>: <span class="lifetime">'iter</span>,
+    <span class="lifetime">'iter</span>,
+    I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">'item</span>&gt;, Error&gt;&gt;,
     <span class="kw">const </span>VERSION: u8,
 &gt;(
-    tokens: <span class="kw-2">&amp;</span><span class="lifetime">&#39;iter </span><span class="kw-2">mut </span>lexer::Lexed&lt;I&gt;,
-) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">&#39;item</span>&gt;, Error&gt;&gt; + <span class="lifetime">&#39;iter </span>{
+    tokens: <span class="kw-2">&amp;</span><span class="lifetime">'iter </span><span class="kw-2">mut </span>lexer::Lexed&lt;I&gt;,
+) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">'item</span>&gt;, Error&gt;&gt; + <span class="lifetime">'iter </span>{
     <span class="macro">assert!</span>(<span class="macro">version!</span>(<span class="number">1</span>..=<span class="number">2</span>));
     parse_inner::&lt;<span class="kw">_</span>, <span class="bool-val">false</span>, VERSION&gt;(tokens)
 }
 
 <span class="kw">fn </span>parse_inner&lt;
-    <span class="lifetime">&#39;item</span>,
-    I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">&#39;item</span>&gt;, Error&gt;&gt;,
+    <span class="lifetime">'item</span>,
+    I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">'item</span>&gt;, Error&gt;&gt;,
     <span class="kw">const </span>NESTED: bool,
     <span class="kw">const </span>VERSION: u8,
 &gt;(
     tokens: <span class="kw-2">&amp;mut </span>lexer::Lexed&lt;I&gt;,
-) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">&#39;item</span>&gt;, Error&gt;&gt; + <span class="lifetime">&#39;_ </span>{
+) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">'item</span>&gt;, Error&gt;&gt; + <span class="lifetime">'_ </span>{
     iter::from_fn(<span class="kw">move </span>|| {
         <span class="kw">if </span>NESTED &amp;&amp; tokens.peek_closing_bracket().is_some() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -334,7 +336,7 @@
 
         <span class="prelude-val">Some</span>(<span class="kw">match </span>next {
             lexer::Token::Literal(Spanned { value: <span class="kw">_</span>, span: <span class="kw">_ </span>}) <span class="kw">if </span>NESTED =&gt; {
-                <span class="macro">bug!</span>(<span class="string">&quot;literal should not be present in nested description&quot;</span>)
+                <span class="macro">bug!</span>(<span class="string">"literal should not be present in nested description"</span>)
             }
             lexer::Token::Literal(value) =&gt; <span class="prelude-val">Ok</span>(Item::Literal(value)),
             lexer::Token::Bracket {
@@ -358,26 +360,26 @@
                 kind: lexer::BracketKind::Closing,
                 location: <span class="kw">_</span>,
             } <span class="kw">if </span>NESTED =&gt; {
-                <span class="macro">bug!</span>(<span class="string">&quot;closing bracket should be caught by the `if` statement&quot;</span>)
+                <span class="macro">bug!</span>(<span class="string">"closing bracket should be caught by the `if` statement"</span>)
             }
             lexer::Token::Bracket {
                 kind: lexer::BracketKind::Closing,
                 location: <span class="kw">_</span>,
             } =&gt; {
-                <span class="macro">bug!</span>(<span class="string">&quot;closing bracket should have been consumed by `parse_component`&quot;</span>)
+                <span class="macro">bug!</span>(<span class="string">"closing bracket should have been consumed by `parse_component`"</span>)
             }
             lexer::Token::ComponentPart { kind: <span class="kw">_</span>, value } <span class="kw">if </span>NESTED =&gt; <span class="prelude-val">Ok</span>(Item::Literal(value)),
             lexer::Token::ComponentPart { kind: <span class="kw">_</span>, value: <span class="kw">_ </span>} =&gt; {
-                <span class="macro">bug!</span>(<span class="string">&quot;component part should have been consumed by `parse_component`&quot;</span>)
+                <span class="macro">bug!</span>(<span class="string">"component part should have been consumed by `parse_component`"</span>)
             }
         })
     })
 }
 
-<span class="kw">fn </span>parse_component&lt;<span class="lifetime">&#39;a</span>, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt;&gt;, <span class="kw">const </span>VERSION: u8&gt;(
+<span class="kw">fn </span>parse_component&lt;<span class="lifetime">'a</span>, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">'a</span>&gt;, Error&gt;&gt;, <span class="kw">const </span>VERSION: u8&gt;(
     opening_bracket: Location,
     tokens: <span class="kw-2">&amp;mut </span>lexer::Lexed&lt;I&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;Item&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
     <span class="kw">let </span>leading_whitespace = tokens.next_if_whitespace();
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(name) = tokens.next_if_not_whitespace() <span class="kw">else </span>{
@@ -385,18 +387,18 @@
             <span class="prelude-val">Some</span>(Spanned { value: <span class="kw">_</span>, span }) =&gt; span,
             <span class="prelude-val">None </span>=&gt; opening_bracket.to(opening_bracket),
         };
-        <span class="kw">return </span><span class="prelude-val">Err</span>(span.error(<span class="string">&quot;expected component name&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(span.error(<span class="string">"expected component name"</span>));
     };
 
-    <span class="kw">if </span><span class="kw-2">*</span>name == <span class="string">b&quot;optional&quot; </span>{
+    <span class="kw">if </span><span class="kw-2">*</span>name == <span class="string">b"optional" </span>{
         <span class="kw">let </span><span class="prelude-val">Some</span>(whitespace) = tokens.next_if_whitespace() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(name.span.error(<span class="string">&quot;expected whitespace after `optional`&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(name.span.error(<span class="string">"expected whitespace after `optional`"</span>));
         };
 
         <span class="kw">let </span>nested = parse_nested::&lt;<span class="kw">_</span>, VERSION&gt;(whitespace.span.end, tokens)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(closing_bracket) = tokens.next_if_closing_bracket() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">&quot;unclosed bracket&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">"unclosed bracket"</span>));
         };
 
         <span class="kw">return </span><span class="prelude-val">Ok</span>(Item::Optional {
@@ -409,9 +411,9 @@
         });
     }
 
-    <span class="kw">if </span><span class="kw-2">*</span>name == <span class="string">b&quot;first&quot; </span>{
+    <span class="kw">if </span><span class="kw-2">*</span>name == <span class="string">b"first" </span>{
         <span class="kw">let </span><span class="prelude-val">Some</span>(whitespace) = tokens.next_if_whitespace() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(name.span.error(<span class="string">&quot;expected whitespace after `first`&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(name.span.error(<span class="string">"expected whitespace after `first`"</span>));
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>nested_format_descriptions = Vec::new();
@@ -420,7 +422,7 @@
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(closing_bracket) = tokens.next_if_closing_bracket() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">&quot;unclosed bracket&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">"unclosed bracket"</span>));
         };
 
         <span class="kw">return </span><span class="prelude-val">Ok</span>(Item::First {
@@ -442,24 +444,24 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(location) = tokens.next_if_opening_bracket() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(location
                 .to(location)
-                .error(<span class="string">&quot;modifier must be of the form `key:value`&quot;</span>));
+                .error(<span class="string">"modifier must be of the form `key:value`"</span>));
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(Spanned { value, span }) = tokens.next_if_not_whitespace() <span class="kw">else </span>{
             <span class="kw">break </span><span class="prelude-val">Some</span>(whitespace);
         };
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(colon_index) = value.iter().position(|<span class="kw-2">&amp;</span>b| b == <span class="string">b&#39;:&#39;</span>) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(span.error(<span class="string">&quot;modifier must be of the form `key:value`&quot;</span>));
+        <span class="kw">let </span><span class="prelude-val">Some</span>(colon_index) = value.iter().position(|<span class="kw-2">&amp;</span>b| b == <span class="string">b':'</span>) <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(span.error(<span class="string">"modifier must be of the form `key:value`"</span>));
         };
         <span class="kw">let </span>key = <span class="kw-2">&amp;</span>value[..colon_index];
         <span class="kw">let </span>value = <span class="kw-2">&amp;</span>value[colon_index + <span class="number">1</span>..];
 
         <span class="kw">if </span>key.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(span.shrink_to_start().error(<span class="string">&quot;expected modifier key&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(span.shrink_to_start().error(<span class="string">"expected modifier key"</span>));
         }
         <span class="kw">if </span>value.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(span.shrink_to_end().error(<span class="string">&quot;expected modifier value&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(span.shrink_to_end().error(<span class="string">"expected modifier value"</span>));
         }
 
         modifiers.push(Modifier {
@@ -471,7 +473,7 @@
     };
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(closing_bracket) = tokens.next_if_closing_bracket() <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">&quot;unclosed bracket&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">"unclosed bracket"</span>));
     };
 
     <span class="prelude-val">Ok</span>(Item::Component {
@@ -484,16 +486,16 @@
     })
 }
 
-<span class="kw">fn </span>parse_nested&lt;<span class="lifetime">&#39;a</span>, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt;&gt;, <span class="kw">const </span>VERSION: u8&gt;(
+<span class="kw">fn </span>parse_nested&lt;<span class="lifetime">'a</span>, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;lexer::Token&lt;<span class="lifetime">'a</span>&gt;, Error&gt;&gt;, <span class="kw">const </span>VERSION: u8&gt;(
     last_location: Location,
     tokens: <span class="kw-2">&amp;mut </span>lexer::Lexed&lt;I&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;NestedFormatDescription&lt;<span class="lifetime">&#39;a</span>&gt;, Error&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;NestedFormatDescription&lt;<span class="lifetime">'a</span>&gt;, Error&gt; {
     <span class="kw">let </span><span class="prelude-val">Some</span>(opening_bracket) = tokens.next_if_opening_bracket() <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(last_location.error(<span class="string">&quot;expected opening bracket&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(last_location.error(<span class="string">"expected opening bracket"</span>));
     };
     <span class="kw">let </span>items = parse_inner::&lt;<span class="kw">_</span>, <span class="bool-val">true</span>, VERSION&gt;(tokens).collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="prelude-val">Some</span>(closing_bracket) = tokens.next_if_closing_bracket() <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">&quot;unclosed bracket&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(opening_bracket.error(<span class="string">"unclosed bracket"</span>));
     };
     <span class="kw">let </span>trailing_whitespace = tokens.next_if_whitespace();
 

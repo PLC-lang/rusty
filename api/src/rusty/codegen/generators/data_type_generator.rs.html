@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/data_type_generator.rs`."><title>data_type_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/generators/data_type_generator.rs`."><title>data_type_generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rusty/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -494,12 +496,12 @@
 <span class="kw">use </span><span class="kw">super</span>::ADDRESS_SPACE_GENERIC;
 <span class="kw">use super</span>::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
-<span class="kw">pub struct </span>DataTypeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; {
-    llvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    debug: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Index,
-    annotations: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>AstAnnotations,
-    types_index: LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
+<span class="kw">pub struct </span>DataTypeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
+    llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
+    annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
+    types_index: LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
 }
 
 <span class="doccomment">/// generates the llvm-type for the given data-type and registers it at the index
@@ -509,13 +511,13 @@
 /// - an alias index entry for sub-range types
 /// - Array type for arrays
 /// - array type for sized Strings
-</span><span class="kw">pub fn </span>generate_data_types&lt;<span class="lifetime">&#39;ink</span>&gt;(
-    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">&#39;ink</span>&gt;,
-    debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+</span><span class="kw">pub fn </span>generate_data_types&lt;<span class="lifetime">'ink</span>&gt;(
+    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+    debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
     dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
-) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
     <span class="kw">let </span><span class="kw-2">mut </span>pou_types = <span class="macro">vec!</span>[];
 
@@ -556,7 +558,7 @@
         }
     }
 
-    <span class="comment">// now create all other types (enum&#39;s, arrays, etc.)
+    <span class="comment">// now create all other types (enum's, arrays, etc.)
     </span><span class="kw">for </span>(name, user_type) <span class="kw">in </span><span class="kw-2">&amp;</span>types {
         <span class="kw">let </span>gen_type = generator.create_type(name, user_type)<span class="question-mark">?</span>;
         generator.types_index.associate_type(name, gen_type)<span class="question-mark">?
@@ -608,9 +610,9 @@
             }
         }
     }
-    <span class="comment">//If we didn&#39;t resolve anything this cycle, report the remaining issues and exit
+    <span class="comment">//If we didn't resolve anything this cycle, report the remaining issues and exit
     </span><span class="kw">if </span>!types_to_init.is_empty() {
-        <span class="comment">//Report each error as a new diagnostic, add the type&#39;s location as related to the error
+        <span class="comment">//Report each error as a new diagnostic, add the type's location as related to the error
         </span><span class="kw">let </span>diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
@@ -621,14 +623,14 @@
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="comment">//Report the operation failure
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">&quot;Some initial values were not generated&quot;</span>)
-            .with_error_code(<span class="string">&quot;E075&quot;</span>)
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">"Some initial values were not generated"</span>)
+            .with_error_code(<span class="string">"E075"</span>)
             .with_sub_diagnostics(diags));
     }
     <span class="prelude-val">Ok</span>(generator.types_index)
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; DataTypeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; DataTypeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
     <span class="doccomment">/// generates the members of an opaque struct and associates its initial values
     </span><span class="kw">fn </span>expand_opaque_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span>DataType) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>information = data_type.get_type_information();
@@ -655,7 +657,7 @@
     <span class="doccomment">/// Creates an llvm type to be associated with the given data type.
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
-    </span><span class="kw">fn </span>create_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, data_type: <span class="kw-2">&amp;</span>DataType) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    </span><span class="kw">fn </span>create_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, data_type: <span class="kw-2">&amp;</span>DataType) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.debug.register_debug_type(name, data_type, <span class="self">self</span>.index)<span class="question-mark">?</span>;
         <span class="kw">let </span>information = data_type.get_type_information();
         <span class="kw">match </span>information {
@@ -690,10 +692,10 @@
                     <span class="self">self</span>.create_type(name, effective_type)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">&quot;Invalid type nature for generic argument. {} is no `ANY_INT`.&quot;</span>,
+                        <span class="string">"Invalid type nature for generic argument. {} is no `ANY_INT`."</span>,
                         effective_type.get_name()
                     ))
-                    .with_error_code(<span class="string">&quot;E062&quot;</span>))
+                    .with_error_code(<span class="string">"E062"</span>))
                 }
             }
             DataTypeInformation::Float { size, .. } =&gt; {
@@ -717,13 +719,13 @@
                 </span>.index
                 .get_effective_type_by_name(referenced_type)
                 .and_then(|data_type| <span class="self">self</span>.create_type(name, data_type)),
-            DataTypeInformation::Void =&gt; <span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).into()),
+            DataTypeInformation::Void =&gt; <span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="number">32</span>, <span class="string">"Void"</span>).into()),
             DataTypeInformation::Pointer { inner_type_name, .. } =&gt; {
                 <span class="kw">let </span>inner_type = <span class="self">self</span>.create_type(inner_type_name, <span class="self">self</span>.index.get_type(inner_type_name)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(inner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
             }
             DataTypeInformation::Generic { .. } =&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Generic types should not be generated&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"Generic types should not be generated"</span>)
             }
         }
     }
@@ -731,7 +733,7 @@
     <span class="kw">fn </span>generate_initial_value(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         data_type: <span class="kw-2">&amp;</span>DataType,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>information = data_type.get_type_information();
         <span class="kw">match </span>information {
             DataTypeInformation::Struct { source, members, .. } =&gt; {
@@ -770,12 +772,12 @@
             DataTypeInformation::Array { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
                 |stmt| <span class="macro">matches!</span>(stmt.stmt, AstStatement::Literal(AstLiteral::Array { .. })),
-                <span class="string">&quot;LiteralArray&quot;</span>,
+                <span class="string">"LiteralArray"</span>,
             ),
             DataTypeInformation::String { .. } =&gt; <span class="self">self</span>.generate_array_initializer(
                 data_type,
                 |stmt| <span class="macro">matches!</span>(stmt.stmt, AstStatement::Literal(AstLiteral::String { .. })),
-                <span class="string">&quot;LiteralString&quot;</span>,
+                <span class="string">"LiteralString"</span>,
             ),
             DataTypeInformation::SubRange { referenced_type, .. } =&gt; {
                 <span class="self">self</span>.generate_initial_value_for_type(data_type, referenced_type)
@@ -789,12 +791,12 @@
     }
 
     <span class="doccomment">/// generates and returns an optional inital value at the given declared variable
-    /// if no initial value is defined, it returns the initial value of the variable&#39;s
+    /// if no initial value is defined, it returns the initial value of the variable's
     /// datatype or Ok(None) if the type also has no declared default value
     </span><span class="kw">fn </span>generate_initial_value_for_variable(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">let </span>initializer = variable
             .initial_value
             .and_then(|it| <span class="self">self</span>.index.get_const_expressions().get_constant_statement(<span class="kw-2">&amp;</span>it));
@@ -808,7 +810,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         data_type: <span class="kw-2">&amp;</span>DataType,
         referenced_type: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="self">self</span>.generate_initializer(
             data_type.get_name(),
             <span class="self">self</span>.index.get_const_expressions().maybe_get_constant_statement(<span class="kw-2">&amp;</span>data_type.initial_value),
@@ -825,7 +827,7 @@
         qualified_name: <span class="kw-2">&amp;</span>str,
         initializer: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
         data_type_name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = initializer {
             <span class="kw">let </span>generator = ExpressionCodeGenerator::new_context_free(
                 <span class="self">self</span>.llvm,
@@ -837,7 +839,7 @@
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
             })
         } <span class="kw">else </span>{
-            <span class="comment">// if there&#39;s no initializer defined for this alias, we go and check the aliased type for an initial value
+            <span class="comment">// if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             </span><span class="self">self</span>.index
                 .get_type(data_type_name)
                 .and_then(|referenced_data_type| <span class="self">self</span>.generate_initial_value(referenced_data_type))
@@ -850,7 +852,7 @@
         data_type: <span class="kw-2">&amp;</span>DataType,
         predicate: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>AstNode) -&gt; bool,
         expected_ast: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) =
             <span class="self">self</span>.index.get_const_expressions().maybe_get_constant_statement(<span class="kw-2">&amp;</span>data_type.initial_value)
         {
@@ -864,7 +866,7 @@
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(generator.generate_literal(initializer)<span class="question-mark">?</span>.get_basic_value_enum()))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">&quot;Expected {expected_ast} but found {initializer:?}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"Expected {expected_ast} but found {initializer:?}"</span>),
                     initializer.get_location(),
                 ))
             }
@@ -881,9 +883,9 @@
     /// `arr: ARRAY[0..3] OF INT`.
     </span><span class="kw">fn </span>create_nested_array_type(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        inner_type: BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
+        inner_type: BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
         dimensions: <span class="kw-2">&amp;</span>[Dimension],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>len = dimensions
             .iter()
             .map(|dimension| {
@@ -895,7 +897,7 @@
             </span>.into_iter()
             .reduce(|a, b| a * b)
             .ok_or_else(|| {
-                Diagnostic::codegen_error(<span class="string">&quot;Invalid array dimensions&quot;</span>, SourceLocation::undefined())
+                Diagnostic::codegen_error(<span class="string">"Invalid array dimensions"</span>, SourceLocation::undefined())
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>result = <span class="kw">match </span>inner_type {

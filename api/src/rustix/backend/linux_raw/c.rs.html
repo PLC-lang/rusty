@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/c.rs`."><title>c.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/backend/linux_raw/c.rs`."><title>c.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../rustix/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -319,7 +321,7 @@
 <a href="#319" id="319">319</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Adapt the Linux API to resemble a POSIX-style libc API.
 //!
-//! The linux_raw backend doesn&#39;t use actual libc; this just defines certain
+//! The linux_raw backend doesn't use actual libc; this just defines certain
 //! types that are convenient to have defined.
 
 </span><span class="attr">#![allow(unused_imports)]
@@ -329,29 +331,29 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ctypes::<span class="kw-2">*</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::errno::EINVAL;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::{FIONBIO, FIONREAD};
-<span class="comment">// Import the kernel&#39;s `uid_t` and `gid_t` if they&#39;re 32-bit.
-</span><span class="attr">#[cfg(not(any(target_arch = <span class="string">&quot;arm&quot;</span>, target_arch = <span class="string">&quot;sparc&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>)))]
+<span class="comment">// Import the kernel's `uid_t` and `gid_t` if they're 32-bit.
+</span><span class="attr">#[cfg(not(any(target_arch = <span class="string">"arm"</span>, target_arch = <span class="string">"sparc"</span>, target_arch = <span class="string">"x86"</span>)))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::general::{__kernel_gid_t <span class="kw">as </span>gid_t, __kernel_uid_t <span class="kw">as </span>uid_t};
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::general::{
     __kernel_pid_t <span class="kw">as </span>pid_t, __kernel_time64_t <span class="kw">as </span>time_t, __kernel_timespec <span class="kw">as </span>timespec, iovec,
     O_CLOEXEC, O_NOCTTY, O_NONBLOCK, O_RDWR,
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;event&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"event"</span>)]
 #[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::general::epoll_event;
 
 <span class="attr">#[cfg(any(
-    feature = <span class="string">&quot;fs&quot;</span>,
+    feature = <span class="string">"fs"</span>,
     all(
-        not(feature = <span class="string">&quot;use-libc-auxv&quot;</span>),
-        not(feature = <span class="string">&quot;use-explicitly-provided-auxv&quot;</span>),
+        not(feature = <span class="string">"use-libc-auxv"</span>),
+        not(feature = <span class="string">"use-explicitly-provided-auxv"</span>),
         any(
-            feature = <span class="string">&quot;param&quot;</span>,
-            feature = <span class="string">&quot;process&quot;</span>,
-            feature = <span class="string">&quot;runtime&quot;</span>,
-            feature = <span class="string">&quot;time&quot;</span>,
-            target_arch = <span class="string">&quot;x86&quot;</span>,
+            feature = <span class="string">"param"</span>,
+            feature = <span class="string">"process"</span>,
+            feature = <span class="string">"runtime"</span>,
+            feature = <span class="string">"time"</span>,
+            target_arch = <span class="string">"x86"</span>,
         )
     )
 ))]
@@ -361,15 +363,15 @@
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::{BLKPBSZGET, BLKSSZGET, FICLONE};
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::{FS_IOC32_GETFLAGS, FS_IOC32_SETFLAGS};
-<span class="attr">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+<span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::{FS_IOC_GETFLAGS, FS_IOC_SETFLAGS};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;io_uring&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"io_uring"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::{general::open_how, io_uring::<span class="kw-2">*</span>};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::{
     cmsg_macros::<span class="kw-2">*</span>,
     general::{O_CLOEXEC <span class="kw">as </span>SOCK_CLOEXEC, O_NONBLOCK <span class="kw">as </span>SOCK_NONBLOCK},
@@ -411,76 +413,76 @@
     },
 };
 
-<span class="comment">// Cast away bindgen&#39;s `enum` type to make these consistent with the other
+<span class="comment">// Cast away bindgen's `enum` type to make these consistent with the other
 // `setsockopt`/`getsockopt` level values.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_IP: u32 = linux_raw_sys::net::IPPROTO_IP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_ICMP: u32 = linux_raw_sys::net::IPPROTO_ICMP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_IGMP: u32 = linux_raw_sys::net::IPPROTO_IGMP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_IPIP: u32 = linux_raw_sys::net::IPPROTO_IPIP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_TCP: u32 = linux_raw_sys::net::IPPROTO_TCP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_EGP: u32 = linux_raw_sys::net::IPPROTO_EGP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_PUP: u32 = linux_raw_sys::net::IPPROTO_PUP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_UDP: u32 = linux_raw_sys::net::IPPROTO_UDP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_IDP: u32 = linux_raw_sys::net::IPPROTO_IDP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_TP: u32 = linux_raw_sys::net::IPPROTO_TP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_DCCP: u32 = linux_raw_sys::net::IPPROTO_DCCP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_IPV6: u32 = linux_raw_sys::net::IPPROTO_IPV6 <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_RSVP: u32 = linux_raw_sys::net::IPPROTO_RSVP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_GRE: u32 = linux_raw_sys::net::IPPROTO_GRE <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_ESP: u32 = linux_raw_sys::net::IPPROTO_ESP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_AH: u32 = linux_raw_sys::net::IPPROTO_AH <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_MTP: u32 = linux_raw_sys::net::IPPROTO_MTP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_BEETPH: u32 = linux_raw_sys::net::IPPROTO_BEETPH <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_ENCAP: u32 = linux_raw_sys::net::IPPROTO_ENCAP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_PIM: u32 = linux_raw_sys::net::IPPROTO_PIM <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_COMP: u32 = linux_raw_sys::net::IPPROTO_COMP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_SCTP: u32 = linux_raw_sys::net::IPPROTO_SCTP <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_UDPLITE: u32 = linux_raw_sys::net::IPPROTO_UDPLITE <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_MPLS: u32 = linux_raw_sys::net::IPPROTO_MPLS <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_ETHERNET: u32 = linux_raw_sys::net::IPPROTO_ETHERNET <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_RAW: u32 = linux_raw_sys::net::IPPROTO_RAW <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"net"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>IPPROTO_MPTCP: u32 = linux_raw_sys::net::IPPROTO_MPTCP <span class="kw">as _</span>;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;process&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"process"</span>, feature = <span class="string">"runtime"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::general::siginfo_t;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;process&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"process"</span>, feature = <span class="string">"runtime"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>EXIT_SUCCESS: c_int = <span class="number">0</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;process&quot;</span>, feature = <span class="string">&quot;runtime&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"process"</span>, feature = <span class="string">"runtime"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>EXIT_FAILURE: c_int = <span class="number">1</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>EXIT_SIGNALED_SIGABRT: c_int = <span class="number">128 </span>+ linux_raw_sys::general::SIGABRT <span class="kw">as </span>c_int;
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"runtime"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLONE_CHILD_SETTID: c_int = linux_raw_sys::general::CLONE_CHILD_SETTID <span class="kw">as </span>c_int;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"process"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::{
     general::{
         CLD_CONTINUED, CLD_DUMPED, CLD_EXITED, CLD_KILLED, CLD_STOPPED, CLD_TRAPPED,
@@ -489,10 +491,10 @@
     ioctl::TIOCSCTTY,
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;pty&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"pty"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::TIOCGPTPEER;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;termios&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"termios"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::{
     general::{
         cc_t, speed_t, tcflag_t, termios, termios2, winsize, B0, B1000000, B110, B115200, B1152000,
@@ -515,20 +517,20 @@
 <span class="comment">// On MIPS, `TCSANOW` et al have `TCSETS` added to them, so we need it to
 // subtract it out.
 </span><span class="attr">#[cfg(all(
-    feature = <span class="string">&quot;termios&quot;</span>,
+    feature = <span class="string">"termios"</span>,
     any(
-        target_arch = <span class="string">&quot;mips&quot;</span>,
-        target_arch = <span class="string">&quot;mips32r6&quot;</span>,
-        target_arch = <span class="string">&quot;mips64&quot;</span>,
-        target_arch = <span class="string">&quot;mips64r6&quot;
+        target_arch = <span class="string">"mips"</span>,
+        target_arch = <span class="string">"mips32r6"</span>,
+        target_arch = <span class="string">"mips64"</span>,
+        target_arch = <span class="string">"mips64r6"
     </span>)
 ))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>linux_raw_sys::ioctl::TCSETS;
 
-<span class="comment">// Define our own `uid_t` and `gid_t` if the kernel&#39;s versions are not 32-bit.
-</span><span class="attr">#[cfg(any(target_arch = <span class="string">&quot;arm&quot;</span>, target_arch = <span class="string">&quot;sparc&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="comment">// Define our own `uid_t` and `gid_t` if the kernel's versions are not 32-bit.
+</span><span class="attr">#[cfg(any(target_arch = <span class="string">"arm"</span>, target_arch = <span class="string">"sparc"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>uid_t = u32;
-<span class="attr">#[cfg(any(target_arch = <span class="string">&quot;arm&quot;</span>, target_arch = <span class="string">&quot;sparc&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="attr">#[cfg(any(target_arch = <span class="string">"arm"</span>, target_arch = <span class="string">"sparc"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>gid_t = u32;
 
 <span class="comment">// Bindgen infers `u32` for many of these macro types which meant to be
@@ -551,12 +553,12 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGALRM: c_int = linux_raw_sys::general::SIGALRM <span class="kw">as _</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGTERM: c_int = linux_raw_sys::general::SIGTERM <span class="kw">as _</span>;
 <span class="attr">#[cfg(not(any(
-    target_arch = <span class="string">&quot;mips&quot;</span>,
-    target_arch = <span class="string">&quot;mips32r6&quot;</span>,
-    target_arch = <span class="string">&quot;mips64&quot;</span>,
-    target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-    target_arch = <span class="string">&quot;sparc&quot;</span>,
-    target_arch = <span class="string">&quot;sparc64&quot;
+    target_arch = <span class="string">"mips"</span>,
+    target_arch = <span class="string">"mips32r6"</span>,
+    target_arch = <span class="string">"mips64"</span>,
+    target_arch = <span class="string">"mips64r6"</span>,
+    target_arch = <span class="string">"sparc"</span>,
+    target_arch = <span class="string">"sparc64"
 </span>)))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGSTKFLT: c_int = linux_raw_sys::general::SIGSTKFLT <span class="kw">as _</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGCHLD: c_int = linux_raw_sys::general::SIGCHLD <span class="kw">as _</span>;
@@ -575,20 +577,20 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGPWR: c_int = linux_raw_sys::general::SIGPWR <span class="kw">as _</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGSYS: c_int = linux_raw_sys::general::SIGSYS <span class="kw">as _</span>;
 <span class="attr">#[cfg(any(
-    target_arch = <span class="string">&quot;mips&quot;</span>,
-    target_arch = <span class="string">&quot;mips32r6&quot;</span>,
-    target_arch = <span class="string">&quot;mips64&quot;</span>,
-    target_arch = <span class="string">&quot;mips64r6&quot;</span>,
-    target_arch = <span class="string">&quot;sparc&quot;</span>,
-    target_arch = <span class="string">&quot;sparc64&quot;
+    target_arch = <span class="string">"mips"</span>,
+    target_arch = <span class="string">"mips32r6"</span>,
+    target_arch = <span class="string">"mips64"</span>,
+    target_arch = <span class="string">"mips64r6"</span>,
+    target_arch = <span class="string">"sparc"</span>,
+    target_arch = <span class="string">"sparc64"
 </span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SIGEMT: c_int = linux_raw_sys::general::SIGEMT <span class="kw">as _</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;stdio&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"stdio"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>STDIN_FILENO: c_int = linux_raw_sys::general::STDIN_FILENO <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;stdio&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"stdio"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>STDOUT_FILENO: c_int = linux_raw_sys::general::STDOUT_FILENO <span class="kw">as _</span>;
-<span class="attr">#[cfg(feature = <span class="string">&quot;stdio&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"stdio"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>STDERR_FILENO: c_int = linux_raw_sys::general::STDERR_FILENO <span class="kw">as _</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PIPE_BUF: usize = linux_raw_sys::general::PIPE_BUF <span class="kw">as _</span>;
@@ -603,16 +605,16 @@
     linux_raw_sys::general::CLOCK_THREAD_CPUTIME_ID <span class="kw">as _</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOCK_PROCESS_CPUTIME_ID: c_int =
     linux_raw_sys::general::CLOCK_PROCESS_CPUTIME_ID <span class="kw">as _</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"thread"</span>, feature = <span class="string">"time"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOCK_BOOTTIME: c_int = linux_raw_sys::general::CLOCK_BOOTTIME <span class="kw">as _</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"thread"</span>, feature = <span class="string">"time"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOCK_BOOTTIME_ALARM: c_int = linux_raw_sys::general::CLOCK_BOOTTIME_ALARM <span class="kw">as _</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"thread"</span>, feature = <span class="string">"time"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOCK_TAI: c_int = linux_raw_sys::general::CLOCK_TAI <span class="kw">as _</span>;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">"thread"</span>, feature = <span class="string">"time"</span>, target_arch = <span class="string">"x86"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CLOCK_REALTIME_ALARM: c_int = linux_raw_sys::general::CLOCK_REALTIME_ALARM <span class="kw">as _</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;system&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
 </span><span class="kw">mod </span>reboot_symbols {
     <span class="kw">use </span><span class="kw">super</span>::c_int;
 
@@ -634,6 +636,6 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LINUX_REBOOT_CMD_KEXEC: c_int =
         linux_raw_sys::general::LINUX_REBOOT_CMD_KEXEC <span class="kw">as _</span>;
 }
-<span class="attr">#[cfg(feature = <span class="string">&quot;system&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>reboot_symbols::<span class="kw-2">*</span>;
 </code></pre></div></section></main></body></html>

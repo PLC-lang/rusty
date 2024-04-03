@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_lex-0.7.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_lex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_lex-0.7.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_lex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../clap_lex/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -535,17 +537,17 @@
 //!     fn parse(s: Option&lt;&amp;OsStr&gt;) -&gt; Result&lt;Self, BoxedError&gt; {
 //!         let s = s.map(|s| s.to_str().ok_or(s));
 //!         match s {
-//!             Some(Ok(&quot;always&quot;)) | Some(Ok(&quot;&quot;)) | None =&gt; {
+//!             Some(Ok("always")) | Some(Ok("")) | None =&gt; {
 //!                 Ok(Color::Always)
 //!             }
-//!             Some(Ok(&quot;auto&quot;)) =&gt; {
+//!             Some(Ok("auto")) =&gt; {
 //!                 Ok(Color::Auto)
 //!             }
-//!             Some(Ok(&quot;never&quot;)) =&gt; {
+//!             Some(Ok("never")) =&gt; {
 //!                 Ok(Color::Never)
 //!             }
 //!             Some(invalid) =&gt; {
-//!                 Err(format!(&quot;Invalid value for `--color`, {invalid:?}&quot;).into())
+//!                 Err(format!("Invalid value for `--color`, {invalid:?}").into())
 //!             }
 //!         }
 //!     }
@@ -567,39 +569,39 @@
 //!         if arg.is_escape() {
 //!             args.paths.extend(raw.remaining(&amp;mut cursor).map(PathBuf::from));
 //!         } else if arg.is_stdio() {
-//!             args.paths.push(PathBuf::from(&quot;-&quot;));
+//!             args.paths.push(PathBuf::from("-"));
 //!         } else if let Some((long, value)) = arg.to_long() {
 //!             match long {
-//!                 Ok(&quot;verbose&quot;) =&gt; {
+//!                 Ok("verbose") =&gt; {
 //!                     if let Some(value) = value {
-//!                         return Err(format!(&quot;`--verbose` does not take a value, got `{value:?}`&quot;).into());
+//!                         return Err(format!("`--verbose` does not take a value, got `{value:?}`").into());
 //!                     }
 //!                     args.verbosity += 1;
 //!                 }
-//!                 Ok(&quot;color&quot;) =&gt; {
+//!                 Ok("color") =&gt; {
 //!                     args.color = Color::parse(value)?;
 //!                 }
 //!                 _ =&gt; {
 //!                     return Err(
-//!                         format!(&quot;Unexpected flag: --{}&quot;, arg.display()).into()
+//!                         format!("Unexpected flag: --{}", arg.display()).into()
 //!                     );
 //!                 }
 //!             }
 //!         } else if let Some(mut shorts) = arg.to_short() {
 //!             while let Some(short) = shorts.next_flag() {
 //!                 match short {
-//!                     Ok(&#39;v&#39;) =&gt; {
+//!                     Ok('v') =&gt; {
 //!                         args.verbosity += 1;
 //!                     }
-//!                     Ok(&#39;c&#39;) =&gt; {
+//!                     Ok('c') =&gt; {
 //!                         let value = shorts.next_value_os();
 //!                         args.color = Color::parse(value)?;
 //!                     }
 //!                     Ok(c) =&gt; {
-//!                         return Err(format!(&quot;Unexpected flag: -{c}&quot;).into());
+//!                         return Err(format!("Unexpected flag: -{c}").into());
 //!                     }
 //!                     Err(e) =&gt; {
-//!                         return Err(format!(&quot;Unexpected flag: -{}&quot;, e.to_string_lossy()).into());
+//!                         return Err(format!("Unexpected flag: -{}", e.to_string_lossy()).into());
 //!                     }
 //!                 }
 //!             }
@@ -611,8 +613,8 @@
 //!     Ok(args)
 //! }
 //!
-//! let args = parse_args([&quot;bin&quot;, &quot;--hello&quot;, &quot;world&quot;]);
-//! println!(&quot;{args:?}&quot;);
+//! let args = parse_args(["bin", "--hello", "world"]);
+//! println!("{args:?}");
 //! ```
 
 </span><span class="kw">mod </span>ext;
@@ -644,7 +646,7 @@
     /// let _bin = raw.next_os(&amp;mut cursor);
     ///
     /// let mut paths = raw.remaining(&amp;mut cursor).map(PathBuf::from).collect::&lt;Vec&lt;_&gt;&gt;();
-    /// println!(&quot;{paths:?}&quot;);
+    /// println!("{paths:?}");
     /// ```
     </span><span class="kw">pub fn </span>from_args() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(std::env::args_os())
@@ -656,12 +658,12 @@
     ///
     /// ```rust,no_run
     /// # use std::path::PathBuf;
-    /// let raw = clap_lex::RawArgs::new([&quot;bin&quot;, &quot;foo.txt&quot;]);
+    /// let raw = clap_lex::RawArgs::new(["bin", "foo.txt"]);
     /// let mut cursor = raw.cursor();
     /// let _bin = raw.next_os(&amp;mut cursor);
     ///
     /// let mut paths = raw.remaining(&amp;mut cursor).map(PathBuf::from).collect::&lt;Vec&lt;_&gt;&gt;();
-    /// println!(&quot;{paths:?}&quot;);
+    /// println!("{paths:?}");
     /// ```
     </span><span class="kw">pub fn </span>new(iter: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Into&lt;std::ffi::OsString&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>iter = iter.into_iter();
@@ -674,19 +676,19 @@
     ///
     /// ```rust,no_run
     /// # use std::path::PathBuf;
-    /// let raw = clap_lex::RawArgs::new([&quot;bin&quot;, &quot;foo.txt&quot;]);
+    /// let raw = clap_lex::RawArgs::new(["bin", "foo.txt"]);
     /// let mut cursor = raw.cursor();
     /// let _bin = raw.next_os(&amp;mut cursor);
     ///
     /// let mut paths = raw.remaining(&amp;mut cursor).map(PathBuf::from).collect::&lt;Vec&lt;_&gt;&gt;();
-    /// println!(&quot;{paths:?}&quot;);
+    /// println!("{paths:?}");
     /// ```
     </span><span class="kw">pub fn </span>cursor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ArgCursor {
         ArgCursor::new()
     }
 
     <span class="doccomment">/// Advance the cursor, returning the next [`ParsedArg`]
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>ArgCursor) -&gt; <span class="prelude-ty">Option</span>&lt;ParsedArg&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>ArgCursor) -&gt; <span class="prelude-ty">Option</span>&lt;ParsedArg&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.next_os(cursor).map(ParsedArg::new)
     }
 
@@ -698,7 +700,7 @@
     }
 
     <span class="doccomment">/// Return the next [`ParsedArg`]
-    </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;</span>ArgCursor) -&gt; <span class="prelude-ty">Option</span>&lt;ParsedArg&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;</span>ArgCursor) -&gt; <span class="prelude-ty">Option</span>&lt;ParsedArg&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.peek_os(cursor).map(ParsedArg::new)
     }
 
@@ -713,12 +715,12 @@
     ///
     /// ```rust,no_run
     /// # use std::path::PathBuf;
-    /// let raw = clap_lex::RawArgs::new([&quot;bin&quot;, &quot;foo.txt&quot;]);
+    /// let raw = clap_lex::RawArgs::new(["bin", "foo.txt"]);
     /// let mut cursor = raw.cursor();
     /// let _bin = raw.next_os(&amp;mut cursor);
     ///
     /// let mut paths = raw.remaining(&amp;mut cursor).map(PathBuf::from).collect::&lt;Vec&lt;_&gt;&gt;();
-    /// println!(&quot;{paths:?}&quot;);
+    /// println!("{paths:?}");
     /// ```
     </span><span class="kw">pub fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>ArgCursor) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>OsStr&gt; {
         <span class="kw">let </span>remaining = <span class="self">self</span>.items[cursor.cursor..].iter().map(|s| s.as_os_str());
@@ -726,7 +728,7 @@
         remaining
     }
 
-    <span class="doccomment">/// Adjust the cursor&#39;s position
+    <span class="doccomment">/// Adjust the cursor's position
     </span><span class="kw">pub fn </span>seek(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>ArgCursor, pos: SeekFrom) {
         <span class="kw">let </span>pos = <span class="kw">match </span>pos {
             SeekFrom::Start(pos) =&gt; pos,
@@ -781,12 +783,12 @@
 
 <span class="doccomment">/// Command-line Argument
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-</span><span class="kw">pub struct </span>ParsedArg&lt;<span class="lifetime">&#39;s</span>&gt; {
-    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr,
+</span><span class="kw">pub struct </span>ParsedArg&lt;<span class="lifetime">'s</span>&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; ParsedArg&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; ParsedArg&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 
@@ -797,35 +799,35 @@
 
     <span class="doccomment">/// Does the argument look like a stdio argument (`-`)
     </span><span class="kw">pub fn </span>is_stdio(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner == <span class="string">&quot;-&quot;
+        <span class="self">self</span>.inner == <span class="string">"-"
     </span>}
 
     <span class="doccomment">/// Does the argument look like an argument escape (`--`)
     </span><span class="kw">pub fn </span>is_escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner == <span class="string">&quot;--&quot;
+        <span class="self">self</span>.inner == <span class="string">"--"
     </span>}
 
     <span class="doccomment">/// Does the argument look like a negative number?
     ///
-    /// This won&#39;t parse the number in full but attempts to see if this looks
+    /// This won't parse the number in full but attempts to see if this looks
     /// like something along the lines of `-3`, `-0.3`, or `-33.03`
     </span><span class="kw">pub fn </span>is_negative_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.to_value()
             .ok()
-            .and_then(|s| <span class="prelude-val">Some</span>(is_number(s.strip_prefix(<span class="string">&#39;-&#39;</span>)<span class="question-mark">?</span>)))
+            .and_then(|s| <span class="prelude-val">Some</span>(is_number(s.strip_prefix(<span class="string">'-'</span>)<span class="question-mark">?</span>)))
             .unwrap_or_default()
     }
 
     <span class="doccomment">/// Treat as a long-flag
     </span><span class="kw">pub fn </span>to_long(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>OsStr&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OsStr&gt;)&gt; {
         <span class="kw">let </span>raw = <span class="self">self</span>.inner;
-        <span class="kw">let </span>remainder = raw.strip_prefix(<span class="string">&quot;--&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>remainder = raw.strip_prefix(<span class="string">"--"</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span>remainder.is_empty() {
             <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_escape());
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>(flag, value) = <span class="kw">if let </span><span class="prelude-val">Some</span>((p0, p1)) = remainder.split_once(<span class="string">&quot;=&quot;</span>) {
+        <span class="kw">let </span>(flag, value) = <span class="kw">if let </span><span class="prelude-val">Some</span>((p0, p1)) = remainder.split_once(<span class="string">"="</span>) {
             (p0, <span class="prelude-val">Some</span>(p1))
         } <span class="kw">else </span>{
             (remainder, <span class="prelude-val">None</span>)
@@ -836,13 +838,13 @@
 
     <span class="doccomment">/// Can treat as a long-flag
     </span><span class="kw">pub fn </span>is_long(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner.starts_with(<span class="string">&quot;--&quot;</span>) &amp;&amp; !<span class="self">self</span>.is_escape()
+        <span class="self">self</span>.inner.starts_with(<span class="string">"--"</span>) &amp;&amp; !<span class="self">self</span>.is_escape()
     }
 
     <span class="doccomment">/// Treat as a short-flag
-    </span><span class="kw">pub fn </span>to_short(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ShortFlags&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(remainder_os) = <span class="self">self</span>.inner.strip_prefix(<span class="string">&quot;-&quot;</span>) {
-            <span class="kw">if </span>remainder_os.starts_with(<span class="string">&quot;-&quot;</span>) {
+    </span><span class="kw">pub fn </span>to_short(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ShortFlags&lt;<span class="lifetime">'_</span>&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(remainder_os) = <span class="self">self</span>.inner.strip_prefix(<span class="string">"-"</span>) {
+            <span class="kw">if </span>remainder_os.starts_with(<span class="string">"-"</span>) {
                 <span class="prelude-val">None
             </span>} <span class="kw">else if </span>remainder_os.is_empty() {
                 <span class="macro">debug_assert!</span>(<span class="self">self</span>.is_stdio());
@@ -857,7 +859,7 @@
 
     <span class="doccomment">/// Can treat as a short-flag
     </span><span class="kw">pub fn </span>is_short(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner.starts_with(<span class="string">&quot;-&quot;</span>) &amp;&amp; !<span class="self">self</span>.is_stdio() &amp;&amp; !<span class="self">self</span>.inner.starts_with(<span class="string">&quot;--&quot;</span>)
+        <span class="self">self</span>.inner.starts_with(<span class="string">"-"</span>) &amp;&amp; !<span class="self">self</span>.is_stdio() &amp;&amp; !<span class="self">self</span>.inner.starts_with(<span class="string">"--"</span>)
     }
 
     <span class="doccomment">/// Treat as a value
@@ -877,21 +879,21 @@
     <span class="doccomment">/// Safely print an argument that may contain non-UTF8 content
     ///
     /// This may perform lossy conversion, depending on the platform. If you would like an implementation which escapes the path please use Debug instead.
-    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>std::fmt::Display + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>std::fmt::Display + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.inner.to_string_lossy()
     }
 }
 
 <span class="doccomment">/// Walk through short flags within a [`ParsedArg`]
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>ShortFlags&lt;<span class="lifetime">&#39;s</span>&gt; {
-    inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr,
-    utf8_prefix: std::str::CharIndices&lt;<span class="lifetime">&#39;s</span>&gt;,
-    invalid_suffix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr&gt;,
+</span><span class="kw">pub struct </span>ShortFlags&lt;<span class="lifetime">'s</span>&gt; {
+    inner: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr,
+    utf8_prefix: std::str::CharIndices&lt;<span class="lifetime">'s</span>&gt;,
+    invalid_suffix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; ShortFlags&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; ShortFlags&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">fn </span>new(inner: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(utf8_prefix, invalid_suffix) = split_nonutf8_once(inner);
         <span class="kw">let </span>utf8_prefix = utf8_prefix.char_indices();
         <span class="self">Self </span>{
@@ -924,7 +926,7 @@
     <span class="doccomment">/// Advance the iterator, returning the next short flag on success
     ///
     /// On error, returns the invalid-UTF8 value
-    </span><span class="kw">pub fn </span>next_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;char, <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr&gt;&gt; {
+    </span><span class="kw">pub fn </span>next_flag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;char, <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, flag)) = <span class="self">self</span>.utf8_prefix.next() {
             <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(flag));
         }
@@ -938,9 +940,9 @@
     </span>}
 
     <span class="doccomment">/// Advance the iterator, returning everything left as a value
-    </span><span class="kw">pub fn </span>next_value_os(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr&gt; {
+    </span><span class="kw">pub fn </span>next_value_os(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((index, <span class="kw">_</span>)) = <span class="self">self</span>.utf8_prefix.next() {
-            <span class="self">self</span>.utf8_prefix = <span class="string">&quot;&quot;</span>.char_indices();
+            <span class="self">self</span>.utf8_prefix = <span class="string">""</span>.char_indices();
             <span class="self">self</span>.invalid_suffix = <span class="prelude-val">None</span>;
             <span class="comment">// SAFETY: `char_indices` ensures `index` is at a valid UTF-8 boundary
             </span><span class="kw">let </span>remainder = <span class="kw">unsafe </span>{ ext::split_at(<span class="self">self</span>.inner, index).<span class="number">1 </span>};
@@ -956,8 +958,8 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; Iterator <span class="kw">for </span>ShortFlags&lt;<span class="lifetime">&#39;s</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;char, <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>OsStr&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; Iterator <span class="kw">for </span>ShortFlags&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;char, <span class="kw-2">&amp;</span><span class="lifetime">'s </span>OsStr&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.next_flag()
@@ -978,7 +980,7 @@
 }
 
 <span class="kw">fn </span>is_number(arg: <span class="kw-2">&amp;</span>str) -&gt; bool {
-    <span class="comment">// Return true if this looks like an integer or a float where it&#39;s all
+    <span class="comment">// Return true if this looks like an integer or a float where it's all
     // digits plus an optional single dot after some digits.
     //
     // For floats allow forms such as `1.`, `1.2`, `1.2e10`, etc.
@@ -987,21 +989,21 @@
     <span class="kw">for </span>(i, c) <span class="kw">in </span>arg.as_bytes().iter().enumerate() {
         <span class="kw">match </span>c {
             <span class="comment">// Digits are always valid
-            </span><span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {}
+            </span><span class="string">b'0'</span>..=<span class="string">b'9' </span>=&gt; {}
 
             <span class="comment">// Allow a `.`, but only one, only if it comes before an
-            // optional exponent, and only if it&#39;s not the first character.
-            </span><span class="string">b&#39;.&#39; </span><span class="kw">if </span>!seen_dot &amp;&amp; position_of_e.is_none() &amp;&amp; i &gt; <span class="number">0 </span>=&gt; seen_dot = <span class="bool-val">true</span>,
+            // optional exponent, and only if it's not the first character.
+            </span><span class="string">b'.' </span><span class="kw">if </span>!seen_dot &amp;&amp; position_of_e.is_none() &amp;&amp; i &gt; <span class="number">0 </span>=&gt; seen_dot = <span class="bool-val">true</span>,
 
             <span class="comment">// Allow an exponent `e` but only at most one after the first
             // character.
-            </span><span class="string">b&#39;e&#39; </span><span class="kw">if </span>position_of_e.is_none() &amp;&amp; i &gt; <span class="number">0 </span>=&gt; position_of_e = <span class="prelude-val">Some</span>(i),
+            </span><span class="string">b'e' </span><span class="kw">if </span>position_of_e.is_none() &amp;&amp; i &gt; <span class="number">0 </span>=&gt; position_of_e = <span class="prelude-val">Some</span>(i),
 
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
         }
     }
 
-    <span class="comment">// Disallow `-1e` which isn&#39;t a valid float since it doesn&#39;t actually have
+    <span class="comment">// Disallow `-1e` which isn't a valid float since it doesn't actually have
     // an exponent.
     </span><span class="kw">match </span>position_of_e {
         <span class="prelude-val">Some</span>(i) =&gt; i != arg.len() - <span class="number">1</span>,
