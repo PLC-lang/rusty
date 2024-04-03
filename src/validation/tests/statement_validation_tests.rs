@@ -1496,11 +1496,11 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
     );
 
     assert_snapshot!(diagnostic, @r###"
-    warning[E096]: Expected a boolean, got `DINT`
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
       ┌─ <internal>:9:21
       │
     9 │             IF      y THEN // Returns a warning, because we're dealing with an integer
-      │                     ^ Expected a boolean, got `DINT`
+      │                     ^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
 
     error[E094]: Expected a boolean, got `STRING`
        ┌─ <internal>:10:21
@@ -1537,11 +1537,11 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
     );
 
     assert_snapshot!(diagnostic, @r###"
-    warning[E096]: Expected a boolean, got `DINT`
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
       ┌─ <internal>:9:19
       │
     9 │             WHILE y DO END_WHILE // Returns a warning, because we're dealing with an integer
-      │                   ^ Expected a boolean, got `DINT`
+      │                   ^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
 
     error[E094]: Expected a boolean, got `STRING`
        ┌─ <internal>:10:19

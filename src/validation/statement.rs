@@ -12,7 +12,6 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
@@ -25,6 +24,8 @@ use crate::{
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
+
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 
 macro_rules! visit_all_statements {
     ($validator:expr, $context:expr, $last:expr ) => {
@@ -278,15 +279,18 @@ where
     if !kind.get_type_information().is_bool() {
         let slice = get_datatype_name_or_slice(validator.context, kind);
         let message = format!("Expected a boolean, got `{slice}`");
-        let diagnostic = Diagnostic::new(message).with_location(condition.get_location());
+        let location = condition.get_location();
 
-        if kind.get_type_information().is_int() {
+        let diagnostic = if kind.get_type_information().is_int() {
             // We're a bit more lenient with integers, generating a warning instead of an error
-            validator.push_diagnostic(diagnostic.with_error_code("E096"));
+            let message = format!("{message}, consider adding an `=` or `<>` operator for better clarity");
+            Diagnostic::new(message).with_location(location).with_error_code("E096")
         } else {
             // ...anything else is a hard error
-            validator.push_diagnostic(diagnostic.with_error_code("E094"));
-        }
+            Diagnostic::new(message).with_location(location).with_error_code("E094")
+        };
+
+        validator.push_diagnostic(diagnostic)
     }
 }
 
