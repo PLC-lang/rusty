@@ -140,14 +140,11 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
 
     /// parse the compilation unit from the addData field
     fn try_parse_declaration(&self) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
-        let Some(content) = self
+        let content = self
             .project
             .pous
             .first()
-            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))
-        else {
-            return None;
-        };
+            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))?;
 
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration

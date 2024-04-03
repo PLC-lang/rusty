@@ -1521,9 +1521,7 @@ mod helper {
         }
 
         let path = right.get_flat_reference_name().unwrap_or_default();
-        let Some(element) = context.index.find_variable(context.qualifier, &[path]) else {
-            return None;
-        };
+        let element = context.index.find_variable(context.qualifier, &[path])?;
 
         context
             .index

@@ -199,7 +199,7 @@ fn parse_pou(
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
             let allowed_var_types =
-                vec![KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+                [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
             while allowed_var_types.contains(&lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }

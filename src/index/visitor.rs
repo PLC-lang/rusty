@@ -225,7 +225,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
         .map(|it| it.get_location())
         .as_ref()
         .or(Some(&implementation.location))
-        .map(Clone::clone)
+        .cloned()
         .unwrap();
     index.register_implementation(
         &implementation.name,
