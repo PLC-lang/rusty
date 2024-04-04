@@ -336,7 +336,7 @@ impl<'ink> DebugBuilder<'ink> {
         //Find the dimenstions as ranges
         let subscript = dimensions
             .iter()
-            .map(|it| it.get_range(index))
+            .map(|it| it.get_range_plus_one(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
