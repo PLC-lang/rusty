@@ -1621,39 +1621,13 @@
 <a href="#1619" id="1619">1619</a>
 <a href="#1620" id="1620">1620</a>
 <a href="#1621" id="1621">1621</a>
-<a href="#1622" id="1622">1622</a>
-<a href="#1623" id="1623">1623</a>
-<a href="#1624" id="1624">1624</a>
-<a href="#1625" id="1625">1625</a>
-<a href="#1626" id="1626">1626</a>
-<a href="#1627" id="1627">1627</a>
-<a href="#1628" id="1628">1628</a>
-<a href="#1629" id="1629">1629</a>
-<a href="#1630" id="1630">1630</a>
-<a href="#1631" id="1631">1631</a>
-<a href="#1632" id="1632">1632</a>
-<a href="#1633" id="1633">1633</a>
-<a href="#1634" id="1634">1634</a>
-<a href="#1635" id="1635">1635</a>
-<a href="#1636" id="1636">1636</a>
-<a href="#1637" id="1637">1637</a>
-<a href="#1638" id="1638">1638</a>
-<a href="#1639" id="1639">1639</a>
-<a href="#1640" id="1640">1640</a>
-<a href="#1641" id="1641">1641</a>
-<a href="#1642" id="1642">1642</a>
-<a href="#1643" id="1643">1643</a>
-<a href="#1644" id="1644">1644</a>
-<a href="#1645" id="1645">1645</a>
-<a href="#1646" id="1646">1646</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use crate</span>::{
-    builtins::{<span class="self">self</span>, BuiltIn},
-    datalayout::DataLayout,
-    typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>},
-};
+
+</span><span class="kw">use </span>std::collections::HashSet;
+
 <span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>itertools::Itertools;
+
 <span class="kw">use </span>plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
@@ -1661,6 +1635,12 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
+
+<span class="kw">use crate</span>::{
+    builtins::{<span class="self">self</span>, BuiltIn},
+    datalayout::DataLayout,
+    typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>},
+};
 
 <span class="kw">use </span><span class="self">self</span>::{
     const_expressions::{ConstExpressions, ConstId},
@@ -2462,9 +2442,6 @@
     <span class="doccomment">/// all enum-members with their names
     </span>enum_global_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
 
-    <span class="doccomment">/// all enum-members with their qualified names &lt;enum-type&gt;.&lt;element-name&gt;
-    </span>enum_qualified_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
-
     <span class="comment">// all pous,
     </span>pous: SymbolMap&lt;String, PouIndexEntry&gt;,
 
@@ -2500,20 +2477,6 @@
                 .map(|it| <span class="self">self</span>.transfer_constants(it, <span class="kw-2">&amp;mut </span>other.constant_expressions))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             <span class="self">self</span>.global_variables.insert_many(name, entries);
-        }
-
-        <span class="comment">//enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
-        </span><span class="kw">for </span>(qualified_name, elements) <span class="kw">in </span>other.enum_qualified_variables.drain(..) {
-            <span class="kw">let </span>elements = elements
-                .into_iter()
-                .map(|e| <span class="self">self</span>.transfer_constants(e, <span class="kw-2">&amp;mut </span>other.constant_expressions))
-                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-
-            <span class="kw">for </span>e <span class="kw">in </span>elements.iter() {
-                <span class="self">self</span>.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
-            }
-
-            <span class="self">self</span>.enum_qualified_variables.insert_many(qualified_name, elements);
         }
 
         <span class="comment">//initializers
@@ -2555,6 +2518,19 @@
                                 })
                                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
                             members.append(<span class="kw-2">&amp;mut </span>variables);
+                        }
+                        DataTypeInformation::Enum { variants, .. } =&gt; {
+                            <span class="kw">let </span><span class="kw-2">mut </span>variables = variants
+                                .drain(..)
+                                .map(|variable| {
+                                    <span class="self">self</span>.transfer_constants(variable, <span class="kw-2">&amp;mut </span>other.constant_expressions)
+                                })
+                                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+                            <span class="kw">for </span>e <span class="kw">in </span>variables.iter() {
+                                <span class="self">self</span>.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                            }
+                            variants.append(<span class="kw-2">&amp;mut </span>variables);
                         }
                         <span class="kw">_ </span>=&gt; {}
                     }
@@ -2768,64 +2744,27 @@
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.find_global_variable(segments[<span class="number">0</span>]),
         };
 
-        segments
-            .iter()
-            .skip(<span class="number">1</span>)
-            .try_fold((segments[<span class="number">0</span>], init), |accum, current| <span class="kw">match </span>accum {
-                (<span class="kw">_</span>, <span class="prelude-val">Some</span>(context)) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>current, <span class="self">self</span>.find_member(<span class="kw-2">&amp;</span>context.data_type_name, current))),
-                <span class="comment">// The variable could be in a block that has no global variable (Function block)
-                </span>(name, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>current, <span class="self">self</span>.find_member(name, current))),
-            })
-            .and_then(|(<span class="kw">_</span>, it)| it)
+        segments.iter().skip(<span class="number">1</span>).fold(init, |context, current| {
+            context.and_then(|context| <span class="self">self</span>.find_member(<span class="kw-2">&amp;</span>context.data_type_name, current))
+        })
     }
 
-    <span class="doccomment">/// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
-    /// or None if the requested Enum-Type or -Element does not exist
-    </span><span class="kw">pub fn </span>find_enum_element(<span class="kw-2">&amp;</span><span class="self">self</span>, enum_name: <span class="kw-2">&amp;</span>str, element_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name(enum_name, element_name).to_lowercase())
+    <span class="doccomment">/// Returns the index entry of the enum variant or [`None`] if it does not exist.
+    </span><span class="kw">pub fn </span>find_enum_variant(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, variant: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.type_index.find_type(name)<span class="question-mark">?</span>.find_member(variant)
     }
 
-    <span class="doccomment">/// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
-    /// or None if the requested Enum-Type or -Element does not exist
-    </span><span class="kw">pub fn </span>find_qualified_enum_element(<span class="kw-2">&amp;</span><span class="self">self</span>, qualified_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.enum_qualified_variables.get(<span class="kw-2">&amp;</span>qualified_name.to_lowercase())
+    <span class="doccomment">/// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not exist.
+    </span><span class="kw">pub fn </span>find_enum_variant_by_qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>, qualified_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">let </span>(name, variant) = qualified_name.split(<span class="string">'.'</span>).next_tuple()<span class="question-mark">?</span>;
+        <span class="self">self</span>.find_enum_variant(name, variant)
     }
 
     <span class="doccomment">/// Returns all enum variants of the given variable.
-    </span><span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="kw">let </span>qualified_name = variable.data_type_name.to_lowercase();
-
-        <span class="comment">// Given `__main_color.red, ..., __main_color.blue`, we want ALL values starting with `__main_color`
-        </span><span class="self">self</span>.enum_qualified_variables
-            .keys()
-            .filter(|key| key.split(<span class="string">'.'</span>).next().is_some_and(|prefix| prefix == qualified_name))
-            .filter_map(|key| <span class="self">self</span>.enum_qualified_variables.get(key))
-            .collect()
-    }
-
-    <span class="doccomment">/// Returns all enum variants and their respective constant value for the given variable.
-    ///
-    /// For example `TYPE Color : (red, green, blue := 5); END_TYPE` will return three tuples,
-    /// namely `(red, 0)`, `(green, 1)` and `(blue, 5)` where the first element of the tuple is a
-    /// [`VariableIndexEntry`].
-    </span><span class="kw">pub fn </span>get_enum_variant_values(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;(<span class="kw-2">&amp;</span>VariableIndexEntry, i128)&gt; {
-        <span class="kw">let </span>variants = <span class="self">self</span>.get_enum_variants(variable);
-
-        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
-        <span class="kw">for </span>variant <span class="kw">in </span>variants {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = <span class="self">self</span>.constant_expressions.get_constant_int_statement_value(const_id) {
-                    variant_const_values.push((variant, init));
-                }
-            }
-        }
-
-        variant_const_values
-    }
-
-    <span class="doccomment">/// Returns all enum variants defined in the given POU
-    </span><span class="kw">pub fn </span>get_enum_variants_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.get_pou_members(pou).iter().flat_map(|member| <span class="self">self</span>.get_enum_variants(member)).collect()
+    </span><span class="kw">pub fn </span>get_enum_variants_by_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(var) = <span class="self">self</span>.type_index.find_type(<span class="kw-2">&amp;</span>variable.data_type_name) <span class="kw">else </span>{ <span class="kw">return </span><span class="macro">vec!</span>[] };
+        <span class="kw">let </span>DataTypeInformation::Enum { variants, .. } = var.get_type_information() <span class="kw">else </span>{ <span class="kw">return </span><span class="macro">vec!</span>[] };
+        variants.iter().collect()
     }
 
     <span class="doccomment">/// Tries to return an enum variant defined within a POU
@@ -2833,7 +2772,19 @@
         <span class="self">self</span>.get_enum_variants_in_pou(pou)
             .into_iter()
             .find(|it| it.name == variant)
-            .or(<span class="self">self</span>.find_qualified_enum_element(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{pou}.{variant}"</span>)))
+            .or(<span class="self">self</span>.find_enum_variant(pou, variant))
+    }
+
+    <span class="doccomment">/// Returns all enum variants defined in the given POU
+    </span><span class="kw">pub fn </span>get_enum_variants_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>hs: HashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = HashSet::new();
+        <span class="kw">for </span>member <span class="kw">in </span><span class="self">self</span>.get_pou_members(pou) {
+            <span class="kw">if </span><span class="self">self</span>.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
+                hs.insert(member);
+            }
+        }
+
+        hs.iter().flat_map(|variable| <span class="self">self</span>.get_enum_variants_by_variable(variable)).collect()
     }
 
     <span class="doccomment">/// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
@@ -3027,8 +2978,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.global_initializers
     }
 
-    <span class="kw">pub fn </span>get_global_qualified_enums(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SymbolMap&lt;String, VariableIndexEntry&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.enum_qualified_variables
+    <span class="kw">pub fn </span>get_all_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.enum_global_variables.values().collect()
     }
 
     <span class="kw">pub fn </span>get_implementations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexMap&lt;String, ImplementationIndexEntry&gt; {
@@ -3120,21 +3071,20 @@
         .set_varargs(member_info.varargs)
     }
 
-    <span class="kw">pub fn </span>register_enum_element(
+    <span class="kw">pub fn </span>register_enum_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        element_name: <span class="kw-2">&amp;</span>str,
-        enum_type_name: <span class="kw-2">&amp;</span>str,
+        name: <span class="kw-2">&amp;</span>str,
+        variant: <span class="kw-2">&amp;</span>str,
         initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
         source_location: SourceLocation,
-    ) {
-        <span class="kw">let </span>qualified_name = qualified_name(enum_type_name, element_name);
-        <span class="kw">let </span>entry =
-            VariableIndexEntry::create_global(element_name, <span class="kw-2">&amp;</span>qualified_name, enum_type_name, source_location)
-                .set_constant(<span class="bool-val">true</span>)
-                .set_initial_value(initial_value);
-        <span class="self">self</span>.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
+    ) -&gt; VariableIndexEntry {
+        <span class="kw">let </span>qualified_name = qualified_name(name, variant);
+        <span class="kw">let </span>entry = VariableIndexEntry::create_global(variant, <span class="kw-2">&amp;</span>qualified_name, name, source_location)
+            .set_constant(<span class="bool-val">true</span>)
+            .set_initial_value(initial_value);
 
-        <span class="self">self</span>.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry);
+        <span class="self">self</span>.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
+        entry
     }
 
     <span class="kw">pub fn </span>register_global_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, variable: VariableIndexEntry) {

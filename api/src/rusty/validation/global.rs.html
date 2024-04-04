@@ -223,11 +223,28 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+
 <span class="kw">use </span>plc_ast::ast::PouType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
+<span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
 <span class="kw">use crate</span>::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -270,7 +287,7 @@
                         Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">"{name} can not be used as a name because it is a built-in datatype"
                         </span>))
-                        .with_location((other).clone())
+                        .with_location(other.clone())
                         .with_error_code(<span class="string">"E004"</span>),
                     );
                 }
@@ -316,35 +333,36 @@
 
         <span class="self">self</span>.check_uniqueness_of_cluster(globals.chain(prgs), <span class="prelude-val">Some</span>(<span class="string">"Ambiguous global variable."</span>));
 
-        <span class="kw">for </span>ty <span class="kw">in </span>index.get_types().values().chain(index.get_pou_types().values()) {
-            <span class="kw">let </span>members = ty
-                .get_members()
-                .iter()
-                .chain(index.get_enum_variants_in_pou(ty.get_name()))
-                .sorted_by_key(|it| it.get_name().to_lowercase())
-                .collect_vec();
-            <span class="kw">for </span>(<span class="kw">_</span>, <span class="kw-2">mut </span>vars) <span class="kw">in </span><span class="kw-2">&amp;</span>members.iter().group_by(|it| it.get_name().to_lowercase()) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = vars.next() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(second) = vars.next() {
-                        <span class="comment">//Collect remaining
-                        </span><span class="kw">let </span><span class="kw-2">mut </span>locations: Vec&lt;<span class="kw">_</span>&gt; = vars.map(|it| <span class="kw-2">&amp;</span>it.source_location).collect();
-                        locations.push(<span class="kw-2">&amp;</span>first.source_location);
-                        locations.push(<span class="kw-2">&amp;</span>second.source_location);
-                        <span class="self">self</span>.report_name_conflict(first.get_qualified_name(), locations.as_slice(), <span class="prelude-val">None</span>)
-                    }
-                }
+        <span class="comment">// Report name conflicts between any member variables in the VAR block
+        </span><span class="kw">for </span>ty <span class="kw">in </span>index.get_types().values().chain(index.get_pou_types().values()) {
+            <span class="kw">let </span><span class="kw-2">mut </span>groups: HashMap&lt;<span class="kw-2">&amp;</span>str, Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;&gt; = HashMap::new();
+            <span class="kw">for </span>variable <span class="kw">in </span>ty.get_members() {
+                <span class="kw">let </span>group = groups.entry(variable.get_qualified_name()).or_default();
+                group.push(variable);
+            }
+
+            <span class="kw">for </span>duplicates <span class="kw">in </span>groups.values().filter(|it| it.len() &gt; <span class="number">1</span>) {
+                <span class="kw">let </span>locations = duplicates.iter().map(|it| <span class="kw-2">&amp;</span>it.source_location).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                <span class="self">self</span>.report_name_conflict(duplicates[<span class="number">0</span>].get_qualified_name(), <span class="kw-2">&amp;</span>locations, <span class="prelude-val">None</span>);
             }
         }
-        <span class="comment">//check enums
-        </span><span class="kw">let </span>duplication_enums =
-            index.get_global_qualified_enums().entries().filter(|(<span class="kw">_</span>, vars)| vars.len() &gt; <span class="number">1</span>).map(
-                |(<span class="kw">_</span>, variables)| {
-                    (variables[<span class="number">0</span>].get_qualified_name(), variables.iter().map(|v| <span class="kw-2">&amp;</span>v.source_location))
-                },
-            );
 
-        <span class="kw">for </span>(name, locations) <span class="kw">in </span>duplication_enums {
-            <span class="self">self</span>.report_name_conflict(name, <span class="kw-2">&amp;</span>locations.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="prelude-val">None</span>);
+        <span class="comment">// Report name conflicts between enum variants and any other member variable in the VAR block
+        </span><span class="kw">for </span>pou <span class="kw">in </span>index.get_pou_types().values() {
+            <span class="kw">let </span><span class="kw-2">mut </span>groups: HashMap&lt;<span class="kw-2">&amp;</span>str, Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;&gt; = HashMap::new();
+            <span class="kw">let </span>variants = index.get_enum_variants_in_pou(pou.get_name());
+
+            <span class="kw">for </span>variant <span class="kw">in </span>variants {
+                <span class="kw">let </span>group = groups.entry(variant.get_name()).or_default();
+                group.push(variant);
+            }
+
+            <span class="kw">for </span>member <span class="kw">in </span>helper::get_non_enum_pou_members(index, pou.get_name()) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = groups.get(member.get_name()) {
+                    <span class="kw">let </span>locations = <span class="macro">vec!</span>[<span class="kw-2">&amp;</span>member.source_location, <span class="kw-2">&amp;</span>variant[<span class="number">0</span>].source_location];
+                    <span class="self">self</span>.report_name_conflict(member.get_name(), <span class="kw-2">&amp;</span>locations, <span class="prelude-val">None</span>);
+                }
+            }
         }
     }
 
@@ -444,6 +462,18 @@
         <span class="kw">for </span>(name, locations) <span class="kw">in </span>cluster_map.entries().filter(|(<span class="kw">_</span>, v)| v.len() &gt; <span class="number">1</span>) {
             <span class="self">self</span>.report_name_conflict(name, locations, additional_text);
         }
+    }
+}
+
+<span class="kw">mod </span>helper {
+    <span class="kw">use </span><span class="kw">crate</span>::index::{Index, VariableIndexEntry};
+
+    <span class="kw">pub fn </span>get_non_enum_pou_members&lt;<span class="lifetime">'a</span>&gt;(index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Index, pou_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>VariableIndexEntry&gt; {
+        index
+            .get_pou_members(pou_name)
+            .iter()
+            .filter(|it| !index.get_effective_type_or_void_by_name(it.get_type_name()).is_enum())
+            .collect()
     }
 }
 </code></pre></div></section></main></body></html>

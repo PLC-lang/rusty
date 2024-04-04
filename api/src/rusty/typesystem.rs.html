@@ -1378,6 +1378,25 @@
 <a href="#1376" id="1376">1376</a>
 <a href="#1377" id="1377">1377</a>
 <a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1573,19 +1592,28 @@
         <span class="self">self</span>.nature
     }
 
-    <span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, member_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
-            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+    <span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">match </span><span class="self">self</span>.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } =&gt; {
+                members.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_struct_members(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
+        <span class="kw">match </span><span class="self">self</span>.get_type_information() {
+            DataTypeInformation::Struct { members, .. } =&gt; members,
+            <span class="kw">_ </span>=&gt; <span class="kw-2">&amp;</span>[],
+        }
     }
 
     <span class="kw">pub fn </span>get_members(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
-        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
-            members
-        } <span class="kw">else </span>{
-            <span class="kw-2">&amp;</span>[]
+        <span class="kw">match </span><span class="self">self</span>.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } =&gt; members,
+            <span class="kw">_ </span>=&gt; <span class="kw-2">&amp;</span>[],
         }
     }
 
@@ -1635,6 +1663,10 @@
             TypeNature::__VLA =&gt; <span class="macro">matches!</span>(other.nature, TypeNature::__VLA),
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;VariableIndexEntry&gt;&gt; {
+        <span class="self">self</span>.information.get_enum_variants()
     }
 }
 
@@ -1744,6 +1776,11 @@
         members: Vec&lt;VariableIndexEntry&gt;,
         source: StructSource,
     },
+    Enum {
+        name: TypeId,
+        referenced_type: TypeId,
+        variants: Vec&lt;VariableIndexEntry&gt;,
+    },
     Array {
         name: TypeId,
         inner_type_name: TypeId,
@@ -1761,13 +1798,6 @@
         </span>size: u32,
         <span class="doccomment">/// the numer of bits represented by this type (may differ from the num acutally stored)
         </span>semantic_size: <span class="prelude-ty">Option</span>&lt;u32&gt;,
-    },
-    Enum {
-        name: TypeId,
-        referenced_type: TypeId,
-        <span class="comment">// TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
-        //       This would allow us to pattern match in the index `find_member` method
-        </span>elements: Vec&lt;String&gt;,
     },
     Float {
         name: TypeId,
@@ -2106,6 +2136,14 @@
 
         <span class="prelude-val">Some</span>((arr_size / inner_type_size) <span class="kw">as </span>usize)
     }
+
+    <span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;VariableIndexEntry&gt;&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Enum { variants, .. } = <span class="self">self </span>{
+            <span class="kw">return </span><span class="prelude-val">Some</span>(variants);
+        }
+
+        <span class="prelude-val">None
+    </span>}
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]

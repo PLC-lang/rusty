@@ -2183,11 +2183,6 @@
 <a href="#2181" id="2181">2181</a>
 <a href="#2182" id="2182">2182</a>
 <a href="#2183" id="2183">2183</a>
-<a href="#2184" id="2184">2184</a>
-<a href="#2185" id="2185">2185</a>
-<a href="#2186" id="2186">2186</a>
-<a href="#2187" id="2187">2187</a>
-<a href="#2188" id="2188">2188</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2201,6 +2196,7 @@
 };
 
 <span class="kw">use </span>indexmap::{IndexMap, IndexSet};
+
 <span class="kw">use </span>plc_ast::{
     ast::{
         <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
@@ -2215,9 +2211,6 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
-<span class="kw">pub mod </span>const_evaluator;
-<span class="kw">pub mod </span>generics;
-
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_INTERNAL_NAME;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -2228,6 +2221,9 @@
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
+
+<span class="kw">pub mod </span>const_evaluator;
+<span class="kw">pub mod </span>generics;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -2954,18 +2950,12 @@
 
         <span class="comment">// enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        </span><span class="kw">for </span>enum_element <span class="kw">in
-            </span>index.get_global_qualified_enums().values().filter(|it| it.is_in_unit(<span class="kw-2">&amp;</span>unit.file_name))
-        {
+        </span><span class="kw">for </span>enum_element <span class="kw">in </span>index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(<span class="kw-2">&amp;</span>unit.file_name)) {
             <span class="comment">//Add to dependency map
             </span>visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(<span class="kw-2">&amp;</span>i))
             {
-                <span class="kw">if </span>visitor.annotation_map.get(statement).is_none() {
-                    <span class="macro">panic!</span>(<span class="string">"new expression we did not visit yet"</span>)
-                }
-
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(scope) = scope {
                     visitor.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(scope), statement);
                 } <span class="kw">else </span>{
@@ -4239,7 +4229,7 @@
                     <span class="comment">// look for variable, enum with name "qualifier.name"
                     </span>index
                         .find_member(qualifier, name)
-                        .or_else(|| index.find_qualified_enum_element(<span class="macro">format!</span>(<span class="string">"{qualifier}.{name}"</span>).as_str()))
+                        .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } <span class="kw">else </span>{
                     <span class="comment">// look for member variable with name "pou.name"

@@ -3012,7 +3012,7 @@
             <span class="comment">// try to find a constant variable
             </span>.find_variable(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>qualified_name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
             <span class="comment">// or else try to find an enum element
-            </span>.or_else(|| <span class="self">self</span>.index.find_qualified_enum_element(qualified_name))
+            </span>.or_else(|| <span class="self">self</span>.index.find_enum_variant_by_qualified_name(qualified_name))
             <span class="comment">// if this is no constant we have a problem
             </span>.filter(|v| v.is_constant())
             .and_then(|v| v.initial_value)

@@ -739,7 +739,17 @@
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
+
+<span class="kw">use </span>plc_ast::{
+    ast::{
+        AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
+        ReferenceAccess, ReferenceExpr, UnaryExpression,
+    },
+    literals::{Array, AstLiteral, StringValue},
+};
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
     index::{
@@ -748,7 +758,6 @@
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
-<span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="doccomment">/// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -931,9 +940,9 @@
             DataTypeInformation::Integer { .. } =&gt; {
                 <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::new_integer(<span class="number">0</span>), location.clone(), id))
             }
-            DataTypeInformation::Enum { name, elements, .. } =&gt; elements
+            DataTypeInformation::Enum { name, variants, .. } =&gt; variants
                 .first()
-                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|default_enum| index.find_enum_variant(name, default_enum.get_name()))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
                     index.get_const_expressions().get_resolved_constant_statement(<span class="kw-2">&amp;</span>initial_val)
@@ -1128,7 +1137,7 @@
                 <span class="prelude-val">Some</span>(DataTypeInformation::Enum { name: enum_name, .. }) =&gt; {
                     <span class="kw">if let </span>AstStatement::Identifier(ref_name) = target.get_stmt() {
                         <span class="kw">return </span>index
-                            .find_enum_element(enum_name, ref_name)
+                            .find_enum_variant(enum_name, ref_name)
                             .ok_or_else(|| {
                                 UnresolvableKind::Misc(<span class="macro">format!</span>(
                                     <span class="string">"Cannot resolve constant enum {enum_name}#{ref_name}."
@@ -1471,11 +1480,4 @@
     }}
 }
 <span class="kw">use </span>compare_expression;
-<span class="kw">use </span>plc_ast::{
-    ast::{
-        AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
-        ReferenceAccess, ReferenceExpr, UnaryExpression,
-    },
-    literals::{Array, AstLiteral, StringValue},
-};
 </code></pre></div></section></main></body></html>

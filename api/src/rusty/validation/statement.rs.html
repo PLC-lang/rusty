@@ -1531,6 +1531,23 @@
 <a href="#1529" id="1529">1529</a>
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, mem::discriminant};
 
 <span class="kw">use </span>plc_ast::control_statements::ForLoopStatement;
@@ -2450,7 +2467,7 @@
     };
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(variable) = context.index.find_fully_qualified_variable(qualified_name) <span class="kw">else </span>{ <span class="kw">return </span>};
-    <span class="kw">let </span>variants = context.index.get_enum_variant_values(variable);
+    <span class="kw">let </span>variants = helper::get_enum_variant_values(context.index, variable);
 
     <span class="kw">match </span>variants.iter().find(|(<span class="kw">_</span>, value_lhs)| <span class="kw-2">*</span>value_lhs == value_rhs) {
         <span class="prelude-val">Some</span>((variant, <span class="kw">_</span>)) =&gt; {
@@ -3004,6 +3021,7 @@
     <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
     <span class="kw">use </span>plc_index::GlobalContext;
 
+    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
     <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
     <span class="kw">use </span><span class="kw">crate</span>::typesystem::DataType;
     <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
@@ -3060,6 +3078,22 @@
             .get_const_expressions()
             .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
             .and_then(AstNode::get_literal_integer_value)
+    }
+
+    <span class="kw">pub fn </span>get_enum_variant_values&lt;<span class="lifetime">'idx</span>&gt;(
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
+    ) -&gt; Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry, i128)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
+        <span class="kw">for </span>variant <span class="kw">in </span>index.get_enum_variants_by_variable(variable) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
+                    variant_const_values.push((variant, init));
+                }
+            }
+        }
+
+        variant_const_values
     }
 }
 </code></pre></div></section></main></body></html>

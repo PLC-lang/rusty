@@ -814,6 +814,8 @@
 <a href="#812" id="812">812</a>
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -1144,35 +1146,37 @@
         }
 
         DataType::EnumType { name: <span class="prelude-val">Some</span>(name), elements, numeric_type, .. } =&gt; {
-            <span class="kw">let </span>enum_name = name.as_str();
-
-            <span class="kw">let </span>information = DataTypeInformation::Enum {
-                name: enum_name.to_string(),
-                elements: ast::get_enum_element_names(elements),
-                referenced_type: numeric_type.clone(),
-            };
+            <span class="kw">let </span><span class="kw-2">mut </span>variants = Vec::new();
 
             <span class="kw">for </span>ele <span class="kw">in </span>ast::flatten_expression_list(elements) {
-                <span class="kw">let </span>element_name = ast::get_enum_element_name(ele);
+                <span class="kw">let </span>variant = ast::get_enum_element_name(ele);
                 <span class="kw">if let </span>AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                     <span class="kw">let </span>init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
                     );
-                    index.register_enum_element(<span class="kw-2">&amp;</span>element_name, enum_name, <span class="prelude-val">Some</span>(init), ele.get_location())
+
+                    variants.push(index.register_enum_variant(name, <span class="kw-2">&amp;</span>variant, <span class="prelude-val">Some</span>(init), ele.get_location()))
                 } <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(<span class="string">"the preprocessor should have provided explicit assignments for enum values"</span>)
                 }
             }
 
+            <span class="kw">let </span>information = DataTypeInformation::Enum {
+                name: name.to_owned(),
+                variants,
+                referenced_type: numeric_type.clone(),
+            };
+
             <span class="kw">let </span>init = index.get_mut_const_expressions().maybe_add_constant_expression(
                 type_declaration.initializer.clone(),
-                enum_name,
+                name,
                 scope.clone(),
             );
+
             index.register_type(typesystem::DataType {
-                name: enum_name.to_string(),
+                name: name.to_owned(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
