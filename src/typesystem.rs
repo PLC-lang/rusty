@@ -193,19 +193,28 @@ impl DataType {
         self.nature
     }
 
-    pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
-            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
-        } else {
-            None
+    pub fn find_member(&self, name: &str) -> Option<&VariableIndexEntry> {
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => {
+                members.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_struct_members(&self) -> &[VariableIndexEntry] {
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. } => members,
+            _ => &[],
         }
     }
 
     pub fn get_members(&self) -> &[VariableIndexEntry] {
-        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
-            members
-        } else {
-            &[]
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => members,
+            _ => &[],
         }
     }
 
@@ -255,6 +264,10 @@ impl DataType {
             TypeNature::__VLA => matches!(other.nature, TypeNature::__VLA),
             _ => false,
         }
+    }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        self.information.get_enum_variants()
     }
 }
 
@@ -364,6 +377,11 @@ pub enum DataTypeInformation {
         members: Vec<VariableIndexEntry>,
         source: StructSource,
     },
+    Enum {
+        name: TypeId,
+        referenced_type: TypeId,
+        variants: Vec<VariableIndexEntry>,
+    },
     Array {
         name: TypeId,
         inner_type_name: TypeId,
@@ -381,13 +399,6 @@ pub enum DataTypeInformation {
         size: u32,
         /// the numer of bits represented by this type (may differ from the num acutally stored)
         semantic_size: Option<u32>,
-    },
-    Enum {
-        name: TypeId,
-        referenced_type: TypeId,
-        // TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
-        //       This would allow us to pattern match in the index `find_member` method
-        elements: Vec<String>,
     },
     Float {
         name: TypeId,
@@ -725,6 +736,14 @@ impl DataTypeInformation {
         }
 
         Some((arr_size / inner_type_size) as usize)
+    }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        if let DataTypeInformation::Enum { variants, .. } = self {
+            return Some(variants);
+        }
+
+        None
     }
 }
 
