@@ -1,5 +1,14 @@
 use std::collections::VecDeque;
 
+use plc_ast::{
+    ast::{
+        AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
+        ReferenceAccess, ReferenceExpr, UnaryExpression,
+    },
+    literals::{Array, AstLiteral, StringValue},
+};
+use plc_source::source_location::SourceLocation;
+
 use crate::{
     index::{
         const_expressions::{ConstExpression, ConstId, UnresolvableKind},
@@ -7,7 +16,6 @@ use crate::{
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
-use plc_source::source_location::SourceLocation;
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
@@ -190,9 +198,9 @@ fn get_default_initializer(
             DataTypeInformation::Integer { .. } => {
                 Some(AstFactory::create_literal(AstLiteral::new_integer(0), location.clone(), id))
             }
-            DataTypeInformation::Enum { name, elements, .. } => elements
+            DataTypeInformation::Enum { name, variants, .. } => variants
                 .first()
-                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|default_enum| index.find_enum_variant(name, default_enum.get_name()))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
                     index.get_const_expressions().get_resolved_constant_statement(&initial_val)
@@ -387,7 +395,7 @@ fn evaluate_with_target_hint(
                 Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
                     if let AstStatement::Identifier(ref_name) = target.get_stmt() {
                         return index
-                            .find_enum_element(enum_name, ref_name)
+                            .find_enum_variant(enum_name, ref_name)
                             .ok_or_else(|| {
                                 UnresolvableKind::Misc(format!(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
@@ -730,10 +738,3 @@ macro_rules! compare_expression {
     }}
 }
 use compare_expression;
-use plc_ast::{
-    ast::{
-        AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
-        ReferenceAccess, ReferenceExpr, UnaryExpression,
-    },
-    literals::{Array, AstLiteral, StringValue},
-};

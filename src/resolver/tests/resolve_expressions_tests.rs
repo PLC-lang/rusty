@@ -2197,9 +2197,9 @@ fn global_enums_type_resolving() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     //check the type-annotation of a,b,c's implicit initializers
 
-    let initalizer_types = index
-        .get_global_qualified_enums()
-        .values()
+    let initializer_types = index
+        .get_all_enum_variants()
+        .iter()
         .map(|it| {
             let const_exp = index
                 .get_const_expressions()
@@ -2209,7 +2209,7 @@ fn global_enums_type_resolving() {
         })
         .collect::<Vec<Option<&str>>>();
 
-    assert_eq!(vec![Some("DINT"), Some("__global_x"), Some("__global_x")], initalizer_types);
+    assert_eq!(vec![Some("DINT"), Some("__global_x"), Some("__global_x")], initializer_types);
 }
 
 #[test]
@@ -2222,8 +2222,8 @@ fn global_enums_type_resolving2() {
     //check the type-annotation of a,b,c's implicit initializers
 
     let initalizer_types = index
-        .get_global_qualified_enums()
-        .values()
+        .get_all_enum_variants()
+        .iter()
         .map(|it| {
             let const_exp = index
                 .get_const_expressions()
@@ -2257,8 +2257,8 @@ fn global_lint_enums_type_resolving() {
     //check the type-annotation of a,b,c's implicit initializers
 
     let initalizer_types = index
-        .get_global_qualified_enums()
-        .values()
+        .get_all_enum_variants()
+        .iter()
         .map(|it| {
             let const_exp = index
                 .get_const_expressions()

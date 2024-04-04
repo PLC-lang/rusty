@@ -2234,7 +2234,7 @@ fn typed_enums_with_partly_initializers_are_generated() {
         TYPE MyEnum: BYTE(red := 7, yellow, green);
         END_TYPE
 
-        TYPE MyEnum: BYTE(a,b,c:=7,d,e,f:=twenty,g);
+        TYPE MyEnum2: BYTE(a,b,c:=7,d,e,f:=twenty,g);
         END_TYPE
 
         VAR_GLOBAL
