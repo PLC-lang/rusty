@@ -115,14 +115,11 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         let type_name = global_variable.get_type_name();
         let variable_type = self.types_index.get_associated_type(type_name)?;
 
-        let name = if self
-            .global_index
-            .get_type_information_or_void(type_name)
-            .is_enum() {
-                global_variable.get_qualified_name()
-            } else {
-                global_variable.get_name()
-            };
+        let name = if self.global_index.get_type_information_or_void(type_name).is_enum() {
+            global_variable.get_qualified_name()
+        } else {
+            global_variable.get_name()
+        };
 
         let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
         if linkage == LinkageType::External {
