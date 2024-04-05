@@ -37,7 +37,10 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
         ..Default::default()
     };
 
-    annotated_project.generate_single_module(context, &compile_options).unwrap().unwrap()
+    match annotated_project.generate_single_module(context, &compile_options) {
+        Ok(res) => res.unwrap(),
+        Err(e) => panic!("{e}"),
+    }
 }
 
 ///
