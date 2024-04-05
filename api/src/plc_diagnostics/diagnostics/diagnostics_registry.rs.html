@@ -449,6 +449,7 @@
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
 </span><span class="kw">use </span>std::collections::HashMap;
 
@@ -838,6 +839,7 @@
     E095,
     Error,
     <span class="macro">include_str!</span>(<span class="string">"./error_codes/E095.md"</span>), <span class="comment">// Action call without `()`
+    </span>E096, Warning, <span class="macro">include_str!</span>(<span class="string">"./error_codes/E096.md"</span>), <span class="comment">// Integer Condition
 </span>);
 }
 
