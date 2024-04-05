@@ -766,8 +766,11 @@ impl Dimension {
         Ok(start..end)
     }
 
-    // NOT FINAL; Inkwell calculates the DWARF count field by calculating `end - start`, what if
-    // e.g. the end is negative such as `ARRAY[10..-10] `(-10) - (+10)` which would be -20 but the total length should be +20?
+    /// Identical to [`get_range`] except for adding 1 to the end of the range.
+    /// For example if the start and end values are 1 and 5 respectively, the range will be `1..6`
+    ///
+    /// Primarily used by Inkwell which calculates the array length as `end - start` which would
+    /// generate an off-by-one error in the array size with [`get_range`] because ST ranges are inclusive.
     pub fn get_range_plus_one(&self, index: &Index) -> Result<Range<i64>, String> {
         let start = self.start_offset.as_int_value(index)?;
         let end = self.end_offset.as_int_value(index)?;
