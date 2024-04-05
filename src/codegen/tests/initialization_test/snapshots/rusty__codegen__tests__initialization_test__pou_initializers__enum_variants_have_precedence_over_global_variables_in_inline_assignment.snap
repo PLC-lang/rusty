@@ -11,7 +11,7 @@ source_filename = "main"
 @y = unnamed_addr constant i32 2
 @y.3 = unnamed_addr constant i32 4
 
-define i32 @foo() {
+define i32 @foo() section "fn-foo:i32" {
 entry:
   %foo = alloca i32, align 4
   %position = alloca i32, align 4
@@ -21,7 +21,7 @@ entry:
   ret i32 %foo_ret
 }
 
-define i32 @bar() {
+define i32 @bar() section "fn-bar:i32" {
 entry:
   %bar = alloca i32, align 4
   %position = alloca i32, align 4
@@ -30,4 +30,3 @@ entry:
   %bar_ret = load i32, i32* %bar, align 4
   ret i32 %bar_ret
 }
-

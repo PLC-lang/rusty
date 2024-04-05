@@ -11,7 +11,7 @@ source_filename = "main"
 @myPrg_instance = global %myPrg zeroinitializer, !dbg !0
 @__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !9
 
-define i32 @myFunc() !dbg !20 {
+define i32 @myFunc() section "fn-myFunc:i32" !dbg !20 {
 entry:
   %myFunc = alloca i32, align 4, !dbg !24
   %a = alloca i32, align 4, !dbg !24
@@ -29,7 +29,7 @@ entry:
   ret i32 %myFunc_ret, !dbg !24
 }
 
-define void @myPrg(%myPrg* %0) !dbg !33 {
+define void @myPrg(%myPrg* %0) section "fn-myPrg:v" !dbg !33 {
 entry:
   call void @llvm.dbg.declare(metadata %myPrg* %0, metadata !34, metadata !DIExpression()), !dbg !35
   %a = alloca i32, align 4, !dbg !35
@@ -44,7 +44,7 @@ entry:
   ret void, !dbg !35
 }
 
-define void @myFb(%myFb* %0) !dbg !42 {
+define void @myFb(%myFb* %0) section "fn-myFb:v" !dbg !42 {
 entry:
   call void @llvm.dbg.declare(metadata %myFb* %0, metadata !43, metadata !DIExpression()), !dbg !44
   %a = alloca i32, align 4, !dbg !44
@@ -118,4 +118,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !48 = !DILocation(line: 9, column: 19, scope: !42)
 !49 = !DILocalVariable(name: "c", scope: !42, file: !2, line: 9, type: !6, align: 32)
 !50 = !DILocation(line: 9, column: 21, scope: !42)
-
