@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
     cell::RefCell,
+    env, fs,
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -100,8 +101,9 @@ impl<'ink> CodeGen<'ink> {
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
 
         // TODO - disable instr here
-        // TODO - local path shouldn't be hardcoded
-        let filenames = vec!["/workspaces/corbanvilla_rusty".to_string(), module_location.to_string()];
+        let current_dir = env::current_dir().expect("Failed to get current directory");
+
+        let filenames = vec![current_dir.to_str().unwrap().to_string(), module_location.to_string()];
         let instr_builder = instrument::CoverageInstrumentationBuilder::new(context, filenames);
         // instrument::CoverageInstrumentationBuilder::new(/*context, */ &module, filenames);
 
