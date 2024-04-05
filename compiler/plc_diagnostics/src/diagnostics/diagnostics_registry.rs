@@ -387,6 +387,7 @@ lazy_static! {
     E095,
     Error,
     include_str!("./error_codes/E095.md"), // Action call without `()`
+    E096, Warning, include_str!("./error_codes/E096.md"), // Integer Condition
 );
 }
 
