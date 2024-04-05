@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FunctionArgument","SectionMangler","StringEncoding","Type"],"struct":["FunctionMangler","VariableMangler"]};
