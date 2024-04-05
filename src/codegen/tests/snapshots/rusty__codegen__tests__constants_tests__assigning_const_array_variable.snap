@@ -10,7 +10,7 @@ source_filename = "main"
 @const_arr = unnamed_addr constant [4 x i16] [i16 1, i16 2, i16 3, i16 4]
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast [4 x i16]* %arr to i8*
@@ -22,4 +22,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

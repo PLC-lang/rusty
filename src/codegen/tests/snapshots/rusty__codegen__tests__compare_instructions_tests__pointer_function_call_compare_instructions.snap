@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define i64 @foo() {
+define i64 @foo() section "fn-foo:i64" {
 entry:
   %foo = alloca i64, align 8
   store i64 0, i64* %foo, align 4
@@ -17,7 +17,7 @@ entry:
   ret i64 %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -61,4 +61,3 @@ entry:
   store i8 %12, i8* %comp, align 1
   ret void
 }
-
