@@ -12,8 +12,7 @@ source_filename = "main"
 @gA = global i16 0
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   ret void
 }
-

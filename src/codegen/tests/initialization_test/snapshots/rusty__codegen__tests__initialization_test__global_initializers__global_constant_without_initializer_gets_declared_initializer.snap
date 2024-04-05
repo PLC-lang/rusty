@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__commands__init = unnamed_addr constant %commands { i8 1, i8 0 }
 
-define i32 @main() {
+define i32 @main() section "fn-main:i32" {
 entry:
   %main = alloca i32, align 4
   %cmd1 = alloca %commands, align 8
@@ -31,4 +31,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

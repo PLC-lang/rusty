@@ -4,6 +4,7 @@ use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
+    section_names,
     statement_generator::{FunctionContext, StatementCodeGenerator},
     ADDRESS_SPACE_GENERIC,
 };
@@ -40,6 +41,7 @@ use inkwell::{
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use section_mangler::{FunctionArgument, SectionMangler};
 
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
@@ -150,6 +152,35 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
+    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> String {
+        let ctx = SectionMangler::function(implementation.get_call_name());
+
+        let params = self.index.get_declared_parameters(implementation.get_call_name());
+
+        let ctx = params.into_iter().fold(ctx, |ctx, param| {
+            // FIXME: Can we unwrap here?
+            let ty = section_names::mangle_type(
+                self.index,
+                self.index.get_effective_type_by_name(&param.data_type_name).unwrap(),
+            );
+            let parameter = match param.argument_type {
+                // TODO: We need to handle the `VariableType` enum as well - this describes the mode of
+                // argument passing, e.g. inout
+                index::ArgumentType::ByVal(_) => FunctionArgument::ByValue(ty),
+                index::ArgumentType::ByRef(_) => FunctionArgument::ByRef(ty),
+            };
+
+            ctx.with_parameter(parameter)
+        });
+
+        let return_ty = self
+            .index
+            .find_return_type(implementation.get_type_name())
+            .map(|ty| section_names::mangle_type(self.index, ty));
+
+        ctx.with_return_type(return_ty).mangle()
+    }
+
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
     pub fn generate_implementation_stub(
         &self,
@@ -192,6 +223,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .index
             .find_return_type(implementation.get_type_name())
             .and_then(|dt| self.index.find_effective_type(dt));
+
         // see if we need to adapt the parameters list
         let (return_type_llvm, parameters) = match return_type {
             // function with a aggrate-return type
@@ -220,6 +252,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
+
+        let section_name = self.mangle_function(implementation);
+        curr_f.set_section(Some(&section_name));
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {

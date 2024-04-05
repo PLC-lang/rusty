@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define void @func([81 x i8]* %0) {
+define void @func([81 x i8]* %0) section "fn-func:s8u81" {
 entry:
   %func = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %func, align 8
@@ -23,7 +23,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1
@@ -42,4 +42,3 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
-

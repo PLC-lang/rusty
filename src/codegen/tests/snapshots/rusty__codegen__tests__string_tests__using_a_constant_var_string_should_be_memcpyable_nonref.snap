@@ -8,7 +8,7 @@ source_filename = "main"
 @__FSTRING_TO_DT.ignore__init = unnamed_addr constant [2 x i8] c"*\00"
 @__FSTRING_TO_DT.fchar__init = unnamed_addr constant [2 x i8] c"#\00"
 
-define i8 @STRING_EQUAL([1025 x i8] %0, [1025 x i8] %1) {
+define i8 @STRING_EQUAL([1025 x i8] %0, [1025 x i8] %1) section "fn-STRING_EQUAL:u8[s8u1025][s8u1025]" {
 entry:
   %STRING_EQUAL = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
@@ -20,7 +20,7 @@ entry:
   ret i8 %STRING_EQUAL_ret
 }
 
-define i64 @FSTRING_TO_DT() {
+define i64 @FSTRING_TO_DT() section "fn-FSTRING_TO_DT:v" {
 entry:
   %FSTRING_TO_DT = alloca i64, align 8
   %ignore = alloca [2 x i8], align 1
@@ -70,4 +70,3 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-
