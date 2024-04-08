@@ -12,7 +12,6 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
@@ -25,6 +24,8 @@ use crate::{
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
+
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 
 macro_rules! visit_all_statements {
     ($validator:expr, $context:expr, $last:expr ) => {
@@ -263,30 +264,48 @@ fn validate_direct_access<T: AnnotationMap>(
     }
 }
 
+fn validate_condition<T>(validator: &mut Validator, context: &ValidationContext<T>, condition: &AstNode)
+where
+    T: AnnotationMap,
+{
+    if let Some(value) = get_literal_int_or_const_expr_value(condition, context) {
+        if value == 0 || value == 1 {
+            return;
+        }
+    }
+
+    let kind = context.annotations.get_type_or_void(condition, context.index);
+
+    if !kind.get_type_information().is_bool() {
+        let slice = get_datatype_name_or_slice(validator.context, kind);
+        let message = format!("Expected a boolean, got `{slice}`");
+        let location = condition.get_location();
+
+        let diagnostic = if kind.get_type_information().is_int() {
+            // We're a bit more lenient with integers, generating a warning instead of an error
+            let message = format!("{message}, consider adding an `=` or `<>` operator for better clarity");
+            Diagnostic::new(message).with_location(location).with_error_code("E096")
+        } else {
+            // ...anything else is a hard error
+            Diagnostic::new(message).with_location(location).with_error_code("E094")
+        };
+
+        validator.push_diagnostic(diagnostic)
+    }
+}
+
 fn validate_control_statement<T: AnnotationMap>(
     validator: &mut Validator,
     control_statement: &AstControlStatement,
     context: &ValidationContext<T>,
 ) {
-    let mut validate_if_condition_is_bool = |node: &AstNode| {
-        let kind = context.annotations.get_type_or_void(node, context.index);
-
-        if !kind.get_type_information().is_bool() {
-            let slice = get_datatype_name_or_slice(validator.context, kind);
-            let message = format!("Expected a boolean, got `{slice}`");
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
-            )
-        }
-    };
-
     match control_statement {
         AstControlStatement::If(stmt) => {
-            stmt.blocks.iter().map(|it| it.condition.as_ref()).for_each(validate_if_condition_is_bool);
-            stmt.blocks.iter().for_each(|b| {
-                visit_statement(validator, b.condition.as_ref(), context);
-                b.body.iter().for_each(|s| visit_statement(validator, s, context));
-            });
+            for block in &stmt.blocks {
+                validate_condition(validator, context, &block.condition);
+                block.body.iter().for_each(|s| visit_statement(validator, s, context));
+            }
+
             stmt.else_block.iter().for_each(|e| visit_statement(validator, e, context));
         }
         AstControlStatement::ForLoop(stmt) => {
@@ -298,7 +317,7 @@ fn validate_control_statement<T: AnnotationMap>(
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-            validate_if_condition_is_bool(&stmt.condition);
+            validate_condition(validator, context, &stmt.condition);
             stmt.body.iter().for_each(|s| visit_statement(validator, s, context));
         }
         AstControlStatement::Case(stmt) => {

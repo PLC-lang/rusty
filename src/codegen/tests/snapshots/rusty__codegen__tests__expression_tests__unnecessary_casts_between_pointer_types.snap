@@ -9,7 +9,7 @@ source_filename = "main"
 
 @baz_instance = global %baz zeroinitializer
 
-define void @baz(%baz* %0) {
+define void @baz(%baz* %0) section "fn-baz:v" {
 entry:
   %ptr = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
   %b = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
@@ -20,4 +20,3 @@ entry:
   store i8* %mb, i8** %ptr, align 8
   ret void
 }
-

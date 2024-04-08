@@ -11,9 +11,8 @@ source_filename = "main"
 @prog_instance = global %prog zeroinitializer
 @____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
-

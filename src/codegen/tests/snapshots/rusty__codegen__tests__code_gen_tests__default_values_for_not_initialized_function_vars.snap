@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @func() {
+define i16 @func() section "fn-func:i16" {
 entry:
   %func = alloca i16, align 2
   %int_var = alloca i16, align 2
@@ -26,4 +26,3 @@ entry:
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-

@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define void @foo(i32* %0, i32* %1) {
+define void @foo(i32* %0, i32* %1) section "fn-foo:v[pi32][pi32]" {
 entry:
   %out1 = alloca i32*, align 8
   store i32* %0, i32** %out1, align 8
@@ -18,11 +18,10 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca i32, align 4
   call void @foo(i32* %x, i32* %1)
   ret void
 }
-

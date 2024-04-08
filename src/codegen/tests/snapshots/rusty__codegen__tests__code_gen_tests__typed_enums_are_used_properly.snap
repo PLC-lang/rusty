@@ -18,7 +18,7 @@ source_filename = "main"
 @MyEnum3.yellow = unnamed_addr constant i32 26
 @MyEnum3.green = unnamed_addr constant i32 27
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

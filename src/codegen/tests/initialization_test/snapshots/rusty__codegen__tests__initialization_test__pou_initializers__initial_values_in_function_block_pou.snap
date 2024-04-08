@@ -11,7 +11,7 @@ source_filename = "main"
 @__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 @main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
-define void @FB(%FB* %0) {
+define void @FB(%FB* %0) section "fn-FB:v" {
 entry:
   %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
   %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
@@ -22,9 +22,8 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
 }
-

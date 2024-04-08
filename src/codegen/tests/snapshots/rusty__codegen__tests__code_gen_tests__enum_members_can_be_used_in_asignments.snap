@@ -12,7 +12,7 @@ source_filename = "main"
 @MyEnum.yellow = unnamed_addr constant i32 1
 @MyEnum.green = unnamed_addr constant i32 2
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %color = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   store i32 0, i32* %color, align 4
