@@ -546,6 +546,20 @@ impl DataTypeInformation {
         Some(inner_type_name)
     }
 
+    // TODO: Rename this
+    pub fn temp(&self, types: &mut Vec<DataTypeInformation>, index: &Index) {
+        if let DataTypeInformation::Array { name, inner_type_name, .. } = self {
+            if name != inner_type_name {
+                // TODO: Avoid clone if possible
+                types.push(self.clone());
+
+                if let Some(ty) = index.find_type(inner_type_name) {
+                    ty.get_type_information().temp(types, index);
+                }
+            }
+        }
+    }
+
     pub fn is_generic(&self, index: &Index) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }

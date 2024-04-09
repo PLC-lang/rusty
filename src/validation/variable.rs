@@ -2,6 +2,7 @@ use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, Vari
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+use crate::typesystem::DataTypeInformation;
 
 use super::{
     array::validate_array_assignment,
@@ -101,16 +102,42 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     }
 }
 
+fn temp<T>(validator: &mut Validator, variable: &Variable, context: &ValidationContext<T>)
+where
+    T: AnnotationMap,
+{
+    // if let DataTypeInformation::Array { name, inner_type_name, dimensions } = context.index.find_effective_type(variable.data_type_declaration.get_name())
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let ty_info = context.index.get_effective_type_or_void_by_name(ty_name).get_type_information();
+
+    let mut types = vec![];
+    ty_info.temp(&mut types, context.index);
+
+    for ty in types {
+        let DataTypeInformation::Array { dimensions, .. } = ty else { unreachable!() };
+        for dimension in dimensions {
+            let std::ops::Range { start, end } = dimension.get_range(context.index).unwrap();
+            dbg!(start, end);
+            if start > end {
+                validator.push_diagnostic(
+                    // TODO: Improve error message
+                    Diagnostic::new(format!(
+                        "Invalid range `{start}..{end}`, the start value ({start}) must be less than the end value ({end})"
+                    ))
+                    .with_location(variable.location.clone()),
+                );
+            }
+        }
+    }
+}
+
 fn validate_variable<T: AnnotationMap>(
     validator: &mut Validator,
     variable: &Variable,
     context: &ValidationContext<T>,
 ) {
-    if let Some(v_entry) = context
-        .qualifier
-        .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
-        .or_else(|| context.index.find_global_variable(variable.name.as_str()))
-    {
+    temp(validator, variable, context);
+    if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the

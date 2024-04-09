@@ -346,3 +346,45 @@ fn array_assignment_function_call() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn validate_ranges() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            VAR
+                arr_A : ARRAY[1..-5] OF DINT;
+                arr_B : ARRAY[1..5] OF ARRAY[1..-10] OF DINT;
+                arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Invalid range `1..-5`, the start value (1) must be less than the end value (-5)
+      ┌─ <internal>:4:17
+      │
+    4 │                 arr_A : ARRAY[1..-5] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, the start value (1) must be less than the end value (-5)
+
+    error[E001]: Invalid range `1..-10`, the start value (1) must be less than the end value (-10)
+      ┌─ <internal>:5:17
+      │
+    5 │                 arr_B : ARRAY[1..5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-10`, the start value (1) must be less than the end value (-10)
+
+    error[E001]: Invalid range `1..-5`, the start value (1) must be less than the end value (-5)
+      ┌─ <internal>:6:17
+      │
+    6 │                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, the start value (1) must be less than the end value (-5)
+
+    error[E001]: Invalid range `1..-10`, the start value (1) must be less than the end value (-10)
+      ┌─ <internal>:6:17
+      │
+    6 │                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-10`, the start value (1) must be less than the end value (-10)
+
+    "###);
+}
