@@ -356,6 +356,7 @@ fn validate_ranges() {
                 arr_A : ARRAY[1..-5] OF DINT;
                 arr_B : ARRAY[1..5] OF ARRAY[1..-10] OF DINT;
                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+                arr_D : ARRAY[1..5, 1..-5] OF DINT;
             END_VAR
         END_FUNCTION
         ",
@@ -385,6 +386,12 @@ fn validate_ranges() {
       │
     6 │                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
       │                 ^^^^^ Invalid range `1..-10`, did you mean `-10..1`?
+
+    error[E001]: Invalid range `1..-5`, did you mean `-5..1`?
+      ┌─ <internal>:7:17
+      │
+    7 │                 arr_D : ARRAY[1..5, 1..-5] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
 
     "###);
 }

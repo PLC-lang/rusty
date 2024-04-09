@@ -1,8 +1,8 @@
 use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::typesystem::DataTypeInformation;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+use crate::typesystem::DataTypeInformation;
 
 use super::{
     array::validate_array_assignment,
@@ -125,7 +125,8 @@ where
                     Diagnostic::new(format!(
                         "Invalid range `{start}..{end}`, did you mean `{end}..{start}`?"
                     ))
-                    .with_location(variable.location.clone()),
+                    .with_location(variable.location.clone())
+                    .with_error_code("E097"),
                 );
             }
         }
