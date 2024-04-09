@@ -396,7 +396,7 @@ lazy_static! {
 mod tests {
     use crate::{
         diagnostician::DiagnosticAssessor,
-        diagnostics::{Diagnostic, diagnostics_registry::DiagnosticsConfiguration, Severity},
+        diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic, Severity},
     };
 
     use super::DiagnosticsRegistry;
