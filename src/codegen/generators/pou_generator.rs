@@ -26,6 +26,7 @@ use std::collections::HashMap;
 use crate::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
 
 use crate::index::Index;
+use index::VariableType;
 use indexmap::{IndexMap, IndexSet};
 use inkwell::types::PointerType;
 use inkwell::{
@@ -499,20 +500,29 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 //     index.get_associated_type(m.get_type_name())?
                 // };
 
-                let mut xx: Option<BasicTypeEnum> = None;
-                if let Some(ty) = self.index.find_type(m.get_type_name()) {
-                    if let Some(inner_ty) = ty.get_type_information().get_inner_pointer_type_name() {
-                        let inner_ty = index.get_associated_type(inner_ty)?;
-                        let tyx = inner_ty.as_basic_type_enum();
-
-                        xx = Some(tyx);
+                let type_name = m.get_type_name();
+                let type_info = self
+                    .index
+                    .find_elementary_pointer_type(self.index.get_type_information_or_void(type_name));
+                dbg!(type_name, type_info);
+                let (ty, deep_copy) = match m.argument_type {
+                    ArgumentType::ByVal(VariableType::Input) if type_info.is_aggregate() => {
+                        (index.get_associated_type(type_info.get_name())?, true)
                     }
-                }
+                    _ => (index.get_associated_type(type_name)?, false),
+                };
 
-                let ptr = self.llvm.create_local_variable(
-                    m.get_name(),
-                    &xx.unwrap_or(index.get_associated_type(m.get_type_name())?),
-                );
+                // let mut xx: Option<BasicTypeEnum> = None;
+                // if let Some(ty) = self.index.find_type(m.get_type_name()) {
+                //     if let Some(inner_ty) = ty.get_type_information().get_inner_pointer_type_name() {
+                //         let inner_ty = index.get_associated_type(inner_ty)?;
+                //         let tyx = inner_ty.as_basic_type_enum();
+
+                //         xx = Some(tyx);
+                //     }
+                // }
+
+                let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
 
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(
@@ -525,7 +535,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     );
                 }
 
-                if xx.is_some_and(|it| it.is_array_type()) {
+                let ptr = if deep_copy {
                     // bitcast the allocated array to i8*
                     // memcpy the array to the allocated array
 
@@ -536,19 +546,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .into_array_type()
                             .get_element_type()
                             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                        // self.llvm.context.i8_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                         "bitcast",
                     );
-                    self.llvm.builder.build_memcpy(
-                        ptr.into_pointer_value(),
-                        1,
-                        ptr_value.into_pointer_value(),
-                        1,
-                        index.get_associated_type(m.get_type_name())?.size_of().unwrap(),
-                    );
+                    let ptr = self
+                        .llvm
+                        .builder
+                        .build_memcpy(
+                            ptr.into_pointer_value(),
+                            1,
+                            ptr_value.into_pointer_value(),
+                            1,
+                            index.get_associated_type(type_info.get_name())?.size_of().unwrap(),
+                        )
+                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+
+                    // self.llvm.builder.build_load(ptr, "");
+                    ptr
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);
-                }
+                    ptr
+                };
 
                 (parameter_name, ptr)
             } else {
