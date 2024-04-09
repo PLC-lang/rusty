@@ -1,8 +1,8 @@
 use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 use crate::typesystem::DataTypeInformation;
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
     array::validate_array_assignment,
@@ -106,23 +106,24 @@ fn temp<T>(validator: &mut Validator, variable: &Variable, context: &ValidationC
 where
     T: AnnotationMap,
 {
-    // if let DataTypeInformation::Array { name, inner_type_name, dimensions } = context.index.find_effective_type(variable.data_type_declaration.get_name())
     let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
     let ty_info = context.index.get_effective_type_or_void_by_name(ty_name).get_type_information();
 
     let mut types = vec![];
-    ty_info.temp(&mut types, context.index);
+    ty_info.get_inner_types(&mut types, context.index);
 
     for ty in types {
-        let DataTypeInformation::Array { dimensions, .. } = ty else { unreachable!() };
-        for dimension in dimensions {
-            let std::ops::Range { start, end } = dimension.get_range(context.index).unwrap();
-            dbg!(start, end);
+        let DataTypeInformation::Array { dimensions, .. } = ty else {
+            unreachable!("`get_inner_types()` only operates on Arrays");
+        };
+
+        for dimension in dimensions.iter().filter_map(|dim| dim.get_range(context.index).ok()) {
+            let std::ops::Range { start, end } = dimension;
+
             if start > end {
                 validator.push_diagnostic(
-                    // TODO: Improve error message
                     Diagnostic::new(format!(
-                        "Invalid range `{start}..{end}`, the start value ({start}) must be less than the end value ({end})"
+                        "Invalid range `{start}..{end}`, did you mean `{end}..{start}`?"
                     ))
                     .with_location(variable.location.clone()),
                 );
