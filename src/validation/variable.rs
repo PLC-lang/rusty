@@ -102,32 +102,34 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     }
 }
 
-fn temp<T>(validator: &mut Validator, variable: &Variable, context: &ValidationContext<T>)
+fn validate_array_ranges<T>(validator: &mut Validator, variable: &Variable, context: &ValidationContext<T>)
 where
     T: AnnotationMap,
 {
     let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
     let ty_info = context.index.get_effective_type_or_void_by_name(ty_name).get_type_information();
 
-    let mut types = vec![];
-    ty_info.get_inner_types(&mut types, context.index);
+    if ty_info.is_array() {
+        let mut types = vec![];
+        ty_info.get_inner_types(&mut types, context.index);
 
-    for ty in types {
-        let DataTypeInformation::Array { dimensions, .. } = ty else {
-            unreachable!("`get_inner_types()` only operates on Arrays");
-        };
+        for ty in types {
+            let DataTypeInformation::Array { dimensions, .. } = ty else {
+                unreachable!("`get_inner_types()` only operates on Arrays");
+            };
 
-        for dimension in dimensions.iter().filter_map(|dim| dim.get_range(context.index).ok()) {
-            let std::ops::Range { start, end } = dimension;
+            for dimension in dimensions.iter().filter_map(|dim| dim.get_range(context.index).ok()) {
+                let std::ops::Range { start, end } = dimension;
 
-            if start > end {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Invalid range `{start}..{end}`, did you mean `{end}..{start}`?"
-                    ))
-                    .with_location(variable.location.clone())
-                    .with_error_code("E097"),
-                );
+                if start > end {
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Invalid range `{start}..{end}`, did you mean `{end}..{start}`?"
+                        ))
+                        .with_location(variable.location.clone())
+                        .with_error_code("E097"),
+                    );
+                }
             }
         }
     }
@@ -138,7 +140,8 @@ fn validate_variable<T: AnnotationMap>(
     variable: &Variable,
     context: &ValidationContext<T>,
 ) {
-    temp(validator, variable, context);
+    validate_array_ranges(validator, variable, context);
+
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
