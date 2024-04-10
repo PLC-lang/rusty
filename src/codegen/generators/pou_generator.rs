@@ -28,7 +28,6 @@ use crate::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
 use crate::index::Index;
 use index::VariableType;
 use indexmap::{IndexMap, IndexSet};
-use inkwell::types::PointerType;
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -485,42 +484,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .next()
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
-                // byval & aggregate type
-                // - alloca mit der richtigen size
-                // -> inner_Type_name
-                // vs
-                // byref & aggregate type
-                // - as is
-
-                // let ty = if matches!(m.argument_type, ArgumentType::ByVal(_)) {
-                //
-                //     // get size
-                //     todo!()
-                // } else {
-                //     index.get_associated_type(m.get_type_name())?
-                // };
-
                 let type_name = m.get_type_name();
                 let type_info = self
                     .index
                     .find_elementary_pointer_type(self.index.get_type_information_or_void(type_name));
-                dbg!(type_name, type_info);
+
                 let (ty, deep_copy) = match m.argument_type {
                     ArgumentType::ByVal(VariableType::Input) if type_info.is_aggregate() => {
                         (index.get_associated_type(type_info.get_name())?, true)
                     }
                     _ => (index.get_associated_type(type_name)?, false),
                 };
-
-                // let mut xx: Option<BasicTypeEnum> = None;
-                // if let Some(ty) = self.index.find_type(m.get_type_name()) {
-                //     if let Some(inner_ty) = ty.get_type_information().get_inner_pointer_type_name() {
-                //         let inner_ty = index.get_associated_type(inner_ty)?;
-                //         let tyx = inner_ty.as_basic_type_enum();
-
-                //         xx = Some(tyx);
-                //     }
-                // }
 
                 let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
 
@@ -535,11 +509,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     );
                 }
 
-                let ptr = if deep_copy {
+                if deep_copy {
                     // bitcast the allocated array to i8*
                     // memcpy the array to the allocated array
 
-                    let ptr = self.llvm.builder.build_bitcast(
+                    let bitcast = self.llvm.builder.build_bitcast(
                         ptr,
                         ptr.get_type()
                             .get_element_type()
@@ -548,11 +522,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                         "bitcast",
                     );
-                    let ptr = self
+                    self
                         .llvm
                         .builder
                         .build_memcpy(
-                            ptr.into_pointer_value(),
+                            bitcast.into_pointer_value(),
                             1,
                             ptr_value.into_pointer_value(),
                             1,
@@ -561,10 +535,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
 
                     // self.llvm.builder.build_load(ptr, "");
-                    ptr
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);
-                    ptr
                 };
 
                 (parameter_name, ptr)
