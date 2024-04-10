@@ -115,13 +115,13 @@ impl RecursiveValidator {
                         .with_error_code("E029");
 
                 let diagnostic = if let Some(first) = ranges.first() {
-                    diagnostic.with_location(first.clone())
+                    diagnostic.with_location(first)
                 } else {
                     diagnostic
                 };
 
                 let diagnostic = if ranges.len() > 1 {
-                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it.clone()))
+                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
                 } else {
                     diagnostic
                 };

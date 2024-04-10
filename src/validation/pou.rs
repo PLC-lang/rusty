@@ -25,7 +25,7 @@ pub fn visit_implementation<T: AnnotationMap>(
         validator.push_diagnostic(
             Diagnostic::new("A class cannot have an implementation")
                 .with_error_code("E017")
-                .with_location(implementation.location.to_owned()),
+                .with_location(&implementation.location),
         );
     }
     if implementation.linkage != LinkageType::External {
@@ -44,7 +44,7 @@ pub fn visit_implementation<T: AnnotationMap>(
                         validator.push_diagnostic(
                             Diagnostic::new(format!("{}: Duplicate label.", &first.name))
                                 .with_error_code("E018")
-                                .with_location(first.location.clone())
+                                .with_location(&first.location)
                                 .with_secondary_locations(locations),
                         );
                     }
@@ -81,7 +81,7 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         validator.push_diagnostic(
             Diagnostic::new("A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks")
                 .with_error_code("E019")
-                .with_location(pou.name_location.to_owned()),
+                .with_location(&pou.name_location),
         );
     }
 
@@ -90,7 +90,7 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         validator.push_diagnostic(
             Diagnostic::new("A class cannot have a return type")
                 .with_error_code("E020")
-                .with_location(pou.name_location.clone()),
+                .with_location(&pou.name_location),
         );
     }
 }
@@ -101,7 +101,7 @@ fn validate_function(validator: &mut Validator, pou: &Pou) {
         validator.push_diagnostic(
             Diagnostic::new("A function cannot use `EXTEND`")
                 .with_error_code("E021")
-                .with_location(pou.name_location.to_owned()),
+                .with_location(&pou.name_location),
         );
     }
 }
@@ -112,7 +112,7 @@ fn validate_program(validator: &mut Validator, pou: &Pou) {
         validator.push_diagnostic(
             Diagnostic::new("A program cannot use `EXTEND`")
                 .with_error_code("E021")
-                .with_location(pou.name_location.to_owned()),
+                .with_location(&pou.name_location),
         );
     }
 }
@@ -122,7 +122,7 @@ pub fn validate_action_container(validator: &mut Validator, implementation: &Imp
         validator.push_diagnostic(
             Diagnostic::new("Missing Actions Container Name")
                 .with_error_code("E022")
-                .with_location(implementation.location.clone()),
+                .with_location(&implementation.location),
         );
     }
 }
