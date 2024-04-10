@@ -689,12 +689,149 @@ fn var_in_out_params_can_be_out_of_order() {
 }
 
 #[test]
-fn aggregate_types_do_call_memcpy_instead_of_store() {
+fn by_value_function_arg_strings_are_memcopied() {
     let result = codegen(
         r#"
-        FUNCTION bar : DINT
+        FUNCTION foo : DINT
             VAR_INPUT
                 val : STRING[65536];
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i32 @bar(i8* %0) {
+    entry:
+      %bar = alloca i32, align 4
+      %val = alloca [65537 x i8], align 1
+      store i8* %0, [65537 x i8]* %val, align 8
+      store i32 0, i32* %bar, align 4
+      %bar_ret = load i32, i32* %bar, align 4
+      ret i32 %bar_ret
+    }
+    "###);
+}
+
+
+#[test]
+fn by_value_function_arg_arrays_are_memcopied() {
+    let result = codegen(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..65536] OF DINT;
+        END_VAR
+            FOO(arr);
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+            VAR_INPUT
+                val : ARRAY[1..65536] OF DINT;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %arr = alloca [65537 x i32], align 4
+      %0 = bitcast [65537 x i32]* %arr to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([65537 x i32]* getelementptr ([65537 x i32], [65537 x i32]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %1 = bitcast [65537 x i32]* %arr to i32*
+      %call = call i32 @foo(i32* %1)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    define i32 @foo(i32* %0) section "fn-foo:i32[pv]" {
+    entry:
+      %foo = alloca i32, align 4
+      %val = alloca [65536 x i32], align 4
+      %bitcast = bitcast [65536 x i32]* %val to i32*
+      %1 = bitcast i32* %bitcast to i8*                 //XXX: this is probably one bitcast more than necessary 
+      %2 = bitcast i32* %0 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint ([65536 x i32]* getelementptr ([65536 x i32], [65536 x i32]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
+
+
+#[test]
+fn by_value_function_arg_structs_are_memcopied() {
+    let result = codegen(
+        r#"
+        TYPE S_TY : STRUCT
+            v1 : BOOL;
+            v2 : BOOL;
+            END_STRUCT
+        END_TYPE
+        
+        FUNCTION foo : DINT
+            VAR_INPUT
+                val : S_TY;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i32 @bar(i8* %0) {
+    entry:
+      %bar = alloca i32, align 4
+      %val = alloca [65537 x i8], align 1
+      store i8* %0, [65537 x i8]* %val, align 8
+      store i32 0, i32* %bar, align 4
+      %bar_ret = load i32, i32* %bar, align 4
+      ret i32 %bar_ret
+    }
+    "###);
+}
+
+#[test]
+fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
+    let result = codegen(
+        r#"
+        TYPE S_TY : STRUCT
+            v1 : BOOL;
+            v2 : BOOL;
+            END_STRUCT
+        END_TYPE
+
+        TYPE AGGREGATE_COLLECTOR_TY : STRUCT
+            v1 : ARRAY[0..65536] OF DINT;
+            v2 : STRING[65536];
+            v3 : S_TY;
+            END_STRUCT
+        END_TYPE
+        
+        FUNCTION foo : DINT
+            VAR_INPUT
+                val : S_TY;
             END_VAR
         END_FUNCTION
         "#,
