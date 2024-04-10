@@ -11,14 +11,14 @@ source_filename = "main"
 @__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @fb_t(%fb_t* %0) {
+define void @fb_t(%fb_t* %0) section "fn-fb_t:v[i32][i32]" {
 entry:
   %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 0
@@ -26,4 +26,3 @@ entry:
   call void @fb_t(%fb_t* %fb)
   ret void
 }
-

@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %var_time = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %var_time_of_day = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -41,4 +41,3 @@ entry:
   %7 = zext i1 %6 to i8
   ret void
 }
-

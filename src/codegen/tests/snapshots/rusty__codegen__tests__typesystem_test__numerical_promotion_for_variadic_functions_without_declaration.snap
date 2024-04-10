@@ -10,9 +10,9 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-declare i32 @printf(i8*, ...)
+declare i32 @printf(i8*, ...) section "fn-printf:i32[ps8u81]"
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %s = alloca [81 x i8], align 1
   %float = alloca float, align 4
@@ -37,4 +37,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

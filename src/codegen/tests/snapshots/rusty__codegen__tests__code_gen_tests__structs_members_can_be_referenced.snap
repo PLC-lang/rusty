@@ -11,11 +11,10 @@ source_filename = "main"
 @MainProg_instance = global %MainProg zeroinitializer
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
-define void @MainProg(%MainProg* %0) {
+define void @MainProg(%MainProg* %0) section "fn-MainProg:v" {
 entry:
   %Cord = getelementptr inbounds %MainProg, %MainProg* %0, i32 0, i32 0
   %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
   store i32 0, i32* %a, align 4
   ret void
 }
-
