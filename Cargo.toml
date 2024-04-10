@@ -72,7 +72,7 @@ members = [
     "compiler/plc_util",
     "compiler/plc_xml",
     "compiler/plc_derive",
-    "compiler/plc_index", "error_code_generator",
+    "compiler/plc_index",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
