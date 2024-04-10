@@ -557,8 +557,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                         "bitcast",
                     );
-                    self
-                        .llvm
+                    self.llvm
                         .builder
                         .build_memcpy(
                             bitcast.into_pointer_value(),

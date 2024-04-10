@@ -714,7 +714,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })?;
 
             if let Some((declaration_type, type_name)) = parameter_info {
-                let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                let argument: BasicValueEnum = if declaration_type.is_by_ref() || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type() && matches!(declaration_type.get_inner(), VariableType::Input))  {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
                 } else {
