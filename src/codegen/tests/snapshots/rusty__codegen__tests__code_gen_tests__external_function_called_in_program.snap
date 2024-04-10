@@ -9,11 +9,10 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer
 
-declare i32 @foo()
+declare i32 @foo() section "fn-foo:i32"
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %call = call i32 @foo()
   ret void
 }
-

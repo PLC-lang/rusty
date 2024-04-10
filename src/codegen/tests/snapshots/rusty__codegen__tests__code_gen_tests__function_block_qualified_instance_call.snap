@@ -13,22 +13,21 @@ source_filename = "main"
 @__bar__init = unnamed_addr constant %bar zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(%foo* %0) section "fn-foo:v" {
 entry:
   %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar* %0) {
+define void @bar(%bar* %0) section "fn-bar:v" {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0
   call void @bar(%bar* %bar_inst)
   ret void
 }
-

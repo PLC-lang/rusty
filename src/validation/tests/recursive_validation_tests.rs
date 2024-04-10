@@ -102,8 +102,9 @@ mod edgecases {
 }
 
 mod structs {
-    use crate::test_utils::tests::parse_and_validate_buffered;
     use insta::assert_snapshot;
+
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn one_cycle_abca() {
@@ -304,8 +305,9 @@ mod structs {
 }
 
 mod arrays {
-    use crate::test_utils::tests::parse_and_validate_buffered;
     use insta::assert_snapshot;
+
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn two_cycles_aa_and_aba() {
@@ -455,8 +457,9 @@ mod arrays {
 }
 
 mod functionblocks {
-    use crate::test_utils::tests::parse_and_validate_buffered;
     use insta::assert_snapshot;
+
+    use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
     fn one_cycle_aba_var() {
@@ -607,9 +610,9 @@ mod functionblocks {
 }
 
 mod mixed_structs_and_functionblocks {
+    use insta::assert_snapshot;
 
     use crate::test_utils::tests::parse_and_validate_buffered;
-    use insta::assert_snapshot;
 
     #[test]
     fn one_cycle_aba_output() {
@@ -697,5 +700,25 @@ mod mixed_structs_and_functionblocks {
         );
 
         assert_snapshot!(&diagnostics);
+    }
+}
+
+mod enums {
+    use crate::test_utils::tests::parse_and_validate_buffered;
+
+    #[test]
+    fn enums_are_not_considered_for_duplicate_checks() {
+        //... because they're integers (duh)
+        let diagnostics = parse_and_validate_buffered(
+            "
+            FUNCTION_BLOCK FOO
+            VAR
+                foo_enum : (start, stop) := stop;
+            END_VAR
+            END_FUNCTION_BLOCK
+            ",
+        );
+
+        assert!(diagnostics.is_empty());
     }
 }

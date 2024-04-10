@@ -275,28 +275,37 @@ fn enum_literals_target_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let color_red = &unit.implementations[0].statements[0];
 
-    assert_eq!(
-        &DataTypeInformation::Enum {
-            name: "Color".into(),
-            elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-            referenced_type: DINT_TYPE.into(),
-        },
+    let DataTypeInformation::Enum { name, variants, referenced_type } =
         annotations.get_type_or_void(color_red, &index).get_type_information()
+    else {
+        unreachable!()
+    };
+
+    assert_eq!(name, "Color");
+    assert_eq!(
+        variants.iter().map(|variant| variant.get_name()).collect::<Vec<_>>(),
+        vec!["Green", "Yellow", "Red"]
     );
+    assert_eq!(referenced_type, DINT_TYPE);
 
     if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
         color_red.get_stmt()
     {
-        // right type gets annotated
-        assert_eq!(
-            &DataTypeInformation::Enum {
-                name: "Color".into(),
-                elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-                referenced_type: DINT_TYPE.into(),
-            },
+        let DataTypeInformation::Enum { name, variants, referenced_type } =
             annotations.get_type_or_void(target, &index).get_type_information()
+        else {
+            unreachable!();
+        };
+
+        // right type gets annotated
+        assert_eq!(name, "Color");
+        assert_eq!(
+            variants.iter().map(|variant| variant.get_name()).collect::<Vec<_>>(),
+            vec!["Green", "Yellow", "Red"]
         );
-        // Red gets annoatted to the declared variable, not only the type
+        assert_eq!(referenced_type, DINT_TYPE);
+
+        // Red gets annotated to the declared variable, not only the type
         assert_eq!(
             Some(&StatementAnnotation::Variable {
                 resulting_type: "Color".into(),
