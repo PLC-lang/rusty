@@ -567,8 +567,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             index.get_associated_type(type_info.get_name())?.size_of().unwrap(),
                         )
                         .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
-
-                    // self.llvm.builder.build_load(ptr, "");
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);
                 };

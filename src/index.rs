@@ -323,6 +323,10 @@ impl ArgumentType {
     pub fn is_private(&self) -> bool {
         matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
     }
+
+    pub fn is_input(&self) -> bool {
+        matches!(self.get_inner_ref(), VariableType::Input)
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
