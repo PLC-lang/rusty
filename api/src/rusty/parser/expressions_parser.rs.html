@@ -1560,7 +1560,7 @@
             lexer.accept_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Failed to parse number {text}"</span>))
                     .with_error_code(<span class="string">"E011"</span>)
-                    .with_location(location.clone()),
+                    .with_location(location),
             );
             <span class="prelude-val">None
         </span>}
@@ -1698,7 +1698,7 @@
                     lexer.accept_diagnostic(
                         Diagnostic::new(<span class="string">"Invalid TIME Literal: Cannot parse segment."</span>)
                             .with_error_code(<span class="string">"E010"</span>)
-                            .with_location(location.clone()),
+                            .with_location(location),
                     );
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
@@ -1714,7 +1714,7 @@
                     lexer.accept_diagnostic(
                         Diagnostic::new(<span class="string">"Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)"</span>)
                             .with_error_code(<span class="string">"E010"</span>)
-                            .with_location(location.clone()),
+                            .with_location(location),
                     );
                     <span class="kw">return </span><span class="prelude-val">None</span>;
                 }

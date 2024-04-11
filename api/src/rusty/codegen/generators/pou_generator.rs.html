@@ -1455,7 +1455,7 @@
         <span class="kw">let </span>variable_llvm_type = <span class="self">self
             </span>.llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| err.with_location(variable.source_location.clone()))<span class="question-mark">?</span>;
+            .map_err(|err| err.with_location(<span class="kw-2">&amp;</span>variable.source_location))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error(<span class="string">"Couldn't determine type size"</span>, variable.source_location.clone())

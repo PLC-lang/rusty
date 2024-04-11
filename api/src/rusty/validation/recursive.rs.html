@@ -278,13 +278,13 @@
                         .with_error_code(<span class="string">"E029"</span>);
 
                 <span class="kw">let </span>diagnostic = <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = ranges.first() {
-                    diagnostic.with_location(first.clone())
+                    diagnostic.with_location(first)
                 } <span class="kw">else </span>{
                     diagnostic
                 };
 
                 <span class="kw">let </span>diagnostic = <span class="kw">if </span>ranges.len() &gt; <span class="number">1 </span>{
-                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it.clone()))
+                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
                 } <span class="kw">else </span>{
                     diagnostic
                 };

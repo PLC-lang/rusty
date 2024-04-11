@@ -287,7 +287,7 @@
                         Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">"{name} can not be used as a name because it is a built-in datatype"
                         </span>))
-                        .with_location(other.clone())
+                        .with_location(other)
                         .with_error_code(<span class="string">"E004"</span>),
                     );
                 }
@@ -296,7 +296,7 @@
                 <span class="self">self</span>.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{name}: {additional_text}"</span>))
                         .with_error_code(<span class="string">"E004"</span>)
-                        .with_location((<span class="kw-2">*</span>v).clone())
+                        .with_location(<span class="kw-2">*</span>v)
                         .with_secondary_locations(others),
                 );
             }

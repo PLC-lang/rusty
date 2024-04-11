@@ -155,7 +155,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A class cannot have an implementation"</span>)
                 .with_error_code(<span class="string">"E017"</span>)
-                .with_location(implementation.location.to_owned()),
+                .with_location(<span class="kw-2">&amp;</span>implementation.location),
         );
     }
     <span class="kw">if </span>implementation.linkage != LinkageType::External {
@@ -174,7 +174,7 @@
                         validator.push_diagnostic(
                             Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{}: Duplicate label."</span>, <span class="kw-2">&amp;</span>first.name))
                                 .with_error_code(<span class="string">"E018"</span>)
-                                .with_location(first.location.clone())
+                                .with_location(<span class="kw-2">&amp;</span>first.location)
                                 .with_secondary_locations(locations),
                         );
                     }
@@ -211,7 +211,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks"</span>)
                 .with_error_code(<span class="string">"E019"</span>)
-                .with_location(pou.name_location.to_owned()),
+                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
         );
     }
 
@@ -220,7 +220,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A class cannot have a return type"</span>)
                 .with_error_code(<span class="string">"E020"</span>)
-                .with_location(pou.name_location.clone()),
+                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
         );
     }
 }
@@ -231,7 +231,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A function cannot use `EXTEND`"</span>)
                 .with_error_code(<span class="string">"E021"</span>)
-                .with_location(pou.name_location.to_owned()),
+                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
         );
     }
 }
@@ -242,7 +242,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A program cannot use `EXTEND`"</span>)
                 .with_error_code(<span class="string">"E021"</span>)
-                .with_location(pou.name_location.to_owned()),
+                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
         );
     }
 }
@@ -252,7 +252,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Missing Actions Container Name"</span>)
                 .with_error_code(<span class="string">"E022"</span>)
-                .with_location(implementation.location.clone()),
+                .with_location(<span class="kw-2">&amp;</span>implementation.location),
         );
     }
 }

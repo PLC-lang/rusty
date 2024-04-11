@@ -255,7 +255,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"This variable block does not support the CONSTANT modifier"</span>)
                 .with_error_code(<span class="string">"E034"</span>)
-                .with_location(block.location.clone()),
+                .with_location(<span class="kw-2">&amp;</span>block.location),
         )
     }
 }
@@ -279,7 +279,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="string">"VLAs can not be defined as global variables"</span>)
                     .with_error_code(<span class="string">"E044"</span>)
-                    .with_location(variable.location.clone()),
+                    .with_location(<span class="kw-2">&amp;</span>variable.location),
             )
         }
 
@@ -292,13 +292,13 @@
                 <span class="string">"Variable Length Arrays are always by-ref, even when declared in a by-value block"</span>,
             )
             .with_error_code(<span class="string">"E047"</span>)
-            .with_location(variable.location.clone()),
+            .with_location(<span class="kw-2">&amp;</span>variable.location),
         ),
 
         (PouType::Program, <span class="kw">_</span>) =&gt; validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Variable Length Arrays are not allowed to be defined inside a Program"</span>)
                 .with_error_code(<span class="string">"E044"</span>)
-                .with_location(variable.location.clone()),
+                .with_location(<span class="kw-2">&amp;</span>variable.location),
         ),
 
         (
@@ -315,7 +315,7 @@
                 block.variable_block_type, pou.pou_type
             ))
             .with_error_code(<span class="string">"E044"</span>)
-            .with_location(variable.location.clone()),
+            .with_location(<span class="kw-2">&amp;</span>variable.location),
         ),
     }
 }
@@ -364,7 +364,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unresolved constant `{}` variable"</span>, variable.name.as_str(),))
                         .with_error_code(<span class="string">"E033"</span>)
-                        .with_location(variable.location.clone()),
+                        .with_location(<span class="kw-2">&amp;</span>variable.location),
                 );
             }
             <span class="kw">_ </span>=&gt; {
@@ -389,7 +389,7 @@
                     v_entry.get_name()
                 ))
                 .with_error_code(<span class="string">"E035"</span>)
-                .with_location(variable.location.clone()),
+                .with_location(<span class="kw-2">&amp;</span>variable.location),
             );
         }
     }

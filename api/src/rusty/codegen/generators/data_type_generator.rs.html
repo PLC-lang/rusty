@@ -618,7 +618,7 @@
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_secondary_location(ty.location.clone()))
+                    .map(|diag| diag.with_secondary_location(<span class="kw-2">&amp;</span>ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();

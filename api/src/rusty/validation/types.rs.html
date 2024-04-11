@@ -113,8 +113,6 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -167,7 +165,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="string">"Variable block is empty"</span>)
                         .with_error_code(<span class="string">"E028"</span>)
-                        .with_location(location.clone()),
+                        .with_location(location),
                 );
             }
         }
@@ -176,15 +174,13 @@
             ..
         } <span class="kw">if </span>expressions.is_empty() =&gt; {
             validator.push_diagnostic(
-                Diagnostic::new(<span class="string">"Variable block is empty"</span>)
-                    .with_error_code(<span class="string">"E028"</span>)
-                    .with_location(location.clone()),
+                Diagnostic::new(<span class="string">"Variable block is empty"</span>).with_error_code(<span class="string">"E028"</span>).with_location(location),
             );
         }
         DataType::VarArgs { referenced_type: <span class="prelude-val">None</span>, sized: <span class="bool-val">true </span>} =&gt; validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Missing datatype: Sized Variadics require a known datatype."</span>)
                 .with_error_code(<span class="string">"E038"</span>)
-                .with_location(location.clone()),
+                .with_location(location),
         ),
         <span class="kw">_ </span>=&gt; {}
     }

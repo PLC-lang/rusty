@@ -333,6 +333,12 @@
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
 
 <span class="kw">use </span>plc_ast::ast::AstNode;
@@ -401,13 +407,19 @@
         }
     }
 
-    <span class="kw">pub fn </span>with_location(<span class="kw-2">mut </span><span class="self">self</span>, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.primary_location = location;
+    <span class="kw">pub fn </span>with_location&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, location: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        <span class="self">self</span>.primary_location = location.into();
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>with_secondary_location(<span class="kw-2">mut </span><span class="self">self</span>, location: SourceLocation) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.secondary_locations.get_or_insert_with(Default::default).push(location);
+    <span class="kw">pub fn </span>with_secondary_location&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, location: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        <span class="self">self</span>.secondary_locations.get_or_insert_with(Default::default).push(location.into());
         <span class="self">self
     </span>}
 
@@ -529,7 +541,7 @@
 
     <span class="kw">pub fn </span>invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -&gt; Diagnostic {
         Diagnostic::new(
-             <span class="macro">format!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">"Invalid parameter count. Received {received} parameters while {expected} parameters were expected."</span>,
             )).with_error_code(<span class="string">"E032"</span>)
             .with_location(location)
