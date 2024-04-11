@@ -519,16 +519,25 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .next()
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
-                let type_name = m.get_type_name();
-                let type_info = self
-                    .index
-                    .find_elementary_pointer_type(self.index.get_type_information_or_void(type_name));
+                let member_type_name = m.get_type_name();
+                let type_info = self.index.get_type_information_or_void(member_type_name);
+                let elementary_type = self.index.find_elementary_pointer_type(type_info);
+                let type_name = if elementary_type.is_string() {
+                    let Some(name) = type_info.get_inner_pointer_type_name() else {
+                        unreachable!("Aggregate types in VAR_INPUT blocks are always pointers")
+                    };
+                    name
+                } else {
+                    elementary_type.get_name()
+                };
 
                 let (ty, deep_copy) = match m.argument_type {
-                    ArgumentType::ByVal(VariableType::Input) if type_info.is_aggregate() => {
-                        (index.get_associated_type(type_info.get_name())?, true)
+                    ArgumentType::ByVal(VariableType::Input)
+                        if elementary_type.is_aggregate() =>
+                    {
+                        (index.get_associated_type(type_name)?, true)
                     }
-                    _ => (index.get_associated_type(type_name)?, false),
+                    _ => (index.get_associated_type(member_type_name)?, false),
                 };
 
                 let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
@@ -564,7 +573,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             1,
                             ptr_value.into_pointer_value(),
                             1,
-                            index.get_associated_type(type_info.get_name())?.size_of().unwrap(),
+                            index.get_associated_type(type_name)?.size_of().unwrap(),
                         )
                         .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
                 } else {

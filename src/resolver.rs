@@ -1970,10 +1970,12 @@ fn to_variable_annotation(
             (v_type.get_name().to_string(), AUTO_DEREF)
         }
         (DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }, _) => {
-            if v.argument_type.is_input() /* && v_type.is_aggregate_type() */ {
+            if v.argument_type.is_input()
+            /* && v_type.is_aggregate_type() */
+            {
                 // by-value aggregate type
                 (inner_type_name.clone(), NO_DEREF)
-            } else {   
+            } else {
                 // real auto-deref pointer
                 (inner_type_name.clone(), AUTO_DEREF)
             }
