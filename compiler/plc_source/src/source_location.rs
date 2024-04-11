@@ -161,6 +161,12 @@ pub struct SourceLocation {
     file: Option<&'static str>,
 }
 
+impl From<&SourceLocation> for SourceLocation {
+    fn from(value: &SourceLocation) -> Self {
+        value.clone()
+    }
+}
+
 impl Debug for SourceLocation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut f = f.debug_struct("SourceLocation");
