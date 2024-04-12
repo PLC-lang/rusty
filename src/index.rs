@@ -773,11 +773,11 @@ impl Default for TypeIndex {
 
 impl TypeIndex {
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(&type_name.to_lowercase()).or_else(|| self.find_pou_type(type_name))
+        self.types.get(type_name).or_else(|| self.find_pou_type(type_name))
     }
 
     pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
-        self.pou_types.get(&type_name.to_lowercase())
+        self.pou_types.get(type_name)
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
@@ -905,7 +905,7 @@ impl Index {
                                 .collect::<Vec<_>>();
 
                             for e in variables.iter() {
-                                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                                self.enum_global_variables.insert(e.get_name().to_string(), e.clone());
                             }
                             variants.append(&mut variables);
                         }
@@ -1035,8 +1035,8 @@ impl Index {
         name: &str,
     ) -> Option<&VariableIndexEntry> {
         self.global_variables
-            .get_all(&name.to_lowercase())
-            .or_else(|| self.enum_global_variables.get_all(&name.to_lowercase()))
+            .get_all(name)
+            .or_else(|| self.enum_global_variables.get_all(name))
             .and_then(|it| {
                 if let Some(context) = context.filter(|it| !it.is_empty()) {
                     it.iter().find(|it| it.has_parent(context)).or_else(|| it.first())
@@ -1053,7 +1053,7 @@ impl Index {
 
     /// returns the `VariableIndexEntry` of the global initializer with the given name
     pub fn find_global_initializer(&self, name: &str) -> Option<&VariableIndexEntry> {
-        self.global_initializers.get(&name.to_lowercase())
+        self.global_initializers.get(name)
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
@@ -1172,13 +1172,13 @@ impl Index {
     /// returns all member variables of the given POU (e.g. FUNCTION, PROGRAM, etc.)
     pub fn get_pou_members(&self, container_name: &str) -> &[VariableIndexEntry] {
         self.get_pou_types()
-            .get(&container_name.to_lowercase())
+            .get(container_name)
             .map(|it| it.get_members())
             .unwrap_or_else(|| &[])
     }
 
     pub fn find_pou_type(&self, pou_name: &str) -> Option<&DataType> {
-        self.get_pou_types().get(&pou_name.to_lowercase())
+        self.get_pou_types().get(pou_name)
     }
 
     pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
@@ -1267,7 +1267,7 @@ impl Index {
     /// expect a built-in type
     /// This only returns types, not POUs as it is meant for builtins only
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.get_types().get(&type_name.to_lowercase()).unwrap_or_else(|| panic!("{type_name} not found"))
+        self.get_types().get(type_name).unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
     pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstNode> {
@@ -1307,7 +1307,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        self.get_pou_types().get(&pou_name.to_lowercase()).and_then(|it| it.find_return_variable())
+        self.get_pou_types().get(pou_name).and_then(|it| it.find_return_variable())
     }
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
@@ -1373,7 +1373,7 @@ impl Index {
         location: SourceLocation,
     ) {
         self.implementations.insert(
-            call_name.to_lowercase(),
+            call_name.to_string(),
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
@@ -1386,7 +1386,7 @@ impl Index {
     }
 
     pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
-        self.pous.get(&pou_name.to_lowercase())
+        self.pous.get(pou_name)
     }
 
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
@@ -1395,15 +1395,15 @@ impl Index {
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
-        self.pous.insert(entry.get_name().to_lowercase(), entry);
+        self.pous.insert(entry.get_name().to_string(), entry);
     }
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
-        self.pous.insert(entry.get_name().to_lowercase(), entry);
+        self.pous.insert(entry.get_name().to_string(), entry);
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
-        self.implementations.get(&call_name.to_lowercase())
+        self.implementations.get(call_name)
     }
 
     pub fn find_pou_implementation(&self, pou_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1460,24 +1460,24 @@ impl Index {
             .set_constant(true)
             .set_initial_value(initial_value);
 
-        self.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
+        self.enum_global_variables.insert(variant.to_string(), entry.clone());
         entry
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_variables.insert(name.to_lowercase(), variable);
+        self.global_variables.insert(name.to_string(), variable);
     }
 
     pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_initializers.insert(name.to_lowercase(), variable);
+        self.global_initializers.insert(name.to_string(), variable);
     }
 
     pub fn register_type(&mut self, datatype: DataType) {
-        self.type_index.types.insert(datatype.get_name().to_lowercase(), datatype);
+        self.type_index.types.insert(datatype.get_name().to_string(), datatype);
     }
 
     pub fn register_pou_type(&mut self, datatype: DataType) {
-        self.type_index.pou_types.insert(datatype.get_name().to_lowercase(), datatype);
+        self.type_index.pou_types.insert(datatype.get_name().to_string(), datatype);
     }
 
     pub fn find_callable_instance_variable(

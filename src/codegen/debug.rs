@@ -234,7 +234,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
 
 impl<'ink> DebugBuilder<'ink> {
     fn register_concrete_type(&mut self, name: &str, di_type: DebugType<'ink>) {
-        self.types.insert(name.to_lowercase(), di_type);
+        self.types.insert(name.to_string(), di_type);
     }
 
     fn create_basic_type(
@@ -378,12 +378,12 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
     ) -> Result<DebugType<'ink>, Diagnostic> {
         //Try to find a type in the types
-        let dt_name = dt.get_name().to_lowercase();
+        let dt_name = dt.get_name();
         //Attempt to re-register the type, this will do nothing if the type exists.
         //TODO: This will crash on recursive datatypes
         self.register_debug_type(&dt_name, dt, index)?;
         self.types
-            .get(&dt_name)
+            .get(dt_name)
             .ok_or_else(|| {
                 Diagnostic::new(format!("Cannot find debug information for type {dt_name}"))
                     .with_error_code("E076")
@@ -461,7 +461,7 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .map(|dt| {
                 self.types
-                    .get(dt.get_name().to_lowercase().as_str())
+                    .get(dt.get_name())
                     .copied()
                     .map(Into::into)
                     .unwrap_or_else(|| panic!("Cound not find debug type information for {}", dt.get_name()))
@@ -552,7 +552,7 @@ impl<'ink> DebugBuilder<'ink> {
     ) {
         let original_type = self
             .types
-            .get(&var_type.get_name().to_lowercase())
+            .get(var_type.get_name())
             .copied()
             .unwrap_or_else(|| panic!("Cannot find type {} in debug types", variable.get_name()))
             .into();
@@ -634,7 +634,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         index: &'idx Index,
     ) -> Result<(), Diagnostic> {
         //check if the type is currently registered
-        if !self.types.contains_key(&name.to_lowercase()) {
+        if !self.types.contains_key(name) {
             let type_info = datatype.get_type_information();
             let size = type_info.get_size(index);
             let alignment = type_info.get_alignment(index);
@@ -690,7 +690,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         global_variable: GlobalValue<'ink>,
         location: &SourceLocation,
     ) {
-        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+        if let Some(debug_type) = self.types.get(type_name) {
             let debug_type = *debug_type;
             let file = location
                 .get_file_name()
@@ -733,7 +733,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+        if let Some(debug_type) = self.types.get(type_name) {
             let debug_variable = self.debug_info.create_auto_variable(
                 scope,
                 variable.get_name(),
@@ -767,7 +767,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
 
-        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+        if let Some(debug_type) = self.types.get(type_name) {
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 variable.get_name(),
@@ -788,7 +788,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        if let Some(debug_type) = self.types.get(&pou.get_name().to_lowercase()) {
+        if let Some(debug_type) = self.types.get(pou.get_name()) {
             let debug_type = *debug_type;
             let file = pou
                 .get_location()

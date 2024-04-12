@@ -524,7 +524,7 @@ fn visit_variable_length_array(
     let referenced_type = referenced_type.get_name().expect("named datatype").to_string();
     let struct_name = name.to_owned();
 
-    let dummy_array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
+    let dummy_array_name = format!("__arr_vla_{ndims}_{referenced_type}");
     let member_array_name = format!("__ptr_to_{dummy_array_name}");
     let member_dimensions_name = format!("__bounds_{dummy_array_name}");
 
@@ -618,7 +618,7 @@ fn visit_variable_length_array(
     let variables = vec![
         // Pointer
         Variable {
-            name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
+            name: format!("struct_vla_{referenced_type}_{ndims}"),
             data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,

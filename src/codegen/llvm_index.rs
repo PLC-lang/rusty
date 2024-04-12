@@ -70,7 +70,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
         target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        self.type_associations.insert(type_name.to_lowercase(), target_type);
+        self.type_associations.insert(type_name.to_string(), target_type);
         Ok(())
     }
 
@@ -79,7 +79,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
         target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        self.pou_type_associations.insert(type_name.to_lowercase(), target_type);
+        self.pou_type_associations.insert(type_name.to_string(), target_type);
         Ok(())
     }
 
@@ -88,7 +88,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
         initial_value: BasicValueEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        self.initial_value_associations.insert(type_name.to_lowercase(), initial_value);
+        self.initial_value_associations.insert(type_name.to_string(), initial_value);
         Ok(())
     }
 
@@ -99,20 +99,20 @@ impl<'ink> LlvmTypedIndex<'ink> {
         target_value: PointerValue<'ink>,
     ) -> Result<(), Diagnostic> {
         let qualified_name = qualified_name(container_name, variable_name);
-        self.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
+        self.loaded_variable_associations.insert(qualified_name.to_string(), target_value);
         Ok(())
     }
 
     pub fn find_global_value(&self, name: &str) -> Option<GlobalValue<'ink>> {
         self.global_values
-            .get(&name.to_lowercase())
+            .get(name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
         self.type_associations
-            .get(&type_name.to_lowercase())
+            .get(type_name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_type(type_name)))
             .or_else(|| self.find_associated_pou_type(type_name))
@@ -120,7 +120,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
         self.pou_type_associations
-            .get(&type_name.to_lowercase())
+            .get(type_name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_pou_type(type_name)))
     }
@@ -137,7 +137,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {
         self.initial_value_associations
-            .get(&type_name.to_lowercase())
+            .get(type_name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_initial_value(type_name)))
     }
@@ -147,9 +147,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
         variable_name: &str,
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        self.global_values.insert(variable_name.to_lowercase(), global_variable);
+        self.global_values.insert(variable_name.to_string(), global_variable);
         self.initial_value_associations
-            .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
+            .insert(variable_name.to_string(), global_variable.as_pointer_value().into());
         Ok(())
     }
 
@@ -158,27 +158,27 @@ impl<'ink> LlvmTypedIndex<'ink> {
         callable_name: &str,
         function_value: FunctionValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        self.implementations.insert(callable_name.to_lowercase(), function_value);
+        self.implementations.insert(callable_name.to_string(), function_value);
         Ok(())
     }
 
     pub fn find_associated_implementation(&self, callable_name: &str) -> Option<FunctionValue<'ink>> {
         self.implementations
-            .get(&callable_name.to_lowercase())
+            .get(callable_name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_implementation(callable_name)))
     }
 
     pub fn find_associated_variable_value(&self, qualified_name: &str) -> Option<BasicValueEnum<'ink>> {
         self.initial_value_associations
-            .get(&qualified_name.to_lowercase())
+            .get(qualified_name)
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_variable_value(qualified_name)))
     }
 
     pub fn find_loaded_associated_variable_value(&self, qualified_name: &str) -> Option<PointerValue<'ink>> {
         let result =
-            self.loaded_variable_associations.get(&qualified_name.to_lowercase()).copied().or_else(|| {
+            self.loaded_variable_associations.get(qualified_name).copied().or_else(|| {
                 self.parent_index.and_then(|it| it.find_loaded_associated_variable_value(qualified_name))
             });
 
