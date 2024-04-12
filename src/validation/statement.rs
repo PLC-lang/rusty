@@ -367,7 +367,7 @@ fn validate_cast_literal<T: AnnotationMap>(
                 validator.context.slice(&statement.get_location())
             ))
             .with_error_code("E061")
-            .with_location(location.clone()),
+            .with_location(location),
         )
     } else if cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
         validator.push_diagnostic(incompatible_literal_cast(
@@ -433,7 +433,7 @@ fn validate_access_index<T: AnnotationMap>(
                         &range.end
                     ))
                     .with_error_code("E057")
-                    .with_location(location.clone()),
+                    .with_location(location),
                 )
             }
         }
@@ -443,7 +443,7 @@ fn validate_access_index<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Invalid type {} for direct variable access. Only variables of Integer types are allowed", ref_type.get_name()))
                     .with_error_code("E056")
-                    .with_location(location.clone())
+                    .with_location(location)
                 )
             }
         }
@@ -476,7 +476,7 @@ fn validate_reference<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
                     .with_error_code("E060")
-                    .with_location(location.clone())
+                    .with_location(location)
                 );
             }
         }
@@ -501,7 +501,7 @@ fn validate_reference<T: AnnotationMap>(
                     //TODO: maybe default to warning?
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                         .with_error_code("E049")
-                        .with_location(location.clone()),
+                        .with_location(location),
                 );
             }
         }
@@ -516,7 +516,7 @@ fn validate_reference<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
                         .with_error_code("E095")
-                        .with_location(location.clone())
+                        .with_location(location)
                 );
             }
         }
@@ -808,7 +808,7 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
                     .with_error_code("E042")
-                    .with_location(location.to_owned())
+                    .with_location(location)
                     );
             }
         }
@@ -826,7 +826,7 @@ fn validate_assignment<T: AnnotationMap>(
         if has_return_assignment_in_void_function(context, left) {
             validator.push_diagnostic(
                 Diagnostic::new("Function declared as VOID, but trying to assign a return value")
-                    .with_location(location.to_owned())
+                    .with_location(location)
                     .with_error_code("E093"),
             )
         }
@@ -864,7 +864,7 @@ fn validate_assignment<T: AnnotationMap>(
                         get_datatype_name_or_slice(validator.context, right_type)
                     ))
                     .with_error_code("E090")
-                    .with_location(location.clone()),
+                    .with_location(location),
                 );
             } else {
                 validator.push_diagnostic(Diagnostic::invalid_assignment(
@@ -927,7 +927,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location())
-                .with_secondary_location(left_dt.location.clone())
+                .with_secondary_location(&left_dt.location)
                 .with_error_code("E091"),
             );
         }
@@ -949,7 +949,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     ))
                     .with_error_code("E092")
                     .with_location(right.get_location())
-                    .with_secondary_location(left_dt.location.clone()),
+                    .with_secondary_location(&left_dt.location),
                 );
             }
         }
@@ -961,7 +961,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
                 .with_location(right.get_location())
-                .with_secondary_location(left_dt.location.clone())
+                .with_secondary_location(&left_dt.location)
                 .with_error_code("E040"),
             );
         }
@@ -1046,7 +1046,7 @@ fn is_valid_string_to_char_assignment(
                             .as_str(),
                     )
                     .with_error_code("E065")
-                    .with_location(location.clone()),
+                    .with_location(location),
                 );
                 return false;
             }
@@ -1077,7 +1077,7 @@ fn is_invalid_pointer_assignment(
                 left_type.get_size_in_bits(index)
             ))
             .with_error_code("E065")
-            .with_location(location.clone()),
+            .with_location(location),
         );
         return true;
     }
@@ -1093,7 +1093,7 @@ fn is_invalid_pointer_assignment(
                 right_type.get_size_in_bits(index)
             ))
             .with_error_code("E065")
-            .with_location(location.clone()),
+            .with_location(location),
         );
         return true;
     }

@@ -1916,7 +1916,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 expected_type.get_name()
             ))
             .with_error_code("E074")
-            .with_location(location.clone())),
+            .with_location(location)),
         }
     }
 

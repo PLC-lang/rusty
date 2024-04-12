@@ -766,6 +766,17 @@ impl Dimension {
         Ok(start..end)
     }
 
+    /// Identical to [`get_range`] except for adding 1 to the end of the range.
+    /// For example if the start and end values are 1 and 5 respectively, the range will be `1..6`
+    ///
+    /// Primarily used by Inkwell which calculates the array length as `end - start` which would
+    /// generate an off-by-one error in the array size with [`get_range`] because ST ranges are inclusive.
+    pub fn get_range_plus_one(&self, index: &Index) -> Result<Range<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
+        Ok(start..end + 1)
+    }
+
     pub fn get_range_inclusive(&self, index: &Index) -> Result<RangeInclusive<i64>, String> {
         let start = self.start_offset.as_int_value(index)?;
         let end = self.end_offset.as_int_value(index)?;

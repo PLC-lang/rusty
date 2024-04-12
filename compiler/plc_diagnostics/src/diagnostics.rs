@@ -66,13 +66,19 @@ impl Diagnostic {
         }
     }
 
-    pub fn with_location(mut self, location: SourceLocation) -> Self {
-        self.primary_location = location;
+    pub fn with_location<T>(mut self, location: T) -> Self
+    where
+        T: Into<SourceLocation>,
+    {
+        self.primary_location = location.into();
         self
     }
 
-    pub fn with_secondary_location(mut self, location: SourceLocation) -> Self {
-        self.secondary_locations.get_or_insert_with(Default::default).push(location);
+    pub fn with_secondary_location<T>(mut self, location: T) -> Self
+    where
+        T: Into<SourceLocation>,
+    {
+        self.secondary_locations.get_or_insert_with(Default::default).push(location.into());
         self
     }
 
@@ -194,7 +200,7 @@ impl Diagnostic {
 
     pub fn invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -> Diagnostic {
         Diagnostic::new(
-             format!(
+            format!(
                 "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
             )).with_error_code("E032")
             .with_location(location)
