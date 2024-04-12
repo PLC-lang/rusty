@@ -69,7 +69,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 .find_type(&var.data_type_declaration.get_referenced_type().unwrap_or_default());
 
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
-            // FIXME: only register by ref pointer if aggregate type is also a parameter
             let type_name = if block_type.is_by_ref()
                 || ty.is_some_and(|opt| {
                     opt.is_aggregate_type() && matches!(block_type.get_inner(), VariableType::Input)

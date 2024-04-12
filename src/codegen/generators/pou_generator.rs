@@ -196,23 +196,39 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .collect_parameters_for_implementation(implementation)?
             .iter()
             .enumerate()
-            .map(|(i, p)| match declared_parameters.get(i) {
-                Some(v) if p.into_pointer_type().get_element_type().is_array_type() => {
-                    // for array types we will generate a pointer to the arrays element type
-                    // not a pointer to array
-                    let ty = p
-                        .into_pointer_type()
-                        .get_element_type()
-                        .into_array_type()
-                        .get_element_type()
-                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+            .map(|(i, p)| {
+                let param = declared_parameters.get(i);
+                let dti = param.map(|it| {
+                    let typeinfo = self.index.get_type_information_or_void(it.get_type_name());
+                    if it.get_declaration_type().is_input() {
+                        self.index.find_elementary_pointer_type(typeinfo)
+                    } else {
+                        typeinfo
+                    }
+                });
+                match param {
+                    Some(v) if dti.is_some_and(|it| it.is_aggregate()) => {
+                        // for aggregate types we will generate a pointer to the first element type
+                        let ty = if dti.is_some_and(|it| it.is_struct()) {
+                            p.into_pointer_type()
+                                .get_element_type()
+                                .into_struct_type()
+                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        } else {
+                            p.into_pointer_type()
+                                .get_element_type()
+                                .into_array_type()
+                                .get_element_type()
+                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        };
 
-                    // set the new type for further codegen
-                    let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+                        // set the new type for further codegen
+                        let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
 
-                    ty.into()
+                        ty.into()
+                    }
+                    _ => *p,
                 }
-                _ => *p,
             })
             .collect::<Vec<BasicMetadataTypeEnum>>();
 
@@ -532,9 +548,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 };
 
                 let (ty, deep_copy) = match m.argument_type {
-                    ArgumentType::ByVal(VariableType::Input)
-                        if elementary_type.is_aggregate() =>
-                    {
+                    ArgumentType::ByVal(VariableType::Input) if elementary_type.is_aggregate() && !elementary_type.is_vla() => {
                         (index.get_associated_type(type_name)?, true)
                     }
                     _ => (index.get_associated_type(member_type_name)?, false),
@@ -554,18 +568,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 }
 
                 if deep_copy {
-                    // bitcast the allocated array to i8*
-                    // memcpy the array to the allocated array
-
-                    let bitcast = self.llvm.builder.build_bitcast(
-                        ptr,
+                    let ty = if elementary_type.is_struct() {
+                        ptr.get_type()
+                            .get_element_type()
+                            .into_struct_type()
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                    } else {
                         ptr.get_type()
                             .get_element_type()
                             .into_array_type()
                             .get_element_type()
-                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                        "bitcast",
-                    );
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                    };
+
+                    let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast");
                     self.llvm
                         .builder
                         .build_memcpy(

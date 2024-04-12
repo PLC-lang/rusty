@@ -821,6 +821,13 @@ fn by_value_function_arg_structs_are_memcopied() {
                 val : S_TY;
             END_VAR
         END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            s: S_TY;
+        END_VAR
+            FOO(s);
+        END_FUNCTION
         "#,
     );
 
@@ -828,15 +835,38 @@ fn by_value_function_arg_structs_are_memcopied() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @bar(i8* %0) {
+    %S_TY = type { i8, i8 }
+
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+
+    define i32 @foo(%S_TY* %0) section "fn-foo:i32[pv]" {
     entry:
-      %bar = alloca i32, align 4
-      %val = alloca [65537 x i8], align 1
-      store i8* %0, [65537 x i8]* %val, align 8
-      store i32 0, i32* %bar, align 4
-      %bar_ret = load i32, i32* %bar, align 4
-      ret i32 %bar_ret
+      %foo = alloca i32, align 4
+      %val = alloca %S_TY, align 8
+      %1 = bitcast %S_TY* %val to i8*
+      %2 = bitcast %S_TY* %0 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%S_TY* getelementptr (%S_TY, %S_TY* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
     }
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %s = alloca %S_TY, align 8
+      %0 = bitcast %S_TY* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%S_TY, %S_TY* @__S_TY__init, i32 0, i32 0), i64 ptrtoint (%S_TY* getelementptr (%S_TY, %S_TY* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %call = call i32 @foo(%S_TY* %s)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "###);
 }
 
@@ -859,8 +889,15 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
         
         FUNCTION foo : DINT
             VAR_INPUT
-                val : S_TY;
+                val : AGGREGATE_COLLECTOR_TY;
             END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            s: AGGREGATE_COLLECTOR_TY;
+        END_VAR
+            FOO(s);
         END_FUNCTION
         "#,
     );
@@ -869,14 +906,39 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @bar(i8* %0) {
+    %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
+    %S_TY = type { i8, i8 }
+
+    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+
+    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-foo:i32[pv]" {
     entry:
-      %bar = alloca i32, align 4
-      %val = alloca [65537 x i8], align 1
-      store i8* %0, [65537 x i8]* %val, align 8
-      store i32 0, i32* %bar, align 4
-      %bar_ret = load i32, i32* %bar, align 4
-      ret i32 %bar_ret
+      %foo = alloca i32, align 4
+      %val = alloca %AGGREGATE_COLLECTOR_TY, align 8
+      %1 = bitcast %AGGREGATE_COLLECTOR_TY* %val to i8*
+      %2 = bitcast %AGGREGATE_COLLECTOR_TY* %0 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%AGGREGATE_COLLECTOR_TY* getelementptr (%AGGREGATE_COLLECTOR_TY, %AGGREGATE_COLLECTOR_TY* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
     }
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %s = alloca %AGGREGATE_COLLECTOR_TY, align 8
+      %0 = bitcast %AGGREGATE_COLLECTOR_TY* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%AGGREGATE_COLLECTOR_TY* @__AGGREGATE_COLLECTOR_TY__init to i8*), i64 ptrtoint (%AGGREGATE_COLLECTOR_TY* getelementptr (%AGGREGATE_COLLECTOR_TY, %AGGREGATE_COLLECTOR_TY* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %call = call i32 @foo(%AGGREGATE_COLLECTOR_TY* %s)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "###);
 }
