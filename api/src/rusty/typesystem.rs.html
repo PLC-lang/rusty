@@ -1397,6 +1397,17 @@
 <a href="#1395" id="1395">1395</a>
 <a href="#1396" id="1396">1396</a>
 <a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -2163,6 +2174,17 @@
         <span class="kw">let </span>start = <span class="self">self</span>.start_offset.as_int_value(index)<span class="question-mark">?</span>;
         <span class="kw">let </span>end = <span class="self">self</span>.end_offset.as_int_value(index)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(start..end)
+    }
+
+    <span class="doccomment">/// Identical to [`get_range`] except for adding 1 to the end of the range.
+    /// For example if the start and end values are 1 and 5 respectively, the range will be `1..6`
+    ///
+    /// Primarily used by Inkwell which calculates the array length as `end - start` which would
+    /// generate an off-by-one error in the array size with [`get_range`] because ST ranges are inclusive.
+    </span><span class="kw">pub fn </span>get_range_plus_one(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Result</span>&lt;Range&lt;i64&gt;, String&gt; {
+        <span class="kw">let </span>start = <span class="self">self</span>.start_offset.as_int_value(index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>end = <span class="self">self</span>.end_offset.as_int_value(index)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(start..end + <span class="number">1</span>)
     }
 
     <span class="kw">pub fn </span>get_range_inclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Result</span>&lt;RangeInclusive&lt;i64&gt;, String&gt; {

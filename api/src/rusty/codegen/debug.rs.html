@@ -951,6 +951,7 @@
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
@@ -964,6 +965,7 @@
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+
 <span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -1289,7 +1291,7 @@
         <span class="comment">//Find the dimenstions as ranges
         </span><span class="kw">let </span>subscript = dimensions
             .iter()
-            .map(|it| it.get_range(index))
+            .map(|it| it.get_range_plus_one(index))
             <span class="comment">//Convert to normal range
             </span>.collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Range&lt;i64&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))<span class="question-mark">?</span>;
@@ -1365,7 +1367,7 @@
             size.bits().into(),
             alignment.bits(),
             <span class="attr">#[allow(clippy::single_range_in_vec_init)]
-            </span><span class="kw-2">&amp;</span>[(<span class="number">0</span>..(length - <span class="number">1</span>))],
+            </span><span class="kw-2">&amp;</span>[(<span class="number">0</span>..length)],
         );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
         <span class="prelude-val">Ok</span>(())
