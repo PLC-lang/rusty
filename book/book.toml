@@ -7,6 +7,10 @@ title = "RuSTy User Documentation"
 [output.html]
 additional-js = ["iecst.min.js", "llvm.min.js", "custom.js", "highlight.js"]
 
+[output.html.fold]
+enable = true
+level = 0
+
 [preprocessor.errors]
 command = "../target/release/errorcode_book_generator"
 err_location = "../compiler/plc_diagnostics/src/diagnostics/error_codes"

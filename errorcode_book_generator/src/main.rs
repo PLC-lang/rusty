@@ -110,7 +110,6 @@ impl Preprocessor for ErrorCodeGenerator {
         files.sort();
         book.for_each_mut(|item| {
             if let BookItem::Chapter(chapter) = item {
-                dbg!(&chapter.source_path);
                 if chapter.source_path == Some(target.clone()) {
                     let mut parents = chapter.parent_names.clone();
                     parents.push(chapter.name.clone());
