@@ -667,7 +667,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let variable_llvm_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| err.with_location(variable.source_location.clone()))?;
+            .map_err(|err| err.with_location(&variable.source_location))?;
 
         let type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error("Couldn't determine type size", variable.source_location.clone())

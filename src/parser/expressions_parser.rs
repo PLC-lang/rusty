@@ -607,7 +607,7 @@ fn parse_number<F: FromStr>(lexer: &mut ParseSession, text: &str, location: &Sou
             lexer.accept_diagnostic(
                 Diagnostic::new(format!("Failed to parse number {text}"))
                     .with_error_code("E011")
-                    .with_location(location.clone()),
+                    .with_location(location),
             );
             None
         }
@@ -745,7 +745,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
                     lexer.accept_diagnostic(
                         Diagnostic::new("Invalid TIME Literal: Cannot parse segment.")
                             .with_error_code("E010")
-                            .with_location(location.clone()),
+                            .with_location(location),
                     );
                     return None;
                 }
@@ -761,7 +761,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
                     lexer.accept_diagnostic(
                         Diagnostic::new("Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)")
                             .with_error_code("E010")
-                            .with_location(location.clone()),
+                            .with_location(location),
                     );
                     return None;
                 }
