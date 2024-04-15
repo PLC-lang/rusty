@@ -11,6 +11,7 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -336,7 +337,7 @@ impl<'ink> DebugBuilder<'ink> {
         //Find the dimenstions as ranges
         let subscript = dimensions
             .iter()
-            .map(|it| it.get_range(index))
+            .map(|it| it.get_range_plus_one(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
@@ -412,7 +413,7 @@ impl<'ink> DebugBuilder<'ink> {
             size.bits().into(),
             alignment.bits(),
             #[allow(clippy::single_range_in_vec_init)]
-            &[(0..(length - 1))],
+            &[(0..length)],
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
