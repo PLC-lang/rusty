@@ -108,6 +108,11 @@ impl Preprocessor for ErrorCodeGenerator {
             .filter(|it| it.extension().unwrap_or_default() == "md")
             .collect();
         files.sort();
+
+        // This goes through the entire book to find the correct chapter to add the error codes
+        // It then creates sub chapters for each `.md` file it finds
+        // The title of the chapter would be the name of the file.
+        // The chapters are sorted alphabetically.
         book.for_each_mut(|item| {
             if let BookItem::Chapter(chapter) = item {
                 if chapter.source_path == Some(target.clone()) {
