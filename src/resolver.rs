@@ -1970,7 +1970,7 @@ fn to_variable_annotation(
             (v_type.get_name().to_string(), AUTO_DEREF)
         }
         (DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }, _) => {
-            if v.argument_type.is_input()
+            if v.get_declaration_type().is_input() && !v.get_declaration_type().is_by_ref()
             /* && v_type.is_aggregate_type() */
             {
                 // by-value aggregate type

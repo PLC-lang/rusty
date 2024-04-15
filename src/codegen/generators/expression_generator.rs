@@ -2382,7 +2382,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
-
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;

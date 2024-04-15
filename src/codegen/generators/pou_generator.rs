@@ -548,7 +548,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 };
 
                 let (ty, deep_copy) = match m.argument_type {
-                    ArgumentType::ByVal(VariableType::Input) if elementary_type.is_aggregate() && !elementary_type.is_vla() => {
+                    ArgumentType::ByVal(VariableType::Input) if elementary_type.is_aggregate() => {
                         (index.get_associated_type(type_name)?, true)
                     }
                     _ => (index.get_associated_type(member_type_name)?, false),
