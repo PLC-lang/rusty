@@ -5,10 +5,10 @@
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A hack to align a smaller type <code>B</code> with a bigger type <code>T</code>.</p>
 <p>The usual use of this is with <code>B = [u8]</code> and <code>T = u32</code>. That is,
 it permits aligning a sequence of bytes on a 4-byte boundary. This
-is useful in contexts where one wants to embed a serialized <a href="crate::dfa::dense::DFA">dense
+is useful in contexts where one wants to embed a serialized <a href="../../dfa/dense/struct.DFA.html" title="struct regex_automata::dfa::dense::DFA">dense
 DFA</a> into a Rust a program while guaranteeing the
 alignment required for the DFA.</p>
-<p>See <a href="crate::dfa::dense::DFA::from_bytes"><code>dense::DFA::from_bytes</code></a> for an
+<p>See <a href="../../dfa/dense/struct.DFA.html#method.from_bytes" title="associated function regex_automata::dfa::dense::DFA::from_bytes"><code>dense::DFA::from_bytes</code></a> for an
 example of how to use this type.</p>
 </div></details><h2 id="fields" class="fields section-header">Fields<a href="#fields" class="anchor">§</a></h2><span id="structfield._align" class="structfield section-header"><a href="#structfield._align" class="anchor field">§</a><code>_align: <a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.array.html">[T; 0]</a></code></span><div class="docblock"><p>A zero-sized field indicating the alignment we want.</p>
 </div><span id="structfield.bytes" class="structfield section-header"><a href="#structfield.bytes" class="anchor field">§</a><code>bytes: B</code></span><div class="docblock"><p>A possibly non-sized field containing a sequence of bytes.</p>

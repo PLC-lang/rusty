@@ -8,7 +8,7 @@ scheduled. No other waking is required for the task to continue.</p>
 <h3 id="non-guarantees"><a class="doc-anchor" href="#non-guarantees">§</a>Non-guarantees</h3>
 <p>This function may not yield all the way up to the executor if there are any
 special combinators above it in the call stack. For example, if a
-<a href="macro@crate::select"><code>tokio::select!</code></a> has another branch complete during the same poll as the
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> has another branch complete during the same poll as the
 <code>yield_now()</code>, then the yield is not propagated all the way up to the
 runtime.</p>
 <p>It is generally not guaranteed that the runtime behaves like you expect it

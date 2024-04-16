@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.10.2/src/fmt/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.11.3/src/fmt/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../env_logger/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -717,6 +717,98 @@
 <a href="#715" id="715">715</a>
 <a href="#716" id="716">716</a>
 <a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Formatting for log records.
 //!
 //! This module contains a [`Formatter`] that can be used to format log records
@@ -728,8 +820,14 @@
 //!
 //! The format used to print log records can be customised using the [`Builder::format`]
 //! method.
-//! Custom formats can apply different color and weight to printed values using
-//! [`Style`] builders.
+//!
+//! Terminal styling is done through ANSI escape codes and will be adapted to the capabilities of
+//! the target stream.
+//! For example, you could use one of:
+//! - [anstyle](https://docs.rs/anstyle) is a minimal, runtime string styling API and is re-exported as [`style`]
+//! - [owo-colors](https://docs.rs/owo-colors) is a feature rich runtime string styling API
+//! - [color-print](https://docs.rs/color-print) for feature-rich compile-time styling API
+//! See also [`Formatter::default_level_style`]
 //!
 //! ```
 //! use std::io::Write;
@@ -743,10 +841,30 @@
 //! });
 //! ```
 //!
-//! [`Formatter`]: struct.Formatter.html
-//! [`Style`]: struct.Style.html
-//! [`Builder::format`]: ../struct.Builder.html#method.format
-//! [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
+//! # Key Value arguments
+//!
+//! If the `unstable-kv` feature is enabled, then the default format will include key values from
+//! the log by default, but this can be disabled by calling [`Builder::format_key_values`]
+//! with [`hidden_kv_format`] as the format function.
+//!
+//! The way these keys and values are formatted can also be customized with a separate format
+//! function that is called by the default format with [`Builder::format_key_values`].
+//!
+//! ```
+//! # #[cfg(feature= "unstable-kv")]
+//! # {
+//! use log::info;
+//! env_logger::init();
+//! info!(x="45"; "Some message");
+//! info!(x="12"; "Another message {x}", x="12");
+//! # }
+//! ```
+//!
+//! See &lt;https://docs.rs/log/latest/log/#structured-logging&gt;.
+//!
+//! [`Builder::format`]: crate::Builder::format
+//! [`Write`]: std::io::Write
+//! [`Builder::format_key_values`]: crate::Builder::format_key_values
 
 </span><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::fmt::Display;
@@ -760,22 +878,21 @@
 
 <span class="attr">#[cfg(feature = <span class="string">"humantime"</span>)]
 </span><span class="kw">mod </span>humantime;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+</span><span class="kw">mod </span>kv;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>writer;
 
 <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
-</span><span class="kw">mod </span>style;
-<span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
-</span><span class="kw">pub use </span>style::{Color, Style, StyledValue};
+</span><span class="kw">pub use </span>anstyle <span class="kw">as </span>style;
 
 <span class="attr">#[cfg(feature = <span class="string">"humantime"</span>)]
 </span><span class="kw">pub use </span><span class="self">self</span>::humantime::Timestamp;
-<span class="kw">pub use </span><span class="self">self</span>::writer::glob::<span class="kw-2">*</span>;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+</span><span class="kw">pub use </span><span class="self">self</span>::kv::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::writer::Target;
+<span class="kw">pub use </span><span class="self">self</span>::writer::WriteStyle;
 
 <span class="kw">use </span><span class="self">self</span>::writer::{Buffer, Writer};
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>glob {
-    <span class="kw">pub use super</span>::{Target, TimestampPrecision, WriteStyle};
-}
 
 <span class="doccomment">/// Formatting precision of timestamps.
 ///
@@ -804,7 +921,7 @@
 <span class="doccomment">/// A formatter to write logs into.
 ///
 /// `Formatter` implements the standard [`Write`] trait for writing log records.
-/// It also supports terminal colors, through the [`style`] method.
+/// It also supports terminal styling using ANSI escape codes.
 ///
 /// # Examples
 ///
@@ -819,9 +936,8 @@
 /// builder.format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()));
 /// ```
 ///
-/// [`Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
-/// [`writeln`]: https://doc.rust-lang.org/stable/std/macro.writeln.html
-/// [`style`]: #method.style
+/// [`Write`]: std::io::Write
+/// [`writeln`]: std::writeln
 </span><span class="kw">pub struct </span>Formatter {
     buf: Rc&lt;RefCell&lt;Buffer&gt;&gt;,
     write_style: WriteStyle,
@@ -850,57 +966,25 @@
 
 <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
 </span><span class="kw">impl </span>Formatter {
-    <span class="doccomment">/// Begin a new [`Style`].
-    ///
-    /// # Examples
-    ///
-    /// Create a bold, red colored style and use it to print the log level:
-    ///
-    /// ```
-    /// use std::io::Write;
-    /// use env_logger::fmt::Color;
-    ///
-    /// let mut builder = env_logger::Builder::new();
-    ///
-    /// builder.format(|buf, record| {
-    ///     let mut level_style = buf.style();
-    ///
-    ///     level_style.set_color(Color::Red).set_bold(true);
-    ///
-    ///     writeln!(buf, "{}: {}",
-    ///         level_style.value(record.level()),
-    ///         record.args())
-    /// });
-    /// ```
-    ///
-    /// [`Style`]: struct.Style.html
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Style {
-        Style {
-            buf: <span class="self">self</span>.buf.clone(),
-            spec: termcolor::ColorSpec::new(),
-        }
-    }
-
-    <span class="doccomment">/// Get the default [`Style`] for the given level.
+    <span class="doccomment">/// Get the default [`style::Style`] for the given level.
     ///
     /// The style can be used to print other values besides the level.
-    </span><span class="kw">pub fn </span>default_level_style(<span class="kw-2">&amp;</span><span class="self">self</span>, level: Level) -&gt; Style {
-        <span class="kw">let </span><span class="kw-2">mut </span>level_style = <span class="self">self</span>.style();
-        <span class="kw">match </span>level {
-            Level::Trace =&gt; level_style.set_color(Color::Cyan),
-            Level::Debug =&gt; level_style.set_color(Color::Blue),
-            Level::Info =&gt; level_style.set_color(Color::Green),
-            Level::Warn =&gt; level_style.set_color(Color::Yellow),
-            Level::Error =&gt; level_style.set_color(Color::Red).set_bold(<span class="bool-val">true</span>),
-        };
-        level_style
-    }
-
-    <span class="doccomment">/// Get a printable [`Style`] for the given level.
     ///
-    /// The style can only be used to print the level.
-    </span><span class="kw">pub fn </span>default_styled_level(<span class="kw-2">&amp;</span><span class="self">self</span>, level: Level) -&gt; StyledValue&lt;<span class="lifetime">'static</span>, Level&gt; {
-        <span class="self">self</span>.default_level_style(level).into_value(level)
+    /// See [`style`] for how to adapt it to the styling crate of your choice
+    </span><span class="kw">pub fn </span>default_level_style(<span class="kw-2">&amp;</span><span class="self">self</span>, level: Level) -&gt; style::Style {
+        <span class="kw">if </span><span class="self">self</span>.write_style == WriteStyle::Never {
+            style::Style::new()
+        } <span class="kw">else </span>{
+            <span class="kw">match </span>level {
+                Level::Trace =&gt; style::AnsiColor::Cyan.on_default(),
+                Level::Debug =&gt; style::AnsiColor::Blue.on_default(),
+                Level::Info =&gt; style::AnsiColor::Green.on_default(),
+                Level::Warn =&gt; style::AnsiColor::Yellow.on_default(),
+                Level::Error =&gt; style::AnsiColor::Red
+                    .on_default()
+                    .effects(style::Effects::BOLD),
+            }
+        }
     }
 }
 
@@ -916,7 +1000,11 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Formatter {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">"Formatter"</span>).finish()
+        <span class="kw">let </span>buf = <span class="self">self</span>.buf.borrow();
+        f.debug_struct(<span class="string">"Formatter"</span>)
+            .field(<span class="string">"buf"</span>, <span class="kw-2">&amp;</span>buf)
+            .field(<span class="string">"write_style"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.write_style)
+            .finish()
     }
 }
 
@@ -930,6 +1018,8 @@
     <span class="kw">pub </span>format_indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     <span class="kw">pub </span>custom_format: <span class="prelude-ty">Option</span>&lt;FormatFn&gt;,
     <span class="kw">pub </span>format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+    </span><span class="kw">pub </span>kv_format: <span class="prelude-ty">Option</span>&lt;Box&lt;KvFormatFn&gt;&gt;,
     built: bool,
 }
 
@@ -962,6 +1052,8 @@
                     written_header_value: <span class="bool-val">false</span>,
                     indent: built.format_indent,
                     suffix: built.format_suffix,
+                    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+                    </span>kv_format: built.kv_format.as_deref().unwrap_or(<span class="kw-2">&amp;</span>default_kv_format),
                     buf,
                 };
 
@@ -981,15 +1073,41 @@
             format_indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
             custom_format: <span class="prelude-val">None</span>,
             format_suffix: <span class="string">"\n"</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="prelude-val">None</span>,
             built: <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
-</span><span class="kw">type </span>SubtleStyle = StyledValue&lt;<span class="lifetime">'static</span>, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
+</span><span class="kw">type </span>SubtleStyle = StyledValue&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;;
 <span class="attr">#[cfg(not(feature = <span class="string">"color"</span>))]
 </span><span class="kw">type </span>SubtleStyle = <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+
+<span class="doccomment">/// A value that can be printed using the given styles.
+</span><span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
+</span><span class="kw">struct </span>StyledValue&lt;T&gt; {
+    style: style::Style,
+    value: T,
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
+</span><span class="kw">impl</span>&lt;T: std::fmt::Display&gt; std::fmt::Display <span class="kw">for </span>StyledValue&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">let </span>style = <span class="self">self</span>.style;
+
+        <span class="comment">// We need to make sure `f`s settings don't get passed onto the styling but do get passed
+        // to the value
+        </span><span class="macro">write!</span>(f, <span class="string">"{style}"</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.value.fmt(f)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{style:#}"</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="attr">#[cfg(not(feature = <span class="string">"color"</span>))]
+</span><span class="kw">type </span>StyledValue&lt;T&gt; = T;
 
 <span class="doccomment">/// The default format.
 ///
@@ -1003,6 +1121,8 @@
     indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Formatter,
     suffix: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+    </span>kv_format: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>KvFormatFn,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DefaultFormat&lt;<span class="lifetime">'a</span>&gt; {
@@ -1013,18 +1133,23 @@
         <span class="self">self</span>.write_target(record)<span class="question-mark">?</span>;
         <span class="self">self</span>.finish_header()<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.write_args(record)
+        <span class="self">self</span>.write_args(record)<span class="question-mark">?</span>;
+        <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+        </span><span class="self">self</span>.write_kv(record)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}"</span>, <span class="self">self</span>.suffix)
     }
 
     <span class="kw">fn </span>subtle_style(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; SubtleStyle {
         <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
         </span>{
-            <span class="self">self</span>.buf
-                .style()
-                .set_color(Color::Black)
-                .set_intense(<span class="bool-val">true</span>)
-                .clone()
-                .into_value(text)
+            StyledValue {
+                style: <span class="kw">if </span><span class="self">self</span>.buf.write_style == WriteStyle::Never {
+                    style::Style::new()
+                } <span class="kw">else </span>{
+                    style::AnsiColor::BrightBlack.on_default()
+                },
+                value: text,
+            }
         }
         <span class="attr">#[cfg(not(feature = <span class="string">"color"</span>))]
         </span>{
@@ -1052,13 +1177,17 @@
         }
 
         <span class="kw">let </span>level = {
+            <span class="kw">let </span>level = record.level();
             <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
             </span>{
-                <span class="self">self</span>.buf.default_styled_level(record.level())
+                StyledValue {
+                    style: <span class="self">self</span>.buf.default_level_style(level),
+                    value: level,
+                }
             }
             <span class="attr">#[cfg(not(feature = <span class="string">"color"</span>))]
             </span>{
-                record.level()
+                level
             }
         };
 
@@ -1123,7 +1252,7 @@
     <span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self</span>.indent {
             <span class="comment">// Fast path for no indentation
-            </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}{}"</span>, record.args(), <span class="self">self</span>.suffix),
+            </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}"</span>, record.args()),
 
             <span class="prelude-val">Some</span>(indent_count) =&gt; {
                 <span class="comment">// Create a wrapper around the buffer only if we have to actually indent the message
@@ -1167,11 +1296,15 @@
                     <span class="macro">write!</span>(wrapper, <span class="string">"{}"</span>, record.args())<span class="question-mark">?</span>;
                 }
 
-                <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}"</span>, <span class="self">self</span>.suffix)<span class="question-mark">?</span>;
-
                 <span class="prelude-val">Ok</span>(())
             }
         }
+    }
+
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+    </span><span class="kw">fn </span>write_kv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>format = <span class="self">self</span>.kv_format;
+        format(<span class="self">self</span>.buf, record.key_values())
     }
 }
 
@@ -1208,19 +1341,25 @@
         write_target(<span class="string">""</span>, fmt)
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>format_with_header() {
+    <span class="kw">fn </span>formatter() -&gt; Formatter {
         <span class="kw">let </span>writer = writer::Builder::new()
             .write_style(WriteStyle::Never)
             .build();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        Formatter::new(<span class="kw-2">&amp;</span>writer)
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>format_with_header() {
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">true</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
             suffix: <span class="string">"\n"</span>,
@@ -1232,17 +1371,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_no_header() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">false</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">false</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
             suffix: <span class="string">"\n"</span>,
@@ -1254,17 +1391,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_indent_spaces() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">true</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
             suffix: <span class="string">"\n"</span>,
@@ -1276,17 +1411,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_indent_zero_spaces() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">true</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">0</span>),
             suffix: <span class="string">"\n"</span>,
@@ -1298,17 +1431,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_indent_spaces_no_header() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">false</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">false</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
             suffix: <span class="string">"\n"</span>,
@@ -1320,17 +1451,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_suffix() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">false</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">false</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
             suffix: <span class="string">"\n\n"</span>,
@@ -1342,17 +1471,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_suffix_with_indent() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">false</span>,
             target: <span class="bool-val">false</span>,
             level: <span class="bool-val">false</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">Some</span>(<span class="number">4</span>),
             suffix: <span class="string">"\n\n"</span>,
@@ -1364,11 +1491,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_target() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write_target(
             <span class="string">"target"</span>,
@@ -1377,6 +1500,8 @@
                 module_path: <span class="bool-val">true</span>,
                 target: <span class="bool-val">true</span>,
                 level: <span class="bool-val">true</span>,
+                <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+                </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
                 written_header_value: <span class="bool-val">false</span>,
                 indent: <span class="prelude-val">None</span>,
                 suffix: <span class="string">"\n"</span>,
@@ -1389,17 +1514,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_empty_target() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write(DefaultFormat {
             timestamp: <span class="prelude-val">None</span>,
             module_path: <span class="bool-val">true</span>,
             target: <span class="bool-val">true</span>,
             level: <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+            </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
             written_header_value: <span class="bool-val">false</span>,
             indent: <span class="prelude-val">None</span>,
             suffix: <span class="string">"\n"</span>,
@@ -1411,11 +1534,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>format_no_target() {
-        <span class="kw">let </span>writer = writer::Builder::new()
-            .write_style(WriteStyle::Never)
-            .build();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>f = Formatter::new(<span class="kw-2">&amp;</span>writer);
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
 
         <span class="kw">let </span>written = write_target(
             <span class="string">"target"</span>,
@@ -1424,6 +1543,8 @@
                 module_path: <span class="bool-val">true</span>,
                 target: <span class="bool-val">false</span>,
                 level: <span class="bool-val">true</span>,
+                <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+                </span>kv_format: <span class="kw-2">&amp;</span>hidden_kv_format,
                 written_header_value: <span class="bool-val">false</span>,
                 indent: <span class="prelude-val">None</span>,
                 suffix: <span class="string">"\n"</span>,
@@ -1432,6 +1553,69 @@
         );
 
         <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path] log\nmessage\n"</span>, written);
+    }
+
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+    #[test]
+    </span><span class="kw">fn </span>format_kv_default() {
+        <span class="kw">let </span>kvs = <span class="kw-2">&amp;</span>[(<span class="string">"a"</span>, <span class="number">1u32</span>), (<span class="string">"b"</span>, <span class="number">2u32</span>)][..];
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
+        <span class="kw">let </span>record = Record::builder()
+            .args(<span class="macro">format_args!</span>(<span class="string">"log message"</span>))
+            .level(Level::Info)
+            .module_path(<span class="prelude-val">Some</span>(<span class="string">"test::path"</span>))
+            .key_values(<span class="kw-2">&amp;</span>kvs)
+            .build();
+
+        <span class="kw">let </span>written = write_record(
+            record,
+            DefaultFormat {
+                timestamp: <span class="prelude-val">None</span>,
+                module_path: <span class="bool-val">false</span>,
+                target: <span class="bool-val">false</span>,
+                level: <span class="bool-val">true</span>,
+                kv_format: <span class="kw-2">&amp;</span>default_kv_format,
+                written_header_value: <span class="bool-val">false</span>,
+                indent: <span class="prelude-val">None</span>,
+                suffix: <span class="string">"\n"</span>,
+                buf: <span class="kw-2">&amp;mut </span>f,
+            },
+        );
+
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO ] log message a=1 b=2\n"</span>, written);
+    }
+
+    <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
+    #[test]
+    </span><span class="kw">fn </span>format_kv_default_full() {
+        <span class="kw">let </span>kvs = <span class="kw-2">&amp;</span>[(<span class="string">"a"</span>, <span class="number">1u32</span>), (<span class="string">"b"</span>, <span class="number">2u32</span>)][..];
+        <span class="kw">let </span><span class="kw-2">mut </span>f = formatter();
+        <span class="kw">let </span>record = Record::builder()
+            .args(<span class="macro">format_args!</span>(<span class="string">"log\nmessage"</span>))
+            .level(Level::Info)
+            .module_path(<span class="prelude-val">Some</span>(<span class="string">"test::path"</span>))
+            .target(<span class="string">"target"</span>)
+            .file(<span class="prelude-val">Some</span>(<span class="string">"test.rs"</span>))
+            .line(<span class="prelude-val">Some</span>(<span class="number">42</span>))
+            .key_values(<span class="kw-2">&amp;</span>kvs)
+            .build();
+
+        <span class="kw">let </span>written = write_record(
+            record,
+            DefaultFormat {
+                timestamp: <span class="prelude-val">None</span>,
+                module_path: <span class="bool-val">true</span>,
+                target: <span class="bool-val">true</span>,
+                level: <span class="bool-val">true</span>,
+                kv_format: <span class="kw-2">&amp;</span>default_kv_format,
+                written_header_value: <span class="bool-val">false</span>,
+                indent: <span class="prelude-val">None</span>,
+                suffix: <span class="string">"\n"</span>,
+                buf: <span class="kw-2">&amp;mut </span>f,
+            },
+        );
+
+        <span class="macro">assert_eq!</span>(<span class="string">"[INFO  test::path target] log\nmessage a=1 b=2\n"</span>, written);
     }
 }
 </code></pre></div></section></main></body></html>

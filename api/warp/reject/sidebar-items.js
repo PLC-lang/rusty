@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["custom","not_found","reject"],"struct":["InvalidHeader","InvalidQuery","LengthRequired","MethodNotAllowed","MissingCookie","MissingHeader","PayloadTooLarge","Rejection","UnsupportedMediaType"],"trait":["Reject"]};

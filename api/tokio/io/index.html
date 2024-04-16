@@ -24,10 +24,10 @@ and <code>AsyncWrite</code> in order to provide types that behave like byte stre
 can be used in almost exactly the same manner as the standard library’s
 <code>Read</code> and <code>Write</code>. Most types in the standard library that implement <code>Read</code>
 and <code>Write</code> have asynchronous equivalents in <code>tokio</code> that implement
-<code>AsyncRead</code> and <code>AsyncWrite</code>, such as <a href="crate::fs::File"><code>File</code></a> and <a href="../net/struct.TcpStream.html" title="struct tokio::net::TcpStream"><code>TcpStream</code></a>.</p>
+<code>AsyncRead</code> and <code>AsyncWrite</code>, such as <a href="../fs/struct.File.html" title="struct tokio::fs::File"><code>File</code></a> and <a href="../net/struct.TcpStream.html" title="struct tokio::net::TcpStream"><code>TcpStream</code></a>.</p>
 <p>For example, the standard library documentation introduces <code>Read</code> by
 <a href="https://doc.rust-lang.org/1.77.0/std/io/index.html#read-and-write" title="mod std::io">demonstrating</a> reading some bytes from a <a href="https://doc.rust-lang.org/1.77.0/std/fs/struct.File.html" title="struct std::fs::File"><code>std::fs::File</code></a>. We
-can do the same with <a href="crate::fs::File"><code>tokio::fs::File</code></a>:</p>
+can do the same with <a href="../fs/struct.File.html" title="struct tokio::fs::File"><code>tokio::fs::File</code></a>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::io::{<span class="self">self</span>, AsyncReadExt};
 <span class="kw">use </span>tokio::fs::File;

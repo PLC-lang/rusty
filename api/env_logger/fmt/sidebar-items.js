@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Color","Target","TimestampPrecision","WriteStyle"],"struct":["Formatter","Style","StyledValue","Timestamp"]};
+window.SIDEBAR_ITEMS = {"enum":["Target","TimestampPrecision","WriteStyle"],"struct":["Formatter","Timestamp"]};

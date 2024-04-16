@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ELASTICLUNR_VERSION"],"mod":["config","document_store","inverted_index","lang","pipeline"],"struct":["Index","IndexBuilder"]};

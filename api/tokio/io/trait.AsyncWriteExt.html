@@ -113,7 +113,7 @@ in the buffer were written to this writer.</p>
 written to this writer.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancellation safe in the sense that if it is used as
-the event in a <a href="crate::select"><code>tokio::select!</code></a> statement and some
+the event in a <a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some
 other branch completes first, then it is guaranteed that no data was
 written to this <code>AsyncWrite</code>.</p>
 <h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5>
@@ -140,7 +140,7 @@ written to this <code>AsyncWrite</code>.</p>
 <p>See <a href="trait.AsyncWrite.html#method.poll_write_vectored" title="method tokio::io::AsyncWrite::poll_write_vectored"><code>AsyncWrite::poll_write_vectored</code></a> for more details.</p>
 <h5 id="cancel-safety-1"><a class="doc-anchor" href="#cancel-safety-1">§</a>Cancel safety</h5>
 <p>This method is cancellation safe in the sense that if it is used as
-the event in a <a href="crate::select"><code>tokio::select!</code></a> statement and some
+the event in a <a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some
 other branch completes first, then it is guaranteed that no data was
 written to this <code>AsyncWrite</code>.</p>
 <h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples</h5>
@@ -191,11 +191,11 @@ in the buffer were written to this writer.</p>
 written to this writer.</p>
 <h5 id="cancel-safety-2"><a class="doc-anchor" href="#cancel-safety-2">§</a>Cancel safety</h5>
 <p>This method is cancellation safe in the sense that if it is used as
-the event in a <a href="crate::select"><code>tokio::select!</code></a> statement and some
+the event in a <a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some
 other branch completes first, then it is guaranteed that no data was
 written to this <code>AsyncWrite</code>.</p>
 <h5 id="examples-2"><a class="doc-anchor" href="#examples-2">§</a>Examples</h5>
-<p><a href="crate::fs::File"><code>File</code></a> implements <a href="trait.AsyncWrite.html" title="trait tokio::io::AsyncWrite"><code>AsyncWrite</code></a> and <a href="https://doc.rust-lang.org/1.77.0/std/io/cursor/struct.Cursor.html" title="struct std::io::cursor::Cursor"><code>Cursor</code></a><code>&lt;&amp;[u8]&gt;</code> implements <a href="../../bytes/buf/buf_impl/trait.Buf.html" title="trait bytes::buf::buf_impl::Buf"><code>Buf</code></a>:</p>
+<p><a href="../fs/struct.File.html" title="struct tokio::fs::File"><code>File</code></a> implements <a href="trait.AsyncWrite.html" title="trait tokio::io::AsyncWrite"><code>AsyncWrite</code></a> and <a href="https://doc.rust-lang.org/1.77.0/std/io/cursor/struct.Cursor.html" title="struct std::io::cursor::Cursor"><code>Cursor</code></a><code>&lt;&amp;[u8]&gt;</code> implements <a href="../../bytes/buf/buf_impl/trait.Buf.html" title="trait bytes::buf::buf_impl::Buf"><code>Buf</code></a>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::io::{<span class="self">self</span>, AsyncWriteExt};
 <span class="kw">use </span>tokio::fs::File;
@@ -241,13 +241,13 @@ first error generated will be returned.</p>
 <code>src.chunk()</code> will return the chunk that failed to write.</p>
 <h5 id="cancel-safety-3"><a class="doc-anchor" href="#cancel-safety-3">§</a>Cancel safety</h5>
 <p>If <code>write_all_buf</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then the data in the provided buffer may have been
 partially written. However, it is guaranteed that the provided
 buffer has been <a href="../../bytes/buf/buf_impl/trait.Buf.html#tymethod.advance" title="method bytes::buf::buf_impl::Buf::advance">advanced</a> by the amount of bytes that have been
 partially written.</p>
 <h5 id="examples-3"><a class="doc-anchor" href="#examples-3">§</a>Examples</h5>
-<p><a href="crate::fs::File"><code>File</code></a> implements <a href="trait.AsyncWrite.html" title="trait tokio::io::AsyncWrite"><code>AsyncWrite</code></a> and <a href="https://doc.rust-lang.org/1.77.0/std/io/cursor/struct.Cursor.html" title="struct std::io::cursor::Cursor"><code>Cursor</code></a><code>&lt;&amp;[u8]&gt;</code> implements <a href="../../bytes/buf/buf_impl/trait.Buf.html" title="trait bytes::buf::buf_impl::Buf"><code>Buf</code></a>:</p>
+<p><a href="../fs/struct.File.html" title="struct tokio::fs::File"><code>File</code></a> implements <a href="trait.AsyncWrite.html" title="trait tokio::io::AsyncWrite"><code>AsyncWrite</code></a> and <a href="https://doc.rust-lang.org/1.77.0/std/io/cursor/struct.Cursor.html" title="struct std::io::cursor::Cursor"><code>Cursor</code></a><code>&lt;&amp;[u8]&gt;</code> implements <a href="../../bytes/buf/buf_impl/trait.Buf.html" title="trait bytes::buf::buf_impl::Buf"><code>Buf</code></a>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::io::{<span class="self">self</span>, AsyncWriteExt};
 <span class="kw">use </span>tokio::fs::File;
@@ -274,7 +274,7 @@ has been successfully written or such an error occurs. The first
 error generated from this method will be returned.</p>
 <h5 id="cancel-safety-4"><a class="doc-anchor" href="#cancel-safety-4">§</a>Cancel safety</h5>
 <p>This method is not cancellation safe. If it is used as the event
-in a <a href="crate::select"><code>tokio::select!</code></a> statement and some other
+in a <a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other
 branch completes first, then the provided buffer may have been
 partially written, but future calls to <code>write_all</code> will start over
 from the beginning of the buffer.</p>

@@ -56,7 +56,7 @@ each search call.</li>
 that cannot be named, it is difficult to encapsulate them without both
 costs to speed and added complexity to the public API. For example, in
 defining an iterator type like
-<a href="crate::dfa::regex::FindMatches"><code>dfa::regex::FindMatches</code></a>,
+<a href="../../dfa/regex/struct.FindMatches.html" title="struct regex_automata::dfa::regex::FindMatches"><code>dfa::regex::FindMatches</code></a>,
 if we use a closure internally, it’s not possible to name this type in the
 return type of the iterator constructor. Thus, the only way around it is
 to erase the type by boxing it and turning it into a <code>Box&lt;dyn FnMut ...&gt;</code>.

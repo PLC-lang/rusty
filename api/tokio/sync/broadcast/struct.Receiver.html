@@ -114,7 +114,7 @@ the channel. A subsequent call to <a href="struct.Receiver.html#method.recv" tit
 <strong>unless</strong> it has been since overwritten.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>recv</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, it is guaranteed that no messages were received on this
 channel.</p>
 <h5 id="examples-5"><a class="doc-anchor" href="#examples-5">§</a>Examples</h5>

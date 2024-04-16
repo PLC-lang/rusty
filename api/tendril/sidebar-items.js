@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SubtendrilError"],"macro":["format_tendril"],"mod":["fmt","stream"],"struct":["Atomic","IncompleteUtf8","NonAtomic","SendTendril","Tendril"],"trait":["Atomicity","ReadExt","SliceExt"],"type":["ByteTendril","StrTendril"]};

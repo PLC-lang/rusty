@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Alignment","CodeBlockKind","CowStr","Event","HeadingLevel","LinkType","MetadataBlockKind","Tag","TagEnd"],"mod":["html","utils"],"struct":["BrokenLink","DefaultBrokenLinkCallback","InlineStr","InvalidHeadingLevel","OffsetIter","Options","Parser","RefDefs"],"trait":["BrokenLinkCallback"]};

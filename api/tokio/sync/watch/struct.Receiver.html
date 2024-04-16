@@ -103,7 +103,7 @@ this <code>Receiver</code>, or until the <a href="struct.Sender.html" title="str
 <a href="index.html#change-notifications" title="mod tokio::sync::watch"><em>Change notifications</em></a> in the module-level documentation.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If you use it as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then it is guaranteed that no values have been marked
 seen by this call to <code>changed</code>.</p>
 <h5 id="examples-2"><a class="doc-anchor" href="#examples-2">§</a>Examples</h5>

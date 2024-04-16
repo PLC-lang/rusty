@@ -61,7 +61,7 @@ established, the corresponding <a href="struct.TcpStream.html" title="struct tok
 address will be returned.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If the method is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then it is guaranteed that no new connections were
 accepted by this method.</p>
 <h5 id="examples-2"><a class="doc-anchor" href="#examples-2">§</a>Examples</h5>

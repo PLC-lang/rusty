@@ -22,7 +22,7 @@ connection will receive.</p>
 if you need to implement <code>Service</code> for a type manually, you can follow the example
 in <code>service_struct_impl.rs</code>.</p>
 <h2 id="makeservice"><a class="doc-anchor" href="#makeservice">§</a>MakeService</h2>
-<p>Since a <code>Service</code> is bound to a single connection, a <a href="crate::Server"><code>Server</code></a>
+<p>Since a <code>Service</code> is bound to a single connection, a <a href="../server/struct.Server.html" title="struct hyper::server::Server"><code>Server</code></a>
 needs a way to make them as it accepts connections. This is what a
 <code>MakeService</code> does.</p>
 <p>Resources that need to be shared by all <code>Service</code>s can be put into a

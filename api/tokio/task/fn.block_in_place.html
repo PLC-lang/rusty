@@ -12,7 +12,7 @@ code</a> section for more information.</p>
 <p>Be aware that although this function avoids starving other independently
 spawned tasks, any other code running concurrently in the same task will
 be suspended during the call to <code>block_in_place</code>. This can happen e.g.
-when using the <a href="macro@join"><code>join!</code></a> macro. To avoid this issue, use
+when using the <a href="../macro.join.html" title="macro tokio::join"><code>join!</code></a> macro. To avoid this issue, use
 <a href="fn.spawn_blocking.html" title="fn tokio::task::spawn_blocking"><code>spawn_blocking</code></a> instead of <code>block_in_place</code>.</p>
 <p>Note that this function cannot be used within a <a href="../runtime/struct.Builder.html#method.new_current_thread" title="associated function tokio::runtime::Builder::new_current_thread"><code>current_thread</code></a> runtime
 because in this case there are no other worker threads to hand off tasks

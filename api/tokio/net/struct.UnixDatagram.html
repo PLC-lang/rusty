@@ -378,7 +378,7 @@ tx.send(bytes).<span class="kw">await</span><span class="question-mark">?</span>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.send" class="method"><a class="src rightside" href="../../src/tokio/net/unix/datagram/socket.rs.html#629-634">source</a><h4 class="code-header">pub async fn <a href="#method.send" class="fn">send</a>(&amp;self, buf: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.u8.html">u8</a>]) -&gt; <a class="type" href="https://doc.rust-lang.org/1.77.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.usize.html">usize</a>&gt;</h4></section></summary><div class="docblock"><p>Sends data on the socket to the socket’s peer.</p>
 <h5 id="cancel-safety-3"><a class="doc-anchor" href="#cancel-safety-3">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>send</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then it is guaranteed that the message was not sent.</p>
 <h5 id="examples-10"><a class="doc-anchor" href="#examples-10">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::net::UnixDatagram;
@@ -468,7 +468,7 @@ sock1.send(bytes).<span class="kw">await</span><span class="question-mark">?</sp
 </div></details><details class="toggle method-toggle" open><summary><section id="method.recv" class="method"><a class="src rightside" href="../../src/tokio/net/unix/datagram/socket.rs.html#759-764">source</a><h4 class="code-header">pub async fn <a href="#method.recv" class="fn">recv</a>(&amp;self, buf: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.u8.html">u8</a>]) -&gt; <a class="type" href="https://doc.rust-lang.org/1.77.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.usize.html">usize</a>&gt;</h4></section></summary><div class="docblock"><p>Receives data from the socket.</p>
 <h5 id="cancel-safety-4"><a class="doc-anchor" href="#cancel-safety-4">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>recv</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, it is guaranteed that no messages were received on this
 socket.</p>
 <h5 id="examples-13"><a class="doc-anchor" href="#examples-13">§</a>Examples</h5>
@@ -663,7 +663,7 @@ sock1.send(bytes).<span class="kw">await</span><span class="question-mark">?</sp
     P: <a class="trait" href="https://doc.rust-lang.org/1.77.0/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.77.0/std/path/struct.Path.html" title="struct std::path::Path">Path</a>&gt;,</div></h4></section></summary><div class="docblock"><p>Sends data on the socket to the specified address.</p>
 <h5 id="cancel-safety-5"><a class="doc-anchor" href="#cancel-safety-5">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>send_to</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then it is guaranteed that the message was not sent.</p>
 <h5 id="examples-19"><a class="doc-anchor" href="#examples-19">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::net::UnixDatagram;
@@ -692,7 +692,7 @@ tx.send_to(bytes, <span class="kw-2">&amp;</span>rx_path).<span class="kw">await
 </div></details><details class="toggle method-toggle" open><summary><section id="method.recv_from" class="method"><a class="src rightside" href="../../src/tokio/net/unix/datagram/socket.rs.html#1132-1140">source</a><h4 class="code-header">pub async fn <a href="#method.recv_from" class="fn">recv_from</a>(&amp;self, buf: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.u8.html">u8</a>]) -&gt; <a class="type" href="https://doc.rust-lang.org/1.77.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;(<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.usize.html">usize</a>, <a class="struct" href="unix/struct.SocketAddr.html" title="struct tokio::net::unix::SocketAddr">SocketAddr</a>)&gt;</h4></section></summary><div class="docblock"><p>Receives data from the socket.</p>
 <h5 id="cancel-safety-6"><a class="doc-anchor" href="#cancel-safety-6">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>recv_from</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, it is guaranteed that no messages were received on this
 socket.</p>
 <h5 id="examples-20"><a class="doc-anchor" href="#examples-20">§</a>Examples</h5>

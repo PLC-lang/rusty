@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Authorization","Basic","Bearer"],"trait":["Credentials"]};

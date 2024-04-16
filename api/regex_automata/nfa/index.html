@@ -11,7 +11,7 @@ Sparse representations use less memory, but are slower to traverse. Conversely,
 dense representations use more memory, but are faster to traverse. (Sometimes
 these lines are blurred. For example, an <code>NFA</code> might choose to represent a
 particular state in a dense fashion, and a DFA can be built using a sparse
-representation via <a href="crate::dfa::sparse::DFA"><code>sparse::DFA</code></a>.</li>
+representation via <a href="../dfa/sparse/struct.DFA.html" title="struct regex_automata::dfa::sparse::DFA"><code>sparse::DFA</code></a>.</li>
 <li>NFAs have espilon transitions and DFAs don’t. In practice, this means that
 handling a single byte in a haystack with an NFA at search time may require
 visiting multiple NFA states. In a DFA, each byte only requires visiting

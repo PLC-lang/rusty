@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["default_header","header","headers"],"struct":["WithDefaultHeader","WithHeader","WithHeaders"]};

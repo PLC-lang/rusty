@@ -64,7 +64,7 @@ std_listener.set_nonblocking(<span class="bool-val">false</span>)<span class="qu
 </div></details><details class="toggle method-toggle" open><summary><section id="method.accept" class="method"><a class="src rightside" href="../../src/tokio/net/unix/listener.rs.html#167-177">source</a><h4 class="code-header">pub async fn <a href="#method.accept" class="fn">accept</a>(&amp;self) -&gt; <a class="type" href="https://doc.rust-lang.org/1.77.0/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;(<a class="struct" href="struct.UnixStream.html" title="struct tokio::net::UnixStream">UnixStream</a>, <a class="struct" href="unix/struct.SocketAddr.html" title="struct tokio::net::unix::SocketAddr">SocketAddr</a>)&gt;</h4></section></summary><div class="docblock"><p>Accepts a new incoming connection to this listener.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If the method is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, then it is guaranteed that no new connections were
 accepted by this method.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.poll_accept" class="method"><a class="src rightside" href="../../src/tokio/net/unix/listener.rs.html#185-190">source</a><h4 class="code-header">pub fn <a href="#method.poll_accept" class="fn">poll_accept</a>(

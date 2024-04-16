@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["cors"],"struct":["Builder","Cors","CorsForbidden"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"static":["C1_REPLACEMENTS","NAMED_ENTITIES"]};

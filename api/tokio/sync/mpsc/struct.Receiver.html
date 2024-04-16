@@ -14,7 +14,7 @@ still outstanding <a href="struct.Permit.html" title="struct tokio::sync::mpsc::
 not considered closed by <code>recv</code> until the permits are released.</p>
 <h5 id="cancel-safety"><a class="doc-anchor" href="#cancel-safety">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>recv</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, it is guaranteed that no messages were received on this
 channel.</p>
 <h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5>
@@ -63,7 +63,7 @@ have been dropped, or when <a href="struct.Receiver.html#method.close" title="me
 <p>The capacity of <code>buffer</code> is increased as needed.</p>
 <h5 id="cancel-safety-1"><a class="doc-anchor" href="#cancel-safety-1">§</a>Cancel safety</h5>
 <p>This method is cancel safe. If <code>recv_many</code> is used as the event in a
-<a href="crate::select"><code>tokio::select!</code></a> statement and some other branch
+<a href="../../macro.select.html" title="macro tokio::select"><code>tokio::select!</code></a> statement and some other branch
 completes first, it is guaranteed that no messages were received on this
 channel.</p>
 <h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples</h5>
