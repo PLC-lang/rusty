@@ -1099,14 +1099,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
             if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = parameter {
-                // let Some(annotation) = self.annotations.get(param_context.assignment_statement) else {
-                //     todo!()
-                // };
-                // let is_var_in_out = match annotation {
-                //     StatementAnnotation::Variable { is_auto_deref, .. } => *is_auto_deref,
-                //     _ => false
-                // };
-                // if is_var_in_out {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
@@ -1119,11 +1111,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_lvalue(expression)?.as_basic_value_enum()
                 };
                 builder.build_store(pointer_to_param, generated_exp);
-                // } else {
-                //     // by-value aggregate type
-                //     let source = self.generate_lvalue(expression)?.as_basic_value_enum();
-                //     let _ = builder.build_memcpy(pointer_to_param, 1, source.into_pointer_value(), 1, self.llvm_index.get_associated_type(parameter.get_inner_pointer_type_name().unwrap())?.size_of().unwrap()).map_err(|e| todo!("{e}"));
-                // }
             } else {
                 self.generate_store(pointer_to_param, parameter, expression)?;
             };
