@@ -7,25 +7,33 @@ source_filename = "main"
 
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
-define i8 @STRING_GREATER([1025 x i8] %0, [1025 x i8] %1) section "fn-STRING_GREATER:u8[s8u1025][s8u1025]" {
+define i8 @STRING_GREATER(i8* %0, i8* %1) section "fn-STRING_GREATER:u8[s8u1025][s8u1025]" {
 entry:
   %STRING_GREATER = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
-  store [1025 x i8] %0, [1025 x i8]* %op1, align 1
+  %bitcast = bitcast [1025 x i8]* %op1 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 1024, i1 false)
   %op2 = alloca [1025 x i8], align 1
-  store [1025 x i8] %1, [1025 x i8]* %op2, align 1
+  %bitcast1 = bitcast [1025 x i8]* %op2 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast1, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast1, i8* align 1 %1, i64 1024, i1 false)
   store i8 0, i8* %STRING_GREATER, align 1
   %STRING_GREATER_ret = load i8, i8* %STRING_GREATER, align 1
   ret i8 %STRING_GREATER_ret
 }
 
-define i8 @STRING_EQUAL([1025 x i8] %0, [1025 x i8] %1) section "fn-STRING_EQUAL:u8[s8u1025][s8u1025]" {
+define i8 @STRING_EQUAL(i8* %0, i8* %1) section "fn-STRING_EQUAL:u8[s8u1025][s8u1025]" {
 entry:
   %STRING_EQUAL = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
-  store [1025 x i8] %0, [1025 x i8]* %op1, align 1
+  %bitcast = bitcast [1025 x i8]* %op1 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 1024, i1 false)
   %op2 = alloca [1025 x i8], align 1
-  store [1025 x i8] %1, [1025 x i8]* %op2, align 1
+  %bitcast1 = bitcast [1025 x i8]* %op2 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast1, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast1, i8* align 1 %1, i64 1024, i1 false)
   store i8 0, i8* %STRING_EQUAL, align 1
   %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
   ret i8 %STRING_EQUAL_ret
@@ -43,45 +51,21 @@ entry:
   call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   store i8 0, i8* %result, align 1
   store i16 0, i16* %baz, align 2
-  %2 = alloca [1025 x i8], align 1
-  %3 = bitcast [1025 x i8]* %2 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %3, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
-  %4 = bitcast [1025 x i8]* %2 to i8*
+  %2 = bitcast [81 x i8]* %a to i8*
+  %call = call i8 @STRING_EQUAL(i8* %2, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0))
+  %3 = icmp ne i8 %call, 0
+  br i1 %3, label %7, label %4
+
+4:                                                ; preds = %entry
   %5 = bitcast [81 x i8]* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 81, i1 false)
-  %6 = load [1025 x i8], [1025 x i8]* %2, align 1
-  %7 = alloca [1025 x i8], align 1
-  %8 = bitcast [1025 x i8]* %7 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %8, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
-  %9 = bitcast [1025 x i8]* %7 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %9, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  %10 = load [1025 x i8], [1025 x i8]* %7, align 1
-  %call = call i8 @STRING_EQUAL([1025 x i8] %6, [1025 x i8] %10)
-  %11 = icmp ne i8 %call, 0
-  br i1 %11, label %23, label %12
+  %call1 = call i8 @STRING_GREATER(i8* %5, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0))
+  %6 = icmp ne i8 %call1, 0
+  br label %7
 
-12:                                               ; preds = %entry
-  %13 = alloca [1025 x i8], align 1
-  %14 = bitcast [1025 x i8]* %13 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %14, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
-  %15 = bitcast [1025 x i8]* %13 to i8*
-  %16 = bitcast [81 x i8]* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %15, i8* align 1 %16, i32 81, i1 false)
-  %17 = load [1025 x i8], [1025 x i8]* %13, align 1
-  %18 = alloca [1025 x i8], align 1
-  %19 = bitcast [1025 x i8]* %18 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %19, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
-  %20 = bitcast [1025 x i8]* %18 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %20, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  %21 = load [1025 x i8], [1025 x i8]* %18, align 1
-  %call1 = call i8 @STRING_GREATER([1025 x i8] %17, [1025 x i8] %21)
-  %22 = icmp ne i8 %call1, 0
-  br label %23
-
-23:                                               ; preds = %12, %entry
-  %24 = phi i1 [ %11, %entry ], [ %22, %12 ]
-  %25 = zext i1 %24 to i8
-  store i8 %25, i8* %result, align 1
+7:                                                ; preds = %4, %entry
+  %8 = phi i1 [ %3, %entry ], [ %6, %4 ]
+  %9 = zext i1 %8 to i8
+  store i8 %9, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }
@@ -90,7 +74,7 @@ entry:
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }

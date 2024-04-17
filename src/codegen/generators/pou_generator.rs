@@ -191,39 +191,51 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
-
         let parameters = self
             .collect_parameters_for_implementation(implementation)?
             .iter()
             .enumerate()
             .map(|(i, p)| {
                 let param = declared_parameters.get(i);
-                let dti = param.map(|it| {
-                    let typeinfo = self.index.get_type_information_or_void(it.get_type_name());
-                    if it.get_declaration_type().is_input() {
-                        self.index.find_elementary_pointer_type(typeinfo)
-                    } else {
-                        typeinfo
-                    }
-                });
+                let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
+
                 match param {
-                    Some(v) if dti.is_some_and(|it| it.is_aggregate()) => {
-                        // for aggregate types we will generate a pointer to the first element type
-                        let ty = if dti.is_some_and(|it| it.is_struct()) {
-                            p.into_pointer_type()
-                                .get_element_type()
-                                .into_struct_type()
-                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                        } else {
-                            p.into_pointer_type()
-                                .get_element_type()
-                                .into_array_type()
-                                .get_element_type()
-                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                        };
+                    Some(v)
+                        if v.is_in_parameter_by_ref() &&
+                    // parameters by ref will always be a pointer
+                    p.into_pointer_type().get_element_type().is_array_type() =>
+                    {
+                        // for array types we will generate a pointer to the arrays element type
+                        // not a pointer to array
+                        let ty = p
+                            .into_pointer_type()
+                            .get_element_type()
+                            .into_array_type()
+                            .get_element_type()
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
 
                         // set the new type for further codegen
                         let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+
+                        ty.into()
+                    }
+                    Some(v)
+                        if dti.is_some_and(|it| it.is_aggregate())
+                            && !v.is_return()
+                            && matches!(
+                                implementation.get_implementation_type(),
+                                ImplementationType::Function
+                            ) =>
+                    {
+                        // for aggregate types we will generate a pointer instead of the value type. it will then later be memcopied
+                        // into a locally allocated variable
+                        let ty = if dti.is_some_and(|it| it.is_struct()) {
+                            p.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        } else {
+                            p.into_array_type()
+                                .get_element_type()
+                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        };
 
                         ty.into()
                     }
@@ -537,23 +549,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
-                let elementary_type = self.index.find_elementary_pointer_type(type_info);
-                let type_name = if elementary_type.is_string() {
-                    let Some(name) = type_info.get_inner_pointer_type_name() else {
-                        unreachable!("Aggregate types in VAR_INPUT blocks are always pointers")
-                    };
-                    name
-                } else {
-                    elementary_type.get_name()
-                };
 
-                let (ty, deep_copy) = match m.argument_type {
-                    ArgumentType::ByVal(VariableType::Input) if elementary_type.is_aggregate() => {
-                        (index.get_associated_type(type_name)?, true)
-                    }
-                    _ => (index.get_associated_type(member_type_name)?, false),
-                };
-
+                let ty = index.get_associated_type(member_type_name)?;
                 let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
 
                 if let Some(block) = self.llvm.builder.get_insert_block() {
@@ -567,30 +564,42 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     );
                 }
 
-                if deep_copy {
-                    let ty = if elementary_type.is_struct() {
-                        ptr.get_type()
+                if matches!(m.argument_type, ArgumentType::ByVal(VariableType::Input))
+                    && type_info.is_aggregate()
+                {
+                    // a by-value aggregate type => we need to memcpy the data into the local variable
+                    let ty = if ty.is_array_type() {
+                        ty.into_array_type()
                             .get_element_type()
-                            .into_struct_type()
                             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     } else {
-                        ptr.get_type()
-                            .get_element_type()
-                            .into_array_type()
-                            .get_element_type()
-                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     };
+                    let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
+                    let size = if let typesystem::DataTypeInformation::String { size, .. } = type_info {
+                        // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
 
-                    let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast");
+                        let size = size.as_int_value(self.index).map_err(|err| {
+                            Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
+                        })? as u64;
+                        self.llvm.builder.build_memset(
+                            bitcast,
+                            1,
+                            self.llvm.context.i8_type().const_zero(),
+                            self.llvm.context.i64_type().const_int(size, true),
+                        )
+                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                        // reduce the amount of bytes to be memcopied by 1 to preserve the null-terminator
+                        self.llvm.context.i64_type().const_int(size - 1, true)
+                    } else {
+                        let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
+                            unreachable!("Size of registered aggregate type must be known at this point")
+                        };
+                        size
+                    };
                     self.llvm
                         .builder
-                        .build_memcpy(
-                            bitcast.into_pointer_value(),
-                            1,
-                            ptr_value.into_pointer_value(),
-                            1,
-                            index.get_associated_type(type_name)?.size_of().unwrap(),
-                        )
+                        .build_memcpy(bitcast, 1, ptr_value.into_pointer_value(), 1, size)
                         .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);
