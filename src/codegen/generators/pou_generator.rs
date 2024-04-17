@@ -582,13 +582,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         let size = size.as_int_value(self.index).map_err(|err| {
                             Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
                         })? as u64;
-                        self.llvm.builder.build_memset(
-                            bitcast,
-                            1,
-                            self.llvm.context.i8_type().const_zero(),
-                            self.llvm.context.i64_type().const_int(size, true),
-                        )
-                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                        self.llvm
+                            .builder
+                            .build_memset(
+                                bitcast,
+                                1,
+                                self.llvm.context.i8_type().const_zero(),
+                                self.llvm.context.i64_type().const_int(size, true),
+                            )
+                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
                         // reduce the amount of bytes to be memcopied by 1 to preserve the null-terminator
                         self.llvm.context.i64_type().const_int(size - 1, true)
                     } else {
