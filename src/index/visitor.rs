@@ -63,16 +63,9 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 member_varargs = varargs.clone();
             }
 
-            // TODO: Improve, explain why
-            let ty = index
-                .type_index
-                .find_type(&var.data_type_declaration.get_referenced_type().unwrap_or_default());
-
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
-            let type_name = if block_type.is_by_ref()
-                || ty.is_some_and(|opt| {
-                    opt.is_aggregate_type() && matches!(block_type.get_inner(), VariableType::Input)
-                }) {
+
+            let type_name = if block_type.is_by_ref() {
                 //register a pointer type for argument
                 register_byref_pointer_type_for(index, var_type_name)
             } else {
