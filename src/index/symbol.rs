@@ -1,7 +1,8 @@
 // Copyright (c) 2022 Ghaith Hachem and Mathias Rieder
 
 use indexmap::{Equivalent, IndexMap};
-use std::hash::Hash;
+use rustc_hash::FxHasher;
+use std::hash::{BuildHasherDefault, Hash};
 
 /// A multi-map implementation with a stable order of elements. When iterating
 /// the keys or the values, the iterator reflects the order of insertion.
@@ -9,7 +10,7 @@ use std::hash::Hash;
 pub struct SymbolMap<K, V> {
     /// internal storage of the SymbolMap that uses an *
     /// IndexMap of Vectors
-    inner_map: IndexMap<K, Vec<V>>,
+    inner_map: IndexMap<K, Vec<V>, BuildHasherDefault<FxHasher>>,
 }
 
 impl<K, V> Default for SymbolMap<K, V> {

@@ -1,9 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use std::collections::HashSet;
+use std::hash::BuildHasherDefault;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
+use rustc_hash::FxHasher;
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -825,7 +827,7 @@ pub struct Index {
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
-    implementations: IndexMap<String, ImplementationIndexEntry>,
+    implementations: IndexMap<String, ImplementationIndexEntry, BuildHasherDefault<FxHasher>>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -1359,7 +1361,9 @@ impl Index {
         self.enum_global_variables.values().collect()
     }
 
-    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(
+        &self,
+    ) -> &IndexMap<String, ImplementationIndexEntry, BuildHasherDefault<FxHasher>> {
         &self.implementations
     }
 
