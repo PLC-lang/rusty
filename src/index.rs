@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::hash::BuildHasherDefault;
 
 use indexmap::IndexMap;
@@ -33,6 +33,12 @@ pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
+
+/// Type alias for a HashMap using the `fx` algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher>>;
+
+/// Type alias for an IndexMap using the `fx` algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit
@@ -827,7 +833,7 @@ pub struct Index {
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
-    implementations: IndexMap<String, ImplementationIndexEntry, BuildHasherDefault<FxHasher>>,
+    implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -1361,9 +1367,7 @@ impl Index {
         self.enum_global_variables.values().collect()
     }
 
-    pub fn get_implementations(
-        &self,
-    ) -> &IndexMap<String, ImplementationIndexEntry, BuildHasherDefault<FxHasher>> {
+    pub fn get_implementations(&self) -> &FxIndexMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 
