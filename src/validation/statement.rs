@@ -566,7 +566,7 @@ fn visit_array_access<T: AnnotationMap>(
                 target_type.get_name()
             ))
             .with_error_code("E059")
-            .with_location(reference.get_location()),
+            .with_location(access.get_location()),
         ),
     }
 }
