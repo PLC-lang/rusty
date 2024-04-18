@@ -84,9 +84,11 @@ impl SectionMangler {
         }
     }
 
-    pub fn with_return_type(self, return_type: Option<Type>) -> SectionMangler {
+    pub fn with_return_type(self, return_type: Type) -> SectionMangler {
         match self {
-            SectionMangler::Function(f) => SectionMangler::Function(FunctionMangler { return_type, ..f }),
+            SectionMangler::Function(f) => {
+                SectionMangler::Function(FunctionMangler { return_type: Some(return_type), ..f })
+            }
             SectionMangler::Variable(_) => unreachable!("global variables do not have a return type."),
         }
     }
