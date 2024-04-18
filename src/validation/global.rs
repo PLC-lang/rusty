@@ -47,7 +47,7 @@ impl GlobalValidator {
                         Diagnostic::new(format!(
                             "{name} can not be used as a name because it is a built-in datatype"
                         ))
-                        .with_location(other.clone())
+                        .with_location(other)
                         .with_error_code("E004"),
                     );
                 }
@@ -56,7 +56,7 @@ impl GlobalValidator {
                 self.push_diagnostic(
                     Diagnostic::new(format!("{name}: {additional_text}"))
                         .with_error_code("E004")
-                        .with_location((*v).clone())
+                        .with_location(*v)
                         .with_secondary_locations(others),
                 );
             }

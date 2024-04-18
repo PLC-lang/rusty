@@ -37,7 +37,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
         validator.push_diagnostic(
             Diagnostic::new("This variable block does not support the CONSTANT modifier")
                 .with_error_code("E034")
-                .with_location(block.location.clone()),
+                .with_location(&block.location),
         )
     }
 }
@@ -61,7 +61,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
             validator.push_diagnostic(
                 Diagnostic::new("VLAs can not be defined as global variables")
                     .with_error_code("E044")
-                    .with_location(variable.location.clone()),
+                    .with_location(&variable.location),
             )
         }
 
@@ -74,13 +74,13 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
             )
             .with_error_code("E047")
-            .with_location(variable.location.clone()),
+            .with_location(&variable.location),
         ),
 
         (PouType::Program, _) => validator.push_diagnostic(
             Diagnostic::new("Variable Length Arrays are not allowed to be defined inside a Program")
                 .with_error_code("E044")
-                .with_location(variable.location.clone()),
+                .with_location(&variable.location),
         ),
 
         (
@@ -97,7 +97,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
                 block.variable_block_type, pou.pou_type
             ))
             .with_error_code("E044")
-            .with_location(variable.location.clone()),
+            .with_location(&variable.location),
         ),
     }
 }
@@ -177,7 +177,7 @@ fn validate_variable<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
-                        .with_location(variable.location.clone()),
+                        .with_location(&variable.location),
                 );
             }
             _ => {
@@ -202,7 +202,7 @@ fn validate_variable<T: AnnotationMap>(
                     v_entry.get_name()
                 ))
                 .with_error_code("E035")
-                .with_location(variable.location.clone()),
+                .with_location(&variable.location),
             );
         }
     }

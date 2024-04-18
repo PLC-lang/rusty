@@ -1,22 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2073
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 @twenty = unnamed_addr constant i16 20
 @x = global i8 0
-@red = unnamed_addr constant i8 7
-@yellow = unnamed_addr constant i8 8
-@green = unnamed_addr constant i8 9
-@a = unnamed_addr constant i8 0
-@b = unnamed_addr constant i8 1
-@c = unnamed_addr constant i8 7
-@d = unnamed_addr constant i8 8
-@e = unnamed_addr constant i8 9
-@f = unnamed_addr constant i8 20
-@g = unnamed_addr constant i8 21
-
+@MyEnum.red = unnamed_addr constant i8 7
+@MyEnum.yellow = unnamed_addr constant i8 8
+@MyEnum.green = unnamed_addr constant i8 9
+@MyEnum2.a = unnamed_addr constant i8 0
+@MyEnum2.b = unnamed_addr constant i8 1
+@MyEnum2.c = unnamed_addr constant i8 7
+@MyEnum2.d = unnamed_addr constant i8 8
+@MyEnum2.e = unnamed_addr constant i8 9
+@MyEnum2.f = unnamed_addr constant i8 20
+@MyEnum2.g = unnamed_addr constant i8 21

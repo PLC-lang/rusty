@@ -4,6 +4,7 @@
 - [Build & Install](./build_and_install.md)
 - [Using RuSTy](./using_rusty.md)
   - [Build Configuration](using_rusty/build_configuration.md)
+  - [Error Configuration](using_rusty/error_configuration.md)
 - [Writing ST Programs]()
   - [Libraries](libraries.md)
     - [External Functions](libraries/external_functions.md)

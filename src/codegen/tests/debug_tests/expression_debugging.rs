@@ -327,3 +327,20 @@ fn array_size_correctly_set_in_dwarf_info() {
     // we want to make sure the entry "!DISubrange(count: 64, lowerBound: 1)" has count equal 64
     assert_snapshot!(result);
 }
+#[test]
+fn string_size_correctly_set_in_dwarf_info() {
+    // Let a function with an addition and a reference
+    let result = codegen_with_debug(
+        "
+        VAR_GLOBAL
+            a : STRING[64];
+        END_VAR
+        ",
+    );
+
+    // We expect the string to have a size of 65 in the debug info, specifically for this snapshot
+    // we want to make sure the entry "!DISubrange(count: 65, lowerBound: 1)" has count equal 65
+    //
+    // Note: 65 and not 64 because of the null terminator
+    assert_snapshot!(result);
+}
