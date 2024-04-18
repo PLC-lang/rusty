@@ -173,11 +173,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
 
         let section = section_mangler::SectionMangler::variable(
             global_variable.get_name(),
-            // FIXME: Can we unwrap here?
             section_names::mangle_type(
                 self.global_index,
-                self.global_index.get_effective_type_by_name(global_variable.get_type_name()).unwrap(),
-            ),
+                self.global_index.get_effective_type_by_name(global_variable.get_type_name())?,
+            )?,
         )
         .mangle();
 
