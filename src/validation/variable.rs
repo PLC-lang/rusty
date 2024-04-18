@@ -111,7 +111,7 @@ where
 
     if ty_info.is_array() {
         let mut types = vec![];
-        ty_info.get_inner_types(&mut types, context.index);
+        ty_info.get_inner_array_types(&mut types, context.index);
 
         for ty in types {
             let DataTypeInformation::Array { dimensions, .. } = ty else {

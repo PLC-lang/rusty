@@ -546,23 +546,6 @@ impl DataTypeInformation {
         Some(inner_type_name)
     }
 
-    /// Recursively retrieves all type names for nested arrays.
-    ///
-    /// This is needed because a nested array such as `foo : ARRAY[1..5] OF ARRAY[5..10] OF DINT`
-    /// provides the range information for `[1..5]` and `[5..10]` in two different types stored in
-    /// the index.
-    pub fn get_inner_types<'a>(&'a self, types: &mut Vec<&'a DataTypeInformation>, index: &'a Index) {
-        if let DataTypeInformation::Array { name, inner_type_name, .. } = self {
-            if name != inner_type_name {
-                types.push(self);
-
-                if let Some(ty) = index.find_type(inner_type_name).map(DataType::get_type_information) {
-                    ty.get_inner_types(types, index);
-                }
-            }
-        }
-    }
-
     pub fn is_generic(&self, index: &Index) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }
@@ -706,6 +689,23 @@ impl DataTypeInformation {
                 ..
             } => Some(inner_type_name),
             _ => None,
+        }
+    }
+
+    /// Recursively retrieves all type names for nested arrays.
+    ///
+    /// This is needed because a nested array such as `foo : ARRAY[1..5] OF ARRAY[5..10] OF DINT`
+    /// provides range information for `[1..5]` and `[5..10]` in two different types stored in
+    /// the index.
+    pub fn get_inner_array_types<'a>(&'a self, types: &mut Vec<&'a DataTypeInformation>, index: &'a Index) {
+        if let DataTypeInformation::Array { name, inner_type_name, .. } = self {
+            if name != inner_type_name {
+                types.push(self);
+
+                if let Some(ty) = index.find_type(inner_type_name).map(DataType::get_type_information) {
+                    ty.get_inner_array_types(types, index);
+                }
+            }
         }
     }
 
