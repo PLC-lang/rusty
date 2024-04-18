@@ -92,7 +92,7 @@ fn parse_fn_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMa
     // TODO: Do not always encode parameters as ByValue
     let mangler = parameters
         .into_iter()
-        .fold(SectionMangler::function(name).with_return_type(Some(return_type)), |mangler, param| {
+        .fold(SectionMangler::function(name).with_return_type(return_type), |mangler, param| {
             mangler.with_parameter(FunctionArgument::ByValue(param))
         });
 

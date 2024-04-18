@@ -8,10 +8,10 @@ source_filename = "main"
 %prog = type { %__prog_a }
 %__prog_a = type { i16 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r1r1i16"
-@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer, section "var-____prog_a__init:r1i16"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1r1i16"
+@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer, section "var-$RUSTY$____prog_a__init:r1i16"
 
-define void @prog(%prog* %0) section "fn-prog:v" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
 entry:
   %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void

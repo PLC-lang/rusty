@@ -7,9 +7,9 @@ source_filename = "main"
 
 %myStruct = type { i32, double, [11 x i32] }
 
-@gStruct = global %myStruct zeroinitializer, section "var-gStruct:r3i32f64ai32", !dbg !0
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:r3i32f64ai32", !dbg !13
-@b = global [11 x %myStruct] zeroinitializer, section "var-b:ar3i32f64ai32", !dbg !15
+@gStruct = global %myStruct zeroinitializer, section "var-$RUSTY$gStruct:r3i32f64ai32", !dbg !0
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !13
+@b = global [11 x %myStruct] zeroinitializer, section "var-$RUSTY$b:ar3i32f64ai32", !dbg !15
 
 !llvm.module.flags = !{!18, !19}
 !llvm.dbg.cu = !{!20}

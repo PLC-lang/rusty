@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { float, float, double, double }
 
-@main_instance = global %main { float 0xC7EFFFFFE0000000, float 0x47EFFFFFE0000000, double 0xFFEFFFFFFFFFFFFF, double 0x7FEFFFFFFFFFFFFF }, section "var-main_instance:r4f32f32f64f64"
+@main_instance = global %main { float 0xC7EFFFFFE0000000, float 0x47EFFFFFE0000000, double 0xFFEFFFFFFFFFFFFF, double 0x7FEFFFFFFFFFFFFF }, section "var-$RUSTY$main_instance:r4f32f32f64f64"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %F32_MIN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %F32_MAX = getelementptr inbounds %main, %main* %0, i32 0, i32 1

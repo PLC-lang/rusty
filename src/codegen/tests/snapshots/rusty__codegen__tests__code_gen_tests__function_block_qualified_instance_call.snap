@@ -9,22 +9,22 @@ source_filename = "main"
 %bar = type {}
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-__foo__init:r1r0"
-@__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-__bar__init:r0"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1r1r0"
+@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1r0"
+@__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r0"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1r1r0"
 
-define void @foo(%foo* %0) section "fn-foo:v" {
+define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
 entry:
   %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar* %0) section "fn-bar:v" {
+define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0

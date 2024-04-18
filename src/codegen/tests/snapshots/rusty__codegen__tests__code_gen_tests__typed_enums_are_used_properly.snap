@@ -7,18 +7,18 @@ source_filename = "main"
 
 %prg = type { i8, i16, i32 }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r3u8u16i32"
-@MyEnum.red = unnamed_addr constant i8 5, section "var-red:e3u8"
-@MyEnum.yellow = unnamed_addr constant i8 6, section "var-yellow:e3u8"
-@MyEnum.green = unnamed_addr constant i8 7, section "var-green:e3u8"
-@MyEnum2.red = unnamed_addr constant i16 15, section "var-red:e3u16"
-@MyEnum2.yellow = unnamed_addr constant i16 16, section "var-yellow:e3u16"
-@MyEnum2.green = unnamed_addr constant i16 17, section "var-green:e3u16"
-@MyEnum3.red = unnamed_addr constant i32 25, section "var-red:e3i32"
-@MyEnum3.yellow = unnamed_addr constant i32 26, section "var-yellow:e3i32"
-@MyEnum3.green = unnamed_addr constant i32 27, section "var-green:e3i32"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r3u8u16i32"
+@MyEnum.red = unnamed_addr constant i8 5, section "var-$RUSTY$red:e3u8"
+@MyEnum.yellow = unnamed_addr constant i8 6, section "var-$RUSTY$yellow:e3u8"
+@MyEnum.green = unnamed_addr constant i8 7, section "var-$RUSTY$green:e3u8"
+@MyEnum2.red = unnamed_addr constant i16 15, section "var-$RUSTY$red:e3u16"
+@MyEnum2.yellow = unnamed_addr constant i16 16, section "var-$RUSTY$yellow:e3u16"
+@MyEnum2.green = unnamed_addr constant i16 17, section "var-$RUSTY$green:e3u16"
+@MyEnum3.red = unnamed_addr constant i32 25, section "var-$RUSTY$red:e3i32"
+@MyEnum3.yellow = unnamed_addr constant i32 26, section "var-$RUSTY$yellow:e3i32"
+@MyEnum3.green = unnamed_addr constant i32 27, section "var-$RUSTY$green:e3i32"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

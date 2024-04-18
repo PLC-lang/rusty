@@ -9,24 +9,24 @@ source_filename = "main"
 %prog = type { %STRUCT_params*, %STRUCT_params* }
 %main = type {}
 
-@global1 = global %STRUCT_params zeroinitializer, section "var-global1:r3u8u8u8"
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer, section "var-__STRUCT_params__init:r3u8u8u8"
-@global2 = global %STRUCT_params zeroinitializer, section "var-global2:r3u8u8u8"
-@global3 = global %STRUCT_params zeroinitializer, section "var-global3:r3u8u8u8"
-@global4 = global i32 0, section "var-global4:i32"
-@global5 = global [81 x i8] zeroinitializer, section "var-global5:s8u81"
-@global6 = global float 0.000000e+00, section "var-global6:f32"
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r2pr3u8u8u8pr3u8u8u8"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r0"
+@global1 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global1:r3u8u8u8"
+@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer, section "var-$RUSTY$__STRUCT_params__init:r3u8u8u8"
+@global2 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global2:r3u8u8u8"
+@global3 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global3:r3u8u8u8"
+@global4 = global i32 0, section "var-$RUSTY$global4:i32"
+@global5 = global [81 x i8] zeroinitializer, section "var-$RUSTY$global5:s8u81"
+@global6 = global float 0.000000e+00, section "var-$RUSTY$global6:f32"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r2pr3u8u8u8pr3u8u8u8"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
 
-define void @prog(%prog* %0) section "fn-prog:v[pr3u8u8u8][pr3u8u8u8]" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[pr3u8u8u8][pr3u8u8u8]" {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8

@@ -8,11 +8,11 @@ source_filename = "main"
 %Point = type { i16, i16 }
 %main = type { %Point }
 
-@const_strct = unnamed_addr constant %Point { i16 1, i16 2 }, section "var-const_strct:r2i16i16"
-@__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-__Point__init:r2i16i16"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r1r2i16i16"
+@const_strct = unnamed_addr constant %Point { i16 1, i16 2 }, section "var-$RUSTY$const_strct:r2i16i16"
+@__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-$RUSTY$__Point__init:r2i16i16"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1r2i16i16"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %strct = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast %Point* %strct to i8*

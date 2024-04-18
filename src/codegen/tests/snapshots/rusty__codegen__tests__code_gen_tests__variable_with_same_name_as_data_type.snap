@@ -7,9 +7,9 @@ source_filename = "main"
 
 %prog = type { i64 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r1i64"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1i64"
 
-define i64 @func() section "fn-func:i64" {
+define i64 @func() section "fn-$RUSTY$func:i64" {
 entry:
   %func = alloca i64, align 8
   %TIME = alloca i64, align 8
@@ -19,7 +19,7 @@ entry:
   ret i64 %func_ret
 }
 
-define void @prog(%prog* %0) section "fn-prog:v" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
 entry:
   %TIME = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void

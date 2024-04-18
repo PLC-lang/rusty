@@ -5,12 +5,12 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@BASE = unnamed_addr constant i32 7, section "var-BASE:i32"
-@Direction.FORWARD = unnamed_addr constant i32 7, section "var-FORWARD:e3i32"
-@Direction.UP = unnamed_addr constant i32 8, section "var-UP:e3i32"
-@Direction.DOWN = unnamed_addr constant i32 28, section "var-DOWN:e3i32"
+@BASE = unnamed_addr constant i32 7, section "var-$RUSTY$BASE:i32"
+@Direction.FORWARD = unnamed_addr constant i32 7, section "var-$RUSTY$FORWARD:e3i32"
+@Direction.UP = unnamed_addr constant i32 8, section "var-$RUSTY$UP:e3i32"
+@Direction.DOWN = unnamed_addr constant i32 28, section "var-$RUSTY$DOWN:e3i32"
 
-define i32 @drive() section "fn-drive:i32" {
+define i32 @drive() section "fn-$RUSTY$drive:i32" {
 entry:
   %drive = alloca i32, align 4
   %input = alloca i32, align 4

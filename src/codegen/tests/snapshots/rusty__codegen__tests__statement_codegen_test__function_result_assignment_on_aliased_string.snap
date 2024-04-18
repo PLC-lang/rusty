@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-declare void @CONCAT([1025 x i8]*, i8*, i8*) section "fn-CONCAT:s8u1025[s8u1025][s8u1025]"
+declare void @CONCAT([1025 x i8]*, i8*, i8*) section "fn-$RUSTY$CONCAT:s8u1025[s8u1025][s8u1025]"
 
-define i8 @LIST_ADD(i8* %0, i8* %1) section "fn-LIST_ADD:u8[s8u1001][s8u2]" {
+define i8 @LIST_ADD(i8* %0, i8* %1) section "fn-$RUSTY$LIST_ADD:u8[s8u1001][s8u2]" {
 entry:
   %LIST_ADD = alloca i8, align 1
   %INS = alloca [1001 x i8], align 1

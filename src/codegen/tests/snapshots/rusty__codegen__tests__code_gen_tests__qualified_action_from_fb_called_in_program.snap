@@ -8,23 +8,23 @@ source_filename = "main"
 %bar = type { %fb }
 %fb = type { i32 }
 
-@bar_instance = global %bar zeroinitializer, section "var-bar_instance:r1r1i32"
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r1i32"
+@bar_instance = global %bar zeroinitializer, section "var-$RUSTY$bar_instance:r1r1i32"
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r1i32"
 
-define void @bar(%bar* %0) section "fn-bar:v" {
+define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
 entry:
   %fb_inst = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
   call void @fb.foo(%fb* %fb_inst)
   ret void
 }
 
-define void @fb(%fb* %0) section "fn-fb:v" {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v" {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
-define void @fb.foo(%fb* %0) section "fn-fb.foo:v" {
+define void @fb.foo(%fb* %0) section "fn-$RUSTY$fb.foo:v" {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4

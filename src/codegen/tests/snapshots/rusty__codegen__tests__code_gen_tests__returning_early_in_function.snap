@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @smaller_than_ten(i8 %0) section "fn-smaller_than_ten:i16[i8]" {
+define i16 @smaller_than_ten(i8 %0) section "fn-$RUSTY$smaller_than_ten:i16[i8]" {
 entry:
   %smaller_than_ten = alloca i16, align 2
   %n = alloca i8, align 1

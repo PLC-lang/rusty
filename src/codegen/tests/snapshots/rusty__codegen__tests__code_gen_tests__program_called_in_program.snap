@@ -8,15 +8,15 @@ source_filename = "main"
 %foo = type {}
 %prg = type {}
 
-@foo_instance = global %foo zeroinitializer, section "var-foo_instance:r0"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r0"
+@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r0"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
 
-define void @foo(%foo* %0) section "fn-foo:v" {
+define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   call void @foo(%foo* @foo_instance)
   ret void

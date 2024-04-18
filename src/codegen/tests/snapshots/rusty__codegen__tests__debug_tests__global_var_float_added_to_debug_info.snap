@@ -5,8 +5,8 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global float 0.000000e+00, section "var-a:f32", !dbg !0
-@b = global double 0.000000e+00, section "var-b:f64", !dbg !4
+@a = global float 0.000000e+00, section "var-$RUSTY$a:f32", !dbg !0
+@b = global double 0.000000e+00, section "var-$RUSTY$b:f64", !dbg !4
 
 !llvm.module.flags = !{!7, !8}
 !llvm.dbg.cu = !{!9}

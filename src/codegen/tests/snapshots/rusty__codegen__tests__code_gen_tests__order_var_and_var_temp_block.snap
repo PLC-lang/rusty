@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i16 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r2i16i16"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2i16i16"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %temp = alloca i16, align 2
   %var1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0

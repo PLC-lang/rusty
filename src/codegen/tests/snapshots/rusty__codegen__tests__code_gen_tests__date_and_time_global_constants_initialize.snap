@@ -7,25 +7,25 @@ source_filename = "main"
 
 %main = type {}
 
-@cT = unnamed_addr constant i64 1000000000, section "var-cT:i64"
-@cT_SHORT = unnamed_addr constant i64 1000000000, section "var-cT_SHORT:i64"
-@cLT = unnamed_addr constant i64 1000000000000, section "var-cLT:i64"
-@cLT_SHORT = unnamed_addr constant i64 1000000000000, section "var-cLT_SHORT:i64"
-@cD = unnamed_addr constant i64 0, section "var-cD:i64"
-@cD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-cD_SHORT:i64"
-@cLD = unnamed_addr constant i64 161308800000000000, section "var-cLD:i64"
-@cLD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-cLD_SHORT:i64"
-@cTOD = unnamed_addr constant i64 0, section "var-cTOD:i64"
-@cTOD_SHORT = unnamed_addr constant i64 0, section "var-cTOD_SHORT:i64"
-@cLTOD = unnamed_addr constant i64 86399999999999, section "var-cLTOD:i64"
-@cLTOD_SHORT = unnamed_addr constant i64 86399999999999, section "var-cLTOD_SHORT:i64"
-@cDT = unnamed_addr constant i64 172799000000000, section "var-cDT:i64"
-@cDT_SHORT = unnamed_addr constant i64 172799000000000, section "var-cDT_SHORT:i64"
-@cLDT = unnamed_addr constant i64 172799123000000, section "var-cLDT:i64"
-@cLDT_SHORT = unnamed_addr constant i64 172799123000000, section "var-cLDT_SHORT:i64"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r16i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64"
+@cT = unnamed_addr constant i64 1000000000, section "var-$RUSTY$cT:i64"
+@cT_SHORT = unnamed_addr constant i64 1000000000, section "var-$RUSTY$cT_SHORT:i64"
+@cLT = unnamed_addr constant i64 1000000000000, section "var-$RUSTY$cLT:i64"
+@cLT_SHORT = unnamed_addr constant i64 1000000000000, section "var-$RUSTY$cLT_SHORT:i64"
+@cD = unnamed_addr constant i64 0, section "var-$RUSTY$cD:i64"
+@cD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cD_SHORT:i64"
+@cLD = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cLD:i64"
+@cLD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cLD_SHORT:i64"
+@cTOD = unnamed_addr constant i64 0, section "var-$RUSTY$cTOD:i64"
+@cTOD_SHORT = unnamed_addr constant i64 0, section "var-$RUSTY$cTOD_SHORT:i64"
+@cLTOD = unnamed_addr constant i64 86399999999999, section "var-$RUSTY$cLTOD:i64"
+@cLTOD_SHORT = unnamed_addr constant i64 86399999999999, section "var-$RUSTY$cLTOD_SHORT:i64"
+@cDT = unnamed_addr constant i64 172799000000000, section "var-$RUSTY$cDT:i64"
+@cDT_SHORT = unnamed_addr constant i64 172799000000000, section "var-$RUSTY$cDT_SHORT:i64"
+@cLDT = unnamed_addr constant i64 172799123000000, section "var-$RUSTY$cLDT:i64"
+@cLDT_SHORT = unnamed_addr constant i64 172799123000000, section "var-$RUSTY$cLDT_SHORT:i64"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r16i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8

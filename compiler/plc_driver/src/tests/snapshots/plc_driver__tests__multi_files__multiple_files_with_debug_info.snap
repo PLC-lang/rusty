@@ -7,9 +7,9 @@ source_filename = "file1.st"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "var-mainProg_instance:r0", !dbg !0
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0", !dbg !0
 
-define i16 @main() section "fn-main:i16" !dbg !10 {
+define i16 @main() section "fn-$RUSTY$main:i16" !dbg !10 {
 entry:
   %main = alloca i16, align 2, !dbg !14
   call void @llvm.dbg.declare(metadata i16* %main, metadata !15, metadata !DIExpression()), !dbg !17
@@ -19,7 +19,7 @@ entry:
   ret i16 %main_ret, !dbg !14
 }
 
-declare !dbg !18 void @mainProg(%mainProg*) section "fn-mainProg:v"
+declare !dbg !18 void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -54,9 +54,9 @@ source_filename = "file2.st"
 
 %mainProg = type {}
 
-@mainProg_instance = global %mainProg zeroinitializer, section "var-mainProg_instance:r0", !dbg !0
+@mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r0", !dbg !0
 
-define void @mainProg(%mainProg* %0) section "fn-mainProg:v" !dbg !10 {
+define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" !dbg !10 {
 entry:
   call void @llvm.dbg.declare(metadata %mainProg* %0, metadata !13, metadata !DIExpression()), !dbg !14
   ret void, !dbg !14

@@ -5,4 +5,4 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@arr = global [6 x i16] [i16 0, i16 1, i16 2, i16 0, i16 0, i16 0], section "var-arr:ai16"
+@arr = global [6 x i16] [i16 0, i16 1, i16 2, i16 0, i16 0, i16 0], section "var-$RUSTY$arr:ai16"

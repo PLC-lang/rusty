@@ -7,9 +7,9 @@ source_filename = "main"
 
 %prg = type {}
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r0"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
 
-define i32 @foo(i32 %0) section "fn-foo:i32[i32]" {
+define i32 @foo(i32 %0) section "fn-$RUSTY$foo:i32[i32]" {
 entry:
   %foo = alloca i32, align 4
   %in1 = alloca i32, align 4
@@ -26,7 +26,7 @@ entry:
   ret i32 %foo_ret
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %call = call i32 @foo(i32 5)
   ret void
