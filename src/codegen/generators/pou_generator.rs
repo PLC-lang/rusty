@@ -598,7 +598,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             )
                         } else {
                             let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
-                                unreachable!("Size of registered aggregate type must be known at this point")
+                                // XXX: can this still fail at this point? might be `unreachable`
+                                return Err(Diagnostic::codegen_error(
+                                    "Unable to determine type size",
+                                    m.source_location.clone(),
+                                ));
                             };
                             (size, 1)
                         };
