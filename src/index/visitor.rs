@@ -64,7 +64,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             }
 
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
-
             let type_name = if block_type.is_by_ref() {
                 //register a pointer type for argument
                 register_byref_pointer_type_for(index, var_type_name)
