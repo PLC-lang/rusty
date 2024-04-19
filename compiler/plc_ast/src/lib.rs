@@ -4,6 +4,7 @@
 
 pub mod ast;
 pub mod control_statements;
+pub mod expressions;
 pub mod literals;
 mod pre_processor;
 pub mod provider;

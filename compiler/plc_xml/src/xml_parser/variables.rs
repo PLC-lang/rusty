@@ -31,8 +31,7 @@ impl<'xml> FunctionBlockVariable<'xml> {
         if self.negated {
             let ident = session.parse_expression(&self.expression, self.local_id, self.execution_order_id);
 
-            AstFactory::create_unary_expression(
-                Operator::Not,
+            AstFactory::create_not_expression(
                 ident,
                 session.create_block_location(self.local_id, self.execution_order_id),
                 session.next_id(),

@@ -26,8 +26,7 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, AstFactory, AstNode, AstStatement
     },
     literals::AstLiteral,
 };

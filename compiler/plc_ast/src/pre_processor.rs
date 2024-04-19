@@ -7,10 +7,8 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
-    },
-    literals::AstLiteral,
-    provider::IdProvider,
+        DataTypeDeclaration, Pou, UserTypeDeclaration, Variable,
+    }, expressions::AstExpression, literals::AstLiteral, provider::IdProvider
 };
 use plc_source::source_location::SourceLocation;
 
@@ -83,7 +81,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     if matches!(elements.stmt, AstStatement::EmptyStatement { .. }) =>
                 {
                     //avoid empty statements, just use an empty expression list to make it easier to work with
-                    let _ = std::mem::replace(&mut elements.stmt, AstStatement::ExpressionList(vec![]));
+                    let _ = std::mem::replace(&mut elements.stmt, AstStatement::Expression(AstExpression::list(vec![])));
                 }
                 DataType::EnumType { elements: original_elements, name: Some(enum_name), .. }
                     if !matches!(original_elements.stmt, AstStatement::EmptyStatement { .. }) =>
@@ -166,7 +164,7 @@ fn build_enum_initializer(
         );
         AstFactory::create_binary_expression(
             AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
-            Operator::Plus,
+            crate::expressions::Operator::Plus,
             AstNode::new_literal(AstLiteral::new_integer(1), id_provider.next_id(), location.clone()),
             id_provider.next_id(),
         )

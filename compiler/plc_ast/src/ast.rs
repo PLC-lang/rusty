@@ -5,12 +5,14 @@ use std::{
     ops::Range,
 };
 
-use serde::{Deserialize, Serialize};
-
 use crate::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
         ReturnStatement,
+    },
+    expressions::{
+        AstExpression, DirectAccessType, HardwareAccessType, Operator,
+        ReferenceAccess, ReferenceExpr,
     },
     literals::{AstLiteral, StringValue},
     pre_processor,
@@ -48,26 +50,6 @@ pub enum PolymorphismMode {
     None,
     Abstract,
     Final,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(tag = "direction")]
-pub enum HardwareAccessType {
-    Input,
-    Output,
-    Memory,
-    Global,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(tag = "type")]
-pub enum DirectAccessType {
-    Bit,
-    Byte,
-    Word,
-    DWord,
-    LWord,
-    Template,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
@@ -178,20 +160,6 @@ impl Display for TypeNature {
             TypeNature::__VLA => "__ANY_VLA",
         };
         write!(f, "{name}")
-    }
-}
-
-impl DirectAccessType {
-    /// Returns the size of the bitaccess result
-    pub fn get_bit_width(&self) -> u64 {
-        match self {
-            DirectAccessType::Bit => 1,
-            DirectAccessType::Byte => 8,
-            DirectAccessType::Word => 16,
-            DirectAccessType::DWord => 32,
-            DirectAccessType::LWord => 64,
-            DirectAccessType::Template => unimplemented!("Should not test for template width"),
-        }
     }
 }
 
@@ -336,7 +304,7 @@ impl Display for VariableBlockType {
         match self {
             VariableBlockType::Local => write!(f, "Local"),
             VariableBlockType::Temp => write!(f, "Temp"),
-            VariableBlockType::Input(_) => write!(f, "Input"),
+            VariableBlockType::Input(..) => write!(f, "Input"),
             VariableBlockType::Output => write!(f, "Output"),
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
@@ -562,30 +530,6 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ReferenceAccess {
-    /**
-     * a, a.b
-     */
-    Member(Box<AstNode>),
-    /**
-     * a[3]
-     */
-    Index(Box<AstNode>),
-    /**
-     * Color#Red
-     */
-    Cast(Box<AstNode>),
-    /**
-     * a^
-     */
-    Deref,
-    /**
-     * &a
-     */
-    Address,
-}
-
 #[derive(Clone, PartialEq)]
 pub struct AstNode {
     pub stmt: AstStatement,
@@ -603,16 +547,7 @@ pub enum AstStatement {
     CastStatement(CastStatement),
     MultipliedStatement(MultipliedStatement),
     // Expressions
-    ReferenceExpr(ReferenceExpr),
-    Identifier(String),
-    DirectAccess(DirectAccess),
-    HardwareAccess(HardwareAccess),
-    BinaryExpression(BinaryExpression),
-    UnaryExpression(UnaryExpression),
-    ExpressionList(Vec<AstNode>),
-    ParenExpression(Box<AstNode>),
-    RangeStatement(RangeStatement),
-    VlaRangeStatement,
+    Expression(AstExpression),
     // Assignment
     Assignment(Assignment),
     // OutputAssignment
@@ -636,26 +571,7 @@ impl Debug for AstNode {
             AstStatement::EmptyStatement(..) => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal(literal) => literal.fmt(f),
-            AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
-            AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
-                .debug_struct("BinaryExpression")
-                .field("operator", operator)
-                .field("left", left)
-                .field("right", right)
-                .finish(),
-            AstStatement::UnaryExpression(UnaryExpression { operator, value }) => {
-                f.debug_struct("UnaryExpression").field("operator", operator).field("value", value).finish()
-            }
-            AstStatement::ExpressionList(expressions) => {
-                f.debug_struct("ExpressionList").field("expressions", expressions).finish()
-            }
-            AstStatement::ParenExpression(expression) => {
-                f.debug_struct("ParenExpression").field("expression", expression).finish()
-            }
-            AstStatement::RangeStatement(RangeStatement { start, end }) => {
-                f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
-            }
-            AstStatement::VlaRangeStatement => f.debug_struct("VlaRangeStatement").finish(),
+            AstStatement::Expression(expr) => expr.fmt(f),
             AstStatement::Assignment(Assignment { left, right }) => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
@@ -712,16 +628,7 @@ impl Debug for AstNode {
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            AstStatement::DirectAccess(DirectAccess { access, index }) => {
-                f.debug_struct("DirectAccess").field("access", access).field("index", index).finish()
-            }
-            AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) => f
-                .debug_struct("HardwareAccess")
-                .field("direction", direction)
-                .field("access", access)
-                .field("address", address)
-                .field("location", &self.location)
-                .finish(),
+
             AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => f
                 .debug_struct("MultipliedStatement")
                 .field("multiplier", multiplier)
@@ -738,9 +645,7 @@ impl Debug for AstNode {
             AstStatement::CastStatement(CastStatement { target, type_name }) => {
                 f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
             }
-            AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
-                f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
-            }
+
             AstStatement::JumpStatement(JumpStatement { condition, target, .. }) => {
                 f.debug_struct("JumpStatement").field("condition", condition).field("target", target).finish()
             }
@@ -754,8 +659,8 @@ impl Debug for AstNode {
 impl AstNode {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     pub fn get_as_list(&self) -> Vec<&AstNode> {
-        if let AstStatement::ExpressionList(expressions) = &self.stmt {
-            expressions.iter().collect::<Vec<&AstNode>>()
+        if let AstStatement::Expression(expr) = &self.stmt {
+            expr.get_as_list().unwrap_or(vec![self])
         } else {
             vec![self]
         }
@@ -782,26 +687,21 @@ impl AstNode {
     /// parenthesized expressions altogether.
     pub fn get_stmt_peeled(&self) -> &AstStatement {
         match &self.stmt {
-            AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
+            AstStatement::Expression(AstExpression::Parenthesized(expr)) => expr.get_stmt_peeled(),
             _ => &self.stmt,
         }
     }
 
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
-        match &self.stmt {
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), base },
-                ..,
-            )
-            | AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Cast(reference), base },
-                ..,
-            ) => {
+        let AstStatement::Expression(ref expr) = self.stmt else { return false };
+        match expr {
+            AstExpression::Reference(ReferenceExpr { access: ReferenceAccess::Member(reference), base })
+            | AstExpression::Reference(ReferenceExpr { access: ReferenceAccess::Cast(reference), base }) => {
                 reference.has_direct_access()
                     || base.as_ref().map(|it| it.has_direct_access()).unwrap_or(false)
             }
-            AstStatement::DirectAccess(..) => true,
+            AstExpression::DirectAccess(..) => true,
             _ => false,
         }
     }
@@ -811,21 +711,21 @@ impl AstNode {
     pub fn is_cast_prefix_eligible(&self) -> bool {
         // TODO: figure out a better name for this...
         match &self.stmt {
-            AstStatement::Literal(kind, ..) => kind.is_cast_prefix_eligible(),
-            AstStatement::Identifier(..) => true,
+            AstStatement::Literal(kind) => kind.is_cast_prefix_eligible(),
+            AstStatement::Expression(AstExpression::Identifier(..)) => true,
             _ => false,
         }
     }
 
     /// Returns true if the current statement is a flat reference (e.g. `a`)
     pub fn is_flat_reference(&self) -> bool {
-        matches!(self.stmt, AstStatement::Identifier(..)) || {
-            if let AstStatement::ReferenceExpr(
+        matches!(self.stmt, AstStatement::Expression(AstExpression::Identifier(..))) || {
+            if let AstStatement::Expression(AstExpression::Reference(
                 ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
                 ..,
-            ) = &self.stmt
+            )) = &self.stmt
             {
-                matches!(reference.as_ref().stmt, AstStatement::Identifier(..))
+                matches!(reference.as_ref().stmt, AstStatement::Expression(AstExpression::Identifier(..)))
             } else {
                 false
             }
@@ -835,11 +735,11 @@ impl AstNode {
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match &self.stmt {
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
-                ..,
-            ) => reference.as_ref().get_flat_reference_name(),
-            AstStatement::Identifier(name, ..) => Some(name),
+            AstStatement::Expression(AstExpression::Reference(ReferenceExpr {
+                access: ReferenceAccess::Member(reference),
+                ..
+            })) => reference.as_ref().get_flat_reference_name(),
+            AstStatement::Expression(AstExpression::Identifier(name, ..)) => Some(name),
             _ => None,
         }
     }
@@ -856,7 +756,7 @@ impl AstNode {
     }
 
     pub fn is_reference(&self) -> bool {
-        matches!(self.stmt, AstStatement::ReferenceExpr(..))
+        matches!(self.stmt, AstStatement::Expression(AstExpression::Reference(..)))
     }
 
     pub fn is_call(&self) -> bool {
@@ -864,29 +764,35 @@ impl AstNode {
     }
 
     pub fn is_hardware_access(&self) -> bool {
-        matches!(self.stmt, AstStatement::HardwareAccess(..))
+        matches!(self.stmt, AstStatement::Expression(AstExpression::HardwareAccess(..)))
     }
 
     pub fn is_array_access(&self) -> bool {
         matches!(
             self.stmt,
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(_), .. }, ..)
+            AstStatement::Expression(AstExpression::Reference(ReferenceExpr {
+                access: ReferenceAccess::Index(..),
+                ..
+            }))
         )
     }
 
     pub fn is_pointer_access(&self) -> bool {
         matches!(
             self.stmt,
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
+            AstStatement::Expression(AstExpression::Reference(ReferenceExpr {
+                access: ReferenceAccess::Deref,
+                ..
+            }))
         )
     }
 
     pub fn is_paren(&self) -> bool {
-        matches!(self.stmt, AstStatement::ParenExpression { .. })
+        matches!(self.stmt, AstStatement::Expression(AstExpression::Parenthesized(..)))
     }
 
     pub fn is_expression_list(&self) -> bool {
-        matches!(self.stmt, AstStatement::ExpressionList { .. })
+        matches!(self.stmt, AstStatement::Expression(AstExpression::List(..)))
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
@@ -941,11 +847,11 @@ impl AstNode {
     }
 
     pub fn is_binary_expression(&self) -> bool {
-        matches!(self.stmt, AstStatement::BinaryExpression(..))
+        matches!(self.stmt, AstStatement::Expression(AstExpression::Binary(..)))
     }
 
     pub fn is_literal_array(&self) -> bool {
-        matches!(self.stmt, AstStatement::Literal(AstLiteral::Array(..), ..))
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Array(..)))
     }
 
     pub fn is_literal(&self) -> bool {
@@ -953,18 +859,18 @@ impl AstNode {
     }
 
     pub fn is_literal_integer(&self) -> bool {
-        matches!(self.stmt, AstStatement::Literal(AstLiteral::Integer(..), ..))
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Integer(..)))
     }
 
     pub fn get_literal_integer_value(&self) -> Option<i128> {
         match &self.stmt {
-            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
+            AstStatement::Literal(AstLiteral::Integer(value)) => Some(*value),
             _ => None,
         }
     }
 
     pub fn is_identifier(&self) -> bool {
-        matches!(self.stmt, AstStatement::Identifier(..))
+        matches!(self.stmt, AstStatement::Expression(AstExpression::Identifier(..)))
     }
 
     pub fn is_default_value(&self) -> bool {
@@ -978,48 +884,17 @@ impl AstNode {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Operator {
-    Plus,
-    Minus,
-    Multiplication,
-    Exponentiation,
-    Division,
-    Equal,
-    NotEqual,
-    Modulo,
-    Less,
-    Greater,
-    LessOrEqual,
-    GreaterOrEqual,
-    Not,
-    And,
-    Or,
-    Xor,
-}
-
-impl Display for Operator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let symbol = match self {
-            Operator::Plus => "+",
-            Operator::Minus => "-",
-            Operator::Multiplication => "*",
-            Operator::Division => "/",
-            Operator::Equal => "=",
-            Operator::Modulo => "MOD",
-            Operator::Exponentiation => "**",
-            _ => unimplemented!(),
-        };
-        f.write_str(symbol)
-    }
-}
-
 /// enum_elements should be the statement between then enum's brackets ( )
 /// e.g. x : ( this, that, etc)
 pub fn get_enum_element_names(enum_elements: &AstNode) -> Vec<String> {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| matches!(it.stmt, AstStatement::Identifier(..) | AstStatement::Assignment(..)))
+        .filter(|it| {
+            matches!(
+                it.stmt,
+                AstStatement::Expression(AstExpression::Identifier(..)) | AstStatement::Assignment(..)
+            )
+        })
         .map(get_enum_element_name)
         .collect()
 }
@@ -1027,8 +902,8 @@ pub fn get_enum_element_names(enum_elements: &AstNode) -> Vec<String> {
 /// expects a Reference or an Assignment
 pub fn get_enum_element_name(enum_element: &AstNode) -> String {
     match &enum_element.stmt {
-        AstStatement::Identifier(name, ..) => name.to_string(),
-        AstStatement::Assignment(Assignment { left, .. }, ..) => left
+        AstStatement::Expression(AstExpression::Identifier(name)) => name.to_string(),
+        AstStatement::Assignment(Assignment { left, .. }) => left
             .get_flat_reference_name()
             .map(|it| it.to_string())
             .expect("left of assignment not a reference"),
@@ -1042,35 +917,21 @@ pub fn get_enum_element_name(enum_element: &AstNode) -> String {
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
     match &list.stmt {
-        AstStatement::ExpressionList(expressions, ..) => {
+        AstStatement::Expression(AstExpression::List(expressions)) => {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
             std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
         }
-        AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
+        AstStatement::Expression(AstExpression::Parenthesized(expression)) => {
+            flatten_expression_list(expression)
+        }
         _ => vec![list],
     }
 }
 
 pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
-}
-impl Operator {
-    /// returns true, if this operator is a comparison operator,
-    /// resulting in a bool value
-    /// (=, <>, >, <, >=, <=)
-    pub fn is_comparison_operator(&self) -> bool {
-        matches!(
-            self,
-            Operator::Equal
-                | Operator::NotEqual
-                | Operator::Less
-                | Operator::Greater
-                | Operator::LessOrEqual
-                | Operator::GreaterOrEqual
-        )
-    }
 }
 
 #[cfg(test)]
@@ -1129,7 +990,7 @@ impl AstFactory {
     }
 
     pub fn create_vla_range_statement(location: SourceLocation, id: AstId) -> AstNode {
-        AstNode { stmt: AstStatement::VlaRangeStatement, id, location }
+        AstNode { stmt: AstStatement::Expression(AstExpression::VlaRange), id, location }
     }
 
     pub fn create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -> AstNode {
@@ -1144,7 +1005,7 @@ impl AstFactory {
         id: usize,
     ) -> AstNode {
         AstNode {
-            stmt: AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
+            stmt: AstStatement::Expression(AstExpression::hardware_access(access, direction, address)),
             location,
             id,
         }
@@ -1155,11 +1016,11 @@ impl AstFactory {
     }
 
     pub fn create_expression_list(expressions: Vec<AstNode>, location: SourceLocation, id: AstId) -> AstNode {
-        AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
+        AstNode { stmt: AstStatement::Expression(AstExpression::list(expressions)), location, id }
     }
 
     pub fn create_paren_expression(expression: AstNode, location: SourceLocation, id: AstId) -> AstNode {
-        AstNode { stmt: AstStatement::ParenExpression(Box::new(expression)), location, id }
+        AstNode { stmt: AstStatement::Expression(AstExpression::parenthesized(expression)), location, id }
     }
 
     /// creates a new if-statement
@@ -1256,24 +1117,13 @@ impl AstFactory {
     pub fn create_or_expression(left: AstNode, right: AstNode) -> AstNode {
         let id = left.get_id();
         let location = left.get_location().span(&right.get_location());
-        AstNode {
-            stmt: AstStatement::BinaryExpression(BinaryExpression {
-                left: Box::new(left),
-                right: Box::new(right),
-                operator: Operator::Or,
-            }),
-            id,
-            location,
-        }
+        AstNode { stmt: AstStatement::Expression(AstExpression::or(left, right)), id, location }
     }
 
     /// creates a not-expression
-    pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -> AstNode {
+    pub fn create_not_expression(value: AstNode, location: SourceLocation, id: usize) -> AstNode {
         AstNode {
-            stmt: AstStatement::UnaryExpression(UnaryExpression {
-                value: Box::new(operator),
-                operator: Operator::Not,
-            }),
+            stmt: AstStatement::Expression(AstExpression::not(value)),
             id,
             location,
         }
@@ -1281,7 +1131,7 @@ impl AstFactory {
 
     /// creates a new Identifier
     pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstNode {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
+        AstNode::new(AstStatement::Expression(AstExpression::ident(name)), id, location.clone())
     }
 
     pub fn create_unary_expression(
@@ -1291,7 +1141,7 @@ impl AstFactory {
         id: AstId,
     ) -> AstNode {
         AstNode {
-            stmt: AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
+            stmt: AstStatement::Expression(AstExpression::unary(value, operator)),
             location,
             id,
         }
@@ -1321,10 +1171,7 @@ impl AstFactory {
             .map(|it| it.get_location().span(&member.get_location()))
             .unwrap_or_else(|| member.get_location());
         AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Member(Box::new(member)),
-                base: base.map(Box::new),
-            }),
+            stmt: AstStatement::Expression(AstExpression::member_reference(member, base)),
             id,
             location,
         }
@@ -1337,10 +1184,7 @@ impl AstFactory {
         location: SourceLocation,
     ) -> AstNode {
         AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Index(Box::new(index)),
-                base: base.map(Box::new),
-            }),
+            stmt: AstStatement::Expression(AstExpression::index_reference(index, base)),
             id,
             location,
         }
@@ -1348,10 +1192,7 @@ impl AstFactory {
 
     pub fn create_address_of_reference(base: AstNode, id: AstId, location: SourceLocation) -> AstNode {
         AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Address,
-                base: Some(Box::new(base)),
-            }),
+            stmt: AstStatement::Expression(AstExpression::address_reference(base)),
             id,
             location,
         }
@@ -1359,10 +1200,7 @@ impl AstFactory {
 
     pub fn create_deref_reference(base: AstNode, id: AstId, location: SourceLocation) -> AstNode {
         AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Deref,
-                base: Some(Box::new(base)),
-            }),
+            stmt: AstStatement::Expression(AstExpression::deref_reference(base)),
             id,
             location,
         }
@@ -1375,7 +1213,7 @@ impl AstFactory {
         location: SourceLocation,
     ) -> AstNode {
         AstNode {
-            stmt: AstStatement::DirectAccess(DirectAccess { access, index: Box::new(index) }),
+            stmt: AstStatement::Expression(AstExpression::direct_access(access, index)),
             location,
             id,
         }
@@ -1385,18 +1223,14 @@ impl AstFactory {
     pub fn create_binary_expression(left: AstNode, operator: Operator, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
         AstNode {
-            stmt: AstStatement::BinaryExpression(BinaryExpression {
-                left: Box::new(left),
-                operator,
-                right: Box::new(right),
-            }),
+            stmt: AstStatement::Expression(AstExpression::binary(left, right, operator)),
             id,
             location,
         }
     }
 
     /// creates a new cast statement
-    pub fn create_cast_statement(
+    pub fn create_cast_statement( //FIXME: is this a statement or expression?
         type_name: AstNode,
         stmt: AstNode,
         location: &SourceLocation,
@@ -1404,10 +1238,7 @@ impl AstFactory {
     ) -> AstNode {
         let new_location = location.span(&stmt.get_location());
         AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Cast(Box::new(stmt)),
-                base: Some(Box::new(type_name)),
-            }),
+            stmt: AstStatement::Expression(AstExpression::cast_reference(stmt, type_name)),
             id,
             location: new_location,
         }
@@ -1445,7 +1276,7 @@ impl AstFactory {
                     id,
                 )),
                 parameters: Some(Box::new(AstNode::new(
-                    AstStatement::ExpressionList(parameters),
+                    AstStatement::Expression(AstExpression::list(parameters)),
                     parameter_list_id,
                     SourceLocation::undefined(), //TODO: get real location
                 ))),
@@ -1471,10 +1302,9 @@ impl AstFactory {
         }
     }
 
-    pub fn create_range_statement(start: AstNode, end: AstNode, id: AstId) -> AstNode {
+    pub fn create_range_statement(start: AstNode, end: AstNode, id: AstId) -> AstNode { // FIXME: is this a statement or expression?
         let location = start.location.span(&end.location);
-        let data = RangeStatement { start: Box::new(start), end: Box::new(end) };
-        AstNode { stmt: AstStatement::RangeStatement(data), id, location }
+        AstNode { stmt: AstStatement::Expression(AstExpression::range(start, end)), id, location }
     }
 
     pub fn create_call_to_with_ids(
@@ -1545,43 +1375,6 @@ pub struct CastStatement {
 pub struct MultipliedStatement {
     pub multiplier: u32,
     pub element: Box<AstNode>,
-}
-#[derive(Debug, Clone, PartialEq)]
-pub struct ReferenceExpr {
-    pub access: ReferenceAccess,
-    pub base: Option<Box<AstNode>>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct DirectAccess {
-    pub access: DirectAccessType,
-    pub index: Box<AstNode>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct HardwareAccess {
-    pub direction: HardwareAccessType,
-    pub access: DirectAccessType,
-    pub address: Vec<AstNode>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct BinaryExpression {
-    pub operator: Operator,
-    pub left: Box<AstNode>,
-    pub right: Box<AstNode>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct UnaryExpression {
-    pub operator: Operator,
-    pub value: Box<AstNode>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct RangeStatement {
-    pub start: Box<AstNode>,
-    pub end: Box<AstNode>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
