@@ -219,9 +219,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
                         ty.into()
                     }
-                    Some(v)
+                    Some(_)
                         if dti.is_some_and(|it| it.is_aggregate())
-                            && !v.is_return()
                             && matches!(
                                 implementation.get_implementation_type(),
                                 ImplementationType::Function
@@ -576,32 +575,36 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     };
                     let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
-                    let size = if let typesystem::DataTypeInformation::String { size, .. } = type_info {
-                        // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
-
-                        let size = size.as_int_value(self.index).map_err(|err| {
-                            Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
-                        })? as u64;
-                        self.llvm
-                            .builder
-                            .build_memset(
-                                bitcast,
-                                1,
-                                self.llvm.context.i8_type().const_zero(),
-                                self.llvm.context.i64_type().const_int(size, true),
+                    let (size, alignment) =
+                        if let typesystem::DataTypeInformation::String { size, encoding } = type_info {
+                            // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
+                            let size = size.as_int_value(self.index).map_err(|err| {
+                                Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
+                            })? as u64;
+                            let alignment = encoding.get_bytes_per_char();
+                            self.llvm
+                                .builder
+                                .build_memset(
+                                    bitcast,
+                                    alignment,
+                                    self.llvm.context.i8_type().const_zero(),
+                                    self.llvm.context.i64_type().const_int(size * alignment as u64, true),
+                                )
+                                .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                            // reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
+                            (
+                                self.llvm.context.i64_type().const_int((size - 1) * alignment as u64, true),
+                                alignment,
                             )
-                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
-                        // reduce the amount of bytes to be memcopied by 1 to preserve the null-terminator
-                        self.llvm.context.i64_type().const_int(size - 1, true)
-                    } else {
-                        let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
-                            unreachable!("Size of registered aggregate type must be known at this point")
+                        } else {
+                            let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
+                                unreachable!("Size of registered aggregate type must be known at this point")
+                            };
+                            (size, 1)
                         };
-                        size
-                    };
                     self.llvm
                         .builder
-                        .build_memcpy(bitcast, 1, ptr_value.into_pointer_value(), 1, size)
+                        .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
                         .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);

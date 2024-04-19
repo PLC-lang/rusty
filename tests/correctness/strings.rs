@@ -1219,3 +1219,32 @@ fn assigning_global_strings_in_program_by_passing_literals() {
     assert_eq!("in literal\0".as_bytes(), &main_type.str_in[0..11]);
     assert_eq!("in ref literal\0".as_bytes(), &main_type.str_in_ref[0..15]);
 }
+
+#[test]
+fn function_wstring_memcopies_the_right_amount_of_bytes() {
+    let src = r#"
+        FUNCTION foo : WSTRING[7]
+        VAR_INPUT
+            s : WSTRING[7];
+        END_VAR
+            foo := s;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            y : WSTRING[7];
+        END_VAR
+            y := foo("wstring cutoff");
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        y: [u16; 8],
+    }
+    let mut main_type = MainType { y: [0; 8] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("wstring", String::from_utf16_lossy(&main_type.y[..7]));
+}
