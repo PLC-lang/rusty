@@ -202,10 +202,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 match param {
                     Some(v)
                         if v.is_in_parameter_by_ref() &&
-                    // parameters by ref will always be a pointer
-                    p.into_pointer_type().get_element_type().is_array_type() =>
+                        // parameters by ref will always be a pointer
+                        p.into_pointer_type().get_element_type().is_array_type() =>
                     {
-                        // for array types we will generate a pointer to the arrays element type
+                        // for by-ref array types we will generate a pointer to the arrays element type
                         // not a pointer to array
                         let ty = p
                             .into_pointer_type()
@@ -219,26 +219,29 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
                         ty.into()
                     }
-                    Some(_)
-                        if dti.is_some_and(|it| it.is_aggregate())
-                            && matches!(
-                                implementation.get_implementation_type(),
-                                ImplementationType::Function
-                            ) =>
-                    {
-                        // for aggregate types we will generate a pointer instead of the value type. it will then later be memcopied
-                        // into a locally allocated variable
-                        let ty = if dti.is_some_and(|it| it.is_struct()) {
-                            p.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                        } else {
-                            p.into_array_type()
-                                .get_element_type()
-                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                        };
-
-                        ty.into()
+                    _ => {
+                        dti.map(|it| {
+                            if !(it.is_aggregate()
+                                && matches!(
+                                    implementation.get_implementation_type(),
+                                    ImplementationType::Function
+                                ))
+                            {
+                                return *p;
+                            }
+                            // for aggregate function parameters we will generate a pointer instead of the value type.
+                            // it will then later be memcopied into a locally allocated variable
+                            if it.is_struct() {
+                                p.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                            } else {
+                                p.into_array_type()
+                                    .get_element_type()
+                                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                            }
+                            .into()
+                        })
+                        .unwrap_or(*p)
                     }
-                    _ => *p,
                 }
             })
             .collect::<Vec<BasicMetadataTypeEnum>>();
@@ -545,13 +548,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let ptr_value = params_iter
                     .next()
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
-
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
-
                 let ty = index.get_associated_type(member_type_name)?;
                 let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
-
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(
                         m.get_qualified_name(),
@@ -581,20 +581,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             let size = size.as_int_value(self.index).map_err(|err| {
                                 Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
                             })? as u64;
-                            let alignment = encoding.get_bytes_per_char();
+                            let char_width = encoding.get_bytes_per_char();
                             self.llvm
                                 .builder
                                 .build_memset(
                                     bitcast,
-                                    alignment,
+                                    char_width,
                                     self.llvm.context.i8_type().const_zero(),
-                                    self.llvm.context.i64_type().const_int(size * alignment as u64, true),
+                                    self.llvm.context.i64_type().const_int(size * char_width as u64, true),
                                 )
                                 .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
-                            // reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             (
-                                self.llvm.context.i64_type().const_int((size - 1) * alignment as u64, true),
-                                alignment,
+                                // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
+                                self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
+                                char_width,
                             )
                         } else {
                             let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
