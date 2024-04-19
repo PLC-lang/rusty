@@ -233,8 +233,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                     .into_struct_type()
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                     .into(),
-                                DataTypeInformation::Array { .. }
-                                | DataTypeInformation::String { .. } => p
+                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => p
                                     .into_array_type()
                                     .get_element_type()
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
@@ -577,37 +576,37 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     };
                     let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
-                    let (size, alignment) =
-                        if let DataTypeInformation::String { size, encoding } = type_info {
-                            // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
-                            let size = size.as_int_value(self.index).map_err(|err| {
-                                Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
-                            })? as u64;
-                            let char_width = encoding.get_bytes_per_char();
-                            self.llvm
-                                .builder
-                                .build_memset(
-                                    bitcast,
-                                    char_width,
-                                    self.llvm.context.i8_type().const_zero(),
-                                    self.llvm.context.i64_type().const_int(size * char_width as u64, true),
-                                )
-                                .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
-                            (
-                                // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
-                                self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
+                    let (size, alignment) = if let DataTypeInformation::String { size, encoding } = type_info
+                    {
+                        // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
+                        let size = size.as_int_value(self.index).map_err(|err| {
+                            Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
+                        })? as u64;
+                        let char_width = encoding.get_bytes_per_char();
+                        self.llvm
+                            .builder
+                            .build_memset(
+                                bitcast,
                                 char_width,
+                                self.llvm.context.i8_type().const_zero(),
+                                self.llvm.context.i64_type().const_int(size * char_width as u64, true),
                             )
-                        } else {
-                            let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
-                                // XXX: can this still fail at this point? might be `unreachable`
-                                return Err(Diagnostic::codegen_error(
-                                    "Unable to determine type size",
-                                    m.source_location.clone(),
-                                ));
-                            };
-                            (size, 1)
+                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                        (
+                            // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
+                            self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
+                            char_width,
+                        )
+                    } else {
+                        let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
+                            // XXX: can this still fail at this point? might be `unreachable`
+                            return Err(Diagnostic::codegen_error(
+                                "Unable to determine type size",
+                                m.source_location.clone(),
+                            ));
                         };
+                        (size, 1)
+                    };
                     self.llvm
                         .builder
                         .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
