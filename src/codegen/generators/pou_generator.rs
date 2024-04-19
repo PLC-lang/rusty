@@ -15,7 +15,7 @@ use crate::{
     },
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
-    typesystem::{self, DataType, VarArgs},
+    typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
 };
 use std::collections::HashMap;
 
@@ -198,7 +198,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|(i, p)| {
                 let param = declared_parameters.get(i);
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
-
                 match param {
                     Some(v)
                         if v.is_in_parameter_by_ref() &&
@@ -221,24 +220,27 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !(it.is_aggregate()
-                                && matches!(
-                                    implementation.get_implementation_type(),
-                                    ImplementationType::Function
-                                ))
-                            {
+                            if !matches!(
+                                implementation.get_implementation_type(),
+                                ImplementationType::Function
+                            ) {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
                             // it will then later be memcopied into a locally allocated variable
-                            if it.is_struct() {
-                                p.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                            } else {
-                                p.into_array_type()
+                            match it {
+                                DataTypeInformation::Struct { .. } => p
+                                    .into_struct_type()
+                                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                                    .into(),
+                                DataTypeInformation::Array { .. }
+                                | DataTypeInformation::String { .. } => p
+                                    .into_array_type()
                                     .get_element_type()
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                                    .into(),
+                                _ => *p,
                             }
-                            .into()
                         })
                         .unwrap_or(*p)
                     }
@@ -576,7 +578,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     };
                     let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
                     let (size, alignment) =
-                        if let typesystem::DataTypeInformation::String { size, encoding } = type_info {
+                        if let DataTypeInformation::String { size, encoding } = type_info {
                             // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
                             let size = size.as_int_value(self.index).map_err(|err| {
                                 Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
@@ -829,7 +831,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             (variadic, variadic.and_then(VariableIndexEntry::get_varargs))
         {
             //Create a size parameter of type i32 (DINT)
-            let size = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
+            let size = self.llvm_index.find_associated_type(DINT_TYPE).map(Into::into)?;
 
             let ty = self
                 .llvm_index
