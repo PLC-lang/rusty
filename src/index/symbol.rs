@@ -18,6 +18,16 @@ impl<K, V> Default for SymbolMap<K, V> {
     }
 }
 
+impl<K, V> Clone for SymbolMap<K, V>
+where
+    K: Clone,
+    V: Clone,
+{
+    fn clone(&self) -> Self {
+        Self { inner_map: self.inner_map.clone() }
+    }
+}
+
 impl<K, V> SymbolMap<K, V>
 where
     K: Hash + Eq,
