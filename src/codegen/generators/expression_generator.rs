@@ -556,7 +556,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 && !matches!(expression.get_stmt(), AstStatement::EmptyStatement { .. })
             {
                 {
-                    let assigned_output = self.generate_lvalue(expression)?;
+                    // if bitaccess rhs -> generate lvalue 
+                    let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) = dbg!(expression.get_stmt()) {
+                        let base_value = base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+
+                        if let AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
+                            let (Some(base), Some(base_value)) = (base, base_value) else {
+                                panic!()
+                            };
+                            dbg!(&self.function_context.unwrap().linking_context.call_name);
+                            let x = self.annotations.get_qualified_name(base).unwrap();
+                            let y = self.llvm_index.find_loaded_associated_variable_value(x).unwrap();
+                            
+                            let expr = self.generate_direct_access_expression(base, &base_value, member, &data.access, &data.index);
+
+
+                            // self.assign_output_value(param_context)
+                            todo!()
+                        }
+                        todo!()
+                    } else {
+                        self.generate_lvalue(expression)?
+                    };
+              
 
                     let assigned_output_type =
                         self.annotations.get_type_or_void(expression, self.index).get_type_information();
