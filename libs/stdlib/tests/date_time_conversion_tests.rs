@@ -56,6 +56,7 @@ fn ldt_to_dt_conversion() {
             .unwrap()
             .and_hms_opt(22, 33, 14)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -76,6 +77,7 @@ fn ldt_to_date_conversion() {
             .unwrap()
             .and_hms_opt(0, 0, 0)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -96,6 +98,7 @@ fn ldt_to_ltod_conversion() {
             .unwrap()
             .and_hms_nano_opt(15, 36, 30, 123456000)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -116,6 +119,7 @@ fn ldt_to_tod_conversion() {
             .unwrap()
             .and_hms_milli_opt(20, 15, 11, 543)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -136,6 +140,7 @@ fn dt_to_ldt_conversion() {
             .unwrap()
             .and_hms_opt(22, 33, 14)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -156,6 +161,7 @@ fn dt_to_date_conversion() {
             .unwrap()
             .and_hms_opt(0, 0, 0)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -176,6 +182,7 @@ fn dt_to_ltod_conversion() {
             .unwrap()
             .and_hms_milli_opt(15, 36, 30, 123)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -196,6 +203,7 @@ fn dt_to_tod_conversion() {
             .unwrap()
             .and_hms_milli_opt(20, 15, 11, 543)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -216,6 +224,7 @@ fn ltod_to_tod_conversion() {
             .unwrap()
             .and_hms_opt(10, 20, 30)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
@@ -236,6 +245,7 @@ fn tod_to_ltod_conversion() {
             .unwrap()
             .and_hms_opt(10, 20, 30)
             .unwrap()
+            .and_utc()
             .timestamp_nanos_opt()
             .unwrap()
     );
