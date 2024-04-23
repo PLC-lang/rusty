@@ -346,3 +346,52 @@ fn array_assignment_function_call() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn validate_ranges() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            VAR
+                arr_A : ARRAY[1..-5] OF DINT;
+                arr_B : ARRAY[1..5] OF ARRAY[1..-10] OF DINT;
+                arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+                arr_D : ARRAY[1..5, 1..-5] OF DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E097]: Invalid range `1..-5`, did you mean `-5..1`?
+      ┌─ <internal>:4:17
+      │
+    4 │                 arr_A : ARRAY[1..-5] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
+
+    error[E097]: Invalid range `1..-10`, did you mean `-10..1`?
+      ┌─ <internal>:5:17
+      │
+    5 │                 arr_B : ARRAY[1..5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-10`, did you mean `-10..1`?
+
+    error[E097]: Invalid range `1..-5`, did you mean `-5..1`?
+      ┌─ <internal>:6:17
+      │
+    6 │                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
+
+    error[E097]: Invalid range `1..-10`, did you mean `-10..1`?
+      ┌─ <internal>:6:17
+      │
+    6 │                 arr_C : ARRAY[1..-5] OF ARRAY[1..-10] OF DINT;
+      │                 ^^^^^ Invalid range `1..-10`, did you mean `-10..1`?
+
+    error[E097]: Invalid range `1..-5`, did you mean `-5..1`?
+      ┌─ <internal>:7:17
+      │
+    7 │                 arr_D : ARRAY[1..5, 1..-5] OF DINT;
+      │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
+
+    "###);
+}
