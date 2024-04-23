@@ -10,6 +10,7 @@ use crate::{
         VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
+    typesystem,
     typesystem::{
         is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
@@ -547,6 +548,118 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    fn temp_xxx(
+        &self,
+        left_lvalue: PointerValue,
+        left_statement: &AstNode,
+        right_statement: &AstNode,
+    ) -> Result<(), Diagnostic> {
+        /// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
+        /// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
+        /// of direct-access commands (vec![%W3, %X2])
+        fn collect_base_and_direct_access_for_assignment(
+            left_statement: &AstNode,
+        ) -> Option<(&AstNode, Vec<&AstNode>)> {
+            let mut current = Some(left_statement);
+            let mut access_sequence = Vec::new();
+            while let Some(AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(m),
+                base,
+            })) = current.map(|it| it.get_stmt())
+            {
+                if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
+                    access_sequence.insert(0, m.as_ref());
+                    current = base.as_deref();
+                } else {
+                    break;
+                }
+            }
+            current.zip(Some(access_sequence))
+        }
+        //TODO : Validation
+        // STRUCT foo
+        //  x : BIT
+        // END_STRUCT
+        // foo, foo.x
+
+        // given a complex direct-access assignemnt: a.b.c.%W3,%X1
+        // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
+        else {
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+        };
+
+        let left_type = self.get_type_hint_for(target)?;
+        let right_type = self.get_type_hint_for(right_statement)?;
+
+        if let Some((element, direct_access)) = access_sequence.split_first() {
+            let mut rhs = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+                self.generate_direct_access_index(
+                    &data.access,
+                    &data.index,
+                    right_type.get_type_information(),
+                    left_type,
+                )
+            } else {
+                //TODO: using the global context we could get a slice here
+                Err(Diagnostic::new(format!("{element:?} not a direct access"))
+                    .with_error_code("E055")
+                    .with_location(element.get_location()))
+            }?;
+            for element in direct_access {
+                let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+                    self.generate_direct_access_index(
+                        &data.access,
+                        &data.index,
+                        right_type.get_type_information(),
+                        left_type,
+                    )
+                } else {
+                    //TODO: using the global context we could get a slice here
+                    Err(Diagnostic::new(&format!("{element:?} not a direct access"))
+                        .with_error_code("E055")
+                        .with_location(element.get_location()))
+                }?;
+                rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
+            }
+
+            //Build mask for the index
+            //Get the target bit type as all ones
+            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
+            let ones = rhs_type.const_all_ones();
+            //Extend the mask to the target type
+            let extended_mask = self.llvm.builder.build_int_z_extend(
+                ones,
+                left_lvalue.as_basic_value_enum().into_int_value().get_type(),
+                "ext",
+            );
+            //Position the ones in their correct locations
+            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
+            //Invert the mask
+            let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+            //And the result with the mask to erase the set bits at the target location
+            let and_value = self.llvm.builder.build_and(
+                left_lvalue.as_basic_value_enum().into_int_value(),
+                mask,
+                "erase",
+            );
+
+            //Generate an expression for the right size
+            let right = self.generate_expression(right_statement)?;
+            //Cast the right side to the left side type
+            let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
+            //Shift left by the direct access
+            let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
+
+            //OR the result and store it in the left side
+            let or_value = self.llvm.builder.build_or(and_value, value, "or");
+            self.llvm.builder.build_store(left_lvalue, or_value);
+        } else {
+            unreachable!();
+        }
+        Ok(())
+    }
+
     fn generate_output_assignment(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let expression = param_context.assignment_statement;
@@ -610,26 +723,31 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                     .unwrap();
                                 let q_rvalue = self.llvm.builder.build_load(q_lvalue, "yyy");
 
-                                // Step 3
-                                let lhs_ty = self.get_type_hint_for(base)?.get_type_information();
-                                let rhs_ty = self.get_type_hint_for(&data_assignment.right)?;
-                                let index = self
-                                    .generate_direct_access_index(&data.access, &data.index, &lhs_ty, &rhs_ty)
-                                    .unwrap();
+                                // lhs = lvalue
+                                // rhs = astnode
+                                self.temp_xxx(q_lvalue, &data_assignment.right, &data_assignment.left)?;
 
-                                // Step 4
-                                let left_shift =
-                                    self.llvm.builder.build_left_shift(q_rvalue.into_int_value(), index, "");
-
-                                // Step 5
-                                let ored = self.llvm.builder.build_or(
-                                    error_bits_rvalue.into_int_value(),
-                                    left_shift,
-                                    "",
-                                );
-
-                                // Step 6
-                                let _ = self.llvm.builder.build_store(error_bits_lvalue, ored);
+                                //
+                                // // Step 3
+                                // let lhs_ty = self.get_type_hint_for(base)?.get_type_information();
+                                // let rhs_ty = self.get_type_hint_for(&data_assignment.right)?;
+                                // let index = self
+                                //     .generate_direct_access_index(&data.access, &data.index, &lhs_ty, &rhs_ty)
+                                //     .unwrap();
+                                //
+                                // // Step 4
+                                // let left_shift =
+                                //     self.llvm.builder.build_left_shift(q_rvalue.into_int_value(), index, "");
+                                //
+                                // // Step 5
+                                // let ored = self.llvm.builder.build_or(
+                                //     error_bits_rvalue.into_int_value(),
+                                //     left_shift,
+                                //     "",
+                                // );
+                                //
+                                // // Step 6
+                                // let _ = self.llvm.builder.build_store(error_bits_lvalue, ored);
                             } else {
                                 unreachable!()
                             }
