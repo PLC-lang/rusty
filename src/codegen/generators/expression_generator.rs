@@ -24,6 +24,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use plc_ast::ast::Assignment;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
@@ -65,7 +66,7 @@ struct CallParameterAssignment<'a, 'b> {
     /// the name of the function we're calling
     function_name: &'b str,
     /// the position of the argument in the POU's argument's list
-    index: u32,
+    pub index: u32,
     /// a pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
 }
@@ -533,13 +534,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
+        dbg!(&param_context.index);
         match param_context.assignment_statement.get_stmt() {
             AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
                     param_context.function_name,
-                    &data.left,
-                    &data.right,
+                    &param_context.assignment_statement,
                 ),
             _ => self.generate_output_assignment(param_context),
         }
@@ -556,29 +557,90 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 && !matches!(expression.get_stmt(), AstStatement::EmptyStatement { .. })
             {
                 {
-                    // if bitaccess rhs -> generate lvalue 
-                    let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) = dbg!(expression.get_stmt()) {
-                        let base_value = base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+                    let assigned_output = if let (AstStatement::Assignment(data_assignment)
+                    | AstStatement::OutputAssignment(data_assignment)) =
+                        expression.get_stmt()
+                    {
+                        // if bitaccess rhs -> generate lvalue
+                        let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr {
+                            access: ReferenceAccess::Member(member),
+                            base,
+                        }) = dbg!(&data_assignment.right.get_stmt())
+                        {
+                            dbg!(&member);
+                            // LVALUE error_bits
+                            // RVALUE Q
+                            // errro_bits OR Q => res
+                            // store res, error_bits
+                            let base_value_rvalue =
+                                base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
-                        if let AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
-                            let (Some(base), Some(base_value)) = (base, base_value) else {
-                                panic!()
-                            };
-                            dbg!(&self.function_context.unwrap().linking_context.call_name);
-                            let x = self.annotations.get_qualified_name(base).unwrap();
-                            let y = self.llvm_index.find_loaded_associated_variable_value(x).unwrap();
-                            
-                            let expr = self.generate_direct_access_expression(base, &base_value, member, &data.access, &data.index);
+                            if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
+                                let (Some(base), Some(base_value)) = (base, base_value_rvalue) else {
+                                    panic!()
+                                };
+                                // Data-index: Access Index (e.g, foo.5)
+                                // Data.access: Width (e.g. %X, %W)
+                                // foo(Q => error_bits.5)
+                                //     ^    ^^^^^^^^^^ ^
+                                //     rhs  lhs        index
+                                // 1. Fetch lhs of assignment in llvm index (LVALUE) and load (RVALUE)
+                                // 2. GEP on rhs and load to acquire RVALUE
+                                // 3. call generate_direct_access_index() to get index with consideration of width
+                                // 4. left-shift rhs value with index of step 3
+                                // 5. RVALUE of step 1 ORed with value of step 4
+                                // 6. Store result of step 5 into lhs
 
+                                // Step 1
+                                let error_bits_lvalue = self
+                                    .llvm_index
+                                    .find_loaded_associated_variable_value(
+                                        self.annotations.get_qualified_name(base).unwrap(),
+                                    )
+                                    .unwrap();
+                                let error_bits_rvalue =
+                                    self.llvm.builder.build_load(error_bits_lvalue, "aaa");
 
-                            // self.assign_output_value(param_context)
-                            todo!()
-                        }
-                        todo!()
+                                // Step 2
+                                let q_lvalue = self
+                                    .llvm
+                                    .builder
+                                    .build_struct_gep(parameter_struct, index, "xxx")
+                                    .unwrap();
+                                let q_rvalue = self.llvm.builder.build_load(q_lvalue, "yyy");
+
+                                // Step 3
+                                let lhs_ty = self.get_type_hint_for(base)?.get_type_information();
+                                let rhs_ty = self.get_type_hint_for(&data_assignment.right)?;
+                                let index = self
+                                    .generate_direct_access_index(&data.access, &data.index, &lhs_ty, &rhs_ty)
+                                    .unwrap();
+
+                                // Step 4
+                                let left_shift =
+                                    self.llvm.builder.build_left_shift(q_rvalue.into_int_value(), index, "");
+
+                                // Step 5
+                                let ored = self.llvm.builder.build_or(
+                                    error_bits_rvalue.into_int_value(),
+                                    left_shift,
+                                    "",
+                                );
+
+                                // Step 6
+                                let res = self.llvm.builder.build_store(error_bits_lvalue, ored);
+                            } else {
+                                unreachable!()
+                            }
+                        } else {
+                            unreachable!()
+                        };
+
+                        assigned_output
                     } else {
-                        self.generate_lvalue(expression)?
+                        todo!("");
+                        // self.generate_lvalue(expression)?
                     };
-              
 
                     let assigned_output_type =
                         self.annotations.get_type_or_void(expression, self.index).get_type_information();
@@ -593,48 +655,101 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output_value_type =
                         self.index.get_type_information_or_void(parameter.get_type_name());
 
-                    //Special string handling
-                    if (assigned_output_type.is_string() && output_value_type.is_string())
-                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                        || (assigned_output_type.is_array() && output_value_type.is_array())
-                    {
-                        self.generate_string_store(
-                            assigned_output,
-                            assigned_output_type,
-                            expression.get_location(),
-                            output,
-                            output_value_type,
-                            parameter.source_location.clone(),
-                        )?;
-                    } else {
-                        let output_value = builder.build_load(output, "");
-                        builder.build_store(assigned_output, output_value);
-                    }
+                    // //Special string handling
+                    // if (assigned_output_type.is_string() && output_value_type.is_string())
+                    //     || (assigned_output_type.is_struct() && output_value_type.is_struct())
+                    //     || (assigned_output_type.is_array() && output_value_type.is_array())
+                    // {
+                    //     self.generate_string_store(
+                    //         assigned_output.get_basic_value_enum().into_pointer_value(),
+                    //         assigned_output_type,
+                    //         expression.get_location(),
+                    //         output,
+                    //         output_value_type,
+                    //         parameter.source_location.clone(),
+                    //     )?;
+                    // } else {
+                    //     let output_value = builder.build_load(output, "");
+                    //     builder.build_store(
+                    //         assigned_output.get_basic_value_enum().into_pointer_value(),
+                    //         output_value,
+                    //     );
+                    // }
                 }
             }
         }
         Ok(())
     }
 
+    /// generates a direct-access expression like `x.%B4`
+    /// - `qualifier` the qualifier statement (see `x` above)
+    /// - `qualifier_value` the generated value of the qualifier
+    /// - `member` the member AstStatement (see `%B4`above)
+    /// - `access` the type of access (see `B` above)
+    fn temp(
+        &self,
+        qualifier: &AstNode,
+        qualifier_value: &ExpressionValue<'ink>,
+        member: &AstNode,
+        access: &DirectAccessType,
+        index: &AstNode,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        todo!();
+        // let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
+        // let datatype = self.get_type_hint_info_for(member)?;
+        // let base_type = self.get_type_hint_for(qualifier)?;
+        // 
+        // //Generate and load the index value
+        // let rhs = self.generate_direct_access_index(access, index, datatype, base_type)?;
+        // //Shift the qualifer value right by the index value
+        // let shift = self.llvm.builder.build_right_shift(
+        //     loaded_base_value.into_int_value(),
+        //     rhs,
+        //     base_type.get_type_information().is_signed_int(),
+        //     "shift",
+        // );
+        // //Trunc the result to the get only the target size
+        // let value = self.llvm.builder.build_int_truncate_or_bit_cast(
+        //     shift,
+        //     self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
+        //     "",
+        // );
+        // 
+        // let result = if datatype.get_type_information().is_bool() {
+        //     // since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
+        //     self.llvm.builder.build_and(value, self.llvm.context.i8_type().const_int(1, false), "")
+        // } else {
+        //     value
+        // };
+        // 
+        // Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
+    }
+
     fn generate_explicit_output_assignment(
         &self,
         parameter_struct: PointerValue<'ink>,
         function_name: &str,
-        left: &AstNode,
-        right: &AstNode,
+        assignment: &AstNode,
     ) -> Result<(), Diagnostic> {
-        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
+        let (AstStatement::OutputAssignment(Assignment { left, right })
+        | AstStatement::Assignment(Assignment { left, right })) = &assignment.stmt
+        else {
+            todo!()
+        };
+
+        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(&left) {
             let parameter = self
                 .index
                 .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            self.assign_output_value(&CallParameterAssignment {
-                assignment_statement: right,
+
+            self.generate_output_assignment(&CallParameterAssignment {
+                assignment_statement: assignment,
                 function_name,
                 index,
                 parameter_struct,
-            })?
+            });
         };
         Ok(())
     }

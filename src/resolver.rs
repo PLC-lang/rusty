@@ -548,6 +548,8 @@ pub trait AnnotationMap {
     fn get_qualified_name(&self, s: &AstNode) -> Option<&str> {
         match self.get(s) {
             Some(StatementAnnotation::Function { qualified_name, .. }) => Some(qualified_name.as_str()),
+            Some(StatementAnnotation::Variable { qualified_name, .. }) => Some(qualified_name.as_str()),
+            //Some(StatementAnnotation::Program { qualified_name, .. }) => Some(qualified_name.as_str()), // TODO: Check if this breaks tests
             _ => self.get_call_name(s),
         }
     }
