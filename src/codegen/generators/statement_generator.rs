@@ -288,6 +288,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
 
+        // STRUCT foo
+        //  x : BIT
+        // END_STRUCT
+        // foo, foo.x
+
         // given a complex direct-access assignemnt: a.b.c.%W3,%X1
         // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
         let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)

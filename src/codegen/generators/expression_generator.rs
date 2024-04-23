@@ -536,6 +536,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
         dbg!(&param_context.index);
         match param_context.assignment_statement.get_stmt() {
+            // TODO: AstStatement::Assignment should not be a part of this?
             AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
@@ -628,7 +629,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 );
 
                                 // Step 6
-                                let res = self.llvm.builder.build_store(error_bits_lvalue, ored);
+                                let _ = self.llvm.builder.build_store(error_bits_lvalue, ored);
                             } else {
                                 unreachable!()
                             }
@@ -688,17 +689,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the type of access (see `B` above)
     fn temp(
         &self,
-        qualifier: &AstNode,
-        qualifier_value: &ExpressionValue<'ink>,
-        member: &AstNode,
-        access: &DirectAccessType,
-        index: &AstNode,
+        _qualifier: &AstNode,
+        _qualifier_value: &ExpressionValue<'ink>,
+        _member: &AstNode,
+        _access: &DirectAccessType,
+        _index: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         todo!();
         // let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
         // let datatype = self.get_type_hint_info_for(member)?;
         // let base_type = self.get_type_hint_for(qualifier)?;
-        // 
+        //
         // //Generate and load the index value
         // let rhs = self.generate_direct_access_index(access, index, datatype, base_type)?;
         // //Shift the qualifer value right by the index value
@@ -714,14 +715,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //     self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
         //     "",
         // );
-        // 
+        //
         // let result = if datatype.get_type_information().is_bool() {
         //     // since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
         //     self.llvm.builder.build_and(value, self.llvm.context.i8_type().const_int(1, false), "")
         // } else {
         //     value
         // };
-        // 
+        //
         // Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
     }
 
@@ -731,8 +732,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         assignment: &AstNode,
     ) -> Result<(), Diagnostic> {
-        let (AstStatement::OutputAssignment(Assignment { left, right })
-        | AstStatement::Assignment(Assignment { left, right })) = &assignment.stmt
+        let (AstStatement::OutputAssignment(Assignment { left, right: _ })
+        | AstStatement::Assignment(Assignment { left, right: _ })) = &assignment.stmt
         else {
             todo!()
         };
@@ -744,7 +745,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
 
-            self.generate_output_assignment(&CallParameterAssignment {
+            let _ = self.generate_output_assignment(&CallParameterAssignment {
                 assignment_statement: assignment,
                 function_name,
                 index,
