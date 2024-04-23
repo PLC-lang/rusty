@@ -339,14 +339,16 @@
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
+
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use </span>plc_ast::ast::AstNode;
 <span class="kw">use </span>plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode,
 };
-<span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">pub mod </span>diagnostics_registry;
 
