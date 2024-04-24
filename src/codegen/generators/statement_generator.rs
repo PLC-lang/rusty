@@ -362,6 +362,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
             //Generate an expression for the right size
+            //TODO: debug on master
             let right = exp_gen.generate_expression(right_statement)?;
             //Cast the right side to the left side type
             let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
