@@ -10,7 +10,6 @@ use crate::{
         VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
         is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
@@ -36,6 +35,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+use std::fmt::Pointer;
 use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
@@ -551,6 +551,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn temp_xxx(
         &self,
         left_lvalue: PointerValue,
+        right_lvalue: PointerValue,
         left_statement: &AstNode,
         right_statement: &AstNode,
     ) -> Result<(), Diagnostic> {
@@ -593,7 +594,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let right_type = self.get_type_hint_for(right_statement)?;
 
         if let Some((element, direct_access)) = access_sequence.split_first() {
-            let mut rhs = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+            let mut access_index = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
                 self.generate_direct_access_index(
                     &data.access,
                     &data.index,
@@ -620,40 +621,36 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .with_error_code("E055")
                         .with_location(element.get_location()))
                 }?;
-                rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
+                access_index = self.llvm.builder.build_int_add(access_index, rhs_next, "");
             }
 
             //Build mask for the index
             //Get the target bit type as all ones
-            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
+            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type(); //FIXME: we already have the lvalue -> can get type after loading
             let ones = rhs_type.const_all_ones();
+            let left_value = self.llvm.builder.build_load(left_lvalue, "");
             //Extend the mask to the target type
-            let extended_mask = self.llvm.builder.build_int_z_extend(
-                ones,
-                left_lvalue.as_basic_value_enum().into_int_value().get_type(),
-                "ext",
-            );
+            let extended_mask =
+                self.llvm.builder.build_int_z_extend(ones, left_value.into_int_value().get_type(), "ext");
             //Position the ones in their correct locations
-            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
+            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, access_index, "shift");
             //Invert the mask
             let mask = self.llvm.builder.build_not(shifted_mask, "invert");
             //And the result with the mask to erase the set bits at the target location
-            let and_value = self.llvm.builder.build_and(
-                left_lvalue.as_basic_value_enum().into_int_value(),
-                mask,
-                "erase",
-            );
+            let and_value = self.llvm.builder.build_and(left_value.into_int_value(), mask, "erase");
 
             //Generate an expression for the right size
-            let right = self.generate_expression(right_statement)?;
+            // let right = self.generate_expression(right_statement).unwrap(); //fixme: propagating with ? does not seem to work?!
+
+            let right = self.llvm.builder.build_load(right_lvalue, "aaa");
             //Cast the right side to the left side type
             let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
             //Shift left by the direct access
-            let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
+            let value = self.llvm.builder.build_left_shift(lhs, access_index, "value");
 
             //OR the result and store it in the left side
             let or_value = self.llvm.builder.build_or(and_value, value, "or");
-            self.llvm.builder.build_store(left_lvalue, or_value);
+            self.llvm.builder.build_store(right_lvalue, or_value);
         } else {
             unreachable!();
         }
@@ -679,13 +676,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr {
                             access: ReferenceAccess::Member(member),
                             base,
-                        }) = dbg!(&data_assignment.right.get_stmt())
+                        }) = &data_assignment.right.get_stmt()
                         {
-                            dbg!(&member);
-                            // LVALUE error_bits
-                            // RVALUE Q
-                            // errro_bits OR Q => res
-                            // store res, error_bits
                             let base_value_rvalue =
                                 base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
@@ -712,20 +704,22 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                         self.annotations.get_qualified_name(base).unwrap(),
                                     )
                                     .unwrap();
-                                let error_bits_rvalue =
-                                    self.llvm.builder.build_load(error_bits_lvalue, "aaa");
 
                                 // Step 2
                                 let q_lvalue = self
                                     .llvm
                                     .builder
-                                    .build_struct_gep(parameter_struct, index, "xxx")
+                                    .build_struct_gep(parameter_struct, index, "bbb")
                                     .unwrap();
-                                let q_rvalue = self.llvm.builder.build_load(q_lvalue, "yyy");
 
                                 // lhs = lvalue
                                 // rhs = astnode
-                                self.temp_xxx(q_lvalue, &data_assignment.right, &data_assignment.left)?;
+                                self.temp_xxx(
+                                    q_lvalue,
+                                    error_bits_lvalue,
+                                    &data_assignment.right,
+                                    &data_assignment.left,
+                                )?;
 
                                 //
                                 // // Step 3
@@ -760,19 +754,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         todo!("");
                         // self.generate_lvalue(expression)?
                     };
-
-                    let assigned_output_type =
-                        self.annotations.get_type_or_void(expression, self.index).get_type_information();
-
-                    let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                        Diagnostic::codegen_error(
-                            format!("Cannot build generate parameter: {parameter:#?}"),
-                            parameter.source_location.clone(),
-                        )
-                    })?;
-
-                    let output_value_type =
-                        self.index.get_type_information_or_void(parameter.get_type_name());
+                    //
+                    // let assigned_output_type =
+                    //     self.annotations.get_type_or_void(expression, self.index).get_type_information();
+                    //
+                    // let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                    //     Diagnostic::codegen_error(
+                    //         format!("Cannot build generate parameter: {parameter:#?}"),
+                    //         parameter.source_location.clone(),
+                    //     )
+                    // })?;
+                    //
+                    // let output_value_type =
+                    //     self.index.get_type_information_or_void(parameter.get_type_name());
 
                     // //Special string handling
                     // if (assigned_output_type.is_string() && output_value_type.is_string())
@@ -798,50 +792,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
         Ok(())
-    }
-
-    /// generates a direct-access expression like `x.%B4`
-    /// - `qualifier` the qualifier statement (see `x` above)
-    /// - `qualifier_value` the generated value of the qualifier
-    /// - `member` the member AstStatement (see `%B4`above)
-    /// - `access` the type of access (see `B` above)
-    fn temp(
-        &self,
-        _qualifier: &AstNode,
-        _qualifier_value: &ExpressionValue<'ink>,
-        _member: &AstNode,
-        _access: &DirectAccessType,
-        _index: &AstNode,
-    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        todo!();
-        // let loaded_base_value = qualifier_value.as_r_value(self.llvm, self.get_load_name(qualifier));
-        // let datatype = self.get_type_hint_info_for(member)?;
-        // let base_type = self.get_type_hint_for(qualifier)?;
-        //
-        // //Generate and load the index value
-        // let rhs = self.generate_direct_access_index(access, index, datatype, base_type)?;
-        // //Shift the qualifer value right by the index value
-        // let shift = self.llvm.builder.build_right_shift(
-        //     loaded_base_value.into_int_value(),
-        //     rhs,
-        //     base_type.get_type_information().is_signed_int(),
-        //     "shift",
-        // );
-        // //Trunc the result to the get only the target size
-        // let value = self.llvm.builder.build_int_truncate_or_bit_cast(
-        //     shift,
-        //     self.llvm_index.get_associated_type(datatype.get_name())?.into_int_type(),
-        //     "",
-        // );
-        //
-        // let result = if datatype.get_type_information().is_bool() {
-        //     // since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
-        //     self.llvm.builder.build_and(value, self.llvm.context.i8_type().const_int(1, false), "")
-        // } else {
-        //     value
-        // };
-        //
-        // Ok(ExpressionValue::RValue(result.as_basic_value_enum()))
     }
 
     fn generate_explicit_output_assignment(
