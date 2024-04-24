@@ -249,13 +249,13 @@ fn string_parameter_assignment_in_functions_with_multiple_size2() {
     let mut main_type = MainType { x: [0; 21], y: [0; 21] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    let Ok(long) = CStr::from_bytes_until_nul(&main_type.x).map(|it| it.to_string_lossy()) else { panic!() };
-    let Ok(short) = CStr::from_bytes_until_nul(&main_type.y).map(|it| it.to_string_lossy()) else { panic!() };
+    let long = CStr::from_bytes_until_nul(&main_type.x).unwrap().to_string_lossy();
+    let short = CStr::from_bytes_until_nul(&main_type.y).unwrap().to_string_lossy();
 
     // long string passed to short function and returned
-    assert_eq!(format!("{:?}", "hello"), format!("{:?}", &long));
+    assert_eq!("hello", &long);
     // short string passed to long function and returned
-    assert_eq!(format!("{:?}", "hello"), format!("{:?}", &short));
+    assert_eq!("hello", &short);
 }
 
 #[test]
