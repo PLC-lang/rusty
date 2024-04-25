@@ -523,7 +523,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     /// - `function_name` the name of the callable
     /// - `parameters` vec of passed parameters to the call
-    // TODO: Rename this fucking function
     fn assign_output_values(
         &self,
         parameter_struct: PointerValue<'ink>,
@@ -557,14 +556,26 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         dbg!(&param_context.index);
         match param_context.assignment_statement.get_stmt() {
             // TODO: AstStatement::Assignment should not be a part of this?
+            AstStatement::OutputAssignment(data) => self.generate_explicit_output_assignment(
+                param_context.parameter_struct,
+                param_context.function_name,
+                param_context.assignment_statement,
+            ),
+            _ => self.generate_output_assignment(param_context),
+        }
+
+        /*
+        match param_context.assignment_statement.get_stmt() {
             AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
                     param_context.function_name,
-                    &param_context.assignment_statement,
+                    &data.left,
+                    &data.right,
                 ),
             _ => self.generate_output_assignment(param_context),
         }
+         */
     }
 
     fn temp_xxx(
@@ -689,7 +700,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             panic!("or return?");
         };
 
-        if !parameter.get_variable_type().is_output() || expression.is_assignment() {
+        if !parameter.get_variable_type().is_output() {
             panic!("wtf... {parameter:#?}");
             // return Ok(());
         }
@@ -702,25 +713,42 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if !expression.is_empty_statement() {
             // FOO(x => y)
             // FOO(x => y.0)
-            let (node, access_type) = match expression.get_stmt() {
-                // TODO: Is the order (left, right) correct
-                AstStatement::OutputAssignment(data_assignment)
-                    if data_assignment.right.has_direct_access() =>
-                {
-                    dbg!(&data_assignment);
-                    (
-                        data_assignment.right.as_ref(),
-                        self.annotations.get_type_hint(&data_assignment.right, self.index).unwrap(),
-                    )
-                }
-
-                AstStatement::ReferenceExpr(expr) if expression.has_direct_access() => {
+            match expression.get_stmt() {
+                AstStatement::ReferenceExpr(_) if expression.has_direct_access() => {
                     let _pou = dbg!(self.index.find_pou(function_name).unwrap());
                     let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
                     let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
                     let param = dbg!(&members[index as usize]); // TODO: Create a test for this; this fucks up if populating the members is not in order
                     let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
-                    (expression, dt)
+
+                    let AstStatement::ReferenceExpr(ReferenceExpr {
+                        access: ReferenceAccess::Member(member),
+                        base,
+                    }) = &expression.get_stmt()
+                    else {
+                        unreachable!("must be a bitaccess, will return early for all other cases")
+                    };
+                    let base_value_rvalue =
+                        base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+
+                    if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
+                        let (Some(base), S_) = (base, ..) else { panic!() };
+                        // Step 1
+                        let error_bits_lvalue = self
+                            .llvm_index
+                            .find_loaded_associated_variable_value(
+                                self.annotations.get_qualified_name(base).unwrap(),
+                            )
+                            .unwrap();
+
+                        // Step 2
+                        let q_lvalue =
+                            self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
+
+                        // lhs = lvalue
+                        // rhs = astnode
+                        self.temp_xxx(error_bits_lvalue, q_lvalue, &expression, &dt)?;
+                    };
                 }
 
                 _ => {
@@ -757,32 +785,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let output_value = builder.build_load(output, "");
                         builder.build_store(assigned_output, output_value);
                     }
-                    return Ok(());
                     // todo!("handle fallthrough, return early; {expression:#?}")
                 }
-            };
-
-            let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) =
-                &node.get_stmt()
-            else {
-                unreachable!("must be a bitaccess, will return early for all other cases")
-            };
-            let base_value_rvalue = base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
-
-            if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
-                let (Some(base), _) = (base, ..) else { panic!() };
-                // Step 1
-                let error_bits_lvalue = self
-                    .llvm_index
-                    .find_loaded_associated_variable_value(self.annotations.get_qualified_name(base).unwrap())
-                    .unwrap();
-
-                // Step 2
-                let q_lvalue = self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
-
-                // lhs = lvalue
-                // rhs = astnode
-                self.temp_xxx(error_bits_lvalue, q_lvalue, &node, &access_type)?;
             };
         }
         Ok(())
@@ -794,9 +798,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         assignment: &AstNode,
     ) -> Result<(), Diagnostic> {
-        let (AstStatement::OutputAssignment(Assignment { left, right: _ })
-        | AstStatement::Assignment(Assignment { left, right: _ })) = &assignment.stmt
-        else {
+        let AstStatement::OutputAssignment(Assignment { left, right, .. }) = assignment.get_stmt() else {
             todo!()
         };
 
@@ -808,7 +810,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let index = parameter.get_location_in_parent();
 
             self.generate_output_assignment(&CallParameterAssignment {
-                assignment_statement: assignment,
+                assignment_statement: right,
                 function_name,
                 index,
                 parameter_struct,
