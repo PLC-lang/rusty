@@ -3,8 +3,8 @@
 ### 1. Introduction
 
 - **Purpose**: why do we write this and who do we write this for
-- **Scope**: This guideline applies to all developers contributing to the
-  `m100-application-runtime` async scheduler API.
+- **Scope**: This guideline applies to all developers writing libraries for
+         use in IEC61131-3 applications.
 
 ### 2. Style-Specific Guidelines
 
@@ -223,7 +223,7 @@ To stay standard compliant, an API/Library should try and follow these guideline
 
 #### 2.3.1 Type sizes
 
-Datatypes are generally convertable to C equivalent. With M100 buing a 64 bit system, some sizes were also fixed to 64bit.
+Datatypes are generally convertable to C equivalent. With M100 being a 64 bit system, some sizes were also fixed to 64bit.
 
 Below is a table of primitive types and how they can be used from C
 
