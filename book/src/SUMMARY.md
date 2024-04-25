@@ -22,3 +22,4 @@
   - [Codegen](./arch/codegen.md)
 - [CFC](./cfc/cfc.md)
   - [Model-to-Model Conversion](./cfc/m2m.md)
+- [lib guide](./api_lib_guide.md)
