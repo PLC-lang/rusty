@@ -19,7 +19,7 @@ fn internal_vla_struct_is_generated_for_call_statements() {
     "#,
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn vla_read_access() {
     "#,
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn global_variable_passed_to_function_as_vla() {
     "#,
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn multi_dimensional_vla() {
     "#,
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -114,5 +114,5 @@ fn consecutive_calls_with_differently_sized_arrays() {
     "#,
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }

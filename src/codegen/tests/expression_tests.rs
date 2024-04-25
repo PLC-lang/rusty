@@ -7,7 +7,7 @@ fn pointers_in_function_return() {
         r#"FUNCTION func : REF_TO INT
         END_FUNCTION"#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn structs_in_function_return() {
             END_VAR
         END_FUNCTION"#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn strings_in_function_return() {
             myout^ := 'hello';
        END_FUNCTION"#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn calling_strings_in_function_return() {
        END_PROGRAM
        "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn unary_expressions_can_be_real() {
             END_PROGRAM
         "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn type_mix_in_call() {
     ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn cast_pointer_to_lword() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn cast_lword_to_pointer() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn cast_between_pointer_types() {
     );
 
     //should result in bitcast conversion when assigning to ptr_x
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -176,7 +176,7 @@ fn unnecessary_casts_between_pointer_types() {
     );
 
     //should not result in bitcast
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -199,7 +199,7 @@ fn access_string_via_byte_array() {
     );
 
     //should result in bitcasts
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn pointer_arithmetics() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -251,7 +251,7 @@ fn pointer_arithmetics_function_call() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -272,7 +272,7 @@ fn nested_call_statements() {
     );
     // WHEN compiled
     // WE expect a flat sequence of calls, no regions and branching
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn builtin_function_call_adr() {
     );
     // WHEN compiled
     // We expect a direct conversion to lword and subsequent assignment (no call)
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -310,7 +310,7 @@ fn builtin_function_call_ref() {
     );
     // WHEN compiled
     // We expect a direct conversion and subsequent assignment to pointer(no call)
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -324,7 +324,7 @@ fn builtin_function_call_mux() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -338,7 +338,7 @@ fn builtin_function_call_mux_with_aggregate_type() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -352,7 +352,7 @@ fn builtin_function_call_sel() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -366,7 +366,7 @@ fn builtin_function_call_sel_as_expression() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -380,7 +380,7 @@ fn builtin_function_call_move() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -395,7 +395,7 @@ fn builtin_function_call_sizeof() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -419,7 +419,7 @@ fn builtin_function_call_lower_bound() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -443,7 +443,7 @@ fn builtin_function_call_upper_bound() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -472,7 +472,7 @@ fn builtin_function_call_upper_bound_expr() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -489,7 +489,7 @@ fn test_max_int() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -515,7 +515,7 @@ fn compare_date_time_literals() {
     ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -536,7 +536,7 @@ fn hardware_access_codegen() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -557,7 +557,7 @@ fn hardware_access_assign_codegen() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -581,7 +581,7 @@ fn allowed_assignable_types() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -599,7 +599,7 @@ fn builtin_add_ints() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -616,7 +616,7 @@ fn builtin_add_float() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -633,7 +633,7 @@ fn builtin_add_mixed() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -651,7 +651,7 @@ fn builtin_mul_ints() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -668,7 +668,7 @@ fn builtin_mul_float() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -685,7 +685,7 @@ fn builtin_mul_mixed() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -702,7 +702,7 @@ fn builtin_sub_ints() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -719,7 +719,7 @@ fn builtin_sub_float() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -736,7 +736,7 @@ fn builtin_sub_mixed() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -753,7 +753,7 @@ fn builtin_div_ints() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -770,7 +770,7 @@ fn builtin_div_float() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }
 
 #[test]
@@ -787,5 +787,5 @@ fn builtin_div_mixed() {
 
     let res = codegen(src);
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }

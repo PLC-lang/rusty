@@ -21,7 +21,7 @@ fn test_global_var_int_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen.clone())
 }
 
 #[test]
@@ -38,7 +38,7 @@ fn test_global_var_byteseq_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_global_var_enum_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn test_global_var_float_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_global_var_array_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn test_global_var_pointer_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn test_global_var_string_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -129,7 +129,7 @@ fn test_global_var_struct_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn test_global_var_nested_struct_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -168,7 +168,7 @@ fn test_global_alias_type() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }
 
 #[test]
@@ -184,5 +184,5 @@ fn test_dwarf_version_override() {
         4,
     );
 
-    assert_snapshot!(codegen)
+    assert_codegen!(codegen)
 }

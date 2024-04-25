@@ -18,7 +18,7 @@ fn assigning_const_string_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn assigning_const_array_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -66,5 +66,5 @@ fn assigning_const_struct_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }

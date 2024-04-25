@@ -1,6 +1,8 @@
 #[cfg(test)]
 pub mod tests {
 
+    use insta::assert_snapshot;
+    use regex::Regex;
     use std::{path::PathBuf, str::FromStr};
 
     use plc_ast::{

@@ -16,7 +16,7 @@ fn bitaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn byteaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn wordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn dwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn lwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -91,7 +91,7 @@ fn chained_bit_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }
 
 #[test]
@@ -110,5 +110,5 @@ fn qualified_reference_assignment() {
 
         ",
     );
-    insta::assert_snapshot!(prog);
+    assert_codegen!(prog);
 }

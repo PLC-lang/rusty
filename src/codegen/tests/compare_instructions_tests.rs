@@ -19,7 +19,7 @@ fn string_comparison_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn string_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn string_less_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn string_greater_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -100,7 +100,7 @@ fn string_not_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -123,7 +123,7 @@ fn string_smaller_or_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn string_greater_or_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -164,7 +164,7 @@ fn ranged_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn aliased_ranged_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -203,7 +203,7 @@ fn aliased_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -230,7 +230,7 @@ fn pointer_compare_instructions() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -259,7 +259,7 @@ fn pointer_function_call_compare_instructions() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -317,7 +317,7 @@ fn compare_instructions_with_different_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -378,7 +378,7 @@ fn compare_instruction_functions_with_different_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -396,5 +396,5 @@ fn compare_datetime_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }

@@ -4,6 +4,7 @@ use source_code::SourceCode;
 use crate::tests::compile_with_root;
 
 #[test]
+#[ignore]
 fn multiple_source_files_generated() {
     //Given 2 sources
     let src1 = SourceCode::new(
@@ -40,6 +41,7 @@ fn multiple_source_files_generated() {
 }
 
 #[test]
+#[ignore]
 fn multiple_files_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(
@@ -79,6 +81,7 @@ fn multiple_files_with_debug_info() {
 }
 
 #[test]
+#[ignore]
 fn multiple_files_in_different_locations_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(

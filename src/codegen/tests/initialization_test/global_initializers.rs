@@ -35,7 +35,7 @@ fn initial_values_in_global_constant_variables() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn initial_values_in_global_variables() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn initial_values_in_global_variables_out_of_order() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn uninitialized_global_array() {
          ",
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 // regression for #634
@@ -122,7 +122,7 @@ fn global_constant_without_initializer_gets_default_initializer() {
     );
 
     // should initialize cmd1 & cmd2 with zeroinitializer
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 // regression for #634
@@ -151,5 +151,5 @@ fn global_constant_without_initializer_gets_declared_initializer() {
     );
 
     //should initialize cmd1 and cmd2 with @__comamnds__init
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }

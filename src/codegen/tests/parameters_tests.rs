@@ -28,7 +28,7 @@ fn function_all_parameters_assigned() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn function_empty_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn function_empty_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn function_empty_output_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -144,7 +144,7 @@ fn function_empty_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn function_missing_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -202,7 +202,7 @@ fn function_missing_input_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -231,7 +231,7 @@ fn function_missing_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -260,7 +260,7 @@ fn function_missing_output_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -289,7 +289,7 @@ fn function_missing_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -321,7 +321,7 @@ fn function_default_value_parameter_type() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -351,7 +351,7 @@ fn program_all_parameters_assigned_explicit() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -380,7 +380,7 @@ fn program_all_parameters_assigned_implicit() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -409,7 +409,7 @@ fn program_empty_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -438,7 +438,7 @@ fn program_missing_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -467,7 +467,7 @@ fn program_missing_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -489,7 +489,7 @@ fn program_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -516,7 +516,7 @@ fn program_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -541,7 +541,7 @@ fn fb_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -567,7 +567,7 @@ fn fb_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -589,7 +589,7 @@ fn function_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -614,7 +614,7 @@ fn function_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -641,7 +641,7 @@ fn parameters_behind_function_block_pointer_are_assigned_to() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -684,5 +684,5 @@ fn var_in_out_params_can_be_out_of_order() {
     END_ACTIONS",
     );
 
-    insta::assert_snapshot!(res);
+    assert_codegen!(res);
 }

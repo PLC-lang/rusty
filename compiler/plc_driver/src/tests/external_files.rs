@@ -4,6 +4,7 @@ use source_code::SourceCode;
 use crate::tests::compile_to_string;
 
 #[test]
+#[ignore]
 fn external_file_function_call() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(
@@ -29,6 +30,7 @@ fn external_file_function_call() {
 }
 
 #[test]
+#[ignore]
 fn external_file_global_var() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(

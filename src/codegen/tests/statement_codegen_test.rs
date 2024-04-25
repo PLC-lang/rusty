@@ -15,7 +15,7 @@ a := y.%X4;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -33,7 +33,7 @@ a := y.%B3;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -51,7 +51,7 @@ a := y.%W1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -69,7 +69,7 @@ a := y.%D1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -85,7 +85,7 @@ a := x.%D1.%W1.%B1.%X1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -103,7 +103,7 @@ b := x.%By;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -126,7 +126,7 @@ fn function_result_assignment_on_string() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -152,7 +152,7 @@ fn function_result_assignment_on_aliased_string() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }
 
 #[test]
@@ -182,5 +182,5 @@ fn floating_point_type_casting() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    assert_codegen!(result);
 }

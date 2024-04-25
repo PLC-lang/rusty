@@ -780,6 +780,7 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    dbg!(&left, &right);
     if let Some(left) = left {
         // Check if we are assigning to a...
         if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =

@@ -38,6 +38,7 @@ use inkwell::{
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use regex::Regex;
 
 mod debug;
 pub(crate) mod generators;
@@ -436,11 +437,34 @@ impl<'ink> GeneratedModule<'ink> {
             .map(|_| output)
     }
 
+    pub fn persist_to_string2(&self) -> String {
+        self.module.to_string()
+    }
+
     ///
     /// Persists the given module to a string
     ///
     pub fn persist_to_string(&self) -> String {
-        self.module.to_string()
+        let mut ir = self.module.to_string();
+
+        // if cfg!(target_os = "macos") {
+        //     let regex = Regex::new(r#"section "(?P<leading_comma>,).*?""#).unwrap();
+        //     // let content = regex.replace_all(&content, "");
+        //     let ranges = regex
+        //         .captures_iter(&ir)
+        //         .flat_map(|it| it.name("leading_comma"))
+        //         .map(|it| it.range())
+        //         .collect::<Vec<_>>();
+        //
+        //     let new = String::new();
+        //     for (idx, range) in ranges.iter().enumerate() {
+        //         ir.replace_range(range.start - idx..range.end - idx, "");
+        //     }
+        //
+        //     return ir;
+        // }
+
+        ir
     }
 
     ///
