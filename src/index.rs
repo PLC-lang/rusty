@@ -336,6 +336,12 @@ pub enum VariableType {
     Return,
 }
 
+impl VariableType {
+    pub fn is_output(&self) -> bool {
+        matches!(self, VariableType::Output)
+    }
+}
+
 impl std::fmt::Display for VariableType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

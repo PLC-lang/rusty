@@ -1,3 +1,28 @@
+use std::fmt::Pointer;
+use std::{collections::HashSet, vec};
+
+use inkwell::{
+    builder::Builder,
+    types::{BasicType, BasicTypeEnum},
+    values::{
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
+        StructValue, VectorValue,
+    },
+    AddressSpace, FloatPredicate, IntPredicate,
+};
+
+use plc_ast::ast::Assignment;
+use plc_ast::{
+    ast::{
+        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
+        ReferenceAccess, ReferenceExpr,
+    },
+    literals::AstLiteral,
+};
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_source::source_location::SourceLocation;
+use plc_util::convention::qualified_name;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     codegen::{
@@ -16,30 +41,9 @@ use crate::{
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
-use inkwell::{
-    builder::Builder,
-    types::{BasicType, BasicTypeEnum},
-    values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
-        StructValue, VectorValue,
-    },
-    AddressSpace, FloatPredicate, IntPredicate,
-};
-use plc_ast::ast::Assignment;
-use plc_ast::{
-    ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
-    },
-    literals::AstLiteral,
-};
-use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceLocation;
-use plc_util::convention::qualified_name;
-use std::fmt::Pointer;
-use std::{collections::HashSet, vec};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
+
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     pub llvm: &'b Llvm<'a>,
@@ -418,8 +422,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
-            // for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
-            .or_else(|| self.index.find_pou(qualified_name)))
+                // for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+                .or_else(|| self.index.find_pou(qualified_name)))
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 if let Some(name) = operator.get_flat_reference_name() {
@@ -524,6 +528,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), Diagnostic> {
+        // TODO: Here maybe?
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
             self.assign_output_value(&CallParameterAssignment {
                 assignment_statement,
@@ -554,7 +559,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         left_lvalue: PointerValue,
         right_lvalue: PointerValue,
         left_statement: &AstNode,
-        right_statement: &AstNode,
+        right_type: &DataType,
     ) -> Result<(), Diagnostic> {
         /// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
         /// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
@@ -585,7 +590,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
 
         let left_type = self.get_type_hint_for(target)?;
-        let right_type = self.get_type_hint_for(right_statement)?;
 
         //special case if we deal with a single bit, then we need to switch to a faked u1 type
         let right_type =
@@ -661,106 +665,123 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
-    fn generate_output_assignment(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
+    fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
-        let expression = param_context.assignment_statement;
-        let parameter_struct = param_context.parameter_struct;
-        let function_name = param_context.function_name;
-        let index = param_context.index;
-        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
-            if matches!(parameter.get_variable_type(), VariableType::Output)
-                && !matches!(expression.get_stmt(), AstStatement::EmptyStatement { .. })
-            {
-                {
-                    let assigned_output = if let (AstStatement::Assignment(data_assignment)
-                    | AstStatement::OutputAssignment(data_assignment)) =
-                        expression.get_stmt()
-                    {
-                        // if bitaccess rhs -> generate lvalue
-                        let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr {
-                            access: ReferenceAccess::Member(member),
-                            base,
-                        }) = &data_assignment.right.get_stmt()
-                        {
-                            let base_value_rvalue =
-                                base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+        let expression = context.assignment_statement;
+        let parameter_struct = context.parameter_struct;
+        let function_name = context.function_name;
+        let index = context.index;
 
-                            if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
-                                let (Some(base), Some(base_value)) = (base, base_value_rvalue) else {
-                                    panic!()
-                                };
-                                // Step 1
-                                let error_bits_lvalue = self
-                                    .llvm_index
-                                    .find_loaded_associated_variable_value(
-                                        self.annotations.get_qualified_name(base).unwrap(),
-                                    )
-                                    .unwrap();
+        let Some(parameter) = self.index.get_declared_parameter(function_name, index) else {
+            panic!("or return?");
+        };
 
-                                // Step 2
-                                let q_lvalue = self
-                                    .llvm
-                                    .builder
-                                    .build_struct_gep(parameter_struct, index, "bbb")
-                                    .unwrap();
-
-                                // lhs = lvalue
-                                // rhs = astnode
-                                self.temp_xxx(
-                                    error_bits_lvalue,
-                                    q_lvalue,
-                                    &data_assignment.right,
-                                    &data_assignment.left,
-                                )?;
-                            } else {
-                                unreachable!()
-                            }
-                        } else {
-                            unreachable!()
-                        };
-
-                        assigned_output
-                    } else {
-                        todo!("");
-                        // self.generate_lvalue(expression)?
-                    };
-                    //
-                    // let assigned_output_type =
-                    //     self.annotations.get_type_or_void(expression, self.index).get_type_information();
-                    //
-                    // let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                    //     Diagnostic::codegen_error(
-                    //         format!("Cannot build generate parameter: {parameter:#?}"),
-                    //         parameter.source_location.clone(),
-                    //     )
-                    // })?;
-                    //
-                    // let output_value_type =
-                    //     self.index.get_type_information_or_void(parameter.get_type_name());
-
-                    // //Special string handling
-                    // if (assigned_output_type.is_string() && output_value_type.is_string())
-                    //     || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                    //     || (assigned_output_type.is_array() && output_value_type.is_array())
-                    // {
-                    //     self.generate_string_store(
-                    //         assigned_output.get_basic_value_enum().into_pointer_value(),
-                    //         assigned_output_type,
-                    //         expression.get_location(),
-                    //         output,
-                    //         output_value_type,
-                    //         parameter.source_location.clone(),
-                    //     )?;
-                    // } else {
-                    //     let output_value = builder.build_load(output, "");
-                    //     builder.build_store(
-                    //         assigned_output.get_basic_value_enum().into_pointer_value(),
-                    //         output_value,
-                    //     );
-                    // }
-                }
-            }
+        if !parameter.get_variable_type().is_output() || expression.is_assignment() {
+            panic!("wtf...");
         }
+
+        // TODO: How to trigger an empty statement here, this: `FOO(Q => );`?
+        if expression.is_empty_statement() {
+            panic!("we did it mom");
+        }
+
+        if !expression.is_empty_statement() {
+            // FOO(x => y)
+            // FOO(x => y.0)
+            let (node, access_type) = match expression.get_stmt() {
+                // TODO: Is the order (left, right) correct
+                AstStatement::OutputAssignment(data_assignment)
+                    if data_assignment.right.has_direct_access() =>
+                {
+                    dbg!(&data_assignment);
+                    (
+                        data_assignment.right.as_ref(),
+                        self.annotations.get_type_hint(&data_assignment.right, self.index).unwrap(),
+                    )
+                }
+
+                AstStatement::ReferenceExpr(expr) if expression.has_direct_access() => {
+                    let _pou = dbg!(self.index.find_pou(function_name).unwrap());
+                    let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
+                    let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
+                    let param = dbg!(&members[index as usize]); // TODO: Create a test for this; this fucks up if populating the members is not in order
+                    let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
+                    (expression, dt)
+                }
+
+                _ => todo!("handle fallthrough, return early"),
+            };
+
+            let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(member),
+                base,
+            }) = &node.get_stmt()
+            {
+                let base_value_rvalue =
+                    base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+
+                if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
+                    let (Some(base), Some(base_value)) = (base, base_value_rvalue) else { panic!() };
+                    // Step 1
+                    let error_bits_lvalue = self
+                        .llvm_index
+                        .find_loaded_associated_variable_value(
+                            self.annotations.get_qualified_name(base).unwrap(),
+                        )
+                        .unwrap();
+
+                    // Step 2
+                    let q_lvalue =
+                        self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
+
+                    // lhs = lvalue
+                    // rhs = astnode
+                    self.temp_xxx(error_bits_lvalue, q_lvalue, &node, &access_type)?;
+                };
+            } else {
+                unreachable!()
+            };
+
+            assigned_output
+        } else {
+            todo!("");
+            // self.generate_lvalue(expression)?
+        };
+
+        //
+        // let assigned_output_type =
+        //     self.annotations.get_type_or_void(expression, self.index).get_type_information();
+        //
+        // let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+        //     Diagnostic::codegen_error(
+        //         format!("Cannot build generate parameter: {parameter:#?}"),
+        //         parameter.source_location.clone(),
+        //     )
+        // })?;
+        //
+        // let output_value_type =
+        //     self.index.get_type_information_or_void(parameter.get_type_name());
+
+        // //Special string handling
+        // if (assigned_output_type.is_string() && output_value_type.is_string())
+        //     || (assigned_output_type.is_struct() && output_value_type.is_struct())
+        //     || (assigned_output_type.is_array() && output_value_type.is_array())
+        // {
+        //     self.generate_string_store(
+        //         assigned_output.get_basic_value_enum().into_pointer_value(),
+        //         assigned_output_type,
+        //         expression.get_location(),
+        //         output,
+        //         output_value_type,
+        //         parameter.source_location.clone(),
+        //     )?;
+        // } else {
+        //     let output_value = builder.build_load(output, "");
+        //     builder.build_store(
+        //         assigned_output.get_basic_value_enum().into_pointer_value(),
+        //         output_value,
+        //     );
+        // }
         Ok(())
     }
 
