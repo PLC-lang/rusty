@@ -1,0 +1,28 @@
+---
+source: src/codegen/tests/parameters_tests.rs
+assertion_line: 570
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%fb_t = type { i32, i32 }
+%main = type { %fb_t, i32 }
+
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
+@main_instance = global %main zeroinitializer
+
+define void @fb_t(%fb_t* %0) section "fn-fb_t:v[i32][i32]" {
+entry:
+  %out1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %out2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
+  ret void
+}
+
+define void @main(%main* %0) section "fn-main:v" {
+entry:
+  %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  call void @fb_t(%fb_t* %fb)
+  ret void
+}

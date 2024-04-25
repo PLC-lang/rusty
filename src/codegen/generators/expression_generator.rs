@@ -506,12 +506,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
-        // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef`
+        // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef` // FIXME(mhasel): for standard-compliance functions also need to support VAR_OUTPUT
         if !pou.is_function() {
             let parameter_struct = match arguments_list.first() {
                 Some(v) => v.into_pointer_value(),
                 None => self.generate_lvalue(operator)?,
             };
+
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
 
@@ -522,20 +523,32 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     /// - `function_name` the name of the callable
     /// - `parameters` vec of passed parameters to the call
+    // TODO: Rename this fucking function
     fn assign_output_values(
         &self,
         parameter_struct: PointerValue<'ink>,
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), Diagnostic> {
-        // TODO: Here maybe?
+        // self.index.get_declared_parameter(function_name, index)
+
+        // Before
+        // parameter = vec![foo, bar, baz]
+        //                       ^^^ output, index = 1
+        // After (filtered)
+        // parameter = vec![bar]
+
+        let pou_info = self.index.get_declared_parameters(function_name);
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
-            self.assign_output_value(&CallParameterAssignment {
-                assignment_statement,
-                function_name,
-                index: index as u32,
-                parameter_struct,
-            })?
+            // TODO: Filter this
+            if pou_info.get(index).is_some_and(|it| it.get_variable_type().is_output()) {
+                self.assign_output_value(&CallParameterAssignment {
+                    assignment_statement,
+                    function_name,
+                    index: index as u32,
+                    parameter_struct,
+                })?
+            }
         }
         Ok(())
     }
@@ -677,7 +690,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
 
         if !parameter.get_variable_type().is_output() || expression.is_assignment() {
-            panic!("wtf...");
+            panic!("wtf... {parameter:#?}");
+            // return Ok(());
         }
 
         // TODO: How to trigger an empty statement here, this: `FOO(Q => );`?
@@ -709,79 +723,68 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (expression, dt)
                 }
 
-                _ => todo!("handle fallthrough, return early"),
-            };
+                _ => {
+                    dbg!(&expression);
+                    let assigned_output = self.generate_lvalue(expression)?;
 
-            let assigned_output = if let AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Member(member),
-                base,
-            }) = &node.get_stmt()
-            {
-                let base_value_rvalue =
-                    base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+                    let assigned_output_type =
+                        self.annotations.get_type_or_void(expression, self.index).get_type_information();
 
-                if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
-                    let (Some(base), Some(base_value)) = (base, base_value_rvalue) else { panic!() };
-                    // Step 1
-                    let error_bits_lvalue = self
-                        .llvm_index
-                        .find_loaded_associated_variable_value(
-                            self.annotations.get_qualified_name(base).unwrap(),
+                    let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                        Diagnostic::codegen_error(
+                            format!("Cannot build generate parameter: {parameter:#?}"),
+                            parameter.source_location.clone(),
                         )
-                        .unwrap();
+                    })?;
 
-                    // Step 2
-                    let q_lvalue =
-                        self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
+                    let output_value_type =
+                        self.index.get_type_information_or_void(parameter.get_type_name());
 
-                    // lhs = lvalue
-                    // rhs = astnode
-                    self.temp_xxx(error_bits_lvalue, q_lvalue, &node, &access_type)?;
-                };
-            } else {
-                unreachable!()
+                    //Special string handling
+                    if (assigned_output_type.is_string() && output_value_type.is_string())
+                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
+                        || (assigned_output_type.is_array() && output_value_type.is_array())
+                    {
+                        self.generate_string_store(
+                            assigned_output,
+                            assigned_output_type,
+                            expression.get_location(),
+                            output,
+                            output_value_type,
+                            parameter.source_location.clone(),
+                        )?;
+                    } else {
+                        let output_value = builder.build_load(output, "");
+                        builder.build_store(assigned_output, output_value);
+                    }
+                    return Ok(());
+                    // todo!("handle fallthrough, return early; {expression:#?}")
+                }
             };
 
-            assigned_output
-        } else {
-            todo!("");
-            // self.generate_lvalue(expression)?
-        };
+            let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) =
+                &node.get_stmt()
+            else {
+                unreachable!("must be a bitaccess, will return early for all other cases")
+            };
+            let base_value_rvalue = base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
-        //
-        // let assigned_output_type =
-        //     self.annotations.get_type_or_void(expression, self.index).get_type_information();
-        //
-        // let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-        //     Diagnostic::codegen_error(
-        //         format!("Cannot build generate parameter: {parameter:#?}"),
-        //         parameter.source_location.clone(),
-        //     )
-        // })?;
-        //
-        // let output_value_type =
-        //     self.index.get_type_information_or_void(parameter.get_type_name());
+            if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
+                let (Some(base), _) = (base, ..) else { panic!() };
+                // Step 1
+                let error_bits_lvalue = self
+                    .llvm_index
+                    .find_loaded_associated_variable_value(self.annotations.get_qualified_name(base).unwrap())
+                    .unwrap();
 
-        // //Special string handling
-        // if (assigned_output_type.is_string() && output_value_type.is_string())
-        //     || (assigned_output_type.is_struct() && output_value_type.is_struct())
-        //     || (assigned_output_type.is_array() && output_value_type.is_array())
-        // {
-        //     self.generate_string_store(
-        //         assigned_output.get_basic_value_enum().into_pointer_value(),
-        //         assigned_output_type,
-        //         expression.get_location(),
-        //         output,
-        //         output_value_type,
-        //         parameter.source_location.clone(),
-        //     )?;
-        // } else {
-        //     let output_value = builder.build_load(output, "");
-        //     builder.build_store(
-        //         assigned_output.get_basic_value_enum().into_pointer_value(),
-        //         output_value,
-        //     );
-        // }
+                // Step 2
+                let q_lvalue = self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
+
+                // lhs = lvalue
+                // rhs = astnode
+                self.temp_xxx(error_bits_lvalue, q_lvalue, &node, &access_type)?;
+            };
+        }
         Ok(())
     }
 
@@ -804,12 +807,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
 
-            let _ = self.generate_output_assignment(&CallParameterAssignment {
+            self.generate_output_assignment(&CallParameterAssignment {
                 assignment_statement: assignment,
                 function_name,
                 index,
                 parameter_struct,
-            });
+            })?
         };
         Ok(())
     }
