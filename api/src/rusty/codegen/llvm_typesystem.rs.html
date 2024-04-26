@@ -365,6 +365,7 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>inkwell::{
     context::Context,
@@ -677,7 +678,8 @@
         </span><span class="kw">let </span>dimensions =
             dims.iter().map(|it| cast_data.llvm.i32_type().const_int(<span class="kw-2">*</span>it <span class="kw">as </span>u64, <span class="bool-val">true</span>)).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">let </span>array_value = cast_data.llvm.i32_type().const_array(<span class="kw-2">&amp;</span>dimensions);
-        builder.build_store(vla_dimensions_ptr, array_value);
+        <span class="comment">// FIXME: should be memcopied, but is an rvalue. can only initialize global variables with value types. any other way for alloca'd variables than using store?
+        </span>builder.build_store(vla_dimensions_ptr, array_value);
 
         builder.build_store(vla_arr_ptr, arr_gep);
 

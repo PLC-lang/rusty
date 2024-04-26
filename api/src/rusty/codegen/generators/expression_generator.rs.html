@@ -2671,83 +2671,6 @@
 <a href="#2669" id="2669">2669</a>
 <a href="#2670" id="2670">2670</a>
 <a href="#2671" id="2671">2671</a>
-<a href="#2672" id="2672">2672</a>
-<a href="#2673" id="2673">2673</a>
-<a href="#2674" id="2674">2674</a>
-<a href="#2675" id="2675">2675</a>
-<a href="#2676" id="2676">2676</a>
-<a href="#2677" id="2677">2677</a>
-<a href="#2678" id="2678">2678</a>
-<a href="#2679" id="2679">2679</a>
-<a href="#2680" id="2680">2680</a>
-<a href="#2681" id="2681">2681</a>
-<a href="#2682" id="2682">2682</a>
-<a href="#2683" id="2683">2683</a>
-<a href="#2684" id="2684">2684</a>
-<a href="#2685" id="2685">2685</a>
-<a href="#2686" id="2686">2686</a>
-<a href="#2687" id="2687">2687</a>
-<a href="#2688" id="2688">2688</a>
-<a href="#2689" id="2689">2689</a>
-<a href="#2690" id="2690">2690</a>
-<a href="#2691" id="2691">2691</a>
-<a href="#2692" id="2692">2692</a>
-<a href="#2693" id="2693">2693</a>
-<a href="#2694" id="2694">2694</a>
-<a href="#2695" id="2695">2695</a>
-<a href="#2696" id="2696">2696</a>
-<a href="#2697" id="2697">2697</a>
-<a href="#2698" id="2698">2698</a>
-<a href="#2699" id="2699">2699</a>
-<a href="#2700" id="2700">2700</a>
-<a href="#2701" id="2701">2701</a>
-<a href="#2702" id="2702">2702</a>
-<a href="#2703" id="2703">2703</a>
-<a href="#2704" id="2704">2704</a>
-<a href="#2705" id="2705">2705</a>
-<a href="#2706" id="2706">2706</a>
-<a href="#2707" id="2707">2707</a>
-<a href="#2708" id="2708">2708</a>
-<a href="#2709" id="2709">2709</a>
-<a href="#2710" id="2710">2710</a>
-<a href="#2711" id="2711">2711</a>
-<a href="#2712" id="2712">2712</a>
-<a href="#2713" id="2713">2713</a>
-<a href="#2714" id="2714">2714</a>
-<a href="#2715" id="2715">2715</a>
-<a href="#2716" id="2716">2716</a>
-<a href="#2717" id="2717">2717</a>
-<a href="#2718" id="2718">2718</a>
-<a href="#2719" id="2719">2719</a>
-<a href="#2720" id="2720">2720</a>
-<a href="#2721" id="2721">2721</a>
-<a href="#2722" id="2722">2722</a>
-<a href="#2723" id="2723">2723</a>
-<a href="#2724" id="2724">2724</a>
-<a href="#2725" id="2725">2725</a>
-<a href="#2726" id="2726">2726</a>
-<a href="#2727" id="2727">2727</a>
-<a href="#2728" id="2728">2728</a>
-<a href="#2729" id="2729">2729</a>
-<a href="#2730" id="2730">2730</a>
-<a href="#2731" id="2731">2731</a>
-<a href="#2732" id="2732">2732</a>
-<a href="#2733" id="2733">2733</a>
-<a href="#2734" id="2734">2734</a>
-<a href="#2735" id="2735">2735</a>
-<a href="#2736" id="2736">2736</a>
-<a href="#2737" id="2737">2737</a>
-<a href="#2738" id="2738">2738</a>
-<a href="#2739" id="2739">2739</a>
-<a href="#2740" id="2740">2740</a>
-<a href="#2741" id="2741">2741</a>
-<a href="#2742" id="2742">2742</a>
-<a href="#2743" id="2743">2743</a>
-<a href="#2744" id="2744">2744</a>
-<a href="#2745" id="2745">2745</a>
-<a href="#2746" id="2746">2746</a>
-<a href="#2747" id="2747">2747</a>
-<a href="#2748" id="2748">2748</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -3464,13 +3387,16 @@
                 })<span class="question-mark">?</span>;
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration_type, type_name)) = parameter_info {
-                <span class="kw">let </span>argument: BasicValueEnum = <span class="kw">if </span>declaration_type.is_by_ref() {
+                <span class="kw">let </span>argument: BasicValueEnum = <span class="kw">if </span>declaration_type.is_by_ref()
+                    || (<span class="self">self</span>.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
+                        &amp;&amp; declaration_type.is_input())
+                {
                     <span class="kw">let </span>declared_parameter = declared_parameters.get(i);
                     <span class="self">self</span>.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())<span class="question-mark">?
                 </span>} <span class="kw">else </span>{
                     <span class="comment">// by val
                     </span><span class="kw">if </span>!parameter.is_empty_statement() {
-                        <span class="self">self</span>.generate_argument_by_val(type_name, parameter)<span class="question-mark">?
+                        <span class="self">self</span>.generate_expression(parameter)<span class="question-mark">?
                     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(param) = declared_parameters.get(i) {
                         <span class="self">self</span>.generate_empty_expression(param)<span class="question-mark">?
                     </span>} <span class="kw">else </span>{
@@ -3505,83 +3431,6 @@
 
         result.sort_by(|(idx_a, <span class="kw">_</span>), (idx_b, <span class="kw">_</span>)| idx_a.cmp(idx_b));
         <span class="prelude-val">Ok</span>(result.into_iter().map(|(<span class="kw">_</span>, v)| v.into()).collect::&lt;Vec&lt;BasicMetadataValueEnum&gt;&gt;())
-    }
-
-    <span class="kw">fn </span>generate_argument_by_val(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        type_name: <span class="kw-2">&amp;</span>str,
-        param_statement: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(type_info) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="self">self</span>.generate_expression(param_statement);
-        };
-
-        <span class="kw">if </span>type_info.is_string() {
-            <span class="kw">return </span><span class="self">self</span>.generate_string_argument(type_info, param_statement);
-        }
-
-        <span class="comment">// https://github.com/PLC-lang/rusty/issues/1037:
-        // This if-statement covers the case where we want to convert a pointer into its actual
-        // type, e.g. if an argument is passed into a function A by-ref (INOUT) which in turn is
-        // passed into another function B by-val (INPUT) then the pointer argument in function A has
-        // to be bit-cast into its actual type before passing it into function B.
-        </span><span class="kw">if </span>type_info.is_aggregate_type() &amp;&amp; !type_info.is_vla() {
-            <span class="kw">let </span>deref = <span class="self">self</span>.generate_expression_value(param_statement)<span class="question-mark">?</span>;
-
-            <span class="kw">if </span>deref.get_basic_value_enum().is_pointer_value() {
-                <span class="kw">let </span>ty = <span class="self">self</span>.llvm_index.get_associated_type(type_name)<span class="question-mark">?</span>;
-                <span class="kw">let </span>cast = <span class="self">self</span>.llvm.builder.build_bitcast(
-                    deref.get_basic_value_enum(),
-                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                    <span class="string">""</span>,
-                );
-
-                <span class="kw">let </span>load = <span class="self">self</span>.llvm.builder.build_load(
-                    cast.into_pointer_value(),
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.get_load_name(param_statement).unwrap_or_default(),
-                );
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(target_ty) = <span class="self">self</span>.annotations.get_type_hint(param_statement, <span class="self">self</span>.index) {
-                    <span class="kw">let </span>actual_ty = <span class="self">self</span>.annotations.get_type_or_void(param_statement, <span class="self">self</span>.index);
-                    <span class="kw">let </span>annotation = <span class="self">self</span>.annotations.get(param_statement);
-
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(<span class="self">self</span>, target_ty, actual_ty, load, annotation));
-                }
-
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(load);
-            }
-        }
-
-        <span class="comment">// Fallback
-        </span><span class="self">self</span>.generate_expression(param_statement)
-    }
-
-    <span class="doccomment">/// Before passing a string to a function, it is copied to a new string with the
-    /// appropriate size for the called function
-    </span><span class="kw">fn </span>generate_string_argument(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        type_info: <span class="kw-2">&amp;</span>DataType,
-        argument: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
-        <span class="comment">// allocate a temporary string of correct size and pass it
-        </span><span class="kw">let </span>llvm_type = <span class="self">self
-            </span>.llvm_index
-            .find_associated_type(type_info.get_name())
-            .ok_or_else(|| Diagnostic::unknown_type(type_info.get_name(), argument.get_location()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>temp_variable = <span class="self">self</span>.llvm.builder.build_alloca(llvm_type, <span class="string">""</span>);
-        <span class="self">self</span>.llvm
-            .builder
-            .build_memset(
-                temp_variable,
-                <span class="number">1</span>,
-                <span class="self">self</span>.llvm.context.i8_type().const_zero(),
-                llvm_type
-                    .size_of()
-                    .ok_or_else(|| Diagnostic::unknown_type(type_info.get_name(), argument.get_location()))<span class="question-mark">?</span>,
-            )
-            .map_err(|it| Diagnostic::codegen_error(it, argument.get_location()))<span class="question-mark">?</span>;
-        <span class="self">self</span>.generate_store(temp_variable, type_info.get_type_information(), argument)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_load(temp_variable, <span class="string">""</span>))
     }
 
     <span class="doccomment">/// generates a value that is passed by reference
@@ -3701,7 +3550,7 @@
                                 <span class="self">self</span>.index.get_variadic_member(pou.get_name()),
                             )
                         } <span class="kw">else </span>{
-                            <span class="self">self</span>.generate_argument_by_val(type_name, param_statement)
+                            <span class="self">self</span>.generate_expression(param_statement)
                         }
                     })
                 })
@@ -3798,7 +3647,6 @@
                 <span class="macro">vec!</span>[class_struct.as_basic_value_enum().into(), parameter_struct.as_basic_value_enum().into()]
             })
             .unwrap_or_else(|| <span class="macro">vec!</span>[parameter_struct.as_basic_value_enum().into()]);
-
         <span class="kw">for </span>(i, stmt) <span class="kw">in </span>passed_parameters.iter().enumerate() {
             <span class="kw">let </span>parameter = <span class="self">self</span>.generate_call_struct_argument_assignment(<span class="kw-2">&amp;</span>CallParameterAssignment {
                 assignment_statement: stmt,
@@ -3924,8 +3772,7 @@
                 .unwrap_or_else(|| <span class="self">self</span>.index.get_void_type().get_type_information());
 
             <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: <span class="bool-val">true</span>, inner_type_name, .. } = parameter {
-                <span class="comment">//this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-
+                <span class="comment">//this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -&gt; generate a local variable for it
                 </span><span class="kw">let </span>generated_exp = <span class="kw">if </span>expression.is_empty_statement() {
                     <span class="kw">let </span>temp_type =
@@ -5129,7 +4976,6 @@
         };
 
         <span class="kw">let </span>struct_ptr = reference.get_basic_value_enum().into_pointer_value();
-
         <span class="comment">// GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
         </span><span class="kw">let </span>arr_ptr_gep = <span class="self">self</span>.llvm.builder.build_struct_gep(struct_ptr, <span class="number">0</span>, <span class="string">"vla_arr_gep"</span>)<span class="question-mark">?</span>;
