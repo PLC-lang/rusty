@@ -10,7 +10,7 @@ use std::{
     hash::Hash,
 };
 
-use indexmap::{IndexMap, IndexSet};
+use indexmap::{IndexSet};
 
 use plc_ast::{
     ast::{
@@ -26,6 +26,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
+use crate::index::FxIndexMap;
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -608,16 +609,16 @@ impl AstAnnotations {
 #[derive(Default, Debug)]
 pub struct AnnotationMapImpl {
     /// maps a statement to the type it resolves to
-    type_map: IndexMap<AstId, StatementAnnotation>,
+    type_map: FxIndexMap<AstId, StatementAnnotation>,
 
     /// maps a statement to the target-type it should eventually resolve to
     /// example:
     /// x : BYTE := 1;  //1's actual type is DINT, 1's target type is BYTE
     /// x : INT := 1;   //1's actual type is DINT, 1's target type is INT
-    type_hint_map: IndexMap<AstId, StatementAnnotation>,
+    type_hint_map: FxIndexMap<AstId, StatementAnnotation>,
 
     /// A map from a call to the generic function name of that call
-    generic_nature_map: IndexMap<AstId, TypeNature>,
+    generic_nature_map: FxIndexMap<AstId, TypeNature>,
 
     /// maps a function to a statement
     ///
@@ -628,7 +629,7 @@ pub struct AnnotationMapImpl {
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    hidden_function_calls: IndexMap<AstId, AstNode>,
+    hidden_function_calls: FxIndexMap<AstId, AstNode>,
 
     //An index of newly created types
     pub new_index: Index,
