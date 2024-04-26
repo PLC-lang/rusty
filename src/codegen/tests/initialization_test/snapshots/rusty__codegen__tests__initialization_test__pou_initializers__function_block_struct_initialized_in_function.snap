@@ -16,14 +16,16 @@ entry:
   ret void
 }
 
-define i32 @func(%fb %0) section "fn-func:i32[v]" {
+define i32 @func(%fb* %0) section "fn-func:i32[v]" {
 entry:
   %func = alloca i32, align 4
   %in = alloca %fb, align 8
-  store %fb %0, %fb* %in, align 1
+  %1 = bitcast %fb* %in to i8*
+  %2 = bitcast %fb* %0 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
   %x = alloca %fb, align 8
-  %1 = bitcast %fb* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
+  %3 = bitcast %fb* %x to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
@@ -32,8 +34,7 @@ entry:
 define void @main(%main* %0) section "fn-main:v" {
 entry:
   %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %load_fb0 = load %fb, %fb* %fb0, align 1
-  %call = call i32 @func(%fb %load_fb0)
+  %call = call i32 @func(%fb* %fb0)
   ret void
 }
 

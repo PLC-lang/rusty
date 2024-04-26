@@ -575,6 +575,103 @@ fn return_a_complex_type_from_function() {
     "###);
 }
 
+/// Aggregate types which are passed to a function by-value will be passed as a reference by the compiler.
+/// A function-local accessor of sufficient size will be stack-allocated and the value behind the passed pointer will
+/// be copied into the local variable via the `memcpy` intrinsic.
+///  ... All aggregate-type function-parameters in a `VAR_INPUT` block will be passed as pointer and then deep-copied locally.
+///  ... The function's signature does not change, a caller passes the variable still the same way.
+///  ... This is due to the `store` intrinsic being slow for aggregate types.
+///  ... Even though the compiler internally passes a reference to the function argument, there will be no
+///  ... side effects outside of the function scope if the parameter is mutated within the function,
+///  ... since the pointer will only be used to access the source data for the `memcpy` call.
+#[test]
+fn passing_aggregate_types_to_functions_by_value() {
+    let src = r###"
+        TYPE myStruct: STRUCT
+            a, b, c: DINT;
+            s: STRING;
+        END_STRUCT;
+        END_TYPE
+        FUNCTION foo
+          VAR_INPUT
+            s: STRING;
+            ws: WSTRING;
+            arr: ARRAY[1..30000] OF DINT;
+            st: myStruct;
+          END_VAR
+            // ...
+        END_FUNCTION
+        PROGRAM main
+            VAR
+                string1: STRING;
+                string2: WSTRING;
+                array1: ARRAY[1..30000] OF DINT;
+                struct1: myStruct;
+            END_VAR
+            foo(string1, string2, array1, struct1);
+        END_PROGRAM
+    "###;
+
+    //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
+    insta::assert_snapshot!(codegen(src), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %myStruct = type { i32, i32, i32, [81 x i8] }
+    %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
+
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @main_instance = global %main zeroinitializer
+
+    define void @foo(i8* %0, i16* %1, i32* %2, %myStruct* %3) section "fn-foo:v[s8u81][s16u81][v][v]" {
+    entry:
+      %s = alloca [81 x i8], align 1
+      %bitcast = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 81, i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 80, i1 false)
+      %ws = alloca [81 x i16], align 2
+      %bitcast1 = bitcast [81 x i16]* %ws to i16*
+      %4 = bitcast i16* %bitcast1 to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 2 %4, i8 0, i64 162, i1 false)
+      %5 = bitcast i16* %bitcast1 to i8*
+      %6 = bitcast i16* %1 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 2 %5, i8* align 2 %6, i64 160, i1 false)
+      %arr = alloca [30000 x i32], align 4
+      %bitcast2 = bitcast [30000 x i32]* %arr to i32*
+      %7 = bitcast i32* %bitcast2 to i8*
+      %8 = bitcast i32* %2 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([30000 x i32]* getelementptr ([30000 x i32], [30000 x i32]* null, i32 1) to i64), i1 false)
+      %st = alloca %myStruct, align 8
+      %9 = bitcast %myStruct* %st to i8*
+      %10 = bitcast %myStruct* %3 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @main(%main* %0) section "fn-main:v" {
+    entry:
+      %string1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %string2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %array1 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+      %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 3
+      %1 = bitcast [81 x i8]* %string1 to i8*
+      %2 = bitcast [81 x i16]* %string2 to i16*
+      %3 = bitcast [30000 x i32]* %array1 to i32*
+      call void @foo(i8* %1, i16* %2, i32* %3, %myStruct* %struct1)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
+
 /// Passing aggregate types to a function is an expensive operation, this is why the compiler offers
 /// a {ref} macro that turns a block of variables into by-ref parameters without changing the
 /// functions interface during compile-time.

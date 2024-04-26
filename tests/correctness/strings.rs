@@ -249,16 +249,13 @@ fn string_parameter_assignment_in_functions_with_multiple_size2() {
     let mut main_type = MainType { x: [0; 21], y: [0; 21] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
+    let long = CStr::from_bytes_until_nul(&main_type.x).unwrap().to_string_lossy();
+    let short = CStr::from_bytes_until_nul(&main_type.y).unwrap().to_string_lossy();
+
     // long string passed to short function and returned
-    assert_eq!(
-        format!("{:?}", "hello\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes()),
-        format!("{:?}", &main_type.x)
-    );
+    assert_eq!("hello", &long);
     // short string passed to long function and returned
-    assert_eq!(
-        format!("{:?}", "hello\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes()),
-        format!("{:?}", &main_type.y)
-    );
+    assert_eq!("hello", &short);
 }
 
 #[test]
@@ -1221,4 +1218,33 @@ fn assigning_global_strings_in_program_by_passing_literals() {
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("in literal\0".as_bytes(), &main_type.str_in[0..11]);
     assert_eq!("in ref literal\0".as_bytes(), &main_type.str_in_ref[0..15]);
+}
+
+#[test]
+fn function_wstring_memcopies_the_right_amount_of_bytes() {
+    let src = r#"
+        FUNCTION foo : WSTRING[7]
+        VAR_INPUT
+            s : WSTRING[7];
+        END_VAR
+            foo := s;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            y : WSTRING[7];
+        END_VAR
+            y := foo("wstring cutoff");
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        y: [u16; 8],
+    }
+    let mut main_type = MainType { y: [0; 8] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("wstring", String::from_utf16_lossy(&main_type.y[..7]));
 }

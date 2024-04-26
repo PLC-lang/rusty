@@ -714,13 +714,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })?;
 
             if let Some((declaration_type, type_name)) = parameter_info {
-                let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                let argument: BasicValueEnum = if declaration_type.is_by_ref()
+                    || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
+                        && declaration_type.is_input())
+                {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
                 } else {
                     // by val
                     if !parameter.is_empty_statement() {
-                        self.generate_argument_by_val(type_name, parameter)?
+                        self.generate_expression(parameter)?
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {
@@ -755,83 +758,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
-    }
-
-    fn generate_argument_by_val(
-        &self,
-        type_name: &str,
-        param_statement: &AstNode,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        let Some(type_info) = self.index.find_effective_type_by_name(type_name) else {
-            return self.generate_expression(param_statement);
-        };
-
-        if type_info.is_string() {
-            return self.generate_string_argument(type_info, param_statement);
-        }
-
-        // https://github.com/PLC-lang/rusty/issues/1037:
-        // This if-statement covers the case where we want to convert a pointer into its actual
-        // type, e.g. if an argument is passed into a function A by-ref (INOUT) which in turn is
-        // passed into another function B by-val (INPUT) then the pointer argument in function A has
-        // to be bit-cast into its actual type before passing it into function B.
-        if type_info.is_aggregate_type() && !type_info.is_vla() {
-            let deref = self.generate_expression_value(param_statement)?;
-
-            if deref.get_basic_value_enum().is_pointer_value() {
-                let ty = self.llvm_index.get_associated_type(type_name)?;
-                let cast = self.llvm.builder.build_bitcast(
-                    deref.get_basic_value_enum(),
-                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                    "",
-                );
-
-                let load = self.llvm.builder.build_load(
-                    cast.into_pointer_value(),
-                    &self.get_load_name(param_statement).unwrap_or_default(),
-                );
-
-                if let Some(target_ty) = self.annotations.get_type_hint(param_statement, self.index) {
-                    let actual_ty = self.annotations.get_type_or_void(param_statement, self.index);
-                    let annotation = self.annotations.get(param_statement);
-
-                    return Ok(cast_if_needed!(self, target_ty, actual_ty, load, annotation));
-                }
-
-                return Ok(load);
-            }
-        }
-
-        // Fallback
-        self.generate_expression(param_statement)
-    }
-
-    /// Before passing a string to a function, it is copied to a new string with the
-    /// appropriate size for the called function
-    fn generate_string_argument(
-        &self,
-        type_info: &DataType,
-        argument: &AstNode,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        // allocate a temporary string of correct size and pass it
-        let llvm_type = self
-            .llvm_index
-            .find_associated_type(type_info.get_name())
-            .ok_or_else(|| Diagnostic::unknown_type(type_info.get_name(), argument.get_location()))?;
-        let temp_variable = self.llvm.builder.build_alloca(llvm_type, "");
-        self.llvm
-            .builder
-            .build_memset(
-                temp_variable,
-                1,
-                self.llvm.context.i8_type().const_zero(),
-                llvm_type
-                    .size_of()
-                    .ok_or_else(|| Diagnostic::unknown_type(type_info.get_name(), argument.get_location()))?,
-            )
-            .map_err(|it| Diagnostic::codegen_error(it, argument.get_location()))?;
-        self.generate_store(temp_variable, type_info.get_type_information(), argument)?;
-        Ok(self.llvm.builder.build_load(temp_variable, ""))
     }
 
     /// generates a value that is passed by reference
@@ -951,7 +877,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.index.get_variadic_member(pou.get_name()),
                             )
                         } else {
-                            self.generate_argument_by_val(type_name, param_statement)
+                            self.generate_expression(param_statement)
                         }
                     })
                 })
@@ -1048,7 +974,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 vec![class_struct.as_basic_value_enum().into(), parameter_struct.as_basic_value_enum().into()]
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
-
         for (i, stmt) in passed_parameters.iter().enumerate() {
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment_statement: stmt,
@@ -1174,8 +1099,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
             if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = parameter {
-                //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-
+                //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
                     let temp_type =
@@ -2379,7 +2303,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
-
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
