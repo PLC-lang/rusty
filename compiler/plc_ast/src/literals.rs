@@ -271,6 +271,19 @@ impl AstLiteral {
                 | AstLiteral::DateAndTime { .. }
         )
     }
+
+    pub fn is_zero(&self) -> bool {
+        match self {
+            AstLiteral::Integer(0) => true,
+            AstLiteral::Real(val) => val == "0" || val == "0.0",
+            _ => false,
+        }
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        let Self::Integer(val) = self else { return None };
+        Some(*val)
+    }
 }
 
 impl Debug for AstLiteral {
