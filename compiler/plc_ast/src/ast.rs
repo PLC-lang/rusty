@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use std::{
+    borrow::Cow,
     fmt::{Debug, Display, Formatter},
     ops::Range,
 };
@@ -630,6 +631,80 @@ pub enum AstStatement {
     LabelStatement(LabelStatement),
 }
 
+// derive_more?
+macro_rules! impl_try_from {
+    (for $($id:ident),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $id {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let AstStatement::$id(inner) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner)
+            }
+        })*
+    };
+    (for $($id:ident, $t:ty),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $t {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let AstStatement::$id(inner) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner)
+            }
+        })*
+    };
+    ($($t:ty, for $id1:ident, $id2:ident),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $t {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let (AstStatement::$id1(inner) | AstStatement::$id2(inner)) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner)
+            }
+        })*
+    };
+    ($id:ident, for $($t:ty),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for $t {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let AstStatement::$id(inner) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner.into())
+            }
+        })*
+    }
+}
+
+impl_try_from!(
+    for CastStatement, MultipliedStatement, ReferenceExpr, DirectAccess, HardwareAccess, BinaryExpression,
+        UnaryExpression, RangeStatement, CallStatement, ReturnStatement, JumpStatement, LabelStatement
+);
+impl_try_from!(
+    for Literal, AstLiteral,
+        ExpressionList, Vec<AstNode>,
+        ControlStatement, AstControlStatement
+);
+impl_try_from!(Assignment, for Assignment, OutputAssignment);
+impl_try_from!(Identifier, for Cow<'ast, str>, String);
+
+#[macro_export]
+macro_rules! try_from {
+    ($id:ident, $t:ty) => {
+        <&$t>::try_from($id).ok()
+    };
+    ($ex:expr, $t:ty) => {
+        <&$t>::try_from($ex).ok()
+    };
+}
+
 impl Debug for AstNode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self.stmt {
@@ -754,11 +829,7 @@ impl Debug for AstNode {
 impl AstNode {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     pub fn get_as_list(&self) -> Vec<&AstNode> {
-        if let AstStatement::ExpressionList(expressions) = &self.stmt {
-            expressions.iter().collect::<Vec<&AstNode>>()
-        } else {
-            vec![self]
-        }
+        try_from!(self, Vec<AstNode>).map(|it| it.iter().collect()).unwrap_or(vec![self])
     }
 
     pub fn get_location(&self) -> SourceLocation {
@@ -819,17 +890,7 @@ impl AstNode {
 
     /// Returns true if the current statement is a flat reference (e.g. `a`)
     pub fn is_flat_reference(&self) -> bool {
-        matches!(self.stmt, AstStatement::Identifier(..)) || {
-            if let AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
-                ..,
-            ) = &self.stmt
-            {
-                matches!(reference.as_ref().stmt, AstStatement::Identifier(..))
-            } else {
-                false
-            }
-        }
+        self.get_flat_reference_name().is_some()
     }
 
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
@@ -845,10 +906,7 @@ impl AstNode {
     }
 
     pub fn get_label_name(&self) -> Option<&str> {
-        match &self.stmt {
-            AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
-            _ => None,
-        }
+        try_from!(self, LabelStatement).map(|it| it.name.as_str())
     }
 
     pub fn is_empty_statement(&self) -> bool {
@@ -929,15 +987,7 @@ impl AstNode {
 
     /// Returns true if the given token is an integer or float and zero.
     pub fn is_zero(&self) -> bool {
-        match &self.stmt {
-            AstStatement::Literal(kind, ..) => match kind {
-                AstLiteral::Integer(0) => true,
-                AstLiteral::Real(val) => val == "0" || val == "0.0",
-                _ => false,
-            },
-
-            _ => false,
-        }
+        try_from!(self, AstLiteral).is_some_and(|it| it.is_zero())
     }
 
     pub fn is_binary_expression(&self) -> bool {
@@ -957,10 +1007,7 @@ impl AstNode {
     }
 
     pub fn get_literal_integer_value(&self) -> Option<i128> {
-        match &self.stmt {
-            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
-            _ => None,
-        }
+        try_from!(self, AstLiteral).map(|it| it.get_literal_integer_value()).unwrap_or_default()
     }
 
     pub fn is_identifier(&self) -> bool {

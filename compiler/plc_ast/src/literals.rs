@@ -38,6 +38,37 @@ pub enum AstLiteral {
     Array(Array),
 }
 
+macro_rules! impl_try_from {
+    (for $($id:ident),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $id {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let crate::ast::AstStatement::Literal(AstLiteral::$id(inner)) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner)
+            }
+        })*
+    };
+    (for $($id:ident, $p:path),+) => {
+        $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $id {
+            type Error = ();
+
+            fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
+                let crate::ast::AstStatement::Literal($p(inner)) = value.get_stmt() else {
+                    return Err(())
+                };
+                Ok(inner)
+            }
+        })*
+    };
+}
+
+impl_try_from!(for Date, DateAndTime, TimeOfDay, Time, Array);
+// XXX: String::try_from(..) is ambiguous between `AstLiteral::Real` and `AstStatement::Identifier`
+impl_try_from!(for i128, AstLiteral::Integer, String, AstLiteral::Real, bool, AstLiteral::Bool, StringValue, AstLiteral::String);
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Date {
     year: i32,
@@ -270,6 +301,19 @@ impl AstLiteral {
                 | AstLiteral::TimeOfDay { .. }
                 | AstLiteral::DateAndTime { .. }
         )
+    }
+
+    pub fn is_zero(&self) -> bool {
+        match self {
+            AstLiteral::Integer(0) => true,
+            AstLiteral::Real(val) => val == "0" || val == "0.0",
+            _ => false,
+        }
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        let Self::Integer(val) = self else { return None };
+        Some(*val)
     }
 }
 

@@ -26,10 +26,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
-    },
-    literals::AstLiteral,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator, ReferenceAccess, ReferenceExpr
+    }, try_from, literals::AstLiteral
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -533,15 +531,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
-        match param_context.assignment_statement.get_stmt() {
-            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
+        if let Some(data) = try_from!(param_context.assignment_statement, Assignment) {
+            self
                 .generate_explicit_output_assignment(
                     param_context.parameter_struct,
                     param_context.function_name,
                     &data.left,
                     &data.right,
-                ),
-            _ => self.generate_output_assignment(param_context),
+                )
+        } else {
+            self.generate_output_assignment(param_context)
         }
     }
 
@@ -642,11 +641,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (Some(class_ptr), call_ptr)
                 }
                 // TODO: find a more reliable way to make sure if this is a call into a local action!!
-                PouIndexEntry::Action { .. }
-                    if matches!(
-                        operator.get_stmt(),
-                        AstStatement::ReferenceExpr(ReferenceExpr { base: None, .. })
-                    ) =>
+                PouIndexEntry::Action { .. } if try_from!(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =>
                 {
                     // special handling for local actions, get the parameter from the function context
                     function_context
@@ -1052,17 +1047,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
-        let parameter_value = match param_context.assignment_statement.get_stmt() {
-            // explicit call parameter: foo(param := value)
-            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => {
-                self.generate_formal_parameter(param_context, &data.left, &data.right)?;
-                None
-            }
+        let Some(data) = try_from!(param_context.assignment_statement, Assignment) else {
             // foo(x)
-            _ => self.generate_nameless_parameter(param_context)?,
+            return Ok(self.generate_nameless_parameter(param_context)?)
         };
 
-        Ok(parameter_value)
+        // explicit call parameter: foo(param := value)
+        self.generate_formal_parameter(param_context, &data.left, &data.right)?;
+        Ok(None)
     }
 
     /// generates the appropriate value for the given expression where the expression

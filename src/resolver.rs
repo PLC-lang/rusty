@@ -22,6 +22,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
+    try_from,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
@@ -1799,7 +1800,7 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str) {
-        if !matches!(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
+        if try_from!(p, ast::Assignment).is_none() {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map
@@ -2122,25 +2123,21 @@ fn accept_cast_string_literal(
     literal: &AstNode,
 ) {
     // check if we need to register an additional string-literal
-    match (cast_type.get_type_information(), literal.get_stmt()) {
-        (
-            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ true })),
-        )
-        | (
-            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ false })),
-        ) => {
+    let Some(&AstLiteral::String(StringValue { ref value, is_wide })) = try_from!(literal, AstLiteral)
+    else {
+        return;
+    };
+    match (cast_type.get_type_information(), is_wide) {
+        (DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }, true)
+        | (DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }, false) => {
             // re-register the string-literal in the opposite encoding
-            if *is_wide {
-                literals.utf08.insert(value.to_string());
+            if is_wide {
+                literals.utf08.insert(value.into());
             } else {
-                literals.utf16.insert(value.to_string());
+                literals.utf16.insert(value.into());
             }
         }
-        _ => {
-            //ignore
-        }
+        _ => (),
     }
 }
 
