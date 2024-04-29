@@ -6,6 +6,7 @@ use inkwell::{
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
@@ -15,7 +16,6 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},

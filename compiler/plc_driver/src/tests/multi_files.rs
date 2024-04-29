@@ -1,5 +1,5 @@
+use ast::lib_sourcelocation::SourceCode;
 use plc::DebugLevel;
-use source_code::SourceCode;
 
 use crate::tests::compile_with_root;
 

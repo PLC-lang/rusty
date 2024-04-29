@@ -1,7 +1,7 @@
 use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration, Variable};
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]

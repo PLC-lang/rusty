@@ -13,8 +13,8 @@ use inkwell::{
 };
 
 use plc_ast::ast::LinkageType;
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},

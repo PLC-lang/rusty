@@ -1,7 +1,7 @@
 use insta::assert_snapshot;
+use plc_ast::lib_sourcelocation::SourceCodeFactory;
 
 use crate::test_utils::tests::codegen_multi;
-use plc_source::SourceCodeFactory;
 
 #[test]
 fn datatype_defined_in_external_file_in_module() {

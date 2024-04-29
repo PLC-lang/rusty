@@ -1,9 +1,8 @@
+use crate::lib_sourcelocation::{SourceCode, SourceContainer};
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
 };
-
-use crate::{SourceCode, SourceContainer};
 
 #[derive(Clone, Default)]
 pub struct SourceLocationFactory {

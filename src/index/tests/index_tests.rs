@@ -4,7 +4,7 @@ use plc_ast::ast::{
     pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use pretty_assertions::assert_eq;
 
 use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};

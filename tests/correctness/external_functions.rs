@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::*;
 use inkwell::targets::{InitializationConfig, Target};
+use plc_ast::lib_sourcelocation::SourceCode;
 use rusty::codegen::CodegenContext;
 
 extern "C" fn times_two(val: i32) -> i32 {

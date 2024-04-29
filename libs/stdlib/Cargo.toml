@@ -18,8 +18,8 @@ features = ["mock_time"]
 [dev-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
 
-[dev-dependencies.plc_source]
-path = "../../compiler/plc_source"
+#[dev-dependencies.plc_ast]
+#path = "../../compiler/plc_ast"
 
 [dev-dependencies.plc]
 package = "rusty"
@@ -31,6 +31,7 @@ chrono = "0.4"
 num = "0.4"
 paste = "1.0.8"
 log = "0.4"
+plc_ast = { path = "../../compiler/plc_ast"}
 
 [features]
 default = []

@@ -1,7 +1,7 @@
 use driver::parse_and_annotate;
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{Assignment, AstStatement};
-use plc_source::SourceContainer;
+use plc_ast::lib_sourcelocation::SourceContainer;
 use rusty::resolver::AnnotationMap;
 
 use crate::get_test_file;

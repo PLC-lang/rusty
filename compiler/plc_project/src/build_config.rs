@@ -6,13 +6,13 @@ use regex::Captures;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use source_code::BuildDescriptionSource;
 use std::env;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
 use plc::output::FormatOption;
+use plc_ast::lib_sourcelocation::BuildDescriptionSource;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LibraryConfig {

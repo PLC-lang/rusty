@@ -1,5 +1,5 @@
 use plc_ast::ast::{Operator, TypeNature};
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 
 use crate::{
     index::Index,

@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use plc::codegen::{CodegenContext, GeneratedModule};
+use plc_ast::lib_sourcelocation::{Compilable, SourceCode, SourceContainer};
 use plc_driver::runner::compile;
-use plc_source::{Compilable, SourceCode, SourceContainer};
 
 #[allow(unused_macros)] //This is actually used in subtests
 macro_rules! add_std {

@@ -1,7 +1,7 @@
 use driver::parse_and_annotate;
 use insta::assert_snapshot;
+use plc_ast::lib_sourcelocation::SourceContainer;
 use plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
-use plc_source::SourceContainer;
 
 use crate::get_test_file;
 

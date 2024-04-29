@@ -10,10 +10,8 @@ use plc_diagnostics::{
     diagnostics::{Diagnostic, Severity},
 };
 
-use plc_source::{
-    source_location::{SourceLocation, SourceLocationFactory},
-    SourceCode, SourceContainer,
-};
+use ast::lib_sourcelocation::{SourceCode, SourceContainer};
+use ast::source_location::{SourceLocation, SourceLocationFactory};
 use quick_xml::events::{attributes::Attributes, BytesStart, Event};
 
 use crate::{

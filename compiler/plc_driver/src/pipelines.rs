@@ -6,6 +6,8 @@ use std::{
 };
 
 use crate::{CompileOptions, LinkOptions};
+use ast::lib_sourcelocation::{SourceContainer, SourceType};
+use ast::source_location::SourceLocation;
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -30,7 +32,6 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
-use source_code::{source_location::SourceLocation, SourceContainer};
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -59,9 +60,9 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
                 let parse_func = match source.get_type() {
-                    source_code::SourceType::Text => parse_file,
-                    source_code::SourceType::Xml => cfc::xml_parser::parse_file,
-                    source_code::SourceType::Unknown => unreachable!(),
+                    SourceType::Text => parse_file,
+                    SourceType::Xml => cfc::xml_parser::parse_file,
+                    SourceType::Unknown => unreachable!(),
                 };
                 parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })

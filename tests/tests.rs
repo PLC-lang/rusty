@@ -6,8 +6,6 @@ use std::path::PathBuf;
 pub use driver::runner::{compile, compile_and_run, MainType};
 pub use inkwell::context::Context;
 
-pub use plc_source::*;
-
 mod correctness {
     mod arrays;
     mod bitaccess;

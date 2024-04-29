@@ -1,17 +1,20 @@
 #[cfg(test)]
 pub mod tests {
 
+    use plc_ast::lib_sourcelocation::Compilable;
+    use plc_ast::lib_sourcelocation::SourceCode;
+    use plc_ast::lib_sourcelocation::SourceContainer;
     use std::{path::PathBuf, str::FromStr};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
         provider::IdProvider,
+        source_location::SourceLocationFactory,
     };
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,

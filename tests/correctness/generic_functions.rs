@@ -2,6 +2,7 @@ use std::ffi::CStr;
 
 use crate::*;
 use inkwell::targets::{InitializationConfig, Target};
+use plc_ast::lib_sourcelocation::SourceCode;
 use rusty::codegen::CodegenContext;
 
 #[allow(dead_code)]

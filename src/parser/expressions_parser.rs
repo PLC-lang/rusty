@@ -7,12 +7,12 @@ use crate::{
     parser::parse_any_in_region,
 };
 use core::str::Split;
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{AstFactory, AstId, AstNode, AstStatement, DirectAccessType, Operator},
     literals::{AstLiteral, Time},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 use regex::{Captures, Regex};
 use std::{ops::Range, str::FromStr};
 

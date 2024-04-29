@@ -1,5 +1,6 @@
 use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
+use ast::source_location::SourceLocationFactory;
 use plc_diagnostics::diagnostics::Diagnostic;
 use quick_xml::events::{BytesStart, Event};
 
@@ -34,7 +35,7 @@ impl<'xml> Pou<'xml> {
 
     pub(crate) fn desugar(
         &mut self,
-        source_location_factory: &plc_source::source_location::SourceLocationFactory,
+        source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
         self.body.function_block_diagram.desugar(source_location_factory)
     }

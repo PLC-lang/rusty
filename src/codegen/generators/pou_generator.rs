@@ -40,8 +40,8 @@ use inkwell::{
     values::PointerValue,
 };
 use plc_ast::ast::{AstNode, Implementation, PouType};
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceLocation;
 use section_mangler::{FunctionArgument, SectionMangler};
 
 pub struct PouGenerator<'ink, 'cg> {

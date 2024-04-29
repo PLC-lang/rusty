@@ -7,7 +7,6 @@ use plc_ast::{
     },
     literals::{Array, AstLiteral, StringValue},
 };
-use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
@@ -738,3 +737,4 @@ macro_rules! compare_expression {
     }}
 }
 use compare_expression;
+use plc_ast::source_location::SourceLocation;

@@ -8,8 +8,8 @@ use plc_ast::ast::{
     Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 pub fn visit(unit: &CompilationUnit) -> Index {

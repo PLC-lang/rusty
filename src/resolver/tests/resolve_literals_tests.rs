@@ -1,9 +1,9 @@
 use plc_ast::literals::AstLiteral;
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
 
 use crate::{
     assert_type_and_hint,

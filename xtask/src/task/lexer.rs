@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use plc::lexer;
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::SourceLocationFactory;
+use plc_ast::source_location::SourceLocationFactory;
 
 use crate::reporter::DurationWrapper;
 

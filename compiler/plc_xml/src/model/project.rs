@@ -1,3 +1,4 @@
+use ast::source_location::SourceLocationFactory;
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{reader::Reader, xml_parser::Parseable};
@@ -31,7 +32,7 @@ impl Parseable for Project<'_> {
 impl<'xml> Project<'xml> {
     pub(crate) fn desugar(
         &mut self,
-        source_location_factory: &plc_source::source_location::SourceLocationFactory,
+        source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>> {
         let mut diagnostics = vec![];
         self.pous.iter_mut().for_each(|pou| {

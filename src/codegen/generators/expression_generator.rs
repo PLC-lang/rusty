@@ -24,6 +24,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
@@ -32,7 +33,6 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use std::{collections::HashSet, vec};
 

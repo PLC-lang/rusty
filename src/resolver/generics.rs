@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 
 use crate::{
     builtins,
