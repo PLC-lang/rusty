@@ -103,6 +103,12 @@ pub struct DataType {
     pub location: SourceLocation,
 }
 
+impl From<&DataType> for SourceLocation {
+    fn from(value: &DataType) -> Self {
+        value.location.clone()
+    }
+}
+
 impl Hash for DataType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);

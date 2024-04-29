@@ -351,7 +351,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             Err(Diagnostic::new(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
                 .with_error_code("E051")
-                .with_location(index.get_location()))
+                .with_location(index))
         }
     }
 
@@ -2518,7 +2518,7 @@ pub fn get_implicit_call_parameter<'a>(
                     //TODO: use global context to get an expression slice
                     Diagnostic::new("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(param_statement.get_location()),
+                        .with_location(param_statement),
                 );
             };
             let loc = declared_parameters

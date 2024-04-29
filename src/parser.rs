@@ -350,7 +350,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(
                     Diagnostic::new("Return types cannot have a default value, the value will be ignored")
-                        .with_location(init.get_location())
+                        .with_location(&init)
                         .with_error_code("E016"),
                 );
             }
@@ -912,7 +912,7 @@ fn parse_array_type_definition(
             None => {
                 lexer.accept_diagnostic(
                     Diagnostic::new(format!("Expected a range statement, got {range:?} instead"))
-                        .with_location(range.get_location())
+                        .with_location(&range)
                         .with_error_code("E008"),
                 );
                 false

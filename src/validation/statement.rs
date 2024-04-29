@@ -116,7 +116,7 @@ pub fn visit_statement<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new("Case condition used outside of case statement! Did you mean to use ';'?")
                     .with_error_code("E079")
-                    .with_location(condition.get_location()),
+                    .with_location(condition),
             );
             visit_statement(validator, condition, context);
         }
@@ -169,7 +169,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new("Index-Access requires an array-value.")
                         .with_error_code("E069")
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -195,7 +195,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                 validator.diagnostics.push(
                     Diagnostic::new("Dereferencing requires a pointer-value.")
                         .with_error_code("E068")
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -206,7 +206,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                 validator.diagnostics.push(
                     Diagnostic::new("Address-of requires a value.")
                         .with_error_code("E070")
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -258,7 +258,7 @@ fn validate_direct_access<T: AnnotationMap>(
                     access.get_bit_width()
                 ))
                 .with_error_code("E055")
-                .with_location(m.get_location()),
+                .with_location(m),
             )
         }
     }
@@ -279,7 +279,7 @@ where
     if !kind.get_type_information().is_bool() {
         let slice = get_datatype_name_or_slice(validator.context, kind);
         let message = format!("Expected a boolean, got `{slice}`");
-        let location = condition.get_location();
+        let location = condition;
 
         let diagnostic = if kind.get_type_information().is_int() {
             // We're a bit more lenient with integers, generating a warning instead of an error
@@ -364,7 +364,7 @@ fn validate_cast_literal<T: AnnotationMap>(
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Cannot cast into {}, only elementary types are allowed",
-                validator.context.slice(&statement.get_location())
+                validator.context.slice(&statement.location)
             ))
             .with_error_code("E061")
             .with_location(location),
@@ -566,7 +566,7 @@ fn visit_array_access<T: AnnotationMap>(
                 target_type.get_name()
             ))
             .with_error_code("E059")
-            .with_location(access.get_location()),
+            .with_location(access),
         ),
     }
 }
@@ -576,7 +576,7 @@ fn validate_array_access_dimensions(ndims: usize, dims: usize, validator: &mut V
         validator.push_diagnostic(
             Diagnostic::new(format!("Expected array access with {ndims} dimensions, found {dims}"))
                 .with_error_code("E045")
-                .with_location(access.get_location()),
+                .with_location(access),
         )
     }
 }
@@ -598,7 +598,7 @@ fn validate_array_access<T: AnnotationMap>(
                             range.start, range.end
                         ))
                         .with_error_code("E058")
-                        .with_location(access.get_location()),
+                        .with_location(access),
                     )
                 }
             }
@@ -612,7 +612,7 @@ fn validate_array_access<T: AnnotationMap>(
                             type_info.get_name()
                     ))
                     .with_error_code("E059")
-                    .with_location(access.get_location())
+                    .with_location(access)
             )
         }
     }
@@ -637,7 +637,7 @@ fn visit_binary_expression<T: AnnotationMap>(
                         "This equal statement has no effect, did you mean `{lhs} := {rhs}`?"
                     ))
                     .with_error_code("E023")
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
                 );
             }
 
@@ -688,7 +688,7 @@ fn validate_binary_expression<T: AnnotationMap>(
                     left_type.get_name(),
                 ))
                 .with_error_code("E073")
-                .with_location(statement.get_location()),
+                .with_location(statement),
             );
         }
     }
@@ -768,7 +768,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
                 param.get_variable_type()
             ))
             .with_error_code("E031")
-            .with_location(arg.get_location()),
+            .with_location(arg),
         ),
     }
 }
@@ -790,7 +790,7 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Cannot assign to CONSTANT '{qualified_name}'"))
                         .with_error_code("E036")
-                        .with_location(left.get_location()),
+                        .with_location(left),
                 );
             } else {
                 // ...enum variable where the RHS does not match its variants
@@ -815,11 +815,11 @@ fn validate_assignment<T: AnnotationMap>(
 
         // ...or if whatever we got is not assignable, output an error
         if !left.can_be_assigned_to() {
-            let expression = validator.context.slice(&left.get_location());
+            let expression = validator.context.slice(&left.location);
             validator.push_diagnostic(
                 Diagnostic::new(format!("Expression {expression} is not assignable."))
                     .with_error_code("E050")
-                    .with_location(left.get_location()),
+                    .with_location(left),
             );
         }
 
@@ -926,8 +926,8 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     "Value evaluated at run-time, use an enum variant from `{}`",
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
-                .with_location(right.get_location())
-                .with_secondary_location(&left_dt.location)
+                .with_location(right)
+                .with_secondary_location(left_dt)
                 .with_error_code("E091"),
             );
         }
@@ -948,8 +948,8 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                         variant.get_name()
                     ))
                     .with_error_code("E092")
-                    .with_location(right.get_location())
-                    .with_secondary_location(&left_dt.location),
+                    .with_location(right)
+                    .with_secondary_location(left_dt),
                 );
             }
         }
@@ -960,8 +960,8 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                     validator.context.slice(&right.location),
                     get_datatype_name_or_slice(validator.context, left_dt)
                 ))
-                .with_location(right.get_location())
-                .with_secondary_location(&left_dt.location)
+                .with_location(right)
+                .with_secondary_location(left_dt)
                 .with_error_code("E040"),
             );
         }
@@ -1163,7 +1163,7 @@ fn validate_call<T: AnnotationMap>(
                     // explicit call parameter assignments will be handled by
                     // `visit_statement()` via `Assignment` and `OutputAssignment`
                     if is_implicit {
-                        validate_assignment(validator, right, None, &param.get_location(), context);
+                        validate_assignment(validator, right, None, &param.location, context);
                     }
 
                     // mixing implicit and explicit parameters is not allowed
@@ -1174,7 +1174,7 @@ fn validate_call<T: AnnotationMap>(
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
-                                .with_location(param.get_location()),
+                                .with_location(param),
                         );
                     }
                 }
@@ -1182,7 +1182,7 @@ fn validate_call<T: AnnotationMap>(
                     validator.push_diagnostic(
                         Diagnostic::new("Invalid call parameters")
                             .with_error_code("E089")
-                            .with_location(param.get_location())
+                            .with_location(param)
                             .with_sub_diagnostic(err),
                     );
                     break;
@@ -1211,7 +1211,7 @@ fn validate_call<T: AnnotationMap>(
                         validator.push_diagnostic(
                             Diagnostic::new(format!("Missing inout parameter: {}", p.get_name()))
                                 .with_error_code("E030")
-                                .with_location(operator.get_location()),
+                                .with_location(operator),
                         );
                     }
                 });
@@ -1266,9 +1266,7 @@ fn validate_case_statement<T: AnnotationMap>(
         // invalid case conditions
         if matches!(condition.get_stmt(), AstStatement::Assignment(_) | AstStatement::CallStatement(_)) {
             validator.push_diagnostic(
-                Diagnostic::new("Invalid case condition!")
-                    .with_error_code("E079")
-                    .with_location(condition.get_location()),
+                Diagnostic::new("Invalid case condition!").with_error_code("E079").with_location(condition),
             );
         }
 
@@ -1283,7 +1281,7 @@ fn validate_case_statement<T: AnnotationMap>(
                         err.get_reason()
                     ))
                     .with_error_code("E080")
-                    .with_location(condition.get_location()),
+                    .with_location(condition),
                 )
             })
             .map(|v| {
@@ -1295,7 +1293,7 @@ fn validate_case_statement<T: AnnotationMap>(
                                 "Duplicate condition value: {value}. Occurred more than once!"
                             ))
                             .with_error_code("E078")
-                            .with_location(condition.get_location()),
+                            .with_location(condition),
                         );
                     }
                 };
@@ -1320,9 +1318,7 @@ fn validate_for_loop<T: AnnotationMap>(
         if kind.is_real() || !kind.is_numerical() {
             let slice = get_datatype_name_or_slice(validator.context, kind);
             let message = format!("Expected an integer value, got `{slice}`");
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
-            );
+            validator.push_diagnostic(Diagnostic::new(message).with_location(node).with_error_code("E094"));
         }
     })
 
@@ -1355,7 +1351,7 @@ fn validate_type_nature<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new(format!("Could not resolve generic type {generic_symbol} with {nature}"))
                     .with_error_code("E064")
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
             );
         } else if let Some((actual_type, generic_nature)) = context
             .annotations
@@ -1375,7 +1371,7 @@ fn validate_type_nature<T: AnnotationMap>(
                         generic_nature
                     ))
                     .with_error_code("E062")
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
                 );
             }
         }

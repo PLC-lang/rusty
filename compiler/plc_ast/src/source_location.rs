@@ -1,3 +1,4 @@
+use crate::ast::AstNode;
 use crate::lib_sourcelocation::{SourceCode, SourceContainer};
 use std::{
     fmt::{Debug, Display, Formatter},
@@ -163,6 +164,32 @@ pub struct SourceLocation {
 impl From<&SourceLocation> for SourceLocation {
     fn from(value: &SourceLocation) -> Self {
         value.clone()
+    }
+}
+
+// TODO: Is there a way to merge this with &&AstNode (and potentially &&&AstNode and so on)?
+impl From<&AstNode> for SourceLocation {
+    fn from(value: &AstNode) -> Self {
+        value.get_location()
+    }
+}
+
+impl From<&&AstNode> for SourceLocation {
+    fn from(value: &&AstNode) -> Self {
+        value.get_location()
+    }
+}
+
+// TODO: &&&AstNode just looks wrong, fix this in the caller
+impl From<&&&AstNode> for SourceLocation {
+    fn from(value: &&&AstNode) -> Self {
+        value.get_location()
+    }
+}
+
+impl From<&Box<AstNode>> for SourceLocation {
+    fn from(value: &Box<AstNode>) -> Self {
+        value.get_location()
     }
 }
 

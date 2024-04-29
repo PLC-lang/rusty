@@ -325,7 +325,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 //TODO: using the global context we could get a slice here
                 Err(Diagnostic::new(format!("{element:?} not a direct access"))
                     .with_error_code("E055")
-                    .with_location(element.get_location()))
+                    .with_location(element))
             }?;
             for element in direct_access {
                 let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -339,7 +339,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     //TODO: using the global context we could get a slice here
                     Err(Diagnostic::new(&format!("{element:?} not a direct access"))
                         .with_error_code("E055")
-                        .with_location(element.get_location()))
+                        .with_location(element))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }

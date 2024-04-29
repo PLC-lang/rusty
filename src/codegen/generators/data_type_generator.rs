@@ -154,7 +154,7 @@ pub fn generate_data_types<'ink>(
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_secondary_location(&ty.location))
+                    .map(|diag| diag.with_secondary_location(ty))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
