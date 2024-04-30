@@ -164,6 +164,7 @@ pub mod tests {
             None,
             crate::OptimizationLevel::None,
             debug_level,
+            crate::OnlineChange::Disabled,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
 
@@ -239,6 +240,7 @@ pub mod tests {
                     None,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    crate::OnlineChange::Disabled,
                 );
                 let got_layout = Mutex::new(None);
 

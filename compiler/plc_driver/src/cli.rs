@@ -213,6 +213,12 @@ pub struct CompileParameters {
     #[clap(name = "check", long, help = "Check only, do not generate any output", global = true)]
     pub check_only: bool,
 
+    #[clap(
+        long,
+        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"
+    )]
+    pub online_change: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }

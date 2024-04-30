@@ -330,6 +330,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             compile_options.got_layout_file.clone().zip(compile_options.got_layout_format),
             compile_options.optimization,
             compile_options.debug_level,
+            compile_options.online_change,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types

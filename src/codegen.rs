@@ -21,7 +21,7 @@ use self::{
 use crate::{
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    ConfigFormat, DebugLevel, OptimizationLevel, Target,
+    ConfigFormat, DebugLevel, OnlineChange, OptimizationLevel, Target,
 };
 
 use super::index::*;
@@ -75,6 +75,8 @@ pub struct CodeGen<'ink> {
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
     pub debug: DebugBuilderEnum<'ink>,
+    /// Whether we are generating a hot-reloadable binary or not
+    pub online_change: OnlineChange,
 
     pub got_layout_file: Option<(String, ConfigFormat)>,
 
@@ -98,11 +100,18 @@ impl<'ink> CodeGen<'ink> {
         got_layout_file: Option<(String, ConfigFormat)>,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        online_change: OnlineChange,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen { module, debug, got_layout_file, module_location: module_location.to_string() }
+        CodeGen {
+            module,
+            debug,
+            got_layout_file,
+            module_location: module_location.to_string(),
+            online_change,
+        }
     }
 
     pub fn generate_llvm_index(
@@ -224,6 +233,7 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
             &mut self.debug,
+            self.online_change,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -286,7 +296,8 @@ impl<'ink> CodeGen<'ink> {
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+        let pou_generator =
+            PouGenerator::new(llvm, global_index, annotations, &llvm_index, self.online_change);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

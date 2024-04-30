@@ -19,8 +19,8 @@ use std::{
 use cli::{CompileParameters, ParameterError, SubCommands};
 use pipelines::AnnotatedProject;
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, ConfigFormat, DebugLevel,
-    ErrorFormat, OptimizationLevel, Target, Threads,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat,
+    OnlineChange, OptimizationLevel, Target, Threads,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -56,6 +56,7 @@ pub struct CompileOptions {
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
     pub single_module: bool,
+    pub online_change: OnlineChange,
 }
 
 impl Default for CompileOptions {
@@ -71,6 +72,7 @@ impl Default for CompileOptions {
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
             single_module: false,
+            online_change: OnlineChange::Disabled,
         }
     }
 }
@@ -182,6 +184,11 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         error_format: compile_parameters.error_format,
         debug_level: compile_parameters.debug_level(),
         single_module: compile_parameters.single_module,
+        online_change: if compile_parameters.online_change {
+            OnlineChange::Enabled
+        } else {
+            OnlineChange::Disabled
+        },
     };
 
     let libraries =

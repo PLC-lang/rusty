@@ -176,6 +176,12 @@ pub enum DebugLevel {
     Full(usize),
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum OnlineChange {
+    Enabled,
+    Disabled,
+}
+
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {
     fn from(val: OptimizationLevel) -> Self {
         match val {
