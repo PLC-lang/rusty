@@ -20,7 +20,7 @@ fn function_all_parameters_assigned() {
         PROGRAM main
         VAR
             var1, var2, var3 : DINT;
-        END_VAR
+        END_VAprogram_accepts_empty_statement_as_output_paramR
             foo(var1, var2, var3);
             foo(input1 := var1, output1 => var2, inout1 := var3);
             foo(inout1 := var3, input1 := var1, output1 => var2);

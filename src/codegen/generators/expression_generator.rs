@@ -203,8 +203,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
-            qualified_name, constant: true, resulting_type, ..
-        }) = self.annotations.get(expression)
+                        qualified_name, constant: true, resulting_type, ..
+                    }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
                 match self.generate_constant_expression(qualified_name, expression) {
@@ -594,9 +594,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut current = Some(left_statement);
             let mut access_sequence = Vec::new();
             while let Some(AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Member(m),
-                base,
-            })) = current.map(|it| it.get_stmt())
+                                                           access: ReferenceAccess::Member(m),
+                                                           base,
+                                                       })) = current.map(|it| it.get_stmt())
             {
                 if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
                     access_sequence.insert(0, m.as_ref());
@@ -609,9 +609,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
-        else {
-            unreachable!("Invalid direct-access expression: {left_statement:#?}")
-        };
+            else {
+                unreachable!("Invalid direct-access expression: {left_statement:#?}")
+            };
 
         let left_type = self.get_type_hint_for(target)?;
 
@@ -707,88 +707,89 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // TODO: How to trigger an empty statement here, this: `FOO(Q => );`?
         if expression.is_empty_statement() {
-            panic!("we did it mom");
+            // Something like `foo(out1 => )`, which means we can just return here because no
+            // assignment should happen
+            return Ok(());
         }
 
-        if !expression.is_empty_statement() {
-            // FOO(x => y)
-            // FOO(x => y.0)
-            match expression.get_stmt() {
-                AstStatement::ReferenceExpr(_) if expression.has_direct_access() => {
-                    let _pou = dbg!(self.index.find_pou(function_name).unwrap());
-                    let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
-                    let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
-                    let param = dbg!(&members[index as usize]); // TODO: Create a test for this; this fucks up if populating the members is not in order
-                    let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
+        // FOO(x => y)
+        // FOO(x => y.0)
+        match expression.get_stmt() {
+            AstStatement::ReferenceExpr(_) if expression.has_direct_access() => {
+                let _pou = dbg!(self.index.find_pou(function_name).unwrap());
+                let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
+                let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
+                let param = dbg!(&members[index as usize]); // TODO: Create a test for this; this fucks up if populating the members is not in order
+                let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
 
-                    let AstStatement::ReferenceExpr(ReferenceExpr {
-                        access: ReferenceAccess::Member(member),
-                        base,
-                    }) = &expression.get_stmt()
+                let AstStatement::ReferenceExpr(ReferenceExpr {
+                                                    access: ReferenceAccess::Member(member),
+                                                    base,
+                                                }) = &expression.get_stmt()
                     else {
                         unreachable!("must be a bitaccess, will return early for all other cases")
                     };
-                    let base_value_rvalue =
-                        base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
+                let base_value_rvalue =
+                    base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
-                    if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
-                        let (Some(base), S_) = (base, ..) else { panic!() };
-                        // Step 1
-                        let error_bits_lvalue = self
-                            .llvm_index
-                            .find_loaded_associated_variable_value(
-                                self.annotations.get_qualified_name(base).unwrap(),
-                            )
-                            .unwrap();
-
-                        // Step 2
-                        let q_lvalue =
-                            self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
-
-                        // lhs = lvalue
-                        // rhs = astnode
-                        self.temp_xxx(error_bits_lvalue, q_lvalue, &expression, &dt)?;
-                    };
-                }
-
-                _ => {
-                    dbg!(&expression);
-                    let assigned_output = self.generate_lvalue(expression)?;
-
-                    let assigned_output_type =
-                        self.annotations.get_type_or_void(expression, self.index).get_type_information();
-
-                    let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                        Diagnostic::codegen_error(
-                            format!("Cannot build generate parameter: {parameter:#?}"),
-                            parameter.source_location.clone(),
+                if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
+                    let (Some(base), S_) = (base, ..) else { panic!() };
+                    // Step 1
+                    let error_bits_lvalue = self
+                        .llvm_index
+                        .find_loaded_associated_variable_value(
+                            self.annotations.get_qualified_name(base).unwrap(),
                         )
-                    })?;
+                        .unwrap();
 
-                    let output_value_type =
-                        self.index.get_type_information_or_void(parameter.get_type_name());
+                    // Step 2
+                    let q_lvalue =
+                        self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
 
-                    //Special string handling
-                    if (assigned_output_type.is_string() && output_value_type.is_string())
-                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                        || (assigned_output_type.is_array() && output_value_type.is_array())
-                    {
-                        self.generate_string_store(
-                            assigned_output,
-                            assigned_output_type,
-                            expression.get_location(),
-                            output,
-                            output_value_type,
-                            parameter.source_location.clone(),
-                        )?;
-                    } else {
-                        let output_value = builder.build_load(output, "");
-                        builder.build_store(assigned_output, output_value);
-                    }
-                    // todo!("handle fallthrough, return early; {expression:#?}")
+                    // lhs = lvalue
+                    // rhs = astnode
+                    dbg!(&expression);
+                    self.temp_xxx(error_bits_lvalue, q_lvalue, &expression, &dt)?;
+                };
+            }
+
+            _ => {
+                dbg!(&expression);
+                let assigned_output = self.generate_lvalue(expression)?;
+
+                let assigned_output_type =
+                    self.annotations.get_type_or_void(expression, self.index).get_type_information();
+
+                let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                    Diagnostic::codegen_error(
+                        format!("Cannot build generate parameter: {parameter:#?}"),
+                        parameter.source_location.clone(),
+                    )
+                })?;
+
+                let output_value_type =
+                    self.index.get_type_information_or_void(parameter.get_type_name());
+
+                //Special string handling
+                if (assigned_output_type.is_string() && output_value_type.is_string())
+                    || (assigned_output_type.is_struct() && output_value_type.is_struct())
+                    || (assigned_output_type.is_array() && output_value_type.is_array())
+                {
+                    self.generate_string_store(
+                        assigned_output,
+                        assigned_output_type,
+                        expression.get_location(),
+                        output,
+                        output_value_type,
+                        parameter.source_location.clone(),
+                    )?;
+                } else {
+                    let output_value = builder.build_load(output, "");
+                    builder.build_store(assigned_output, output_value);
                 }
-            };
-        }
+                // todo!("handle fallthrough, return early; {expression:#?}")
+            }
+        };
         Ok(())
     }
 
@@ -845,18 +846,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 // TODO: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
-                    if matches!(
+                if matches!(
                         operator.get_stmt(),
                         AstStatement::ReferenceExpr(ReferenceExpr { base: None, .. })
                     ) =>
-                {
-                    // special handling for local actions, get the parameter from the function context
-                    function_context
-                        .function
-                        .get_first_param()
-                        .map(|call_ptr| (None, call_ptr.into_pointer_value()))
-                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
-                }
+                    {
+                        // special handling for local actions, get the parameter from the function context
+                        function_context
+                            .function
+                            .get_first_param()
+                            .map(|call_ptr| (None, call_ptr.into_pointer_value()))
+                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
+                    }
                 _ => {
                     let call_ptr = self.generate_lvalue(operator)?;
                     (None, call_ptr)
@@ -949,7 +950,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if pou.is_variadic() {
             let last_location = result.len();
             for (i, parameter) in
-                self.generate_variadic_arguments_list(pou, &variadic_parameters)?.into_iter().enumerate()
+            self.generate_variadic_arguments_list(pou, &variadic_parameters)?.into_iter().enumerate()
             {
                 result.push((i + last_location, parameter));
             }
@@ -1521,7 +1522,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             self.llvm.builder.build_ptr_to_int(ptr, int_type, "")
         }
-        .as_basic_value_enum()
+            .as_basic_value_enum()
     }
 
     pub fn int_neg(&self, value: IntValue<'ink>) -> IntValue<'ink> {
@@ -2114,8 +2115,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 "Cannot generate String-Literal for type {}",
                 expected_type.get_name()
             ))
-            .with_error_code("E074")
-            .with_location(location)),
+                .with_error_code("E074")
+                .with_location(location)),
         }
     }
 
@@ -2397,7 +2398,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Err(Diagnostic::codegen_error(
                     format!("Cannot generate phi-expression for operator {operator:}"),
                     left.get_location(),
-                ))
+                ));
             }
         };
 
@@ -2447,7 +2448,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.get_type_hint_for(left)?.get_name(),
                     self.get_type_hint_for(right)?.get_name(),
                 )
-                .as_str(),
+                    .as_str(),
                 left.get_location(),
             ))
         }
@@ -2576,9 +2577,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
         let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
-        else {
-            unreachable!();
-        };
+            else {
+                unreachable!();
+            };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
@@ -2663,7 +2664,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
-                if let AstStatement::DirectAccess (data) = member.as_ref().get_stmt() {
+                if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
                         return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression.get_location()));
                     };
@@ -2675,7 +2676,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
                     )
-                    .map(ExpressionValue::LValue)
+                        .map(ExpressionValue::LValue)
                 }
             }
 
@@ -2688,8 +2689,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         self.annotations.get(base).expect(""),
                         array_idx.as_ref(),
                     )
-                    .map_err(|_| unreachable!("invalid access statement"))
-                    .map(ExpressionValue::LValue)
+                        .map_err(|_| unreachable!("invalid access statement"))
+                        .map(ExpressionValue::LValue)
                 } else {
                     // normal array expression
                     self.generate_element_pointer_for_array(base, array_idx).map(ExpressionValue::LValue)
@@ -2727,7 +2728,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             | (ReferenceAccess::Cast(_), None) // INT#;
             | (ReferenceAccess::Deref, None)  // ^;
             | (ReferenceAccess::Address, None) // &;
-                => Err(Diagnostic::codegen_error(
+            => Err(Diagnostic::codegen_error(
                 "Expected a base-expressions, but found none.",
                 original_expression.get_location(),
             )),
