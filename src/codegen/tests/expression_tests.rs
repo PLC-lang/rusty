@@ -145,7 +145,7 @@ fn cast_between_pointer_types() {
                 y : WORD;
             END_VAR;
 
-            ptr_x := &y;
+            ptr_x := REF(y);
         END_PROGRAM
     "#,
     );
@@ -168,9 +168,9 @@ fn unnecessary_casts_between_pointer_types() {
                 mb : MyByte;
             END_VAR;
 
-            ptr := &b; //no cast necessary
-            ptr := &si; //no cast necessary
-            ptr := &mb; //no cast necessary
+            ptr := REF(b); //no cast necessary
+            ptr := REF(si); //no cast necessary
+            ptr := REF(mb); //no cast necessary
         END_PROGRAM
     "#,
     );
@@ -192,8 +192,8 @@ fn access_string_via_byte_array() {
                 bytes : POINTER TO ARRAY[0..9] OF BYTE;
             END_VAR;
 
-            ptr := &str; //bit-cast expected
-            bytes := &str;
+            ptr := REF(str); //bit-cast expected
+            bytes := REF(str);
         END_PROGRAM
     "#,
     );
@@ -213,7 +213,7 @@ fn pointer_arithmetics() {
             y : INT := 20;
             pt : REF_TO INT;
         END_VAR
-        pt := &(x);
+        pt := REF(x);
 
         (* +/- *)
         pt := pt + 1;
@@ -244,7 +244,7 @@ fn pointer_arithmetics_function_call() {
             pt : REF_TO INT;
             x : INT;
         END_VAR
-        pt := &(x);
+        pt := REF(x);
 
         (* +/- *)
         pt := pt + foo();

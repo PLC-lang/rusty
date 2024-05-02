@@ -218,7 +218,7 @@ fn pointer_compare_instructions() {
             pt : REF_TO INT;
             comp : BOOL;
         END_VAR
-        pt := &(x);
+        pt := REF(x);
 
         (* compare pointer-pointer / pointer-int *)
         comp := pt = pt;
@@ -247,7 +247,7 @@ fn pointer_function_call_compare_instructions() {
             x : INT;
             comp : BOOL;
         END_VAR
-        pt := &(x);
+        pt := REF(x);
 
         (* compare pointer-pointer / pointer-int *)
         comp := pt = foo();
@@ -289,7 +289,7 @@ fn compare_instructions_with_different_types() {
             var_udint : UDINT;
             var_ulint : ULINT;
         END_VAR
-            ptr_int := &(var_int);
+            ptr_int := REF(var_int);
 
             var_sint = var_dint;
             var_int < 30;
@@ -350,7 +350,7 @@ fn compare_instruction_functions_with_different_types() {
             var_udint : UDINT;
             var_ulint : ULINT;
         END_VAR
-            ptr_float := &(var_real);
+            ptr_float := REF(var_real);
 
             EQ(var_sint, var_dint)
             GT(var_int, 30);

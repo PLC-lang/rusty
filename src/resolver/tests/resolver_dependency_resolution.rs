@@ -37,7 +37,7 @@ fn implicit_primitive_datatypes_resolved() {
                 y : LWORD;
             END_VAR
             x := 10 + 5; //the addition results in a DINT which is now a dependency for prog
-            y := &x; //Pointer type auto generated
+            y := REF(x); //Pointer type auto generated
         END_PROGRAM
         ",
         id_provider.clone(),
@@ -49,7 +49,11 @@ fn implicit_primitive_datatypes_resolved() {
     assert!(dependencies.contains(&Dependency::Datatype("USINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("LWORD".into())));
     assert!(dependencies.contains(&Dependency::Datatype("__POINTER_TO_USINT".into())));
-    assert_eq!(dependencies.len(), 5);
+    assert!(dependencies.contains(&Dependency::Call("REF".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REF".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__REF__U".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__REF_return".into())));
+    assert_eq!(dependencies.len(), 9);
 }
 
 #[test]

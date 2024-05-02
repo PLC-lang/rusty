@@ -1817,8 +1817,8 @@ fn pointers_generated() {
         //Assign address
         pX := NULL;
         rX := NULL;
-        pX := &X;
-        rX := &X;
+        pX := REF(X);
+        rX := REF(X);
 
         //Read from pointer
         X := pX^;
@@ -1849,8 +1849,8 @@ fn complex_pointers() {
 
         //Assign address
         arrX[1] := X;
-        arrrX[2] := &arrX[3];
-        rarrX := &arrX;
+        arrrX[2] := REF(arrX[3]);
+        rarrX := REF(arrX);
 
         //Read from pointer
         X := arrrX[4]^;
@@ -3231,7 +3231,6 @@ fn reference_to_reference_assignments_in_function_arguments() {
         VAR_INPUT
             input1 : REF_TO STRUCT_params;
             input2 : REF_TO STRUCT_params;
-            input3 : REF_TO STRUCT_params;
         END_VAR
     END_PROGRAM
 
@@ -3240,14 +3239,12 @@ fn reference_to_reference_assignments_in_function_arguments() {
             // ALL of these should have an identical IR representation
             input1 := ADR(global1),
             input2 := REF(global2),
-            input3 := &global3
         );
 
         prog(
             // These are not valid but we want to see if there's a cast involved
             input1 := ADR(global4),
             input2 := REF(global5),
-            input3 := &global6
         );
     END_PROGRAM
     "#,
