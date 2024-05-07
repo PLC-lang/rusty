@@ -1201,7 +1201,7 @@ fn sizeof_test() {
             s2 := SIZEOF(s2);
             s3 := SIZEOF(t5);
             s4 := SIZEOF(t1);
-            s5 := SIZEOF(&s1);
+            s5 := SIZEOF(REF(s1));
             s6 := SIZEOF(t2);
             s7 := SIZEOF(t3);
             s8 := SIZEOF(t4);

@@ -628,7 +628,7 @@ fn parameters_behind_function_block_pointer_are_assigned_to() {
             file : file_t;
             FileOpen : REF_TO file_t;
         END_VAR
-            FileOpen := &file;
+            FileOpen := REF(file);
             FileOpen^(var2:=TRUE);
         END_PROGRAM
 

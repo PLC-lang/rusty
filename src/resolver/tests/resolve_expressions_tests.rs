@@ -3372,7 +3372,7 @@ fn address_of_is_annotated_correctly() {
         VAR
             b : INT;
         END_VAR
-        &b;
+        REF(b);
         END_PROGRAM
         "#,
         id_provider.clone(),
@@ -3915,8 +3915,7 @@ fn multiple_pointer_referencing_annotates_correctly() {
         VAR
             a : BYTE;
         END_VAR
-            &&a;
-            &&&a;
+            REF(REF(a));
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -3925,15 +3924,19 @@ fn multiple_pointer_referencing_annotates_correctly() {
     index.import(std::mem::take(&mut annotations.new_index));
 
     // THEN it is correctly annotated with nested pointers
-    assert_type_and_hint!(&annotations, &index, &statements[0], "__POINTER_TO___POINTER_TO_BYTE", None);
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = &statements[0].get_stmt() else {
+        unreachable!();
+    };
 
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        &statements[1],
-        "__POINTER_TO___POINTER_TO___POINTER_TO_BYTE",
-        None
-    );
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) =
+        &parameters.as_ref().unwrap().get_stmt()
+    else {
+        unreachable!();
+    };
+
+    let parameters = parameters.as_ref().unwrap();
+
+    assert_type_and_hint!(&annotations, &index, &parameters, "BYTE", None);
 }
 
 #[test]
@@ -3946,7 +3949,7 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
         VAR
             a : BYTE;
         END_VAR
-            (&&a)^;
+            (REF(REF(a)))^;
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -3955,46 +3958,30 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     let statement = &unit.implementations[0].statements[0];
     index.import(std::mem::take(&mut annotations.new_index));
 
-    // THEN the expressions are nested and annotated correctly
-    let AstNode {
-        stmt:
-            AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Deref, base: Some(value), ..
-            }),
-        ..
-    } = &statement
+    // (REF(REF(a)))^
+    //  ^^^^^^^^^^^
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, base: Some(value) }) =
+        statement.get_stmt()
     else {
-        unreachable!("expected ReferenceExpr, but got {statement:#?}")
+        unreachable!()
     };
     assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO___POINTER_TO_BYTE", None);
 
-    let AstStatement::ParenExpression(expr) = value.get_stmt() else { panic!() };
-    let AstNode {
-        stmt:
-            AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Address, base: Some(base), ..
-            }),
-        ..
-    } = expr.as_ref()
-    else {
-        unreachable!("expected ReferenceExpr, but got {value:#?}")
+    // (REF(REF(a)))^
+    //      ^^^^^^
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = value.get_stmt_peeled() else {
+        unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, base, "__POINTER_TO_BYTE", None);
+    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "__POINTER_TO_BYTE", None);
 
-    let AstNode {
-        stmt:
-            AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Address, base: Some(base), ..
-            }),
-        ..
-    } = base.as_ref()
+    // (REF(REF(a)))^
+    //          ^
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) =
+        parameters.as_ref().unwrap().get_stmt_peeled()
     else {
-        unreachable!("expected ReferenceExpr, but got {base:#?}")
+        unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, base, "BYTE", None);
-
-    // AND the overall type of the statement is annotated correctly
-    assert_type_and_hint!(&annotations, &index, statement, "__POINTER_TO_BYTE", None);
+    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "BYTE", None);
 }
 
 #[test]
@@ -4656,7 +4643,7 @@ fn address_of_works_on_vla() {
             arr: ARRAY[*] OF INT;
             address: LWORD;
         END_VAR
-            address := &arr;
+            address := REF(arr);
         END_FUNCTION
         ",
         id_provider.clone(),
@@ -4665,18 +4652,19 @@ fn address_of_works_on_vla() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = stmt {
+    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt {
+        let argument = parameters.as_ref().unwrap();
         if let AstStatement::ReferenceExpr(ReferenceExpr {
             access: ReferenceAccess::Address,
             base: Some(reference),
             ..
-        }) = right.get_stmt()
+        }) = argument.get_stmt()
         {
             // rhs of assignment resolves to LWORD
             assert_type_and_hint!(
                 &annotations,
                 &index,
-                right.as_ref(),
+                argument.as_ref(),
                 "__POINTER_TO___foo_arr",
                 Some("LWORD")
             );

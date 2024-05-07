@@ -19,23 +19,3 @@ warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have differ
    │
 49 │             input3 := REF(global6),
    │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
-
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
-   ┌─ <internal>:55:13
-   │
-55 │             input1 := &(global4),
-   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
-
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
-   ┌─ <internal>:56:13
-   │
-56 │             input2 := &(global5),
-   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
-
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
-   ┌─ <internal>:57:13
-   │
-57 │             input3 := &(global6),
-   │             ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO___global_global6 have different types
-
-

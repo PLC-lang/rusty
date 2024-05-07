@@ -1047,10 +1047,10 @@ fn array_test() {
             //main := arr_var;
             //main[-1] := 1;
 
-            u := &(arr_var[0]);
-            v := &(arr_var[1]);
-            w := &(arr_var[2]);
-            x := &(arr_var[3]);
+            u := REF(arr_var[0]);
+            v := REF(arr_var[1]);
+            w := REF(arr_var[2]);
+            x := REF(arr_var[3]);
 
             main.a := 99;
         END_FUNCTION
