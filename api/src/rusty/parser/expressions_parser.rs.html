@@ -941,16 +941,6 @@
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -1340,8 +1330,8 @@
         pos = lexer.parse_progress;
         <span class="kw">match </span>(
             current,
-            <span class="comment">// only test for the tokens without eating it (Amp must not be consumed if it is in the middle of the chain)
-            </span>[KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp, TypeCastPrefix]
+            <span class="comment">// only test for the tokens without eating it
+            </span>[KeywordDot, KeywordSquareParensOpen, OperatorDeref, TypeCastPrefix]
                 .into_iter()
                 .find(|it| lexer.token == <span class="kw-2">*</span>it),
         ) {
@@ -1408,16 +1398,6 @@
                 lexer.advance();
                 <span class="kw">let </span>new_location = base.get_location().span(<span class="kw-2">&amp;</span>lexer.last_location());
                 current = <span class="prelude-val">Some</span>(AstFactory::create_deref_reference(base, lexer.next_id(), new_location))
-            }
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(OperatorAmp)) =&gt; {
-                lexer.advance();
-                <span class="kw">let </span>op_location = lexer.last_location();
-                <span class="comment">// the address-of-operator has different order compared ot other segments, we first see the operator, then
-                // we expect the expression. so writing &amp;a.b.c is more of &amp;(a.b.c) instead of (&amp;a).b.c.
-                // So we expect NO base, and operator and we parse the base now
-                </span><span class="kw">let </span>base = parse_call_statement(lexer)<span class="question-mark">?</span>;
-                <span class="kw">let </span>new_location = op_location.span(<span class="kw-2">&amp;</span>base.get_location());
-                current = <span class="prelude-val">Some</span>(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
             }
             (last_current, <span class="kw">_</span>) =&gt; {
                 current = last_current; <span class="comment">// exit the loop
