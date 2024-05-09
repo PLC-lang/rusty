@@ -4,6 +4,8 @@
 
 pub mod ast;
 pub mod control_statements;
+pub mod lib_sourcelocation;
 pub mod literals;
 mod pre_processor;
 pub mod provider;
+pub mod source_location;

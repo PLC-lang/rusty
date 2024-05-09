@@ -4,8 +4,8 @@ use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
     VariableBlock, VariableBlockType,
 };
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]

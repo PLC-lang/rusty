@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use plc_util::convention::internal_type_name;
 
+use crate::source_location::SourceLocation;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
@@ -12,7 +13,6 @@ use crate::{
     literals::AstLiteral,
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs

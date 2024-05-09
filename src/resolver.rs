@@ -12,6 +12,7 @@ use std::{
 
 use indexmap::{IndexMap, IndexSet};
 
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
@@ -23,7 +24,6 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 use crate::typesystem::VOID_INTERNAL_NAME;

@@ -5,7 +5,7 @@ use plc_ast::ast::{
     AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
     VariableBlock, VariableBlockType,
 };
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 use pretty_assertions::*;
 
 /*

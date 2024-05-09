@@ -1,8 +1,8 @@
 use encoding_rs::Encoding;
+use plc_ast::lib_sourcelocation::{SourceCode, SourceContainer};
 use plc_ast::provider::IdProvider;
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
-use plc_source::{SourceCode, SourceContainer};
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
@@ -113,8 +113,8 @@ impl GlobalContext {
 #[cfg(test)]
 mod tests {
     use crate::GlobalContext;
-    use plc_source::source_location::SourceLocationFactory;
-    use plc_source::SourceCode;
+    use plc_ast::lib_sourcelocation::SourceCode;
+    use plc_ast::source_location::SourceLocationFactory;
 
     #[test]
     fn slice() {

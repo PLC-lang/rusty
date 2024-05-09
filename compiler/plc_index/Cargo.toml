@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 plc_ast = { path = "../plc_ast" }
-plc_source = { path = "../plc_source" }
 plc_diagnostics = { path = "../plc_diagnostics" }
 #plc_project = { path = "../plc_project" } # TODO: This will create a circular dependency
 

@@ -1,6 +1,7 @@
 use std::{collections::HashSet, mem::discriminant};
 
 use plc_ast::control_statements::ForLoopStatement;
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
@@ -10,7 +11,6 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 
 use crate::index::ImplementationType;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};

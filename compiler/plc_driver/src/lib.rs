@@ -23,11 +23,11 @@ use plc::{
     OptimizationLevel, Target, Threads,
 };
 
+use ast::lib_sourcelocation::SourceContainer;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
 use project::project::{LibraryInformation, Project};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use source_code::SourceContainer;
 
 pub mod cli;
 pub mod pipelines;

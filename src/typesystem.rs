@@ -5,11 +5,11 @@ use std::{
     ops::{Range, RangeInclusive},
 };
 
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{AstNode, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
-use plc_source::source_location::SourceLocation;
 
 use crate::{
     datalayout::{Bytes, MemoryLocation},

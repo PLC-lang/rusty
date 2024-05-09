@@ -1,3 +1,5 @@
+use ast::lib_sourcelocation::{SourceCode, SourceCodeFactory};
+use ast::source_location::SourceLocationFactory;
 use ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, CallStatement, CompilationUnit,
@@ -7,7 +9,6 @@ use ast::{
 };
 use insta::assert_debug_snapshot;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::{source_location::SourceLocationFactory, SourceCode, SourceCodeFactory};
 
 use crate::serializer::{
     SBlock, SConnector, SContinuation, SInOutVariable, SInVariable, SOutVariable, SPou, SReturn, SVariable,

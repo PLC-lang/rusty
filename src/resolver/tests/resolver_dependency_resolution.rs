@@ -1,5 +1,5 @@
+use plc_ast::lib_sourcelocation::SourceCode;
 use plc_ast::provider::IdProvider;
-use plc_source::SourceCode;
 
 use crate::{
     resolver::{Dependency, TypeAnnotator},

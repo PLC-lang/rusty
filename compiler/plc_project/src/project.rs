@@ -12,7 +12,7 @@ use crate::{
 };
 
 use plc::output::FormatOption;
-use source_code::{SourceContainer, SourceType};
+use plc_ast::lib_sourcelocation::{SourceContainer, SourceType};
 
 #[derive(Debug)]
 pub enum Linkage {

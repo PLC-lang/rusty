@@ -1,10 +1,10 @@
 use crate::{pipelines::ParsedProject, CompileOptions};
+use ast::lib_sourcelocation::Compilable;
 
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use project::project::Project;
-use source_code::Compilable;
 
 #[allow(dead_code)]
 #[repr(C)]

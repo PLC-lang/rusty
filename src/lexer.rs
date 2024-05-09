@@ -3,8 +3,8 @@ use core::ops::Range;
 use logos::{Filter, Lexer, Logos};
 use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
 use plc_ast::provider::IdProvider;
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 pub use tokens::Token;
 
 #[cfg(test)]

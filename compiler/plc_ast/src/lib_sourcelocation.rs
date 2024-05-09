@@ -7,7 +7,6 @@ use std::{
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 
-pub mod source_location;
 /// Represents the type of source a SourceContainer holds
 #[derive(Clone, Copy, Debug)]
 pub enum SourceType {
@@ -177,7 +176,7 @@ impl Compilable for SourceCode {
 
 #[cfg(test)]
 mod tests {
-    use crate::create_source_code;
+    use crate::lib_sourcelocation::create_source_code;
 
     #[test]
     fn windows_encoded_file_content_read() {

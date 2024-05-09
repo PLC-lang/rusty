@@ -2,6 +2,8 @@
 
 use std::ops::Range;
 
+use plc_ast::lib_sourcelocation::{SourceCode, SourceContainer};
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
@@ -14,10 +16,6 @@ use plc_ast::{
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
-};
-use plc_source::{
-    source_location::{SourceLocation, SourceLocationFactory},
-    SourceCode, SourceContainer,
 };
 use plc_util::convention::qualified_name;
 

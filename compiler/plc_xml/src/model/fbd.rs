@@ -1,6 +1,6 @@
+use ast::source_location::SourceLocationFactory;
 use indexmap::{IndexMap, IndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 
@@ -303,8 +303,8 @@ mod tests {
         reader::{get_start_tag, Reader},
         xml_parser::Parseable,
     };
+    use ast::source_location::SourceLocationFactory;
     use insta::assert_debug_snapshot;
-    use plc_source::source_location::SourceLocationFactory;
 
     use super::Node;
 

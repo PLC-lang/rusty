@@ -17,7 +17,6 @@ default = []
 verify = []
 
 [dependencies]
-plc_source = { path = "./compiler/plc_source" }
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics" }
@@ -69,7 +68,6 @@ members = [
     "compiler/plc_ast",
     "compiler/plc_diagnostics",
     "compiler/plc_project",
-    "compiler/plc_source",
     "compiler/plc_util",
     "compiler/plc_xml",
     "compiler/plc_derive",

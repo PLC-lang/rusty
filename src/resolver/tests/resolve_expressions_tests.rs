@@ -1,6 +1,7 @@
 use core::panic;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
@@ -11,7 +12,6 @@ use plc_ast::{
     literals::{Array, AstLiteral},
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{ArgumentType, Index, VariableType},
