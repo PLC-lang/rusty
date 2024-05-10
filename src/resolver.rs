@@ -10,7 +10,7 @@ use std::{
     hash::Hash,
 };
 
-use indexmap::IndexSet;
+use indexmap::{IndexSet};
 
 use plc_ast::{
     ast::{

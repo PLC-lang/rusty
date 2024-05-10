@@ -21,14 +21,12 @@ use crate::{
     typesystem::{self, *},
 };
 
-use self::cache::CachedStringSymbolMap;
 use self::{
     const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
     symbol::SymbolMap,
 };
 
-pub mod cache;
 pub mod const_expressions;
 mod instance_iterator;
 pub mod symbol;
@@ -768,7 +766,7 @@ impl PouIndexEntry {
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: SymbolMap<String, DataType>,
-    pou_types: CachedStringSymbolMap<DataType>,
+    pou_types: SymbolMap<String, DataType>,
 
     void_type: DataType,
 }
@@ -777,7 +775,7 @@ impl Default for TypeIndex {
     fn default() -> Self {
         TypeIndex {
             types: SymbolMap::default(),
-            pou_types: CachedStringSymbolMap::new(),
+            pou_types: SymbolMap::default(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
@@ -795,7 +793,7 @@ impl TypeIndex {
     }
 
     pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
-        self.pou_types.get(&type_name)
+        self.pou_types.get(&type_name.to_lowercase())
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
@@ -829,13 +827,13 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    pub global_variables: CachedStringSymbolMap<VariableIndexEntry>,
+    global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all struct initializers
-    pub global_initializers: CachedStringSymbolMap<VariableIndexEntry>,
+    global_initializers: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
-    pub enum_global_variables: CachedStringSymbolMap<VariableIndexEntry>,
+    enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
@@ -937,7 +935,6 @@ impl Index {
 
         //pou_types
         for (name, mut elements) in other.type_index.pou_types.drain(..) {
-            self.type_index.pou_types.clear_cache(); // TODO: This is really fucking ugly, find a better way, maybe integrated with `drain`?
             elements.iter_mut().for_each(|e| {
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
 
@@ -1054,7 +1051,7 @@ impl Index {
         name: &str,
     ) -> Option<&VariableIndexEntry> {
         self.global_variables
-            .get_all(name)
+            .get_all(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get_all(&name.to_lowercase()))
             .and_then(|it| {
                 if let Some(context) = context.filter(|it| !it.is_empty()) {
@@ -1346,12 +1343,12 @@ impl Index {
     }
 
     /// Returns the map of pou_types, should not be used to search for pou_types -->  see find_pou_type
-    pub fn get_pou_types(&self) -> &CachedStringSymbolMap<DataType> {
+    pub fn get_pou_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.pou_types
     }
 
     /// Returns the map of globals, should not be used to search for globals -->  see find_global_variable
-    pub fn get_globals(&self) -> &CachedStringSymbolMap<VariableIndexEntry> {
+    pub fn get_globals(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_variables
     }
 
@@ -1370,7 +1367,7 @@ impl Index {
         &self.pous
     }
 
-    pub fn get_global_initializers(&self) -> &CachedStringSymbolMap<VariableIndexEntry> {
+    pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_initializers
     }
 
@@ -1484,7 +1481,7 @@ impl Index {
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_variables.insert(name, variable);
+        self.global_variables.insert(name.to_lowercase(), variable);
     }
 
     pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
@@ -1496,7 +1493,7 @@ impl Index {
     }
 
     pub fn register_pou_type(&mut self, datatype: DataType) {
-        self.type_index.pou_types.insert(datatype.get_name().to_string(), datatype);
+        self.type_index.pou_types.insert(datatype.get_name().to_lowercase(), datatype);
     }
 
     pub fn find_callable_instance_variable(
