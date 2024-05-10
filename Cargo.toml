@@ -17,6 +17,7 @@ default = []
 verify = []
 
 [dependencies]
+elsa = "1.10.0"
 plc_source = { path = "./compiler/plc_source" }
 plc_ast = { path = "./compiler/plc_ast" }
 plc_util = { path = "./compiler/plc_util" }
