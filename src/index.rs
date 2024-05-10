@@ -32,6 +32,7 @@ mod instance_iterator;
 pub mod symbol;
 pub mod visitor;
 
+mod cache;
 #[cfg(test)]
 mod tests;
 

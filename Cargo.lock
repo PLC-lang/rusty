@@ -779,6 +779,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "elsa"
+version = "1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d98e71ae4df57d214182a2e5cb90230c0192c6ddfcaa05c36453d46a54713e10"
+dependencies = [
+ "stable_deref_trait",
+]
+
+[[package]]
 name = "encode_unicode"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2945,6 +2954,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap 3.2.25",
+ "elsa",
  "encoding_rs",
  "encoding_rs_io",
  "generational-arena",
@@ -3440,6 +3450,12 @@ dependencies = [
  "url",
  "urlencoding",
 ]
+
+[[package]]
+name = "stable_deref_trait"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "string_cache"

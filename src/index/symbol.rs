@@ -25,6 +25,7 @@ where
 {
     /// returns the first element associated with the given key or None if
     /// this key was never associated with an element
+    ///
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
     where
         Q: Hash + Equivalent<K>,
@@ -34,6 +35,7 @@ where
 
     /// returns all elements associated with the given key or None if
     /// this key was never associated with an element
+    ///
     pub fn get_all<Q: ?Sized>(&self, key: &Q) -> Option<&Vec<V>>
     where
         Q: Hash + Equivalent<K>,
@@ -43,6 +45,7 @@ where
 
     /// associates the given value with the give key. Existing associations are
     /// not overwritten, rather an additional association is added
+    ///
     pub fn insert(&mut self, key: K, value: V) {
         self.inner_map.entry(key).or_default().push(value);
     }
@@ -53,6 +56,7 @@ where
     }
 
     /// inserts all given elements and associates them with the given key
+    ///
     pub fn insert_many<T: IntoIterator<Item = V>>(&mut self, key: K, values: T) {
         self.inner_map.entry(key).or_default().extend(values);
     }
@@ -81,13 +85,6 @@ where
     /// values, rather the insertion order of the keys associated to the values.
     pub fn values(&self) -> impl Iterator<Item = &'_ V> {
         self.inner_map.iter().flat_map(|(_, v)| v.iter())
-    }
-
-    /// extends the map with the contents of an iterator.
-    pub fn extend(&mut self, other: SymbolMap<K, V>) {
-        for (k, v) in other.inner_map.into_iter() {
-            self.insert_many(k, v)
-        }
     }
 
     /// return `true` if an equivalent to key exists in the map.
