@@ -55,12 +55,15 @@ impl<V> CaseInsensitiveSymbolMap<V> {
     }
 
     pub fn get_all(&self, key: &str) -> Option<&Vec<V>> {
+        // if key == "test__T" {
+        //     println!("debug me");
+        // }
         if let Some(entry) = self.keys.get(key) {
-            if cfg!(debug_assertions) {
-                if self.items.get(&key.to_lowercase()).is_some() && entry.is_none() {
-                    panic!("fucking hell")
-                }
-            }
+            // if cfg!(debug_assertions) {
+            //     if self.items.get(&key.to_lowercase()).is_some() && entry.is_none() {
+            //         panic!("fucking hell ({key}, {entry:?})")
+            //     }
+            // }
             return self.items.get(entry.as_ref()?);
         }
 
@@ -96,6 +99,17 @@ impl<V> CaseInsensitiveSymbolMap<V> {
         let key_lowered = key.to_lowercase();
         self.items.contains_key(&key_lowered)
     }
+    //
+    // pub fn get_cache(&self) -> &FrozenMap<String, Box<Option<String>>> {
+    //     &self.keys
+    // }
+    //
+    // pub fn extend_cache(&self, key: String, value: Box<Option<String>>) {
+    //     dbg!((&key, &value), &self.keys.get(&key));
+    //     if value.is_some() && self.keys.get(&key).is_some_and(|value| value.is_none()) {
+    //         self.keys.insert(key, value);
+    //     }
+    // }
 }
 
 #[cfg(test)]
@@ -150,5 +164,16 @@ mod tests {
         assert_eq!(map.keys.get("FOo").unwrap().as_deref(), Some("foo"));
         assert_eq!(map.keys.get("FOO").unwrap().as_deref(), Some("foo"));
         assert_eq!(map.keys.into_tuple_vec().len(), 4);
+    }
+
+    #[test]
+    fn temp() {
+        let mut map = CaseInsensitiveSymbolMap::new();
+        map.get("FOO");
+        assert_eq!(*map.keys.get("FOO").unwrap(), None);
+
+        map.insert("foo", 1);
+        // FIXME: This should now be Some("foo") but it's None
+        assert_ne!(map.get("FOO"), None, "cache invalid");
     }
 }
