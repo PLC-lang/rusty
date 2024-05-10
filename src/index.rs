@@ -15,6 +15,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 
+use crate::index::cache::CaseInsensitiveSymbolMap;
 use crate::{
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
@@ -828,13 +829,13 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    global_variables: SymbolMap<String, VariableIndexEntry>,
+    global_variables: CaseInsensitiveSymbolMap<VariableIndexEntry>,
 
     /// all struct initializers
-    global_initializers: SymbolMap<String, VariableIndexEntry>,
+    global_initializers: CaseInsensitiveSymbolMap<VariableIndexEntry>,
 
     /// all enum-members with their names
-    enum_global_variables: SymbolMap<String, VariableIndexEntry>,
+    enum_global_variables: CaseInsensitiveSymbolMap<VariableIndexEntry>,
 
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
@@ -870,7 +871,7 @@ impl Index {
                 .into_iter()
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
-            self.global_variables.insert_many(name, entries);
+            self.global_variables.insert_many(&name, entries);
         }
 
         //initializers
@@ -879,7 +880,7 @@ impl Index {
                 .into_iter()
                 .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
-            self.global_initializers.insert_many(name, elements);
+            self.global_initializers.insert_many(&name, elements);
         }
 
         //types
@@ -922,7 +923,7 @@ impl Index {
                                 .collect::<Vec<_>>();
 
                             for e in variables.iter() {
-                                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                                self.enum_global_variables.insert(e.get_name(), e.clone());
                             }
                             variants.append(&mut variables);
                         }
@@ -1051,16 +1052,15 @@ impl Index {
         context: Option<&str>,
         name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.global_variables
-            .get_all(&name.to_lowercase())
-            .or_else(|| self.enum_global_variables.get_all(&name.to_lowercase()))
-            .and_then(|it| {
+        self.global_variables.get_all(name).or_else(|| self.enum_global_variables.get_all(name)).and_then(
+            |it| {
                 if let Some(context) = context.filter(|it| !it.is_empty()) {
                     it.iter().find(|it| it.has_parent(context)).or_else(|| it.first())
                 } else {
                     it.first()
                 }
-            })
+            },
+        )
     }
 
     /// returns the `VariableIndexEntry` of the global variable with the given name
@@ -1070,7 +1070,7 @@ impl Index {
 
     /// returns the `VariableIndexEntry` of the global initializer with the given name
     pub fn find_global_initializer(&self, name: &str) -> Option<&VariableIndexEntry> {
-        self.global_initializers.get(&name.to_lowercase())
+        self.global_initializers.get(name)
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
@@ -1349,7 +1349,7 @@ impl Index {
     }
 
     /// Returns the map of globals, should not be used to search for globals -->  see find_global_variable
-    pub fn get_globals(&self) -> &SymbolMap<String, VariableIndexEntry> {
+    pub fn get_globals(&self) -> &CaseInsensitiveSymbolMap<VariableIndexEntry> {
         &self.global_variables
     }
 
@@ -1368,7 +1368,7 @@ impl Index {
         &self.pous
     }
 
-    pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
+    pub fn get_global_initializers(&self) -> &CaseInsensitiveSymbolMap<VariableIndexEntry> {
         &self.global_initializers
     }
 
@@ -1477,16 +1477,16 @@ impl Index {
             .set_constant(true)
             .set_initial_value(initial_value);
 
-        self.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
+        self.enum_global_variables.insert(variant, entry.clone());
         entry
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_variables.insert(name.to_lowercase(), variable);
+        self.global_variables.insert(name, variable);
     }
 
     pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_initializers.insert(name.to_lowercase(), variable);
+        self.global_initializers.insert(name, variable);
     }
 
     pub fn register_type(&mut self, datatype: DataType) {

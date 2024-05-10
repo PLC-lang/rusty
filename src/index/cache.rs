@@ -2,7 +2,8 @@
 // (foo, Some(a))
 
 use crate::index::FxIndexMap;
-use elsa::FrozenMap;
+use elsa::sync::FrozenMap;
+use std::fmt::Formatter;
 
 pub struct CaseInsensitiveSymbolMap<V> {
     items: FxIndexMap<String, Vec<V>>,
@@ -11,6 +12,22 @@ pub struct CaseInsensitiveSymbolMap<V> {
     // ("Foo", "foo"),
     // ("bar", None)
     keys: FrozenMap<String, Box<Option<String>>>,
+}
+
+impl<V> Default for CaseInsensitiveSymbolMap<V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<V> std::fmt::Debug for CaseInsensitiveSymbolMap<V>
+where
+    V: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let CaseInsensitiveSymbolMap { items, .. } = self;
+        write!(f, "{items:#?}")
+    }
 }
 
 impl<V> CaseInsensitiveSymbolMap<V> {
@@ -39,6 +56,11 @@ impl<V> CaseInsensitiveSymbolMap<V> {
 
     pub fn get_all(&self, key: &str) -> Option<&Vec<V>> {
         if let Some(entry) = self.keys.get(key) {
+            if cfg!(debug_assertions) {
+                if self.items.get(&key.to_lowercase()).is_some() && entry.is_none() {
+                    panic!("fucking hell")
+                }
+            }
             return self.items.get(entry.as_ref()?);
         }
 
@@ -54,10 +76,7 @@ impl<V> CaseInsensitiveSymbolMap<V> {
 
     // ------------------
 
-    pub fn drain(
-        &mut self,
-        range: std::ops::RangeFull,
-    ) -> indexmap::map::Drain<'_, String, std::vec::Vec<V>> {
+    pub fn drain(&mut self, range: std::ops::RangeFull) -> indexmap::map::Drain<'_, String, Vec<V>> {
         self.items.drain(range)
     }
 
