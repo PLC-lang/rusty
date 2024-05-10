@@ -505,21 +505,21 @@ fn pointer_assignment_validation() {
     v_dint := v_ptr_int; // INVALID
     v_word := v_ptr_int; // INVALID
     v_lword := v_ptr_int; // valid
-    v_ptr_int := &v_real; // INVALID -> TODO: should be valid
+    v_ptr_int := REF(v_real); // INVALID -> TODO: should be valid
     v_ptr_int^ := v_real; // valid
-    v_ptr_int := &v_udint; // valid
+    v_ptr_int := REF(v_udint); // valid
     v_ptr_int^ := v_udint; // valid
-    v_ptr_int := &v_dint; // valid
+    v_ptr_int := REF(v_dint); // valid
     v_ptr_int^ := v_dint; // valid
-    v_ptr_int := &v_time; // valid
+    v_ptr_int := REF(v_time); // valid
     v_ptr_int^ := v_time; // valid
-    v_ptr_int := &v_word; // valid
+    v_ptr_int := REF(v_word); // valid
     v_ptr_int^ := v_word; // valid
-    v_ptr_int := &v_string; // INVALID
+    v_ptr_int := REF(v_string); // INVALID
     v_ptr_int^ := v_string; // INVALID
-    v_ptr_int := &v_char; // INVALID -> TODO: missing validation
+    v_ptr_int := REF(v_char); // INVALID -> TODO: missing validation
     v_ptr_int^ := v_char; // INVALID
-    v_ptr_int := &v_date; // valid
+    v_ptr_int := REF(v_date); // valid
     v_ptr_int^ := v_date; // valid
     v_ptr_int^ := v_arr_int_3[0]; // valid
     v_ptr_int^ := v_arr_string_3[0]; // INVALID
@@ -655,7 +655,6 @@ fn struct_assignment_validation() {
 
     v_ref_to_struct1 := REF(v_struct1); // valid
     v_ref_to_struct1 := ADR(v_struct1); // valid
-    v_ref_to_struct1 := &(v_struct1); // valid
 
     v_ref_to_struct1 := ADR(v_real); // valid
     v_ref_to_struct1 := ADR(v_string); // valid
@@ -664,10 +663,6 @@ fn struct_assignment_validation() {
     v_ref_to_struct1 := REF(v_real); // INVALID
     v_ref_to_struct1 := REF(v_string); // INVALID
     v_ref_to_struct1 := REF(v_char); // INVALID
-
-    v_ref_to_struct1 := &(v_real); // INVALID
-    v_ref_to_struct1 := &(v_string); // INVALID
-    v_ref_to_struct1 := &(v_char); // INVALID
     END_FUNCTION
     "#,
     );

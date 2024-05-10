@@ -59,9 +59,9 @@ VAR
                 v : MyRef;
 
 END_VAR
-u := &s.x;
+u := REF(s.x);
 y := u;
-z := &y;
+z := REF(y);
 s.x := 9;
 z^^ := y^*2;
 v := z;
@@ -116,7 +116,7 @@ fn binary_expressions_for_pointers() {
         ptr : REF_TO CHAR;
         negative : INT := -1;
     END_VAR
-        ptr := &(arr);
+        ptr := REF(arr);
 
         ptr := ptr + 1 + 1;
         a := ptr^;
@@ -175,10 +175,10 @@ fn binary_expressions_for_pointers_with_function_return() {
         arr : ARRAY[0..2] OF CHAR := ['a','b', 'c'];
         ptr : REF_TO CHAR;
     END_VAR
-        ptr := &arr;
+        ptr := REF(arr);
 
         a := ptr^;
-        ptr := &arr[0] + len() + 1;
+        ptr := REF(arr[0]) + len() + 1;
         b := ptr^;
         ptr := ptr - len() - 1;
         c := ptr^;
@@ -232,7 +232,7 @@ fn value_behind_function_block_pointer_is_assigned_to_correctly() {
             file : file_t;
             FileOpen : REF_TO file_t;
         END_VAR
-            FileOpen := &file;
+            FileOpen := REF(file);
             FileOpen^(var1 := FALSE, var2:=TRUE, out1 => a, out2 => b);
         END_PROGRAM
         "#;

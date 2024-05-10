@@ -252,8 +252,8 @@ fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
                 x : INT;
             END_VAR
 
-            a := &x;  //generates ptr_to_INT type
-            a := &x;  //also? generates ptr to INT type
+            a := REF(x);  //generates ptr_to_INT type
+            a := REF(x);  //also? generates ptr to INT type
             END_PROGRAM
             "#,
     );
