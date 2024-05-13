@@ -33,6 +33,7 @@ shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = "140.0.0"
 which = "4.2.5"
+rustc-hash = "1.1.0"
 log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
@@ -48,7 +49,7 @@ num = "0.4"
 insta = "1.31.0"
 pretty_assertions = "1.3.0"
 driver = { path = "./compiler/plc_driver/", package = "plc_driver" }
-project = { path = "./compiler/plc_project/", package = "plc_project", features = ["integration"]}
+project = { path = "./compiler/plc_project/", package = "plc_project", features = ["integration"] }
 plc_xml = { path = "./compiler/plc_xml" }
 serial_test = "*"
 tempfile = "3"

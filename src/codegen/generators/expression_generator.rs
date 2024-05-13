@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::index::FxHashSet;
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
@@ -34,7 +35,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
-use std::{collections::HashSet, vec};
+use std::vec;
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 /// the generator for expressions
@@ -1870,7 +1871,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
-            let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
+            let mut uninitialized_members: FxHashSet<&VariableIndexEntry> = FxHashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
                 if let AstStatement::Assignment(data) = assignment.get_stmt() {

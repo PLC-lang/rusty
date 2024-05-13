@@ -1,4 +1,5 @@
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexSet;
+use plc::index::FxIndexMap;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
@@ -15,7 +16,7 @@ use super::{
 
 /// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
-pub(crate) type NodeIndex<'xml> = IndexMap<NodeId, Node<'xml>>;
+pub(crate) type NodeIndex<'xml> = FxIndexMap<NodeId, Node<'xml>>;
 
 #[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram<'xml> {
@@ -113,7 +114,7 @@ impl<'xml> Node<'xml> {
 
 impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
-        let mut nodes = IndexMap::new();
+        let mut nodes = FxIndexMap::default();
 
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
@@ -304,6 +305,7 @@ mod tests {
         xml_parser::Parseable,
     };
     use insta::assert_debug_snapshot;
+    use plc::index::FxIndexMap;
     use plc_source::source_location::SourceLocationFactory;
 
     use super::Node;
@@ -336,7 +338,7 @@ mod tests {
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
 
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -359,8 +361,7 @@ mod tests {
                         ref_local_id: Some(1),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -375,7 +376,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -418,8 +419,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -434,7 +434,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -498,8 +498,7 @@ mod tests {
                         ref_local_id: Some(5),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -514,7 +513,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -577,8 +576,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -593,7 +591,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -626,8 +624,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -642,7 +639,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -675,8 +672,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -693,7 +689,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -756,8 +752,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -773,7 +768,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -816,8 +811,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -834,7 +828,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -919,8 +913,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
