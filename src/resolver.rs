@@ -5,6 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
+use std::cell::RefCell;
 use std::{collections::HashSet, hash::Hash};
 
 use plc_ast::{
@@ -151,8 +152,27 @@ pub struct TypeAnnotator<'i> {
     /// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
     jumps_to_annotate: FxHashMap<String, FxHashMap<String, Vec<AstId>>>,
+    lowercase_cache: RefCell<FxHashMap<String, Option<&'i typesystem::DataType>>>,
 }
 
+impl TypeAnnotator<'_> {
+    fn find_type(&self, input: &str) -> Option<&typesystem::DataType> {
+        if let Some(ty) = self.lowercase_cache.borrow().get(input) {
+            return Some(ty.as_ref()?);
+        }
+
+        match self.index.find_type(input) {
+            Some(value) => {
+                self.lowercase_cache.borrow_mut().insert(input.to_string(), Some(value));
+                Some(value)
+            }
+            None => {
+                self.lowercase_cache.borrow_mut().insert(input.to_string(), None);
+                None
+            }
+        }
+    }
+}
 impl TypeAnnotator<'_> {
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         match &annotation {
@@ -176,7 +196,6 @@ impl TypeAnnotator<'_> {
             }
             StatementAnnotation::Value { resulting_type } => {
                 if let Some(dt) = self
-                    .index
                     .find_type(resulting_type)
                     .or_else(|| self.annotation_map.new_index.find_type(resulting_type))
                 {
@@ -720,6 +739,7 @@ impl<'i> TypeAnnotator<'i> {
             dependencies: FxIndexSet::default(),
             string_literals: StringLiterals { utf08: HashSet::default(), utf16: HashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
+            lowercase_cache: RefCell::new(FxHashMap::default()),
         }
     }
 
@@ -1130,10 +1150,8 @@ impl<'i> TypeAnnotator<'i> {
         resolved: FxIndexSet<Dependency>,
     ) -> FxIndexSet<Dependency> {
         let mut resolved_names = resolved;
-        let Some(datatype) = self
-            .index
-            .find_type(datatype_name)
-            .or_else(|| self.annotation_map.new_index.find_type(datatype_name))
+        let Some(datatype) =
+            self.find_type(datatype_name).or_else(|| self.annotation_map.new_index.find_type(datatype_name))
         else {
             return resolved_names;
         };
@@ -1641,13 +1659,11 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
-                if let Some((base_type, literal_type)) =
-                    qualifier.and_then(|base| self.index.find_type(base)).zip(
-                        literal_annotation
-                            .as_ref()
-                            .and_then(|a| self.annotation_map.get_type_for_annotation(self.index, a)),
-                    )
-                {
+                if let Some((base_type, literal_type)) = qualifier.and_then(|base| self.find_type(base)).zip(
+                    literal_annotation
+                        .as_ref()
+                        .and_then(|a| self.annotation_map.get_type_for_annotation(self.index, a)),
+                ) {
                     // see if this was casted
                     if base_type != literal_type {
                         return Some(StatementAnnotation::value(base_type.get_name()));
@@ -2077,6 +2093,7 @@ impl ResolvingScope {
             ResolvingScope::DataType => {
                 if qualifier.is_none() {
                     // look for datatype with name "name"
+                    // TODO: Here
                     index
                         .find_type(name)
                         .map(|data_type| StatementAnnotation::data_type(data_type.get_name()))
