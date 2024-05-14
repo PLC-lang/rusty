@@ -6,6 +6,7 @@ use inkwell::{
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
@@ -15,7 +16,6 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
@@ -774,7 +774,7 @@ fn validate_variable_length_array_bound_function(
                         TypeNature::Int
                     ))
                     .with_error_code("E062")
-                    .with_location(idx.get_location()),
+                    .with_location(idx),
                 )
             }
 
@@ -791,9 +791,7 @@ fn validate_variable_length_array_bound_function(
 
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
                     validator.push_diagnostic(
-                        Diagnostic::new("Index out of bound")
-                            .with_error_code("E046")
-                            .with_location(operator.get_location()),
+                        Diagnostic::new("Index out of bound").with_error_code("E046").with_location(operator),
                     )
                 }
             };

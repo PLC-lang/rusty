@@ -5,7 +5,7 @@ use crate::{
 };
 use insta::assert_snapshot;
 use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, Variable};
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]

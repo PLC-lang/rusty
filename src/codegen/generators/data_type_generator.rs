@@ -19,8 +19,8 @@ use inkwell::{
 };
 use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
@@ -154,7 +154,7 @@ pub fn generate_data_types<'ink>(
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_secondary_location(&ty.location))
+                    .map(|diag| diag.with_secondary_location(ty))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();

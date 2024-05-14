@@ -6,7 +6,7 @@ use plc_ast::ast::{
     AstFactory, AstNode, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
 };
 use plc_ast::literals::AstLiteral;
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]

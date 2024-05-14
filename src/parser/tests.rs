@@ -1,8 +1,8 @@
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{AstFactory, AstNode},
     literals::AstLiteral,
 };
-use plc_source::source_location::SourceLocation;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;

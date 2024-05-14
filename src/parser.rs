@@ -2,6 +2,8 @@
 
 use std::ops::Range;
 
+use plc_ast::lib_sourcelocation::{SourceCode, SourceContainer};
+use plc_ast::source_location::{SourceLocation, SourceLocationFactory};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
@@ -14,10 +16,6 @@ use plc_ast::{
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
-};
-use plc_source::{
-    source_location::{SourceLocation, SourceLocationFactory},
-    SourceCode, SourceContainer,
 };
 use plc_util::convention::qualified_name;
 
@@ -352,7 +350,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(
                     Diagnostic::new("Return types cannot have a default value, the value will be ignored")
-                        .with_location(init.get_location())
+                        .with_location(&init)
                         .with_error_code("E016"),
                 );
             }
@@ -914,7 +912,7 @@ fn parse_array_type_definition(
             None => {
                 lexer.accept_diagnostic(
                     Diagnostic::new(format!("Expected a range statement, got {range:?} instead"))
-                        .with_location(range.get_location())
+                        .with_location(&range)
                         .with_error_code("E008"),
                 );
                 false

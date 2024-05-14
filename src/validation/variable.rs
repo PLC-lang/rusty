@@ -163,14 +163,14 @@ fn validate_variable<T: AnnotationMap>(
                         reason.get_reason()
                     ))
                     .with_error_code("E033")
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
                 );
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
             None if v_entry.is_constant() => {

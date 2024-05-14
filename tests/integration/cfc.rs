@@ -204,7 +204,7 @@ fn actions_called_correctly() {
 mod ir {
     use driver::{compile, generate_to_string, generate_to_string_debug};
     use insta::assert_snapshot;
-    use plc_source::SourceCode;
+    use plc_ast::lib_sourcelocation::SourceCode;
     use plc_xml::serializer::{
         SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
     };

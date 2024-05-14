@@ -7,6 +7,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+use crate::source_location::SourceLocation;
 use crate::{
     control_statements::{
         AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
@@ -16,8 +17,6 @@ use crate::{
     pre_processor,
     provider::IdProvider,
 };
-
-use plc_source::source_location::*;
 
 pub type AstId = usize;
 
@@ -588,8 +587,8 @@ pub enum ReferenceAccess {
 
 #[derive(Clone, PartialEq)]
 pub struct AstNode {
-    pub stmt: AstStatement,
     pub id: AstId,
+    pub stmt: AstStatement,
     pub location: SourceLocation,
 }
 

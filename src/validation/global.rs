@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use plc_ast::ast::PouType;
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 
 use crate::index::VariableIndexEntry;
 use crate::{

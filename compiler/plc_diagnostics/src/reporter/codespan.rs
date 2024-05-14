@@ -3,7 +3,7 @@ use codespan_reporting::{
     files::SimpleFiles,
     term::termcolor::{Buffer, ColorChoice, StandardStream, WriteColor},
 };
-use plc_source::source_location::CodeSpan;
+use plc_ast::source_location::CodeSpan;
 
 use crate::diagnostics::Severity;
 

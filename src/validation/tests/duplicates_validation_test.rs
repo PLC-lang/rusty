@@ -1,12 +1,12 @@
 use insta::assert_snapshot;
+use plc_ast::source_location::SourceLocationFactory;
 
+use plc_ast::lib_sourcelocation::SourceCode;
 use plc_ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 use plc_index::GlobalContext;
-use plc_source::source_location::SourceLocationFactory;
-use plc_source::SourceCode;
 
 use crate::{
     index::{visitor, Index},

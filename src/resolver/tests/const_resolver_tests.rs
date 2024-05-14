@@ -1,7 +1,7 @@
 use plc_ast::ast::{AstFactory, AstNode, AstStatement};
 use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
-use plc_source::source_location::SourceLocation;
+use plc_ast::source_location::SourceLocation;
 
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;

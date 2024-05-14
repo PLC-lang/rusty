@@ -9,8 +9,8 @@ use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
 };
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 
 use crate::{

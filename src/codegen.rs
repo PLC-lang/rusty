@@ -36,8 +36,8 @@ use inkwell::{
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
+use plc_ast::source_location::SourceLocation;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 
 mod debug;
 pub(crate) mod generators;

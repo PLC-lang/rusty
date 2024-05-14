@@ -18,6 +18,7 @@ use inkwell::{
     context::Context,
     values::{BasicValueEnum, FunctionValue, PointerValue},
 };
+use plc_ast::source_location::SourceLocation;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
@@ -26,7 +27,6 @@ use plc_ast::{
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
-use plc_source::source_location::SourceLocation;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {
@@ -325,7 +325,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 //TODO: using the global context we could get a slice here
                 Err(Diagnostic::new(format!("{element:?} not a direct access"))
                     .with_error_code("E055")
-                    .with_location(element.get_location()))
+                    .with_location(element))
             }?;
             for element in direct_access {
                 let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -339,7 +339,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     //TODO: using the global context we could get a slice here
                     Err(Diagnostic::new(&format!("{element:?} not a direct access"))
                         .with_error_code("E055")
-                        .with_location(element.get_location()))
+                        .with_location(element))
                 }?;
                 rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
             }
