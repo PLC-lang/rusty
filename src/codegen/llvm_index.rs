@@ -1,40 +1,40 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::index::FxHashMap;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
-use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
 #[derive(Debug, Clone, Default)]
 pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
-    type_associations: HashMap<String, BasicTypeEnum<'ink>>,
-    pou_type_associations: HashMap<String, BasicTypeEnum<'ink>>,
-    global_values: HashMap<String, GlobalValue<'ink>>,
-    initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
-    loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
-    implementations: HashMap<String, FunctionValue<'ink>>,
-    constants: HashMap<String, BasicValueEnum<'ink>>,
-    utf08_literals: HashMap<String, GlobalValue<'ink>>,
-    utf16_literals: HashMap<String, GlobalValue<'ink>>,
+    type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
+    pou_type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
+    global_values: FxHashMap<String, GlobalValue<'ink>>,
+    initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
+    loaded_variable_associations: FxHashMap<String, PointerValue<'ink>>,
+    implementations: FxHashMap<String, FunctionValue<'ink>>,
+    constants: FxHashMap<String, BasicValueEnum<'ink>>,
+    utf08_literals: FxHashMap<String, GlobalValue<'ink>>,
+    utf16_literals: FxHashMap<String, GlobalValue<'ink>>,
 }
 
 impl<'ink> LlvmTypedIndex<'ink> {
     pub fn create_child(parent: &'ink LlvmTypedIndex<'ink>) -> LlvmTypedIndex<'ink> {
         LlvmTypedIndex {
             parent_index: Some(parent),
-            type_associations: HashMap::new(),
-            pou_type_associations: HashMap::new(),
-            global_values: HashMap::new(),
-            initial_value_associations: HashMap::new(),
-            loaded_variable_associations: HashMap::new(),
-            implementations: HashMap::new(),
-            constants: HashMap::new(),
-            utf08_literals: HashMap::new(),
-            utf16_literals: HashMap::new(),
+            type_associations: FxHashMap::default(),
+            pou_type_associations: FxHashMap::default(),
+            global_values: FxHashMap::default(),
+            initial_value_associations: FxHashMap::default(),
+            loaded_variable_associations: FxHashMap::default(),
+            implementations: FxHashMap::default(),
+            constants: FxHashMap::default(),
+            utf08_literals: FxHashMap::default(),
+            utf16_literals: FxHashMap::default(),
         }
     }
 

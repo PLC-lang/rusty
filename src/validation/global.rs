@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::VariableIndexEntry;
+use crate::index::{FxHashMap, VariableIndexEntry};
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -95,7 +93,7 @@ impl GlobalValidator {
 
         // Report name conflicts between any member variables in the VAR block
         for ty in index.get_types().values().chain(index.get_pou_types().values()) {
-            let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
+            let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
             for variable in ty.get_members() {
                 let group = groups.entry(variable.get_qualified_name()).or_default();
                 group.push(variable);
@@ -109,7 +107,7 @@ impl GlobalValidator {
 
         // Report name conflicts between enum variants and any other member variable in the VAR block
         for pou in index.get_pou_types().values() {
-            let mut groups: HashMap<&str, Vec<&VariableIndexEntry>> = HashMap::new();
+            let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
             let variants = index.get_enum_variants_in_pou(pou.get_name());
 
             for variant in variants {

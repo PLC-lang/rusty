@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::index::*;
-use indexmap::IndexSet;
+
 use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
@@ -102,7 +102,7 @@ impl<'ink> CodeGen<'ink> {
         context: &'ink CodegenContext,
         annotations: &AstAnnotations,
         literals: &StringLiterals,
-        dependencies: &IndexSet<Dependency>,
+        dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());

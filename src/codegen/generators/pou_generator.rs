@@ -17,18 +17,19 @@ use crate::{
     resolver::{AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
 };
-use std::collections::HashMap;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use crate::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
+use crate::index::{
+    ArgumentType, FxHashMap, FxIndexMap, FxIndexSet, ImplementationIndexEntry, VariableIndexEntry,
+};
 
 use crate::index::Index;
 use index::VariableType;
-use indexmap::{IndexMap, IndexSet};
+
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -56,7 +57,7 @@ pub struct PouGenerator<'ink, 'cg> {
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
-    dependencies: &IndexSet<Dependency>,
+    dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
@@ -73,7 +74,7 @@ pub fn generate_implementation_stubs<'ink>(
                 None
             }
         })
-        .collect::<IndexMap<_, _>>();
+        .collect::<FxIndexMap<_, _>>();
     for (name, implementation) in implementations {
         if !implementation.is_generic() {
             let curr_f =
@@ -92,7 +93,7 @@ pub fn generate_implementation_stubs<'ink>(
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: &Llvm<'ink>,
-    dependencies: &IndexSet<Dependency>,
+    dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
@@ -372,7 +373,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let block = context.append_basic_block(current_function, "entry");
 
         //Create all labels this function will have
-        let mut blocks = HashMap::new();
+        let mut blocks = FxHashMap::default();
         if let Some(labels) = self.index.get_labels(&implementation.name) {
             for name in labels.keys() {
                 blocks.insert(name.to_string(), self.llvm.context.append_basic_block(current_function, name));

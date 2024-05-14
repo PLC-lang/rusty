@@ -10,7 +10,8 @@ use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-use indexmap::IndexSet;
+
+use plc::index::FxIndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
@@ -192,7 +193,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
-    pub units: Vec<(CompilationUnit, IndexSet<Dependency>, StringLiterals)>,
+    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
 }
@@ -266,7 +267,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
         unit: &CompilationUnit,
-        dependencies: &IndexSet<Dependency>,
+        dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         let mut code_generator = plc::codegen::CodeGen::new(
