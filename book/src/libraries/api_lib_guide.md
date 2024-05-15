@@ -227,39 +227,39 @@ Datatypes are generally convertable to `C` equivalent. With the compiler default
 
 Below is a table of primitive types and how they can be used from `C`
 
-| type            | c equivalent | size | comment                                                    |
-| --------------- | ------------ | ---- | ---------------------------------------------------------- |
-| BOOL            | bool         | 8    |                                                            |
-| BYTE            | uint8_t      | 8    | intended to be used as bit sequence and not as a number    |
-| SINT            | int8_t       | 8    |                                                            |
-| USINT           | uint8_t      | 8    |                                                            |
-| WORD            | uint16_t     | 16   |                                                            |
-| INT             | int16_t      | 16   |                                                            |
-| UINT            | uint16_t     | 16   |                                                            |
-| DINT            | int32_t      | 32   |                                                            |
-| DWORD           | uint32_t     | 32   |                                                            |
-| UDINT           | uint32_t     | 32   |                                                            |
-| LINT            | int64_t      | 64   |                                                            |
-| LWORD           | uint64_t     | 64   |                                                            |
-| ULINT           | uint64_t     | 64   |                                                            |
-| REAL            | float_t      | 32   |                                                            |
-| LREAL           | double_t     | 64   |                                                            |
-| TIME            | time_t       | 64   | Note that all time and date types are 64 bit               |
-| LTIME           | time_t       | 64   |                                                            |
-| DATE            | time_t       | 64   |                                                            |
-| LDATE           | time_t       | 64   |                                                            |
-| DATE_AND_TIME   | time_t       | 64   |                                                            |
-| LDATE_AND_TIME  | time_t       | 64   |                                                            |
-| DT              | time_t       | 64   |                                                            |
-| LDT             | time_t       | 64   |                                                            |
-| TIME_OF_DAY     | time_t       | 64   |                                                            |
-| LTIME_OF_DAY    | time_t       | 64   |                                                            |
-| TOD             | time_t       | 64   |                                                            |
-| LTOD            | time_t       | 64   |                                                            |
-| POINTER TO type | \*type       | 64   | The Pointer size is equivalent to `LWORD` and not `DWORD`  |
-| REF_TO type     | \*type       | 64   | Prefer this type to `POINTER TO` for standard compliance   |
-| STRING          | uint8_t[]    | var  | UTF-8 String, null terminated. Default is 80 chars         |
-| WSTRING         | uint16_t[]   | var  | UTF-16 (wide) String, null terminated. Default is 80 chars |
+| type            | c equivalent | size | comment                                                                             |
+| --------------- | ------------ | ---- | ----------------------------------------------------------                          |
+| BOOL            | bool         | 8    |                                                                                     |
+| BYTE            | uint8_t      | 8    | intended to be used as bit sequence and not as a number                             |
+| SINT            | int8_t       | 8    |                                                                                     |
+| USINT           | uint8_t      | 8    |                                                                                     |
+| WORD            | uint16_t     | 16   |                                                                                     |
+| INT             | int16_t      | 16   |                                                                                     |
+| UINT            | uint16_t     | 16   |                                                                                     |
+| DINT            | int32_t      | 32   |                                                                                     |
+| DWORD           | uint32_t     | 32   |                                                                                     |
+| UDINT           | uint32_t     | 32   |                                                                                     |
+| LINT            | int64_t      | 64   |                                                                                     |
+| LWORD           | uint64_t     | 64   |                                                                                     |
+| ULINT           | uint64_t     | 64   |                                                                                     |
+| REAL            | float_t      | 32   |                                                                                     |
+| LREAL           | double_t     | 64   |                                                                                     |
+| TIME            | time_t       | 64   | Note that all time and date types are 64 bit                                        |
+| LTIME           | time_t       | 64   |                                                                                     |
+| DATE            | time_t       | 64   |                                                                                     |
+| LDATE           | time_t       | 64   |                                                                                     |
+| DATE_AND_TIME   | time_t       | 64   |                                                                                     |
+| LDATE_AND_TIME  | time_t       | 64   |                                                                                     |
+| DT              | time_t       | 64   |                                                                                     |
+| LDT             | time_t       | 64   |                                                                                     |
+| TIME_OF_DAY     | time_t       | 64   |                                                                                     |
+| LTIME_OF_DAY    | time_t       | 64   |                                                                                     |
+| TOD             | time_t       | 64   |                                                                                     |
+| LTOD            | time_t       | 64   |                                                                                     |
+| POINTER TO type | \*type       | 64   | The Pointer size is equivalent to `LWORD` and not `DWORD`                           |
+| REF_TO type     | \*type       | 64   | Prefer this type to `POINTER TO` for standard compliance                            |
+| STRING          | uint8_t[]    | var  | UTF-8 String, null terminated. Default is 80 chars + 1 termination byte             |
+| WSTRING         | uint16_t[]   | var  | UTF-16 (wide) String, null terminated. Default is 80 chars + 1 termination byte     |
 
 ### 2.3.2 Using Types in interfaces
 
