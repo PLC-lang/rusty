@@ -135,7 +135,7 @@ END_FUNCTION_BLOCK
 
 typedef struct {
   int32_t current;
-} CountStruct
+} CountStruct;
 
 void Count(CountStruct* countInst) {
   countInst->current = countInst->current + 1;
