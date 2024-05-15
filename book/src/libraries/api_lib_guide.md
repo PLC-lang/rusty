@@ -71,7 +71,7 @@ Examples:
 FUNCTION myFunc : DINT
 VAR_INPUT
   myInt  : DINT;
-  myString : STRING(255);
+  myString : STRING[255];
 END_VAR
 
 VAR_INPUT
@@ -95,7 +95,7 @@ int32_t myFunc(int32_t myInt, char* myString, char* myRefStr, int32_t* myInOutIn
 FUNCTION_BLOCK myFb
 VAR_INPUT
   myInt  : DINT;
-  myString : STRING(255);
+  myString : STRING[255];
 END_VAR
 
 VAR_IN_OUT
@@ -185,7 +185,7 @@ FUNCTION_BLOCK myFb
   END_VAR
   VAR_OUTPUT
     myOut: DINT;
-    myOut2: STRING(255);
+    myOut2: STRING[255];
   END_VAR
 END_FUNCTION
 ```
