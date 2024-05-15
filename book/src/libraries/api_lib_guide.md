@@ -18,7 +18,7 @@ a `VAR_IN_OUT` can be used instead of a pointer in the `VAR_INPUT`.
 `FUNCTION` and `FUNCTION_BLOCK` have similar properties, but they have fundamentally different representation in the compiler.
 A `FUNCTION` is defined in a similar manner to a `C` function:
 - It has no backing struct
-- values defined inside it will only survive for the duration of the function call
+- values defined inside it will only persist for the duration of the function call
 
 Example:
 
