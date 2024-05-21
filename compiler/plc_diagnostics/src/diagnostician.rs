@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::{
     diagnostics::{
@@ -16,7 +16,7 @@ use crate::{
 pub struct Diagnostician {
     reporter: Box<dyn DiagnosticReporter>,
     assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize>,
+    filename_fileid_mapping: FxHashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -75,7 +75,7 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::<NullDiagnosticReporter>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -84,7 +84,7 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -93,7 +93,7 @@ impl Diagnostician {
         Diagnostician {
             reporter: Box::<ClangFormatDiagnosticReporter>::default(),
             assessor: Box::<DiagnosticsRegistry>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -151,7 +151,7 @@ impl Default for Diagnostician {
         Self {
             reporter: Box::<CodeSpanDiagnosticReporter>::default(),
             assessor: Box::<DiagnosticsRegistry>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 }

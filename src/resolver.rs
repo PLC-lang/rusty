@@ -5,7 +5,8 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::{collections::HashSet, hash::Hash};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::hash::Hash;
 
 use plc_ast::{
     ast::{
@@ -21,7 +22,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{FxHashMap, FxHashSet, FxIndexMap, FxIndexSet};
+use crate::index::{FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -718,7 +719,7 @@ impl<'i> TypeAnnotator<'i> {
             annotation_map: AnnotationMapImpl::new(),
             index,
             dependencies: FxIndexSet::default(),
-            string_literals: StringLiterals { utf08: HashSet::default(), utf16: HashSet::default() },
+            string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
         }
     }

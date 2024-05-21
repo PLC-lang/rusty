@@ -1,11 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::collections::{HashMap, HashSet};
 use std::hash::BuildHasherDefault;
 
-use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
-use rustc_hash::FxHasher;
+use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -30,21 +28,16 @@ use self::{
 pub mod const_expressions;
 mod instance_iterator;
 pub mod symbol;
-#[cfg(test)]
-mod tests;
 pub mod visitor;
 
-/// Type alias for a HashMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher>>;
-
-/// Type alias for a HashSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxHashSet<K> = HashSet<K, BuildHasherDefault<FxHasher>>;
+#[cfg(test)]
+mod tests;
 
 /// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 /// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxIndexSet<K> = IndexSet<K, BuildHasherDefault<FxHasher>>;
+pub type FxIndexSet<K> = indexmap::IndexSet<K, BuildHasherDefault<FxHasher>>;
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit

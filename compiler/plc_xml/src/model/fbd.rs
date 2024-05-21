@@ -1,9 +1,9 @@
-use indexmap::IndexSet;
-use plc::index::FxIndexMap;
+use plc::index::{FxIndexMap, FxIndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
-use std::{cmp::Ordering, collections::HashMap, hash::Hash};
+use rustc_hash::FxHashMap;
+use std::{cmp::Ordering, hash::Hash};
 
 use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
@@ -157,11 +157,11 @@ trait ConnectionResolver<'xml> {
         &mut self,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>>;
-    fn get_source_references(&self) -> HashMap<&str, NodeId>;
+    fn get_source_references(&self) -> FxHashMap<&str, NodeId>;
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, NodeId>,
+        source_connections: &FxHashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic>;
 }
@@ -224,11 +224,11 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, NodeId>,
+        source_connections: &FxHashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic> {
         let mut current = connection;
-        let mut visited = IndexSet::new();
+        let mut visited = FxIndexSet::default();
         visited.insert(connection);
         loop {
             match self.get(&current) {
@@ -273,7 +273,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     }
 
     /// Returns a list of all sources along with the id they are connected to
-    fn get_source_references(&self) -> HashMap<&str, NodeId> {
+    fn get_source_references(&self) -> FxHashMap<&str, NodeId> {
         self.iter()
             .filter_map(|(_, node)| {
                 if let Node::Connector(Connector {

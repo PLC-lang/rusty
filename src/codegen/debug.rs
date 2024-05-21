@@ -11,12 +11,12 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+use rustc_hash::FxHashMap;
 
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::FxHashMap;
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
     index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},

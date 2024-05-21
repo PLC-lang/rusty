@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::FxHashSet;
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
@@ -35,6 +34,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+use rustc_hash::FxHashSet;
 use std::vec;
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};

@@ -1,10 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::FxHashMap;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+use rustc_hash::FxHashMap;
 
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally

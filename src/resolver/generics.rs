@@ -1,7 +1,7 @@
 use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
-use crate::index::FxHashMap;
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,

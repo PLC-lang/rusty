@@ -1,8 +1,9 @@
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
-use crate::index::{FxHashMap, VariableIndexEntry};
+use crate::index::VariableIndexEntry;
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},

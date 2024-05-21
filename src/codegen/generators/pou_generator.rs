@@ -23,9 +23,7 @@ use crate::{
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use crate::index::{
-    ArgumentType, FxHashMap, FxIndexMap, FxIndexSet, ImplementationIndexEntry, VariableIndexEntry,
-};
+use crate::index::{ArgumentType, FxIndexMap, FxIndexSet, ImplementationIndexEntry, VariableIndexEntry};
 
 use crate::index::Index;
 use index::VariableType;
@@ -43,6 +41,7 @@ use inkwell::{
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 use section_mangler::{FunctionArgument, SectionMangler};
 
 pub struct PouGenerator<'ink, 'cg> {

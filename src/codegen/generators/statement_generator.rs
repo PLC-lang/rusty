@@ -3,7 +3,6 @@ use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
 };
-use crate::index::FxHashMap;
 use crate::{
     codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
@@ -26,6 +25,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {

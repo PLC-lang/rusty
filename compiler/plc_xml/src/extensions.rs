@@ -1,8 +1,9 @@
 //! In this file extension traits are defined to be used within the `plc_xml` crate.
 
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use quick_xml::name::QName;
+use rustc_hash::FxHashMap;
 
 use crate::error::Error;
 
@@ -34,7 +35,7 @@ impl TryToString for Cow<'_, [u8]> {
     }
 }
 
-impl GetOrErr for HashMap<String, String> {
+impl GetOrErr for FxHashMap<String, String> {
     fn get_or_err(&self, key: &str) -> Result<String, Error> {
         self.get(key).map(|it| it.to_owned()).ok_or(Error::MissingAttribute(key.to_string()))
     }

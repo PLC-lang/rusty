@@ -2485,6 +2485,7 @@ dependencies = [
  "chrono",
  "plc_source",
  "plc_util",
+ "rustc-hash",
  "serde",
 ]
 
@@ -2506,6 +2507,7 @@ dependencies = [
  "log",
  "plc_ast",
  "plc_source",
+ "rustc-hash",
  "serde",
  "serde_json",
  "toml",
@@ -2545,6 +2547,7 @@ dependencies = [
  "plc_ast",
  "plc_diagnostics",
  "plc_source",
+ "rustc-hash",
 ]
 
 [[package]]
@@ -2591,6 +2594,7 @@ dependencies = [
  "plc_diagnostics",
  "plc_source",
  "quick-xml",
+ "rustc-hash",
  "rusty",
 ]
 

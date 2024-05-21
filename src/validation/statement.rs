@@ -1,3 +1,4 @@
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
 use plc_ast::control_statements::ForLoopStatement;
@@ -12,7 +13,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::{FxHashMap, FxHashSet, ImplementationType};
+use crate::index::ImplementationType;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},

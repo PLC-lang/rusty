@@ -14,8 +14,8 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use rustc_hash::FxHashMap;
 
-use crate::index::FxHashMap;
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     index::Index,

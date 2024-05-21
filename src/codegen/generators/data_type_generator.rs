@@ -21,13 +21,14 @@ use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use super::ADDRESS_SPACE_GENERIC;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
@@ -117,7 +118,7 @@ pub fn generate_data_types<'ink>(
     }
 
     let mut tries = 0;
-    let mut errors = HashMap::new();
+    let mut errors = FxHashMap::default();
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {

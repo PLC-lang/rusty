@@ -4,8 +4,9 @@ use crate::error::Error;
 use crate::extensions::GetOrErr;
 use crate::reader::Reader;
 use crate::xml_parser::{get_attributes, Parseable};
+use rustc_hash::FxHashMap;
 use std::borrow::Cow;
-use std::{collections::HashMap, str::FromStr};
+use std::str::FromStr;
 
 use super::fbd::NodeId;
 
@@ -33,7 +34,7 @@ pub(crate) enum Storage {
 }
 
 impl BlockVariable {
-    pub fn new(hm: HashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
+    pub fn new(hm: FxHashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             formal_parameter: hm.get_or_err("formalParameter")?,
@@ -75,7 +76,7 @@ pub(crate) struct FunctionBlockVariable<'xml> {
 }
 
 impl<'xml> FunctionBlockVariable<'xml> {
-    pub fn new(hm: HashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
+    pub fn new(hm: FxHashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
