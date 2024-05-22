@@ -203,8 +203,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
-                        qualified_name, constant: true, resulting_type, ..
-                    }) = self.annotations.get(expression)
+            qualified_name, constant: true, resulting_type, ..
+        }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
                 match self.generate_constant_expression(qualified_name, expression) {
@@ -594,9 +594,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let mut current = Some(left_statement);
             let mut access_sequence = Vec::new();
             while let Some(AstStatement::ReferenceExpr(ReferenceExpr {
-                                                           access: ReferenceAccess::Member(m),
-                                                           base,
-                                                       })) = current.map(|it| it.get_stmt())
+                access: ReferenceAccess::Member(m),
+                base,
+            })) = current.map(|it| it.get_stmt())
             {
                 if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
                     access_sequence.insert(0, m.as_ref());
@@ -609,9 +609,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
-            else {
-                unreachable!("Invalid direct-access expression: {left_statement:#?}")
-            };
+        else {
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+        };
 
         let left_type = self.get_type_hint_for(target)?;
 
@@ -723,12 +723,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
 
                 let AstStatement::ReferenceExpr(ReferenceExpr {
-                                                    access: ReferenceAccess::Member(member),
-                                                    base,
-                                                }) = &expression.get_stmt()
-                    else {
-                        unreachable!("must be a bitaccess, will return early for all other cases")
-                    };
+                    access: ReferenceAccess::Member(member),
+                    base,
+                }) = &expression.get_stmt()
+                else {
+                    unreachable!("must be a bitaccess, will return early for all other cases")
+                };
                 let base_value_rvalue =
                     base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
@@ -767,8 +767,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )
                 })?;
 
-                let output_value_type =
-                    self.index.get_type_information_or_void(parameter.get_type_name());
+                let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
                 //Special string handling
                 if (assigned_output_type.is_string() && output_value_type.is_string())
@@ -846,18 +845,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 // TODO: find a more reliable way to make sure if this is a call into a local action!!
                 PouIndexEntry::Action { .. }
-                if matches!(
+                    if matches!(
                         operator.get_stmt(),
                         AstStatement::ReferenceExpr(ReferenceExpr { base: None, .. })
                     ) =>
-                    {
-                        // special handling for local actions, get the parameter from the function context
-                        function_context
-                            .function
-                            .get_first_param()
-                            .map(|call_ptr| (None, call_ptr.into_pointer_value()))
-                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
-                    }
+                {
+                    // special handling for local actions, get the parameter from the function context
+                    function_context
+                        .function
+                        .get_first_param()
+                        .map(|call_ptr| (None, call_ptr.into_pointer_value()))
+                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
+                }
                 _ => {
                     let call_ptr = self.generate_lvalue(operator)?;
                     (None, call_ptr)
@@ -950,7 +949,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if pou.is_variadic() {
             let last_location = result.len();
             for (i, parameter) in
-            self.generate_variadic_arguments_list(pou, &variadic_parameters)?.into_iter().enumerate()
+                self.generate_variadic_arguments_list(pou, &variadic_parameters)?.into_iter().enumerate()
             {
                 result.push((i + last_location, parameter));
             }
@@ -1522,7 +1521,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             self.llvm.builder.build_ptr_to_int(ptr, int_type, "")
         }
-            .as_basic_value_enum()
+        .as_basic_value_enum()
     }
 
     pub fn int_neg(&self, value: IntValue<'ink>) -> IntValue<'ink> {
@@ -2115,8 +2114,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 "Cannot generate String-Literal for type {}",
                 expected_type.get_name()
             ))
-                .with_error_code("E074")
-                .with_location(location)),
+            .with_error_code("E074")
+            .with_location(location)),
         }
     }
 
@@ -2448,7 +2447,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.get_type_hint_for(left)?.get_name(),
                     self.get_type_hint_for(right)?.get_name(),
                 )
-                    .as_str(),
+                .as_str(),
                 left.get_location(),
             ))
         }
@@ -2577,9 +2576,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
 
         let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
-            else {
-                unreachable!();
-            };
+        else {
+            unreachable!();
+        };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
