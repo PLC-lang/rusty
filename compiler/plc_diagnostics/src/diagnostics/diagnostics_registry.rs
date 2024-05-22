@@ -388,6 +388,7 @@ lazy_static! {
     Error,
     include_str!("./error_codes/E095.md"), // Action call without `()`
     E096, Warning, include_str!("./error_codes/E096.md"), // Integer Condition
+    E097, Error, include_str!("./error_codes/E097.md"), // Invalid Array Range
 );
 }
 

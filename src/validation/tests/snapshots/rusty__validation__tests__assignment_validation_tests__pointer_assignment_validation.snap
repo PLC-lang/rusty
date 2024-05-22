@@ -29,8 +29,8 @@ error[E037]: Invalid assignment: cannot assign 'REF_TO INT' to 'WORD'
 warning[E090]: Pointers REF_TO INT and __POINTER_TO_REAL have different types
    ┌─ <internal>:31:5
    │
-31 │     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
-   │     ^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
+31 │     v_ptr_int := REF(v_real); // INVALID -> TODO: should be valid
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_REAL have different types
 
 warning[E067]: Implicit downcast from 'REAL' to 'INT'.
    ┌─ <internal>:32:19
@@ -65,8 +65,8 @@ warning[E067]: Implicit downcast from 'WORD' to 'INT'.
 warning[E090]: Pointers REF_TO INT and __POINTER_TO_STRING have different types
    ┌─ <internal>:41:5
    │
-41 │     v_ptr_int := &v_string; // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_STRING have different types
+41 │     v_ptr_int := REF(v_string); // INVALID
+   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO INT and __POINTER_TO_STRING have different types
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:42:5

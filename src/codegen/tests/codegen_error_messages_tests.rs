@@ -290,7 +290,7 @@ fn pointer_binary_expression_adding_two_pointers() {
         x : INT;
         ptr : REF_TO INT;
     END_VAR
-        ptr := &(x);
+        ptr := REF(x);
         ptr := ptr + ptr;
     END_PROGRAM"#,
     );
@@ -310,7 +310,7 @@ fn pointer_binary_expression_multiplication() {
         x : INT;
         ptr : REF_TO INT;
     END_VAR
-        ptr := &(x);
+        ptr := REF(x);
         ptr := ptr * ptr;
     END_PROGRAM"#,
     );
@@ -330,7 +330,7 @@ fn pointer_binary_expression_division() {
         x : INT;
         ptr : REF_TO INT;
     END_VAR
-        ptr := &(x);
+        ptr := REF(x);
         ptr := ptr / ptr;
     END_PROGRAM"#,
     );
@@ -350,7 +350,7 @@ fn pointer_binary_expression_modulo() {
         x : INT;
         ptr : REF_TO INT;
     END_VAR
-        ptr := &(x);
+        ptr := REF(x);
         ptr := ptr MOD ptr;
     END_PROGRAM"#,
     );

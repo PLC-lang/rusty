@@ -125,7 +125,6 @@ fn binary_stmts_of_two_variables_parsed() {
         x+y;
         x.y = y.z;
         x.y - y.z;
-        &x.y = y.z;
     END_PROGRAM";
     let result = parse(src).0;
 
@@ -920,20 +919,6 @@ fn assignment_to_number_reference_with_explicit_plus_sign() {
 }
 
 #[test]
-fn pointer_address_test() {
-    let src = "
-        PROGRAM exp
-        &x;
-        END_PROGRAM
-        ";
-    let result = parse(src).0;
-
-    let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
-    assert_debug_snapshot!(statement);
-}
-
-#[test]
 fn pointer_dereference_test() {
     let src = "
         PROGRAM exp
@@ -1030,20 +1015,6 @@ fn amp_as_and_test() {
         b & c;
         END_PROGRAM
         ";
-    let result = parse(src).0;
-    let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
-
-    assert_debug_snapshot!(statement);
-}
-
-#[test]
-fn amp_as_and_with_address_test() {
-    let src = "
-    PROGRAM amp
-    b & &c;
-    END_PROGRAM
-    ";
     let result = parse(src).0;
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];

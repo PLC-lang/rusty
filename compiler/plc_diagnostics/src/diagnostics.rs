@@ -1,11 +1,12 @@
 use std::fmt::Display;
 
+use serde::{Deserialize, Serialize};
+
 use plc_ast::ast::AstNode;
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode,
 };
-use serde::{Deserialize, Serialize};
 
 pub mod diagnostics_registry;
 

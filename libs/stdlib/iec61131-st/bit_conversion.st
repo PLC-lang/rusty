@@ -202,7 +202,7 @@ END_VAR
 VAR
     ptr : REF_TO CHAR;
 END_VAR
-    ptr := &in;
+    ptr := REF(in);
     BYTE_TO_CHAR := ptr^;
 END_FUNCTION
 
@@ -282,7 +282,7 @@ END_VAR
 VAR
     ptr : REF_TO BYTE;
 END_VAR
-    ptr := &in;
+    ptr := REF(in);
     CHAR_TO_BYTE := ptr^;
 END_FUNCTION
 
@@ -334,7 +334,7 @@ END_VAR
 VAR
     ptr : REF_TO WORD;
 END_VAR
-    ptr := &in;
+    ptr := REF(in);
     WCHAR_TO_WORD := ptr^;
 END_FUNCTION
 

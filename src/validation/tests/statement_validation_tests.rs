@@ -754,14 +754,14 @@ fn address_of_operations() {
             END_VAR
 
             // Should work
-            &(a);
-            &b[1];
-            &c.a.b;
+            REF(a);
+            REF(b[1]);
+            REF(c.a.b);
 
             // Should not work
-            &&a;
-            &100;
-            &(a+3);
+            REF(REF(a));
+            REF(100);
+            REF(a+3);
         END_PROGRAM
         ",
     );
