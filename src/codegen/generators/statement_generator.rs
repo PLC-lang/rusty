@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -27,6 +25,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'ink, 'b> {
@@ -35,7 +34,7 @@ pub struct FunctionContext<'ink, 'b> {
     /// the llvm function to generate statements into
     pub function: FunctionValue<'ink>,
     /// The blocks/labels this function can use
-    pub blocks: HashMap<String, BasicBlock<'ink>>,
+    pub blocks: FxHashMap<String, BasicBlock<'ink>>,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)

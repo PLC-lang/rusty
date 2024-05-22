@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use plc_util::convention::internal_type_name;
 
@@ -176,7 +176,7 @@ fn build_enum_initializer(
 }
 
 fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
-    let mut generic_types = HashMap::new();
+    let mut generic_types = FxHashMap::default();
     let mut types = vec![];
     for binding in &pou.generics {
         let new_name = format!("__{}__{}", pou.name, binding.name); // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -269,7 +269,7 @@ fn add_nested_datatypes(
     }
 }
 
-fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &HashMap<String, String>) {
+fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<String, String>) {
     match dt {
         DataTypeDeclaration::DataTypeDefinition { data_type, .. } => match data_type {
             DataType::ArrayType { referenced_type, .. }
