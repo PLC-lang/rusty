@@ -290,7 +290,7 @@
 <a href="#288" id="288">288</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-</span><span class="kw">use </span>std::collections::HashMap;
+</span><span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
@@ -466,7 +466,7 @@
 }
 
 <span class="kw">fn </span>preprocess_generic_structs(pou: <span class="kw-2">&amp;mut </span>Pou) -&gt; Vec&lt;UserTypeDeclaration&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>generic_types = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>generic_types = FxHashMap::default();
     <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
     <span class="kw">for </span>binding <span class="kw">in </span><span class="kw-2">&amp;</span>pou.generics {
         <span class="kw">let </span>new_name = <span class="macro">format!</span>(<span class="string">"__{}__{}"</span>, pou.name, binding.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
@@ -559,7 +559,7 @@
     }
 }
 
-<span class="kw">fn </span>replace_generic_type_name(dt: <span class="kw-2">&amp;mut </span>DataTypeDeclaration, generics: <span class="kw-2">&amp;</span>HashMap&lt;String, String&gt;) {
+<span class="kw">fn </span>replace_generic_type_name(dt: <span class="kw-2">&amp;mut </span>DataTypeDeclaration, generics: <span class="kw-2">&amp;</span>FxHashMap&lt;String, String&gt;) {
     <span class="kw">match </span>dt {
         DataTypeDeclaration::DataTypeDefinition { data_type, .. } =&gt; <span class="kw">match </span>data_type {
             DataType::ArrayType { referenced_type, .. }

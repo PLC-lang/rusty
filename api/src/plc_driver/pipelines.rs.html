@@ -524,6 +524,7 @@
 <a href="#522" id="522">522</a>
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -536,7 +537,8 @@
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
-<span class="kw">use </span>indexmap::IndexSet;
+
+<span class="kw">use </span>plc::index::FxIndexSet;
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
@@ -718,7 +720,7 @@
 <span class="doccomment">/// A project that has been annotated with information about different types and used units
 </span><span class="kw">pub struct </span>AnnotatedProject&lt;T: SourceContainer + Sync&gt; {
     <span class="kw">pub </span>project: Project&lt;T&gt;,
-    <span class="kw">pub </span>units: Vec&lt;(CompilationUnit, IndexSet&lt;Dependency&gt;, StringLiterals)&gt;,
+    <span class="kw">pub </span>units: Vec&lt;(CompilationUnit, FxIndexSet&lt;Dependency&gt;, StringLiterals)&gt;,
     <span class="kw">pub </span>index: Index,
     <span class="kw">pub </span>annotations: AstAnnotations,
 }
@@ -792,7 +794,7 @@
         context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>CodegenContext,
         compile_options: <span class="kw-2">&amp;</span>CompileOptions,
         unit: <span class="kw-2">&amp;</span>CompilationUnit,
-        dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+        dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
         literals: <span class="kw-2">&amp;</span>StringLiterals,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;GeneratedModule&lt;<span class="lifetime">'ctx</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>code_generator = plc::codegen::CodeGen::new(

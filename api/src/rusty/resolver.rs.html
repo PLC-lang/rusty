@@ -2182,7 +2182,6 @@
 <a href="#2180" id="2180">2180</a>
 <a href="#2181" id="2181">2181</a>
 <a href="#2182" id="2182">2182</a>
-<a href="#2183" id="2183">2183</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2190,12 +2189,8 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-</span><span class="kw">use </span>std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
-
-<span class="kw">use </span>indexmap::{IndexMap, IndexSet};
+</span><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>std::hash::Hash;
 
 <span class="kw">use </span>plc_ast::{
     ast::{
@@ -2211,6 +2206,7 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
+<span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexMap, FxIndexSet};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_INTERNAL_NAME;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -2336,10 +2332,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) index: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Index,
     <span class="kw">pub</span>(<span class="kw">crate</span>) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
-    dependencies: IndexSet&lt;Dependency&gt;,
+    dependencies: FxIndexSet&lt;Dependency&gt;,
     <span class="doccomment">/// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
-    </span>jumps_to_annotate: HashMap&lt;String, HashMap&lt;String, Vec&lt;AstId&gt;&gt;&gt;,
+    </span>jumps_to_annotate: FxHashMap&lt;String, FxHashMap&lt;String, Vec&lt;AstId&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">'_</span>&gt; {
@@ -2348,16 +2344,18 @@
             StatementAnnotation::Function { return_type, qualified_name, call_name } =&gt; {
                 <span class="kw">let </span>name = call_name.as_ref().unwrap_or(qualified_name);
                 <span class="self">self</span>.dependencies.insert(Dependency::Call(name.to_string()));
-                <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(name, IndexSet::new()));
-                <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(return_type, IndexSet::new()));
+                <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(name, FxIndexSet::default()));
+                <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(return_type, FxIndexSet::default()));
             }
             StatementAnnotation::Program { qualified_name } =&gt; {
                 <span class="self">self</span>.dependencies.insert(Dependency::Call(qualified_name.to_string()));
-                <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(qualified_name, IndexSet::new()));
+                <span class="self">self</span>.dependencies
+                    .extend(<span class="self">self</span>.get_datatype_dependencies(qualified_name, FxIndexSet::default()));
             }
             StatementAnnotation::Variable { resulting_type, qualified_name, argument_type, .. } =&gt; {
                 <span class="kw">if </span><span class="macro">matches!</span>(argument_type.get_inner(), VariableType::Global) {
-                    <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(resulting_type, IndexSet::new()));
+                    <span class="self">self</span>.dependencies
+                        .extend(<span class="self">self</span>.get_datatype_dependencies(resulting_type, FxIndexSet::default()));
                     <span class="self">self</span>.dependencies.insert(Dependency::Variable(qualified_name.to_string()));
                 }
             }
@@ -2461,7 +2459,7 @@
         };
         <span class="kw">let </span>operator_qualifier = <span class="kw-2">&amp;</span><span class="self">self</span>.get_call_name(operator);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt; = HashMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: FxHashMap&lt;String, Vec&lt;String&gt;&gt; = FxHashMap::default();
         <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.into_iter();
 
@@ -2793,16 +2791,16 @@
 <span class="attr">#[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>AnnotationMapImpl {
     <span class="doccomment">/// maps a statement to the type it resolves to
-    </span>type_map: IndexMap&lt;AstId, StatementAnnotation&gt;,
+    </span>type_map: FxIndexMap&lt;AstId, StatementAnnotation&gt;,
 
     <span class="doccomment">/// maps a statement to the target-type it should eventually resolve to
     /// example:
     /// x : BYTE := 1;  //1's actual type is DINT, 1's target type is BYTE
     /// x : INT := 1;   //1's actual type is DINT, 1's target type is INT
-    </span>type_hint_map: IndexMap&lt;AstId, StatementAnnotation&gt;,
+    </span>type_hint_map: FxIndexMap&lt;AstId, StatementAnnotation&gt;,
 
     <span class="doccomment">/// A map from a call to the generic function name of that call
-    </span>generic_nature_map: IndexMap&lt;AstId, TypeNature&gt;,
+    </span>generic_nature_map: FxIndexMap&lt;AstId, TypeNature&gt;,
 
     <span class="doccomment">/// maps a function to a statement
     ///
@@ -2813,7 +2811,7 @@
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    </span>hidden_function_calls: IndexMap&lt;AstId, AstNode&gt;,
+    </span>hidden_function_calls: FxIndexMap&lt;AstId, AstNode&gt;,
 
     <span class="comment">//An index of newly created types
     </span><span class="kw">pub </span>new_index: Index,
@@ -2887,8 +2885,8 @@
 
 <span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>StringLiterals {
-    <span class="kw">pub </span>utf08: HashSet&lt;String&gt;,
-    <span class="kw">pub </span>utf16: HashSet&lt;String&gt;,
+    <span class="kw">pub </span>utf08: FxHashSet&lt;String&gt;,
+    <span class="kw">pub </span>utf16: FxHashSet&lt;String&gt;,
 }
 
 <span class="kw">impl </span>StringLiterals {
@@ -2904,9 +2902,9 @@
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,
-            dependencies: IndexSet::new(),
-            string_literals: StringLiterals { utf08: HashSet::new(), utf16: HashSet::new() },
-            jumps_to_annotate: HashMap::new(),
+            dependencies: FxIndexSet::default(),
+            string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
+            jumps_to_annotate: FxHashMap::default(),
         }
     }
 
@@ -2916,7 +2914,7 @@
         index: <span class="kw-2">&amp;</span>Index,
         unit: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>CompilationUnit,
         id_provider: IdProvider,
-    ) -&gt; (AnnotationMapImpl, IndexSet&lt;Dependency&gt;, StringLiterals) {
+    ) -&gt; (AnnotationMapImpl, FxIndexSet&lt;Dependency&gt;, StringLiterals) {
         <span class="kw">let </span><span class="kw-2">mut </span>visitor = TypeAnnotator::new(index);
         <span class="kw">let </span>ctx = <span class="kw-2">&amp;</span>VisitorContext {
             pou: <span class="prelude-val">None</span>,
@@ -2944,7 +2942,7 @@
 
         <span class="kw">let </span>body_ctx = ctx.enter_body();
         <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
-            visitor.dependencies.extend(visitor.get_datatype_dependencies(<span class="kw-2">&amp;</span>i.name, IndexSet::new()));
+            visitor.dependencies.extend(visitor.get_datatype_dependencies(<span class="kw-2">&amp;</span>i.name, FxIndexSet::default()));
             i.statements.iter().for_each(|s| visitor.visit_statement(<span class="kw-2">&amp;</span>body_ctx.with_pou(i.name.as_str()), s));
         }
 
@@ -3303,7 +3301,7 @@
 
     <span class="kw">fn </span>visit_data_type_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, declaration: <span class="kw-2">&amp;</span>DataTypeDeclaration) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = declaration.get_name() {
-            <span class="kw">let </span>deps = <span class="self">self</span>.get_datatype_dependencies(name, IndexSet::new());
+            <span class="kw">let </span>deps = <span class="self">self</span>.get_datatype_dependencies(name, FxIndexSet::default());
             <span class="self">self</span>.dependencies.extend(deps);
         }
         <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
@@ -3314,8 +3312,8 @@
     <span class="kw">fn </span>get_datatype_dependencies(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         datatype_name: <span class="kw-2">&amp;</span>str,
-        resolved: IndexSet&lt;Dependency&gt;,
-    ) -&gt; IndexSet&lt;Dependency&gt; {
+        resolved: FxIndexSet&lt;Dependency&gt;,
+    ) -&gt; FxIndexSet&lt;Dependency&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>resolved_names = resolved;
         <span class="kw">let </span><span class="prelude-val">Some</span>(datatype) = <span class="self">self
             </span>.index

@@ -161,12 +161,12 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>indexmap::IndexSet;
-<span class="kw">use </span>itertools::Itertools;
+</pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 
 <span class="kw">use </span>plc_ast::ast::PouType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
+<span class="kw">use </span><span class="kw">crate</span>::index::FxIndexSet;
 <span class="kw">use crate</span>::{
     index::{Index, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
@@ -202,8 +202,8 @@
 
     <span class="doccomment">/// Entry point of finding and reporting all recursive data structures.
     </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) {
-        <span class="kw">let </span><span class="kw-2">mut </span>nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span>DataType&gt; = IndexSet::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>nodes_visited = IndexSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>nodes_all: FxIndexSet&lt;<span class="kw-2">&amp;</span>DataType&gt; = FxIndexSet::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>nodes_visited = FxIndexSet::default();
 
         <span class="comment">// Structs (includes arrays defined in structs)
         </span>nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
@@ -223,10 +223,10 @@
     </span><span class="kw">fn </span>find_cycle&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-        nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
-        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        nodes_all: FxIndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        nodes_visited: <span class="kw-2">&amp;mut </span>FxIndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
     ) {
-        <span class="kw">let </span><span class="kw-2">mut </span>path = IndexSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>path = FxIndexSet::default();
 
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span>nodes_all {
             <span class="kw">if </span>!nodes_visited.contains(node) {
@@ -243,15 +243,15 @@
     </span><span class="kw">fn </span>dfs&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-        path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        path: <span class="kw-2">&amp;mut </span>FxIndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
         node_curr: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType,
-        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        nodes_visited: <span class="kw-2">&amp;mut </span>FxIndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
         <span class="kw">for </span>node <span class="kw">in
-            </span>node_curr.get_struct_members().iter().map(|x| <span class="self">self</span>.get_type(index, x)).collect::&lt;IndexSet&lt;<span class="kw">_</span>&gt;&gt;()
+            </span>node_curr.get_struct_members().iter().map(|x| <span class="self">self</span>.get_type(index, x)).collect::&lt;FxIndexSet&lt;<span class="kw">_</span>&gt;&gt;()
         {
             <span class="kw">if </span>path.contains(node) {
                 <span class="self">self</span>.report(node, path);
@@ -265,7 +265,7 @@
     <span class="doccomment">/// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
     /// until a cycle, e.g. `A -&gt; B -&gt; C -&gt; B`. We are only interested in `B -&gt; C -&gt; B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -&gt; C -&gt; B` for the diagnostician.
-    </span><span class="kw">fn </span>report&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType, path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;) {
+    </span><span class="kw">fn </span>report&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType, path: <span class="kw-2">&amp;mut </span>FxIndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;) {
         <span class="kw">match </span>path.get_index_of(node) {
             <span class="prelude-val">Some</span>(idx) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>slice = path.iter().skip(idx).copied().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -291,7 +291,7 @@
                 <span class="self">self</span>.diagnostics.push(diagnostic);
             }
 
-            <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Node has to be in the IndexSet"</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Node has to be in the FxIndexSet"</span>),
         }
     }
 

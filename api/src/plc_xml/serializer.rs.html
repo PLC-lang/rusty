@@ -386,7 +386,7 @@
 <a href="#384" id="384">384</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(clippy::new_without_default)]
 
-</span><span class="kw">use </span>std::collections::HashMap;
+</span><span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Node {
@@ -398,7 +398,7 @@
     /// Design Note: We use a HashMap here to avoid duplicates but also update existing values in case of
     /// repeated function calls, e.g. `with_attribute("x", 1)` and `with_attribute("x", 2)` where the value of
     /// x has been updated from 1 to 2.
-    </span>attributes: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+    </span>attributes: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
 
     <span class="doccomment">/// Indicates if an element has a closed form, e.g. `&lt;position x="1" y="2"/&gt;`
     </span>closed: bool,
@@ -413,7 +413,7 @@
 
 <span class="kw">impl </span>Node {
     <span class="kw">fn </span>new(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ name, attributes: HashMap::new(), children: Vec::new(), closed: <span class="bool-val">false</span>, content: <span class="prelude-val">None </span>}
+        <span class="self">Self </span>{ name, attributes: FxHashMap::default(), children: Vec::new(), closed: <span class="bool-val">false</span>, content: <span class="prelude-val">None </span>}
     }
 
     <span class="kw">fn </span>attribute(<span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{

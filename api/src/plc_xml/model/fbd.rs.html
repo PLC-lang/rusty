@@ -924,18 +924,12 @@
 <a href="#922" id="922">922</a>
 <a href="#923" id="923">923</a>
 <a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>indexmap::{IndexMap, IndexSet};
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc::index::{FxIndexMap, FxIndexSet};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
 <span class="kw">use </span>quick_xml::events::{BytesStart, Event};
-<span class="kw">use </span>std::{cmp::Ordering, collections::HashMap, hash::Hash};
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::{cmp::Ordering, hash::Hash};
 
 <span class="kw">use crate</span>::{error::Error, reader::Reader, xml_parser::Parseable};
 
@@ -948,7 +942,7 @@
 
 <span class="doccomment">/// Represent either a `localId` or `refLocalId`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeId = usize;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeIndex&lt;<span class="lifetime">'xml</span>&gt; = IndexMap&lt;NodeId, Node&lt;<span class="lifetime">'xml</span>&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>NodeIndex&lt;<span class="lifetime">'xml</span>&gt; = FxIndexMap&lt;NodeId, Node&lt;<span class="lifetime">'xml</span>&gt;&gt;;
 
 <span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
@@ -1046,7 +1040,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>nodes = IndexMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>nodes = FxIndexMap::default();
 
         <span class="kw">loop </span>{
             <span class="kw">match </span>reader.read_event().map_err(Error::ReadEvent)<span class="question-mark">? </span>{
@@ -1089,11 +1083,11 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Vec&lt;Diagnostic&gt;&gt;;
-    <span class="kw">fn </span>get_source_references(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;;
+    <span class="kw">fn </span>get_source_references(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;;
     <span class="kw">fn </span>get_resolved_connection_id(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         connection: NodeId,
-        source_connections: <span class="kw-2">&amp;</span>HashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;,
+        source_connections: <span class="kw-2">&amp;</span>FxHashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NodeId, Diagnostic&gt;;
 }
@@ -1156,11 +1150,11 @@
     </span><span class="kw">fn </span>get_resolved_connection_id(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         connection: NodeId,
-        source_connections: <span class="kw-2">&amp;</span>HashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;,
+        source_connections: <span class="kw-2">&amp;</span>FxHashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt;,
         source_location_factory: <span class="kw-2">&amp;</span>SourceLocationFactory,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NodeId, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>current = connection;
-        <span class="kw">let </span><span class="kw-2">mut </span>visited = IndexSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>visited = FxIndexSet::default();
         visited.insert(connection);
         <span class="kw">loop </span>{
             <span class="kw">match </span><span class="self">self</span>.get(<span class="kw-2">&amp;</span>current) {
@@ -1205,7 +1199,7 @@
     }
 
     <span class="doccomment">/// Returns a list of all sources along with the id they are connected to
-    </span><span class="kw">fn </span>get_source_references(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt; {
+    </span><span class="kw">fn </span>get_source_references(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashMap&lt;<span class="kw-2">&amp;</span>str, NodeId&gt; {
         <span class="self">self</span>.iter()
             .filter_map(|(<span class="kw">_</span>, node)| {
                 <span class="kw">if let </span>Node::Connector(Connector {
@@ -1237,6 +1231,7 @@
         xml_parser::Parseable,
     };
     <span class="kw">use </span>insta::assert_debug_snapshot;
+    <span class="kw">use </span>plc::index::FxIndexMap;
     <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
 
     <span class="kw">use </span><span class="kw">super</span>::Node;
@@ -1269,7 +1264,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
 
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1292,8 +1287,7 @@
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1308,7 +1302,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1351,8 +1345,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1367,7 +1360,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1431,8 +1424,7 @@
                         ref_local_id: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1447,7 +1439,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1510,8 +1502,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1526,7 +1517,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1559,8 +1550,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1575,7 +1565,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1608,8 +1598,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1626,7 +1615,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1689,8 +1678,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1706,7 +1694,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1749,8 +1737,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -1767,7 +1754,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>model = Project::default();
         <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou { name: <span class="string">"TestProg"</span>.into(), ..Default::default() };
         <span class="kw">let </span>fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     <span class="number">1</span>,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -1852,8 +1839,7 @@
                         formal_parameter: <span class="prelude-val">None</span>,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);

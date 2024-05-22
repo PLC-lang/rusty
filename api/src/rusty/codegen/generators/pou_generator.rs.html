@@ -882,18 +882,17 @@
     resolver::{AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
 };
-<span class="kw">use </span>std::collections::HashMap;
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-</span><span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
+</span><span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, FxIndexMap, FxIndexSet, ImplementationIndexEntry, VariableIndexEntry};
 
 <span class="kw">use </span><span class="kw">crate</span>::index::Index;
 <span class="kw">use </span>index::VariableType;
-<span class="kw">use </span>indexmap::{IndexMap, IndexSet};
+
 <span class="kw">use </span>inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -907,6 +906,7 @@
 <span class="kw">use </span>plc_ast::ast::{AstNode, Implementation, PouType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>section_mangler::{FunctionArgument, SectionMangler};
 
 <span class="kw">pub struct </span>PouGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; {
@@ -921,7 +921,7 @@
 </span><span class="kw">pub fn </span>generate_implementation_stubs&lt;<span class="lifetime">'ink</span>&gt;(
     module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
     llvm: Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-    dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+    dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
     types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
@@ -938,7 +938,7 @@
                 <span class="prelude-val">None
             </span>}
         })
-        .collect::&lt;IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
+        .collect::&lt;FxIndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
     <span class="kw">for </span>(name, implementation) <span class="kw">in </span>implementations {
         <span class="kw">if </span>!implementation.is_generic() {
             <span class="kw">let </span>curr_f =
@@ -957,7 +957,7 @@
 </span><span class="kw">pub fn </span>generate_global_constants_for_pou_members&lt;<span class="lifetime">'ink</span>&gt;(
     module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
     llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-    dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+    dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
     llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
@@ -1237,7 +1237,7 @@
         </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">"entry"</span>);
 
         <span class="comment">//Create all labels this function will have
-        </span><span class="kw">let </span><span class="kw-2">mut </span>blocks = HashMap::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>blocks = FxHashMap::default();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(labels) = <span class="self">self</span>.index.get_labels(<span class="kw-2">&amp;</span>implementation.name) {
             <span class="kw">for </span>name <span class="kw">in </span>labels.keys() {
                 blocks.insert(name.to_string(), <span class="self">self</span>.llvm.context.append_basic_block(current_function, name));

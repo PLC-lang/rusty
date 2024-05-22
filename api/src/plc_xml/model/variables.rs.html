@@ -282,14 +282,16 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>quick_xml::events::{BytesStart, Event};
 
 <span class="kw">use </span><span class="kw">crate</span>::error::Error;
 <span class="kw">use </span><span class="kw">crate</span>::extensions::GetOrErr;
 <span class="kw">use </span><span class="kw">crate</span>::reader::Reader;
 <span class="kw">use </span><span class="kw">crate</span>::xml_parser::{get_attributes, Parseable};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::{collections::HashMap, str::FromStr};
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use </span><span class="kw">super</span>::fbd::NodeId;
 
@@ -317,7 +319,7 @@
 }
 
 <span class="kw">impl </span>BlockVariable {
-    <span class="kw">pub fn </span>new(hm: HashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    <span class="kw">pub fn </span>new(hm: FxHashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
             formal_parameter: hm.get_or_err(<span class="string">"formalParameter"</span>)<span class="question-mark">?</span>,
@@ -359,7 +361,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
-    <span class="kw">pub fn </span>new(hm: HashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    <span class="kw">pub fn </span>new(hm: FxHashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
             local_id: hm.get_or_err(<span class="string">"localId"</span>).map(|it| it.parse())<span class="question-mark">??</span>,

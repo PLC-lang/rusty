@@ -77,8 +77,10 @@
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode, AstStatement};
-<span class="kw">use </span>indexmap::IndexMap;
+
+<span class="kw">use </span>plc::index::FxIndexMap;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use </span><span class="kw">crate</span>::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -89,7 +91,7 @@
     <span class="doccomment">/// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ast_association = IndexMap::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>ast_association = FxIndexMap::default();
 
         <span class="comment">// transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
@@ -115,7 +117,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: NodeId,
         session: <span class="kw-2">&amp;mut </span>ParseSession,
-        ast_association: <span class="kw-2">&amp;</span>IndexMap&lt;usize, AstNode&gt;,
+        ast_association: <span class="kw-2">&amp;</span>FxIndexMap&lt;usize, AstNode&gt;,
     ) -&gt; (AstNode, <span class="prelude-ty">Option</span>&lt;NodeId&gt;) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(current_node) = <span class="self">self</span>.nodes.get(<span class="kw-2">&amp;</span>id) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 

@@ -19,7 +19,7 @@ the IR code for a compilation unit</p>
     context: &amp;'ink <a class="struct" href="struct.CodegenContext.html" title="struct rusty::codegen::CodegenContext">CodegenContext</a>,
     annotations: &amp;<a class="struct" href="../resolver/struct.AstAnnotations.html" title="struct rusty::resolver::AstAnnotations">AstAnnotations</a>,
     literals: &amp;<a class="struct" href="../resolver/struct.StringLiterals.html" title="struct rusty::resolver::StringLiterals">StringLiterals</a>,
-    dependencies: &amp;<a class="struct" href="../../indexmap/set/struct.IndexSet.html" title="struct indexmap::set::IndexSet">IndexSet</a>&lt;<a class="enum" href="../resolver/enum.Dependency.html" title="enum rusty::resolver::Dependency">Dependency</a>&gt;,
+    dependencies: &amp;<a class="type" href="../index/type.FxIndexSet.html" title="type rusty::index::FxIndexSet">FxIndexSet</a>&lt;<a class="enum" href="../resolver/enum.Dependency.html" title="enum rusty::resolver::Dependency">Dependency</a>&gt;,
     global_index: &amp;<a class="struct" href="../index/struct.Index.html" title="struct rusty::index::Index">Index</a>
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.77.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;LlvmTypedIndex&lt;'ink&gt;, <a class="struct" href="../../plc_diagnostics/diagnostics/struct.Diagnostic.html" title="struct plc_diagnostics::diagnostics::Diagnostic">Diagnostic</a>&gt;</h4></section><details class="toggle method-toggle" open><summary><section id="method.generate" class="method"><a class="src rightside" href="../../src/rusty/codegen.rs.html#190-225">source</a><h4 class="code-header">pub fn <a href="#method.generate" class="fn">generate</a>(
     self,

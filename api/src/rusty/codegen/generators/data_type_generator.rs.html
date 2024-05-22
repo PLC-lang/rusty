@@ -462,9 +462,10 @@
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
-<span class="kw">use </span><span class="kw">crate</span>::index::{Index, VariableIndexEntry, VariableType};
+<span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::resolver::{AstAnnotations, Dependency};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, DataTypeInformation, Dimension, StringEncoding, StructSource};
 <span class="kw">use crate</span>::{
@@ -475,7 +476,7 @@
     },
     typesystem::DataType,
 };
-<span class="kw">use </span>indexmap::IndexSet;
+
 <span class="kw">use </span>inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -485,13 +486,14 @@
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="doccomment">/// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-</span><span class="kw">use </span>std::collections::{HashMap, VecDeque};
+</span><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use </span><span class="kw">super</span>::ADDRESS_SPACE_GENERIC;
 <span class="kw">use super</span>::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
@@ -514,7 +516,7 @@
 </span><span class="kw">pub fn </span>generate_data_types&lt;<span class="lifetime">'ink</span>&gt;(
     llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
     debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
-    dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+    dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
@@ -581,7 +583,7 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>tries = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>errors = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>errors = FxHashMap::default();
     <span class="comment">// If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     </span><span class="kw">while </span>tries &lt; types_to_init.len() {

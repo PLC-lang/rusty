@@ -1625,12 +1625,19 @@
 <a href="#1623" id="1623">1623</a>
 <a href="#1624" id="1624">1624</a>
 <a href="#1625" id="1625">1625</a>
+<a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
+<a href="#1628" id="1628">1628</a>
+<a href="#1629" id="1629">1629</a>
+<a href="#1630" id="1630">1630</a>
+<a href="#1631" id="1631">1631</a>
+<a href="#1632" id="1632">1632</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-</span><span class="kw">use </span>std::collections::HashSet;
+</span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
-<span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
 <span class="kw">use </span>plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -1655,9 +1662,16 @@
 <span class="kw">pub mod </span>const_expressions;
 <span class="kw">mod </span>instance_iterator;
 <span class="kw">pub mod </span>symbol;
+<span class="kw">pub mod </span>visitor;
+
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
-<span class="kw">pub mod </span>visitor;
+
+<span class="doccomment">/// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+</span><span class="kw">pub type </span>FxIndexMap&lt;K, V&gt; = indexmap::IndexMap&lt;K, V, BuildHasherDefault&lt;FxHasher&gt;&gt;;
+
+<span class="doccomment">/// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+</span><span class="kw">pub type </span>FxIndexSet&lt;K&gt; = indexmap::IndexSet&lt;K, BuildHasherDefault&lt;FxHasher&gt;&gt;;
 
 <span class="doccomment">/// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit
@@ -2442,9 +2456,9 @@
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>Index {
     <span class="doccomment">/// all global variables
-    </span>global_variables: SymbolMap&lt;String, VariableIndexEntry&gt;, <span class="comment">// IndexMap&lt;String, Vec&lt;VariableIndexEntry&gt;&gt;,
+    </span>global_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
 
-    </span><span class="doccomment">/// all struct initializers
+    <span class="doccomment">/// all struct initializers
     </span>global_initializers: SymbolMap&lt;String, VariableIndexEntry&gt;,
 
     <span class="doccomment">/// all enum-members with their names
@@ -2456,7 +2470,7 @@
     <span class="doccomment">/// all implementations
     </span><span class="comment">// we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
-    </span>implementations: IndexMap&lt;String, ImplementationIndexEntry&gt;,
+    </span>implementations: FxIndexMap&lt;String, ImplementationIndexEntry&gt;,
 
     <span class="doccomment">/// an index with all type-information
     </span>type_index: TypeIndex,
@@ -2467,7 +2481,7 @@
     </span>data_layout: DataLayout,
 
     <span class="doccomment">/// The labels contained in each pou
-    </span>labels: IndexMap&lt;String, SymbolMap&lt;String, Label&gt;&gt;,
+    </span>labels: FxIndexMap&lt;String, SymbolMap&lt;String, Label&gt;&gt;,
 }
 
 <span class="kw">impl </span>Index {
@@ -2785,7 +2799,7 @@
 
     <span class="doccomment">/// Returns all enum variants defined in the given POU
     </span><span class="kw">pub fn </span>get_enum_variants_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>hs: HashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = HashSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>hs: FxHashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = FxHashSet::default();
         <span class="kw">for </span>member <span class="kw">in </span><span class="self">self</span>.get_pou_members(pou) {
             <span class="kw">if </span><span class="self">self</span>.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
                 hs.insert(member);
@@ -2990,7 +3004,7 @@
         <span class="self">self</span>.enum_global_variables.values().collect()
     }
 
-    <span class="kw">pub fn </span>get_implementations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexMap&lt;String, ImplementationIndexEntry&gt; {
+    <span class="kw">pub fn </span>get_implementations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxIndexMap&lt;String, ImplementationIndexEntry&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.implementations
     }
 

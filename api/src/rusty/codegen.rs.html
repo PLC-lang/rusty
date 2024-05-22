@@ -546,7 +546,7 @@
 };
 
 <span class="kw">use </span><span class="kw">super</span>::index::<span class="kw-2">*</span>;
-<span class="kw">use </span>indexmap::IndexSet;
+
 <span class="kw">use </span>inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
@@ -625,7 +625,7 @@
         context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext,
         annotations: <span class="kw-2">&amp;</span>AstAnnotations,
         literals: <span class="kw-2">&amp;</span>StringLiterals,
-        dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+        dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
         global_index: <span class="kw-2">&amp;</span>Index,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());

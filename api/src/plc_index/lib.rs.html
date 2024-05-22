@@ -136,13 +136,13 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_source::{SourceCode, SourceContainer};
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>GlobalContext {
     <span class="doccomment">/// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
-    </span>sources: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, SourceCode&gt;,
+    </span>sources: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, SourceCode&gt;,
 
     <span class="doccomment">/// [`IdProvider`] used during the parsing session
     </span>provider: IdProvider,
@@ -157,7 +157,7 @@
 
 <span class="kw">impl </span>GlobalContext {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ sources: HashMap::new(), provider: IdProvider::default() }
+        <span class="self">Self </span>{ sources: FxHashMap::default(), provider: IdProvider::default() }
     }
 
     <span class="doccomment">/// Inserts a single [`SourceCode`] to the internal source map

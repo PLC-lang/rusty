@@ -2671,6 +2671,7 @@
 <a href="#2669" id="2669">2669</a>
 <a href="#2670" id="2670">2670</a>
 <a href="#2671" id="2671">2671</a>
+<a href="#2672" id="2672">2672</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     codegen::{
@@ -2707,7 +2708,8 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
-<span class="kw">use </span>std::{collections::HashSet, vec};
+<span class="kw">use </span>rustc_hash::FxHashSet;
+<span class="kw">use </span>std::vec;
 
 <span class="kw">use super</span>::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 <span class="doccomment">/// the generator for expressions
@@ -4543,7 +4545,7 @@
         <span class="kw">if let </span>DataTypeInformation::Struct { name: struct_name, members, .. } =
             <span class="self">self</span>.get_type_hint_info_for(assignments)<span class="question-mark">?
         </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>uninitialized_members: HashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = HashSet::from_iter(members);
+            <span class="kw">let </span><span class="kw-2">mut </span>uninitialized_members: FxHashSet&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = FxHashSet::from_iter(members);
             <span class="kw">let </span><span class="kw-2">mut </span>member_values: Vec&lt;(u32, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;)&gt; = Vec::new();
             <span class="kw">for </span>assignment <span class="kw">in </span>flatten_expression_list(assignments) {
                 <span class="kw">if let </span>AstStatement::Assignment(data) = assignment.get_stmt() {

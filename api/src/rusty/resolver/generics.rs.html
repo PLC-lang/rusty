@@ -465,11 +465,9 @@
 <a href="#463" id="463">463</a>
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
-
-<span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
+</pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use crate</span>::{
     builtins,
@@ -530,7 +528,7 @@
     /// then chooses the best fitting function signature and reannotates the function with the found information.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_generic_call_statement(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt;,
+        generics_candidates: FxHashMap&lt;String, Vec&lt;String&gt;&gt;,
         implementation_name: <span class="kw-2">&amp;</span>str,
         operator: <span class="kw-2">&amp;</span>AstNode,
         parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
@@ -596,7 +594,7 @@
         generic_function: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="kw-2">&amp;</span>str,
         new_name: <span class="kw-2">&amp;</span>str,
-        generics: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+        generics: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
     ) {
         <span class="comment">// the generic implementation
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(generic_implementation) = generic_function.find_implementation(<span class="self">self</span>.index) {
@@ -659,7 +657,7 @@
     <span class="kw">fn </span>find_or_create_datatype(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         member_name: <span class="kw-2">&amp;</span>str,
-        generics: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+        generics: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
     ) -&gt; String {
         <span class="kw">match </span><span class="self">self</span>.index.find_effective_type_info(member_name) {
             <span class="prelude-val">Some</span>(DataTypeInformation::Generic { generic_symbol, .. }) =&gt; {
@@ -701,7 +699,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         s: <span class="kw-2">&amp;</span>AstNode,
         function_name: <span class="kw-2">&amp;</span>str,
-        generic_map: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+        generic_map: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
     ) {
         <span class="doccomment">/// An internal struct used to hold the type and nature of a generic parameter
         </span><span class="kw">struct </span>TypeAndNature&lt;<span class="lifetime">'a</span>&gt; {
@@ -790,7 +788,7 @@
         generics: <span class="kw-2">&amp;</span>[GenericBinding],
         generic_qualified_name: <span class="kw-2">&amp;</span>str,
         generic_return_type: <span class="kw-2">&amp;</span>str,
-        generic_map: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+        generic_map: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
         generic_name_resolver: GenericNameResolver,
     ) -&gt; (String, StatementAnnotation) {
         <span class="kw">let </span>call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
@@ -824,9 +822,9 @@
     </span><span class="kw">pub fn </span>derive_generic_types(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         generics: <span class="kw-2">&amp;</span>[GenericBinding],
-        generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt;,
-    ) -&gt; HashMap&lt;String, GenericType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>generic_map: HashMap&lt;String, GenericType&gt; = HashMap::new();
+        generics_candidates: FxHashMap&lt;String, Vec&lt;String&gt;&gt;,
+    ) -&gt; FxHashMap&lt;String, GenericType&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>generic_map: FxHashMap&lt;String, GenericType&gt; = FxHashMap::default();
         <span class="kw">for </span>GenericBinding { name, nature } <span class="kw">in </span>generics {
             <span class="kw">let </span>smallest_possible_type =
                 <span class="self">self</span>.index.find_effective_type_info(get_smallest_possible_type(nature));
@@ -893,13 +891,13 @@
     }
 }
 
-<span class="kw">type </span>GenericNameResolver = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>[GenericBinding], <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;) -&gt; String;
+<span class="kw">type </span>GenericNameResolver = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>[GenericBinding], <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;) -&gt; String;
 
 <span class="doccomment">/// Builds the correct generic name from the given information
 </span><span class="kw">pub fn </span>generic_name_resolver(
     qualified_name: <span class="kw-2">&amp;</span>str,
     generics: <span class="kw-2">&amp;</span>[GenericBinding],
-    generic_map: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+    generic_map: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
 ) -&gt; String {
     generics
         .iter()
@@ -913,9 +911,9 @@
 </span><span class="kw">pub fn </span>no_generic_name_resolver(
     qualified_name: <span class="kw-2">&amp;</span>str,
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>[GenericBinding],
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span>HashMap&lt;String, GenericType&gt;,
+    <span class="kw">_</span>: <span class="kw-2">&amp;</span>FxHashMap&lt;String, GenericType&gt;,
 ) -&gt; String {
-    generic_name_resolver(qualified_name, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>HashMap::new())
+    generic_name_resolver(qualified_name, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>FxHashMap::default())
 }
 
 <span class="kw">pub fn </span>get_smallest_possible_type(nature: <span class="kw-2">&amp;</span>TypeNature) -&gt; <span class="kw-2">&amp;</span>str {

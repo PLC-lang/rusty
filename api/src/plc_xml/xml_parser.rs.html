@@ -207,10 +207,7 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
-
-<span class="kw">use </span>ast::{
+</pre></div><pre class="rust"><code><span class="kw">use </span>ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType <span class="kw">as </span>AstPouType},
     provider::IdProvider,
 };
@@ -225,6 +222,7 @@
     SourceCode, SourceContainer,
 };
 <span class="kw">use </span>quick_xml::events::{attributes::Attributes, BytesStart, Event};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use crate</span>::{
     error::Error,
@@ -245,11 +243,11 @@
 </span><span class="kw">mod </span>tests;
 <span class="kw">mod </span>variables;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_attributes(attributes: Attributes) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;String, String&gt;, Error&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_attributes(attributes: Attributes) -&gt; <span class="prelude-ty">Result</span>&lt;FxHashMap&lt;String, String&gt;, Error&gt; {
     attributes
         .flatten()
         .map(|it| <span class="prelude-val">Ok</span>((it.key.try_to_string()<span class="question-mark">?</span>, it.value.try_to_string()<span class="question-mark">?</span>)))
-        .collect::&lt;<span class="prelude-ty">Result</span>&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;, Error&gt;&gt;()
+        .collect::&lt;<span class="prelude-ty">Result</span>&lt;FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;, Error&gt;&gt;()
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Parseable

@@ -183,7 +183,7 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+</pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use crate</span>::{
     diagnostics::{
@@ -201,7 +201,7 @@
 </span><span class="kw">pub struct </span>Diagnostician {
     reporter: Box&lt;<span class="kw">dyn </span>DiagnosticReporter&gt;,
     assessor: Box&lt;<span class="kw">dyn </span>DiagnosticAssessor&gt;,
-    filename_fileid_mapping: HashMap&lt;String, usize&gt;,
+    filename_fileid_mapping: FxHashMap&lt;String, usize&gt;,
 }
 
 <span class="kw">impl </span>Diagnostician {
@@ -260,7 +260,7 @@
         Diagnostician {
             assessor: Box::&lt;DiagnosticsRegistry&gt;::default(),
             reporter: Box::&lt;NullDiagnosticReporter&gt;::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -269,7 +269,7 @@
         Diagnostician {
             assessor: Box::&lt;DiagnosticsRegistry&gt;::default(),
             reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -278,7 +278,7 @@
         Diagnostician {
             reporter: Box::&lt;ClangFormatDiagnosticReporter&gt;::default(),
             assessor: Box::&lt;DiagnosticsRegistry&gt;::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -336,7 +336,7 @@
         <span class="self">Self </span>{
             reporter: Box::&lt;CodeSpanDiagnosticReporter&gt;::default(),
             assessor: Box::&lt;DiagnosticsRegistry&gt;::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 }

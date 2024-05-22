@@ -174,6 +174,7 @@
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
@@ -182,7 +183,7 @@
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
-<span class="kw">use </span>indexmap::IndexSet;
+
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
 <span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -193,6 +194,7 @@
     llvm::{GlobalValueExt, Llvm},
 };
 <span class="kw">use </span><span class="kw">crate</span>::codegen::debug::DebugBuilderEnum;
+<span class="kw">use </span><span class="kw">crate</span>::index::FxIndexSet;
 
 <span class="kw">pub struct </span>VariableGenerator&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'b</span>&gt; {
     module: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Module&lt;<span class="lifetime">'ctx</span>&gt;,
@@ -217,7 +219,7 @@
 
     <span class="kw">pub fn </span>generate_global_variables(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        dependencies: <span class="kw-2">&amp;</span>IndexSet&lt;Dependency&gt;,
+        dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
         location: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>index = LlvmTypedIndex::default();

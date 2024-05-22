@@ -222,37 +222,37 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
 </span><span class="attr">#[derive(Debug, Clone, Default)]
 </span><span class="kw">pub struct </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt; {
     parent_index: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ink </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    type_associations: HashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    pou_type_associations: HashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    global_values: HashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    initial_value_associations: HashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    loaded_variable_associations: HashMap&lt;String, PointerValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    implementations: HashMap&lt;String, FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    constants: HashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    utf08_literals: HashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    utf16_literals: HashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    pou_type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    global_values: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    initial_value_associations: FxHashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    loaded_variable_associations: FxHashMap&lt;String, PointerValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    implementations: FxHashMap&lt;String, FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    constants: FxHashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    utf08_literals: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    utf16_literals: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt; {
     <span class="kw">pub fn </span>create_child(parent: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;) -&gt; LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt; {
         LlvmTypedIndex {
             parent_index: <span class="prelude-val">Some</span>(parent),
-            type_associations: HashMap::new(),
-            pou_type_associations: HashMap::new(),
-            global_values: HashMap::new(),
-            initial_value_associations: HashMap::new(),
-            loaded_variable_associations: HashMap::new(),
-            implementations: HashMap::new(),
-            constants: HashMap::new(),
-            utf08_literals: HashMap::new(),
-            utf16_literals: HashMap::new(),
+            type_associations: FxHashMap::default(),
+            pou_type_associations: FxHashMap::default(),
+            global_values: FxHashMap::default(),
+            initial_value_associations: FxHashMap::default(),
+            loaded_variable_associations: FxHashMap::default(),
+            implementations: FxHashMap::default(),
+            constants: FxHashMap::default(),
+            utf08_literals: FxHashMap::default(),
+            utf16_literals: FxHashMap::default(),
         }
     }
 

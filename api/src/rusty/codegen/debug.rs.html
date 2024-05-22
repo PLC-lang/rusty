@@ -952,7 +952,8 @@
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
+<a href="#953" id="953">953</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -965,6 +966,7 @@
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -1101,10 +1103,10 @@
     context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>Context,
     debug_info: DebugInfoBuilder&lt;<span class="lifetime">'ink</span>&gt;,
     compile_unit: DICompileUnit&lt;<span class="lifetime">'ink</span>&gt;,
-    types: HashMap&lt;String, DebugType&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    variables: HashMap&lt;String, DILocalVariable&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    types: FxHashMap&lt;String, DebugType&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    variables: FxHashMap&lt;String, DILocalVariable&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     optimization: OptimizationLevel,
-    files: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DIFile&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    files: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DIFile&lt;<span class="lifetime">'ink</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// A wrapper that redirects to correct debug builder implementation based on the debug context.

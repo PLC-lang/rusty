@@ -864,10 +864,7 @@
 <a href="#862" id="862">862</a>
 <a href="#863" id="863">863</a>
 <a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
-
-<span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
@@ -894,6 +891,7 @@
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// the full context when generating statements inside a POU
 </span><span class="kw">pub struct </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
@@ -902,7 +900,7 @@
     <span class="doccomment">/// the llvm function to generate statements into
     </span><span class="kw">pub </span>function: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
     <span class="doccomment">/// The blocks/labels this function can use
-    </span><span class="kw">pub </span>blocks: HashMap&lt;String, BasicBlock&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    </span><span class="kw">pub </span>blocks: FxHashMap&lt;String, BasicBlock&lt;<span class="lifetime">'ink</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)

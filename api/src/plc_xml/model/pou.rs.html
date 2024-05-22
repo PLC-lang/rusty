@@ -177,10 +177,12 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, collections::HashMap, str::FromStr};
+<a href="#178" id="178">178</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, str::FromStr};
 
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>quick_xml::events::{BytesStart, Event};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use crate</span>::{
     error::Error,
@@ -201,7 +203,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Pou&lt;<span class="lifetime">'xml</span>&gt; {
-    <span class="kw">fn </span>with_attributes(<span class="self">self</span>, attributes: HashMap&lt;String, String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    <span class="kw">fn </span>with_attributes(<span class="self">self</span>, attributes: FxHashMap&lt;String, String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(Pou {
             name: Cow::from(attributes.get_or_err(<span class="string">"name"</span>)<span class="question-mark">?</span>),
             pou_type: attributes.get_or_err(<span class="string">"pouType"</span>).map(|it| it.parse())<span class="question-mark">??</span>,
