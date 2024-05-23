@@ -1,5 +1,4 @@
-use std::fmt::Pointer;
-use std::{collections::HashSet, vec};
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use inkwell::{
     builder::Builder,
@@ -10,6 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use rustc_hash::FxHashSet;
 
 use plc_ast::ast::Assignment;
 use plc_ast::{
@@ -23,7 +23,6 @@ use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
@@ -41,7 +40,6 @@ use crate::{
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
-use rustc_hash::FxHashSet;
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 
@@ -69,11 +67,11 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 #[derive(Debug)]
 struct CallParameterAssignment<'a, 'b> {
     /// the assignmentstatement in the call-argument list (a:=3)
-    assignment_statement: &'b AstNode,
+    assignment: &'b AstNode,
     /// the name of the function we're calling
     function_name: &'b str,
     /// the position of the argument in the POU's argument's list
-    pub index: u32,
+    index: u32,
     /// a pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
 }
@@ -530,99 +528,62 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), Diagnostic> {
-        // self.index.get_declared_parameter(function_name, index)
-
-        // Before
-        // parameter = vec![foo, bar, baz]
-        //                       ^^^ output, index = 1
-        // After (filtered)
-        // parameter = vec![bar]
-
         let pou_info = self.index.get_declared_parameters(function_name);
-        let mut implicit = true;
-        for statement in parameters.iter() {
-            if statement.is_assignment() || statement.is_output_assignment() {
-                implicit = false;
-                break;
-            }
-        }
+        let implicit = is_implicit_function_call(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
-            let temp = pou_info.get(index).is_some_and(|it| it.get_variable_type().is_output());
-            // TODO: Filter this
-            if assignment_statement.is_output_assignment() || (implicit && temp) {
+            let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
+
+            if assignment_statement.is_output_assignment() || (implicit && is_output) {
                 self.assign_output_value(&CallParameterAssignment {
-                    assignment_statement,
+                    assignment: assignment_statement,
                     function_name,
                     index: index as u32,
                     parameter_struct,
                 })?
             }
         }
+
         Ok(())
     }
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
-        match param_context.assignment_statement.get_stmt() {
-            // TODO: AstStatement::Assignment should not be a part of this?
-            AstStatement::OutputAssignment(data) => self.generate_explicit_output_assignment(
+        match &param_context.assignment.stmt {
+            AstStatement::OutputAssignment(assignment) => self.generate_explicit_output_assignment(
                 param_context.parameter_struct,
                 param_context.function_name,
-                param_context.assignment_statement,
+                assignment,
             ),
 
             _ => self.generate_output_assignment(param_context),
         }
     }
 
-    fn temp_xxx(
+    fn generate_bit_access(
         &self,
-        left_lvalue: PointerValue,
-        right_lvalue: PointerValue,
-        left_statement: &AstNode,
-        right_type: &DataType,
+        lvalue_lhs: PointerValue,
+        lvalue_rhs: PointerValue,
+        statement_lhs: &AstNode,
+        type_rhs: &DataType,
     ) -> Result<(), Diagnostic> {
-        /// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
-        /// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
-        /// of direct-access commands (vec![%W3, %X2])
-        fn collect_base_and_direct_access_for_assignment(
-            left_statement: &AstNode,
-        ) -> Option<(&AstNode, Vec<&AstNode>)> {
-            let mut current = Some(left_statement);
-            let mut access_sequence = Vec::new();
-            while let Some(AstStatement::ReferenceExpr(ReferenceExpr {
-                access: ReferenceAccess::Member(m),
-                base,
-            })) = current.map(|it| it.get_stmt())
-            {
-                if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
-                    access_sequence.insert(0, m.as_ref());
-                    current = base.as_deref();
-                } else {
-                    break;
-                }
-            }
-            current.zip(Some(access_sequence))
-        }
-
-        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(statement_lhs)
         else {
-            unreachable!("Invalid direct-access expression: {left_statement:#?}")
+            unreachable!("Invalid direct-access expression: {statement_lhs:#?}")
         };
 
-        let left_type = self.get_type_hint_for(target)?;
+        let type_left = self.get_type_hint_for(target)?;
 
         //special case if we deal with a single bit, then we need to switch to a faked u1 type
-        let right_type =
+        let type_right =
             if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
-                *right_type.get_type_information()
+                *type_rhs.get_type_information()
             {
                 self.index.get_type_or_panic(typesystem::U1_TYPE)
             } else {
-                right_type
+                type_rhs
             };
 
-        let left_value = self.llvm.builder.build_load(left_lvalue, "").into_int_value();
+        let value_lhs = self.llvm.builder.build_load(lvalue_lhs, "").into_int_value();
 
         //Build index
         if let Some((element, direct_access)) = access_sequence.split_first() {
@@ -630,8 +591,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_direct_access_index(
                     &data.access,
                     &data.index,
-                    right_type.get_type_information(),
-                    left_type,
+                    type_right.get_type_information(),
+                    type_left,
                 )
             } else {
                 //TODO: using the global context we could get a slice here
@@ -644,8 +605,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_direct_access_index(
                         &data.access,
                         &data.index,
-                        right_type.get_type_information(),
-                        left_type,
+                        type_right.get_type_information(),
+                        type_left,
                     )
                 } else {
                     //TODO: using the global context we could get a slice here
@@ -657,28 +618,28 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             //Build mask for the index
             //Get the target bit type as all ones
-            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
+            let rhs_type = self.llvm_index.get_associated_type(type_right.get_name())?.into_int_type();
             let ones = rhs_type.const_all_ones();
 
             //Extend the mask to the target type
-            let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
+            let extended_mask = self.llvm.builder.build_int_z_extend(ones, value_lhs.get_type(), "ext");
             //Position the ones in their correct locations
             let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, index, "shift");
             //Invert the mask
             let mask = self.llvm.builder.build_not(shifted_mask, "invert");
             //And the result with the mask to erase the set bits at the target location
-            let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
+            let and_value = self.llvm.builder.build_and(value_lhs, mask, "erase");
 
             //Generate an expression for the right size
-            let right = self.llvm.builder.build_load(right_lvalue, "");
+            let right = self.llvm.builder.build_load(lvalue_rhs, "");
             //Cast the right side to the left side type
-            let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
+            let lhs = cast_if_needed!(self, type_left, type_right, right, None).into_int_value();
             //Shift left by the direct access
             let value = self.llvm.builder.build_left_shift(lhs, index, "value");
 
             //OR the result and store it in the left side
             let or_value = self.llvm.builder.build_or(and_value, value, "or");
-            self.llvm.builder.build_store(left_lvalue, or_value);
+            self.llvm.builder.build_store(lvalue_lhs, or_value);
         } else {
             unreachable!()
         }
@@ -687,32 +648,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), Diagnostic> {
+        let &CallParameterAssignment { assignment, function_name, index, parameter_struct } = context;
         let builder = &self.llvm.builder;
-        let expression = context.assignment_statement;
-        let parameter_struct = context.parameter_struct;
-        let function_name = context.function_name;
-        let index = context.index;
 
         let Some(parameter) = self.index.get_declared_parameter(function_name, index) else {
             panic!("or return?");
         };
+        assert!(parameter.get_variable_type().is_output());
 
-        if !parameter.get_variable_type().is_output() {
-            panic!("wtf... {parameter:#?}");
-            // return Ok(());
-        }
-
-        // TODO: How to trigger an empty statement here, this: `FOO(Q => );`?
-        if expression.is_empty_statement() {
-            // Something like `foo(out1 => )`, which means we can just return here because no
-            // assignment should happen
+        // Don't generate code if right-hand side of an assignment is an empty statement (e.g. `foo(out => )`)
+        if assignment.is_empty_statement() {
             return Ok(());
         }
 
         // FOO(x => y)
         // FOO(x => y.0)
-        match expression.get_stmt() {
-            AstStatement::ReferenceExpr(_) if expression.has_direct_access() => {
+        match assignment.get_stmt() {
+            AstStatement::ReferenceExpr(_) if assignment.has_direct_access() => {
                 let _pou = self.index.find_pou(function_name).unwrap();
                 let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
                 let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
@@ -722,38 +674,32 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let AstStatement::ReferenceExpr(ReferenceExpr {
                     access: ReferenceAccess::Member(member),
                     base,
-                }) = &expression.get_stmt()
+                }) = &assignment.get_stmt()
                 else {
                     unreachable!("must be a bitaccess, will return early for all other cases")
                 };
-                let base_value_rvalue =
-                    base.as_ref().map(|it| self.generate_expression_value(it)).transpose()?;
 
                 if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
-                    let (Some(base), S_) = (base, ..) else { panic!() };
+                    let (Some(base), _) = (base, ..) else { panic!() };
                     // Step 1
-                    let error_bits_lvalue = self
-                        .llvm_index
-                        .find_loaded_associated_variable_value(
-                            self.annotations.get_qualified_name(base).unwrap(),
-                        )
-                        .unwrap();
+                    let var = self.annotations.get_qualified_name(base).unwrap();
+                    let error_bits_lvalue =
+                        self.llvm_index.find_loaded_associated_variable_value(var).unwrap();
 
                     // Step 2
-                    let q_lvalue =
-                        self.llvm.builder.build_struct_gep(parameter_struct, index, "bbb").unwrap();
+                    let q_lvalue = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap();
 
                     // lhs = lvalue
                     // rhs = astnode
-                    self.temp_xxx(error_bits_lvalue, q_lvalue, &expression, &dt)?;
+                    self.generate_bit_access(error_bits_lvalue, q_lvalue, &assignment, &dt)?;
                 };
             }
 
             _ => {
-                let assigned_output = self.generate_lvalue(expression)?;
+                let assigned_output = self.generate_lvalue(assignment)?;
 
                 let assigned_output_type =
-                    self.annotations.get_type_or_void(expression, self.index).get_type_information();
+                    self.annotations.get_type_or_void(assignment, self.index).get_type_information();
 
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
@@ -772,7 +718,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_string_store(
                         assigned_output,
                         assigned_output_type,
-                        expression.get_location(),
+                        assignment.get_location(),
                         output,
                         output_value_type,
                         parameter.source_location.clone(),
@@ -781,23 +727,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output_value = builder.build_load(output, "");
                     builder.build_store(assigned_output, output_value);
                 }
-                // todo!("handle fallthrough, return early; {expression:#?}")
             }
         };
+
         Ok(())
     }
 
+    /// Given an output assignment such as `foo => bar`, the right-hand side of the assignment (i.e. `bar`)
+    /// will be extracted and fed into [`generate_output_assignment`] in a subsequent call.
     fn generate_explicit_output_assignment(
         &self,
         parameter_struct: PointerValue<'ink>,
         function_name: &str,
-        assignment: &AstNode,
+        assignment: &Assignment,
     ) -> Result<(), Diagnostic> {
-        let AstStatement::OutputAssignment(Assignment { left, right, .. }) = assignment.get_stmt() else {
-            todo!()
-        };
+        let Assignment { left, right } = assignment;
 
-        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(&left) {
+        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
             let parameter = self
                 .index
                 .find_fully_qualified_variable(qualified_name)
@@ -805,12 +751,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let index = parameter.get_location_in_parent();
 
             self.generate_output_assignment(&CallParameterAssignment {
-                assignment_statement: right,
+                assignment: right,
                 function_name,
                 index,
                 parameter_struct,
             })?
         };
+
         Ok(())
     }
 
@@ -1173,7 +1120,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
         for (i, stmt) in passed_parameters.iter().enumerate() {
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                assignment_statement: stmt,
+                assignment: stmt,
                 function_name: pou_name,
                 index: i as u32,
                 parameter_struct,
@@ -1249,7 +1196,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
-        let parameter_value = match param_context.assignment_statement.get_stmt() {
+        let parameter_value = match param_context.assignment.get_stmt() {
             // explicit call parameter: foo(param := value)
             AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => {
                 self.generate_formal_parameter(param_context, &data.left, &data.right)?;
@@ -1272,7 +1219,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_name = param_context.function_name;
         let index = param_context.index;
         let parameter_struct = param_context.parameter_struct;
-        let expression = param_context.assignment_statement;
+        let expression = param_context.assignment;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
             // this happens before the pou call
             // before the call statement we may only consider inputs and inouts
@@ -1348,7 +1295,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             );
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                    assignment_statement: right,
+                    assignment: right,
                     function_name,
                     index,
                     parameter_struct,
@@ -2865,4 +2812,30 @@ fn int_value_multiply_accumulate<'ink>(
         llvm.builder.build_store(accum, curr);
     }
     llvm.builder.build_load(accum, "accessor").into_int_value()
+}
+
+/// Returns false if any argument in the given list is an (output-)assignment and true otherwise
+fn is_implicit_function_call(arguments: &Vec<&AstNode>) -> bool {
+    !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
+}
+
+/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
+/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
+/// of direct-access commands (vec![%W3, %X2])
+fn collect_base_and_direct_access_for_assignment(
+    left_statement: &AstNode,
+) -> Option<(&AstNode, Vec<&AstNode>)> {
+    let mut current = Some(left_statement);
+    let mut access_sequence = Vec::new();
+    while let Some(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
+        current.map(|it| it.get_stmt())
+    {
+        if matches!(m.get_stmt(), AstStatement::DirectAccess { .. }) {
+            access_sequence.insert(0, m.as_ref());
+            current = base.as_deref();
+        } else {
+            break;
+        }
+    }
+    current.zip(Some(access_sequence))
 }

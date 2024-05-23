@@ -287,11 +287,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
 
-        // STRUCT foo
-        //  x : BIT
-        // END_STRUCT
-        // foo, foo.x
-
         // given a complex direct-access assignemnt: a.b.c.%W3,%X1
         // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
         let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
@@ -361,7 +356,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
             //Generate an expression for the right size
-            //TODO: debug on master
             let right = exp_gen.generate_expression(right_statement)?;
             //Cast the right side to the left side type
             let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
