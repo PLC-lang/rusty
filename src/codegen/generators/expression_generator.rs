@@ -539,9 +539,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // parameter = vec![bar]
 
         let pou_info = self.index.get_declared_parameters(function_name);
+        let mut implicit = true;
+        for statement in parameters.iter() {
+            if statement.is_assignment() || statement.is_output_assignment() {
+                implicit = false;
+                break;
+            }
+        }
+
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
+            let temp = pou_info.get(index).is_some_and(|it| it.get_variable_type().is_output());
             // TODO: Filter this
-            if pou_info.get(index).is_some_and(|it| it.get_variable_type().is_output()) {
+            if assignment_statement.is_output_assignment() || (implicit && temp) {
                 self.assign_output_value(&CallParameterAssignment {
                     assignment_statement,
                     function_name,
@@ -554,7 +563,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), Diagnostic> {
-        dbg!(&param_context.index);
         match param_context.assignment_statement.get_stmt() {
             // TODO: AstStatement::Assignment should not be a part of this?
             AstStatement::OutputAssignment(data) => self.generate_explicit_output_assignment(
@@ -562,21 +570,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 param_context.function_name,
                 param_context.assignment_statement,
             ),
-            _ => self.generate_output_assignment(param_context),
-        }
 
-        /*
-        match param_context.assignment_statement.get_stmt() {
-            AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) => self
-                .generate_explicit_output_assignment(
-                    param_context.parameter_struct,
-                    param_context.function_name,
-                    &data.left,
-                    &data.right,
-                ),
             _ => self.generate_output_assignment(param_context),
         }
-         */
     }
 
     fn temp_xxx(
@@ -717,10 +713,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // FOO(x => y.0)
         match expression.get_stmt() {
             AstStatement::ReferenceExpr(_) if expression.has_direct_access() => {
-                let _pou = dbg!(self.index.find_pou(function_name).unwrap());
+                let _pou = self.index.find_pou(function_name).unwrap();
                 let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
                 let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
-                let param = dbg!(&members[index as usize]); // TODO: Create a test for this; this fucks up if populating the members is not in order
+                let param = &members[index as usize]; // TODO: Create a test for this; this fucks up if populating the members is not in order
                 let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
 
                 let AstStatement::ReferenceExpr(ReferenceExpr {
@@ -749,13 +745,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     // lhs = lvalue
                     // rhs = astnode
-                    dbg!(&expression);
                     self.temp_xxx(error_bits_lvalue, q_lvalue, &expression, &dt)?;
                 };
             }
 
             _ => {
-                dbg!(&expression);
                 let assigned_output = self.generate_lvalue(expression)?;
 
                 let assigned_output_type =
