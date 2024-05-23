@@ -1,9 +1,9 @@
-use indexmap::IndexSet;
 use itertools::Itertools;
 
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 
+use crate::index::FxIndexSet;
 use crate::{
     index::{Index, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
@@ -39,8 +39,8 @@ impl RecursiveValidator {
 
     /// Entry point of finding and reporting all recursive data structures.
     pub fn validate(&mut self, index: &Index) {
-        let mut nodes_all: IndexSet<&DataType> = IndexSet::new();
-        let mut nodes_visited = IndexSet::new();
+        let mut nodes_all: FxIndexSet<&DataType> = FxIndexSet::default();
+        let mut nodes_visited = FxIndexSet::default();
 
         // Structs (includes arrays defined in structs)
         nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
@@ -60,10 +60,10 @@ impl RecursiveValidator {
     fn find_cycle<'idx>(
         &mut self,
         index: &'idx Index,
-        nodes_all: IndexSet<&'idx DataType>,
-        nodes_visited: &mut IndexSet<&'idx DataType>,
+        nodes_all: FxIndexSet<&'idx DataType>,
+        nodes_visited: &mut FxIndexSet<&'idx DataType>,
     ) {
-        let mut path = IndexSet::new();
+        let mut path = FxIndexSet::default();
 
         for node in &nodes_all {
             if !nodes_visited.contains(node) {
@@ -80,15 +80,15 @@ impl RecursiveValidator {
     fn dfs<'idx>(
         &mut self,
         index: &'idx Index,
-        path: &mut IndexSet<&'idx DataType>,
+        path: &mut FxIndexSet<&'idx DataType>,
         node_curr: &'idx DataType,
-        nodes_visited: &mut IndexSet<&'idx DataType>,
+        nodes_visited: &mut FxIndexSet<&'idx DataType>,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
         for node in
-            node_curr.get_struct_members().iter().map(|x| self.get_type(index, x)).collect::<IndexSet<_>>()
+            node_curr.get_struct_members().iter().map(|x| self.get_type(index, x)).collect::<FxIndexSet<_>>()
         {
             if path.contains(node) {
                 self.report(node, path);
@@ -102,7 +102,7 @@ impl RecursiveValidator {
     /// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
     /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
-    fn report<'idx>(&mut self, node: &'idx DataType, path: &mut IndexSet<&'idx DataType>) {
+    fn report<'idx>(&mut self, node: &'idx DataType, path: &mut FxIndexSet<&'idx DataType>) {
         match path.get_index_of(node) {
             Some(idx) => {
                 let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
@@ -128,7 +128,7 @@ impl RecursiveValidator {
                 self.diagnostics.push(diagnostic);
             }
 
-            None => unreachable!("Node has to be in the IndexSet"),
+            None => unreachable!("Node has to be in the FxIndexSet"),
         }
     }
 

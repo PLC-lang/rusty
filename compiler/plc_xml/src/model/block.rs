@@ -1,6 +1,7 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use quick_xml::events::{BytesStart, Event};
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -21,7 +22,7 @@ pub(crate) struct Block<'xml> {
 }
 
 impl<'xml> Block<'xml> {
-    pub fn new(mut hm: HashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
+    pub fn new(mut hm: FxHashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
             type_name: Cow::from(hm.get_or_err("typeName")?),

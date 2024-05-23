@@ -15,3 +15,4 @@ toml.workspace = true
 anyhow.workspace = true
 lazy_static.workspace = true
 log.workspace = true
+rustc-hash.workspace = true

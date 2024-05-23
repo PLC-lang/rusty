@@ -1,4 +1,5 @@
-use std::{collections::HashSet, mem::discriminant};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::mem::discriminant;
 
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
@@ -1259,7 +1260,7 @@ fn validate_case_statement<T: AnnotationMap>(
 ) {
     visit_statement(validator, selector, context);
 
-    let mut cases = HashSet::new();
+    let mut cases = FxHashSet::default();
     case_blocks.iter().for_each(|b| {
         let condition = b.condition.as_ref();
 
@@ -1388,14 +1389,13 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    use std::collections::HashMap;
     fn get_expression_types_and_locations<'b, T: AnnotationMap>(
         expression: &AstNode,
         context: &'b ValidationContext<T>,
         lhs_is_signed_int: bool,
         is_builtin_call: bool,
-    ) -> HashMap<&'b DataType, Vec<SourceLocation>> {
-        let mut map: HashMap<&DataType, Vec<SourceLocation>> = HashMap::new();
+    ) -> FxHashMap<&'b DataType, Vec<SourceLocation>> {
+        let mut map: FxHashMap<&DataType, Vec<SourceLocation>> = FxHashMap::default();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
                 if !operator.is_comparison_operator() =>
