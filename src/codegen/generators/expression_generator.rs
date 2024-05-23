@@ -42,7 +42,6 @@ use crate::{
     },
 };
 use rustc_hash::FxHashSet;
-use std::vec;
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 
