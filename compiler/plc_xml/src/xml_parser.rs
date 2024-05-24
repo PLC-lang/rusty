@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
@@ -15,6 +13,7 @@ use plc_source::{
     SourceCode, SourceContainer,
 };
 use quick_xml::events::{attributes::Attributes, BytesStart, Event};
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -35,11 +34,11 @@ mod pou;
 mod tests;
 mod variables;
 
-pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, String>, Error> {
+pub(crate) fn get_attributes(attributes: Attributes) -> Result<FxHashMap<String, String>, Error> {
     attributes
         .flatten()
         .map(|it| Ok((it.key.try_to_string()?, it.value.try_to_string()?)))
-        .collect::<Result<HashMap<_, _>, Error>>()
+        .collect::<Result<FxHashMap<_, _>, Error>>()
 }
 
 pub(crate) trait Parseable

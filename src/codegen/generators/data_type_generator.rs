@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::codegen::debug::Debug;
-use crate::index::{Index, VariableIndexEntry, VariableType};
+use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
     },
     typesystem::DataType,
 };
-use indexmap::IndexSet;
+
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -21,13 +21,14 @@ use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use super::ADDRESS_SPACE_GENERIC;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
@@ -50,7 +51,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
-    dependencies: &IndexSet<Dependency>,
+    dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
@@ -117,7 +118,7 @@ pub fn generate_data_types<'ink>(
     }
 
     let mut tries = 0;
-    let mut errors = HashMap::new();
+    let mut errors = FxHashMap::default();
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {

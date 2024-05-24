@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Range, path::Path};
+use std::{ops::Range, path::Path};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -11,6 +11,7 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+use rustc_hash::FxHashMap;
 
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -147,10 +148,10 @@ pub struct DebugBuilder<'ink> {
     context: &'ink Context,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
-    types: HashMap<String, DebugType<'ink>>,
-    variables: HashMap<String, DILocalVariable<'ink>>,
+    types: FxHashMap<String, DebugType<'ink>>,
+    variables: FxHashMap<String, DILocalVariable<'ink>>,
     optimization: OptimizationLevel,
-    files: HashMap<&'static str, DIFile<'ink>>,
+    files: FxHashMap<&'static str, DIFile<'ink>>,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.

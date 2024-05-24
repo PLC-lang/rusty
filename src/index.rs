@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::collections::HashSet;
+use std::hash::BuildHasherDefault;
 
-use indexmap::IndexMap;
 use itertools::Itertools;
+use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -28,9 +28,16 @@ use self::{
 pub mod const_expressions;
 mod instance_iterator;
 pub mod symbol;
+pub mod visitor;
+
 #[cfg(test)]
 mod tests;
-pub mod visitor;
+
+/// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+
+/// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexSet<K> = indexmap::IndexSet<K, BuildHasherDefault<FxHasher>>;
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit
@@ -815,7 +822,7 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    global_variables: SymbolMap<String, VariableIndexEntry>, // IndexMap<String, Vec<VariableIndexEntry>>,
+    global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all struct initializers
     global_initializers: SymbolMap<String, VariableIndexEntry>,
@@ -829,7 +836,7 @@ pub struct Index {
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
-    implementations: IndexMap<String, ImplementationIndexEntry>,
+    implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -840,7 +847,7 @@ pub struct Index {
     data_layout: DataLayout,
 
     /// The labels contained in each pou
-    labels: IndexMap<String, SymbolMap<String, Label>>,
+    labels: FxIndexMap<String, SymbolMap<String, Label>>,
 }
 
 impl Index {
@@ -1158,7 +1165,7 @@ impl Index {
 
     /// Returns all enum variants defined in the given POU
     pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        let mut hs: HashSet<&VariableIndexEntry> = HashSet::new();
+        let mut hs: FxHashSet<&VariableIndexEntry> = FxHashSet::default();
         for member in self.get_pou_members(pou) {
             if self.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
                 hs.insert(member);
@@ -1363,7 +1370,7 @@ impl Index {
         self.enum_global_variables.values().collect()
     }
 
-    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(&self) -> &FxIndexMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 

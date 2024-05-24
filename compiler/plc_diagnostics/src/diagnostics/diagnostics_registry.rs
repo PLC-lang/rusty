@@ -1,7 +1,6 @@
 /// Returns a diagnostics map with the error code, default severity and a description
-use std::collections::HashMap;
-
 use lazy_static::lazy_static;
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::diagnostician::DiagnosticAssessor;
@@ -13,7 +12,7 @@ use super::{
 
 macro_rules! add_diagnostic {
     ($($number:ident, $severity:expr, $desc:expr,)*) => {
-        { let mut m : HashMap<&str, DiagnosticEntry> = HashMap::new();
+        { let mut m : FxHashMap<&str, DiagnosticEntry> = FxHashMap::default();
             $(
                 {
                     let code = stringify!($number);
@@ -24,7 +23,7 @@ macro_rules! add_diagnostic {
         }}
 }
 
-pub struct DiagnosticsRegistry(HashMap<&'static str, DiagnosticEntry>);
+pub struct DiagnosticsRegistry(FxHashMap<&'static str, DiagnosticEntry>);
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct DiagnosticEntry {
@@ -41,7 +40,7 @@ impl Default for DiagnosticsRegistry {
 
 impl DiagnosticsRegistry {
     /// Creates an empty registry.
-    fn new(map: HashMap<&'static str, DiagnosticEntry>) -> Self {
+    fn new(map: FxHashMap<&'static str, DiagnosticEntry>) -> Self {
         DiagnosticsRegistry(map)
     }
 
@@ -87,7 +86,7 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(transparent)]
-pub struct DiagnosticsConfiguration(HashMap<Severity, Vec<String>>);
+pub struct DiagnosticsConfiguration(FxHashMap<Severity, Vec<String>>);
 
 impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
     fn from(registry: &DiagnosticsRegistry) -> Self {
@@ -101,7 +100,7 @@ impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
 }
 
 lazy_static! {
-    static ref DIAGNOSTICS: HashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
+    static ref DIAGNOSTICS: FxHashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
     E001,
     Error,
     include_str!("./error_codes/E001.md"), //General Error

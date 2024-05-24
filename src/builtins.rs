@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
@@ -16,6 +14,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use rustc_hash::FxHashMap;
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
@@ -32,7 +31,7 @@ use crate::{
 
 // Defines a set of functions that are always included in a compiled application
 lazy_static! {
-    static ref BUILTIN: HashMap<&'static str, BuiltIn> = HashMap::from([
+    static ref BUILTIN: FxHashMap<&'static str, BuiltIn> = FxHashMap::from_iter([
         (
             "ADR",
             BuiltIn {
@@ -893,7 +892,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 }
 
 type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &FxHashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstNode],
