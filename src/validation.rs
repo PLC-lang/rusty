@@ -30,7 +30,6 @@ mod variable;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone)]
 pub struct ValidationContext<'s, T: AnnotationMap> {
     annotations: &'s T,
     index: &'s Index,
@@ -83,6 +82,17 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
 
     fn is_call(&self) -> bool {
         self.is_call
+    }
+}
+
+impl<'s, T: AnnotationMap> Clone for ValidationContext<'s, T> {
+    fn clone(&self) -> Self {
+        ValidationContext {
+            annotations: self.annotations,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: self.is_call,
+        }
     }
 }
 
@@ -143,9 +153,7 @@ impl<'a> Validator<'a> {
                 continue;
             };
 
-            self.push_diagnostic(
-                Diagnostic::warning(reason).with_error_code("E038").with_location(location.to_owned()),
-            );
+            self.push_diagnostic(Diagnostic::new(reason).with_error_code("E039").with_location(location));
         }
     }
 

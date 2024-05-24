@@ -1047,10 +1047,10 @@ fn array_test() {
             //main := arr_var;
             //main[-1] := 1;
 
-            u := &(arr_var[0]);
-            v := &(arr_var[1]));
-            w := &(arr_var[2]));
-            x := &(arr_var[3]));
+            u := REF(arr_var[0]);
+            v := REF(arr_var[1]);
+            w := REF(arr_var[2]);
+            x := REF(arr_var[3]);
 
             main.a := 99;
         END_FUNCTION
@@ -1096,7 +1096,7 @@ fn initialized_array_type_in_function() {
             arr_var : arr;
         END_VAR
             main := arr_var;
-        END_PROGRAM
+        END_FUNCTION
         ";
     #[allow(dead_code)]
     struct MainType {
@@ -1330,7 +1330,7 @@ fn initial_value_of_enums() {
         b := y;
         c := z;
         d := x_gl;
-    END_FUNCTION";
+    END_PROGRAM";
 
     #[derive(Default)]
     struct MainType {

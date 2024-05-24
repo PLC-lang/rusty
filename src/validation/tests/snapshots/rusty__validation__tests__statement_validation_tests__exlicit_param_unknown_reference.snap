@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid call parameters
+error[E089]: Invalid call parameters
    ┌─ <internal>:13:16
    │
 13 │             fb(unknown := 2);
    │                ^^^^^^^^^^^^ Invalid call parameters
 
-error: Could not resolve reference to unknown
+error[E048]: Could not resolve reference to unknown
    ┌─ <internal>:13:16
    │
 13 │             fb(unknown := 2);

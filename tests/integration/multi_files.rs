@@ -40,3 +40,14 @@ fn multiple_files_create_same_generic_implementation() {
     let res: i64 = module.run_no_param("foo2");
     assert_eq!(res, 4 + 5 + 6);
 }
+
+#[test]
+fn same_variant_name_enums_in_separate_files_dont_cause_symbol_conflict() {
+    // GIVEN two enums with variants of the same name in different files
+    let file1 = get_test_file("multi/enum1.st");
+    let file2 = get_test_file("multi/enum2.st");
+    // WHEN compiling
+    let context = CodegenContext::create();
+    // THEN we do not expect any duplicate symbol/linking diagnostics (i.e. no panic on `unwrap()` in `compile`)
+    let _ = compile(&context, vec![file1, file2]);
+}

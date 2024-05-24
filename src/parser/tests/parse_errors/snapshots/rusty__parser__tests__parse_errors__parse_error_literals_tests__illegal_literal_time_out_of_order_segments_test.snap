@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-error: Invalid TIME Literal: segments out of order, use d-h-m-s-ms
+error[E010]: Invalid TIME Literal: segments out of order, use d-h-m-s-ms
   ┌─ <internal>:3:13
   │
 3 │             T#1s2h3d;

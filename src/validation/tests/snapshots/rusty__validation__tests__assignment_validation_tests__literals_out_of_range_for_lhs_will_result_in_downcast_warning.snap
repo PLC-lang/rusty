@@ -1,0 +1,27 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'INT' to 'SINT'.
+  ┌─ <internal>:8:22
+  │
+8 │             a := a + 255 + 1000;    // literals out of range of i8 -> warning
+  │                      ^^^ Implicit downcast from 'INT' to 'SINT'.
+
+warning[E067]: Implicit downcast from 'INT' to 'SINT'.
+  ┌─ <internal>:8:28
+  │
+8 │             a := a + 255 + 1000;    // literals out of range of i8 -> warning
+  │                            ^^^^ Implicit downcast from 'INT' to 'SINT'.
+
+warning[E067]: Implicit downcast from 'USINT' to 'SINT'.
+   ┌─ <internal>:10:22
+   │
+10 │             a := a + b;             // B is same size as a, but unsigned -> warning
+   │                      ^ Implicit downcast from 'USINT' to 'SINT'.
+
+warning[E067]: Implicit downcast from 'USINT' to 'SINT'.
+   ┌─ <internal>:11:22
+   │
+11 │             a := a + USINT#100;     // will fit into a, but is cast to unsigned type -> warning
+   │                      ^^^^^^^^^ Implicit downcast from 'USINT' to 'SINT'.

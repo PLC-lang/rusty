@@ -2,19 +2,19 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-warning: Unusual type of parentheses around string size expression, consider using square parentheses '[]'
+warning[E014]: Unusual type of parentheses around string size expression, consider using square parentheses '[]'
   ┌─ <internal>:2:37
   │
 2 │             TYPE MyString1 : STRING(253); END_TYPE
   │                                     ^^^^ Unusual type of parentheses around string size expression, consider using square parentheses '[]'
 
-error: Mismatched types of parentheses around string size expression
+error[E009]: Mismatched types of parentheses around string size expression
   ┌─ <internal>:3:37
   │
 3 │             TYPE MyString2 : STRING[254) := 'abc'; END_TYPE
   │                                     ^^^^ Mismatched types of parentheses around string size expression
 
-error: Mismatched types of parentheses around string size expression
+error[E009]: Mismatched types of parentheses around string size expression
   ┌─ <internal>:4:37
   │
 4 │             TYPE MyString3 : STRING(255]; END_TYPE

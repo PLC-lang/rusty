@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token [KeywordEndWhile]
+error[E006]: Missing expected Token [KeywordEndWhile]
   ┌─ <internal>:7:12
   │
 7 │            END_PROGRAM
   │            ^^^^^^^^^^^ Missing expected Token [KeywordEndWhile]
 
-error: Unexpected token: expected KeywordEndWhile but found 'END_PROGRAM'
+error[E007]: Unexpected token: expected KeywordEndWhile but found 'END_PROGRAM'
   ┌─ <internal>:7:12
   │
 7 │            END_PROGRAM

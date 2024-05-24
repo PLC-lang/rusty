@@ -2,37 +2,37 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token KeywordColon or KeywordComma
+error[E006]: Missing expected Token KeywordColon or KeywordComma
   ┌─ <internal>:4:18
   │
 4 │                 a DINT : ;
   │                  ^ Missing expected Token KeywordColon or KeywordComma
 
-error: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
   ┌─ <internal>:4:26
   │
 4 │                 a DINT : ;
   │                          ^ Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
 
-error: Missing expected Token KeywordColon
+error[E006]: Missing expected Token KeywordColon
   ┌─ <internal>:6:21
   │
 6 │                 h , , : INT;
   │                     ^ Missing expected Token KeywordColon
 
-error: Unexpected token: expected DataTypeDefinition but found KeywordComma
+error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordComma
   ┌─ <internal>:6:21
   │
 6 │                 h , , : INT;
   │                     ^ Unexpected token: expected DataTypeDefinition but found KeywordComma
 
-error: Unexpected token: expected KeywordSemicolon but found ', : INT'
+error[E007]: Unexpected token: expected KeywordSemicolon but found ', : INT'
   ┌─ <internal>:6:21
   │
 6 │                 h , , : INT;
   │                     ^^^^^^^ Unexpected token: expected KeywordSemicolon but found ', : INT'
 
-error: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
   ┌─ <internal>:7:27
   │
 7 │                 f , INT : ;

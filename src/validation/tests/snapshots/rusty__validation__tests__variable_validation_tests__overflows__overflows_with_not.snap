@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
   ┌─ <internal>:4:25
   │
 4 │             y : UINT := NOT -1234;  // Not OK (because of -1234)

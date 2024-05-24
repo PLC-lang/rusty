@@ -1,0 +1,5 @@
+FUNCTION_BLOCK BAR
+VAR
+	bar_enum : (stop, go) := go;
+END_VAR
+END_FUNCTION_BLOCK

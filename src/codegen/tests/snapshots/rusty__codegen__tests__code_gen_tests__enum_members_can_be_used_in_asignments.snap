@@ -8,11 +8,11 @@ source_filename = "main"
 %main = type { i32 }
 
 @main_instance = global %main zeroinitializer
-@red = unnamed_addr constant i32 0
-@yellow = unnamed_addr constant i32 1
-@green = unnamed_addr constant i32 2
+@MyEnum.red = unnamed_addr constant i32 0
+@MyEnum.yellow = unnamed_addr constant i32 1
+@MyEnum.green = unnamed_addr constant i32 2
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %color = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   store i32 0, i32* %color, align 4
@@ -20,4 +20,3 @@ entry:
   store i32 2, i32* %color, align 4
   ret void
 }
-

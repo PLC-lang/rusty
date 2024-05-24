@@ -9,7 +9,7 @@ source_filename = "external_file1.st"
 
 @mainProg_instance = external global %mainProg
 
-define i16 @main() {
+define i16 @main() section "fn-main:i16" {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -18,7 +18,7 @@ entry:
   ret i16 %main_ret
 }
 
-declare void @mainProg(%mainProg*)
+declare void @mainProg(%mainProg*) section "fn-mainProg:v"
 
 ; ModuleID = 'external_file2.st'
 source_filename = "external_file2.st"
@@ -27,8 +27,7 @@ source_filename = "external_file2.st"
 
 @mainProg_instance = global %mainProg zeroinitializer
 
-define void @mainProg(%mainProg* %0) {
+define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {
 entry:
   ret void
 }
-

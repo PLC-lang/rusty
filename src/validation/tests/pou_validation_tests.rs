@@ -2,15 +2,6 @@ use crate::test_utils::tests::parse_and_validate_buffered;
 use insta::assert_snapshot;
 
 #[test]
-fn function_no_return_unsupported() {
-    // GIVEN FUNCTION with no return type
-    // WHEN parse_and_validate is done
-    let diagnostics = parse_and_validate_buffered("FUNCTION foo VAR_INPUT END_VAR END_FUNCTION");
-    // THEN there should be one diagnostic -> missing return type
-    assert_snapshot!(&diagnostics);
-}
-
-#[test]
 fn actions_container_no_name() {
     // GIVEN ACTIONS without a name
     // WHEN parse_and_validate is done
@@ -222,4 +213,24 @@ fn in_out_variable_out_of_order() {
     );
 
     assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn assigning_return_value_to_void_functions_returns_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo
+        foo := 1;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E093]: Function declared as VOID, but trying to assign a return value
+      ┌─ <internal>:3:9
+      │
+    3 │         foo := 1;
+      │         ^^^^^^^^ Function declared as VOID, but trying to assign a return value
+
+    "###);
 }

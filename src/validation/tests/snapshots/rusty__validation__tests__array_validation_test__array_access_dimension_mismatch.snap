@@ -2,25 +2,25 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
-error: Expected array access with 1 dimensions, found 2
+error[E045]: Expected array access with 1 dimensions, found 2
    ┌─ <internal>:13:17
    │
 13 │             arr[0, 1] := 1;
    │                 ^^^^ Expected array access with 1 dimensions, found 2
 
-error: Expected array access with 1 dimensions, found 2
+error[E045]: Expected array access with 1 dimensions, found 2
    ┌─ <internal>:14:17
    │
 14 │             vla[0, 1] := 1;
    │                 ^^^^ Expected array access with 1 dimensions, found 2
 
-error: Expected array access with 1 dimensions, found 3
+error[E045]: Expected array access with 1 dimensions, found 3
    ┌─ <internal>:15:17
    │
 15 │             arr[0, 1, 2] := 1;
    │                 ^^^^^^^ Expected array access with 1 dimensions, found 3
 
-error: Expected array access with 1 dimensions, found 3
+error[E045]: Expected array access with 1 dimensions, found 3
    ┌─ <internal>:16:17
    │
 16 │             vla[0, 1, 2] := 1;

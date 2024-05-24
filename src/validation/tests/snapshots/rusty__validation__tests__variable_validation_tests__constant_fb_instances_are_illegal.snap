@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid constant y - Functionblock- and Class-instances cannot be delcared constant
+error[E035]: Invalid constant y - Functionblock- and Class-instances cannot be delcared constant
    ┌─ <internal>:15:13
    │
 15 │             y : MyFb;
    │             ^ Invalid constant y - Functionblock- and Class-instances cannot be delcared constant
 
-error: Invalid constant z - Functionblock- and Class-instances cannot be delcared constant
+error[E035]: Invalid constant z - Functionblock- and Class-instances cannot be delcared constant
    ┌─ <internal>:16:13
    │
 16 │             z : cls;

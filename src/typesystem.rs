@@ -87,6 +87,7 @@ pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
+pub const VOID_INTERNAL_NAME: &str = "__VOID";
 pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
@@ -134,6 +135,10 @@ impl DataType {
     pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
         type_nature.derives_from(nature)
+    }
+
+    pub fn is_void(&self) -> bool {
+        self.information.is_void()
     }
 
     pub fn is_numerical(&self) -> bool {
@@ -188,19 +193,28 @@ impl DataType {
         self.nature
     }
 
-    pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
-            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
-        } else {
-            None
+    pub fn find_member(&self, name: &str) -> Option<&VariableIndexEntry> {
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => {
+                members.iter().find(|member| member.get_name().eq_ignore_ascii_case(name))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_struct_members(&self) -> &[VariableIndexEntry] {
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. } => members,
+            _ => &[],
         }
     }
 
     pub fn get_members(&self) -> &[VariableIndexEntry] {
-        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
-            members
-        } else {
-            &[]
+        match self.get_type_information() {
+            DataTypeInformation::Struct { members, .. }
+            | DataTypeInformation::Enum { variants: members, .. } => members,
+            _ => &[],
         }
     }
 
@@ -250,6 +264,10 @@ impl DataType {
             TypeNature::__VLA => matches!(other.nature, TypeNature::__VLA),
             _ => false,
         }
+    }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        self.information.get_enum_variants()
     }
 }
 
@@ -359,6 +377,11 @@ pub enum DataTypeInformation {
         members: Vec<VariableIndexEntry>,
         source: StructSource,
     },
+    Enum {
+        name: TypeId,
+        referenced_type: TypeId,
+        variants: Vec<VariableIndexEntry>,
+    },
     Array {
         name: TypeId,
         inner_type_name: TypeId,
@@ -376,11 +399,6 @@ pub enum DataTypeInformation {
         size: u32,
         /// the numer of bits represented by this type (may differ from the num acutally stored)
         semantic_size: Option<u32>,
-    },
-    Enum {
-        name: TypeId,
-        referenced_type: TypeId,
-        elements: Vec<String>,
     },
     Float {
         name: TypeId,
@@ -423,6 +441,10 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
         }
+    }
+
+    pub fn is_void(&self) -> bool {
+        matches!(self, DataTypeInformation::Void)
     }
 
     pub fn is_string(&self) -> bool {
@@ -670,6 +692,23 @@ impl DataTypeInformation {
         }
     }
 
+    /// Recursively retrieves all type names for nested arrays.
+    ///
+    /// This is needed because a nested array such as `foo : ARRAY[1..5] OF ARRAY[5..10] OF DINT`
+    /// provides range information for `[1..5]` and `[5..10]` in two different types stored in
+    /// the index.
+    pub fn get_inner_array_types<'a>(&'a self, types: &mut Vec<&'a DataTypeInformation>, index: &'a Index) {
+        if let DataTypeInformation::Array { name, inner_type_name, .. } = self {
+            if name != inner_type_name {
+                types.push(self);
+
+                if let Some(ty) = index.find_type(inner_type_name).map(DataType::get_type_information) {
+                    ty.get_inner_array_types(types, index);
+                }
+            }
+        }
+    }
+
     pub fn get_inner_pointer_type_name(&self) -> Option<&str> {
         match self {
             DataTypeInformation::Pointer { inner_type_name, .. } => Some(inner_type_name),
@@ -715,6 +754,14 @@ impl DataTypeInformation {
 
         Some((arr_size / inner_type_size) as usize)
     }
+
+    pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
+        if let DataTypeInformation::Enum { variants, .. } = self {
+            return Some(variants);
+        }
+
+        None
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -734,6 +781,17 @@ impl Dimension {
         let start = self.start_offset.as_int_value(index)?;
         let end = self.end_offset.as_int_value(index)?;
         Ok(start..end)
+    }
+
+    /// Identical to [`get_range`] except for adding 1 to the end of the range.
+    /// For example if the start and end values are 1 and 5 respectively, the range will be `1..6`
+    ///
+    /// Primarily used by Inkwell which calculates the array length as `end - start` which would
+    /// generate an off-by-one error in the array size with [`get_range`] because ST ranges are inclusive.
+    pub fn get_range_plus_one(&self, index: &Index) -> Result<Range<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
+        Ok(start..end + 1)
     }
 
     pub fn get_range_inclusive(&self, index: &Index) -> Result<RangeInclusive<i64>, String> {
@@ -772,7 +830,7 @@ impl<'a> DataTypeInformationProvider<'a> for &'a DataType {
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
-            name: "__VOID".into(),
+            name: VOID_INTERNAL_NAME.into(),
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,

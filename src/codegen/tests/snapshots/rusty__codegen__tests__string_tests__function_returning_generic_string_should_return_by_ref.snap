@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 
-define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) {
+define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) section "fn-MID__STRING:s8u81[ps8u81][i32][i32]" {
 entry:
   %MID__STRING = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %MID__STRING, align 8
@@ -29,7 +29,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v[s8u61][s8u81]" {
 entry:
   %fmt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -50,4 +50,3 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
-

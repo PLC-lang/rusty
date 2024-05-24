@@ -12,10 +12,9 @@ source_filename = "main"
 @LEN = unnamed_addr constant i16 20
 @prg_instance = global %prg { i16 24, i16 89 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v[i16][i16]" {
 entry:
   %my_len = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %my_size = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   ret void
 }
-

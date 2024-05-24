@@ -1,17 +1,19 @@
-use std::collections::HashMap;
-
 use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
 };
 use plc::{lexer, parser::expressions_parser::parse_expression};
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
 };
 use quick_xml::events::{attributes::Attributes, BytesStart, Event};
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -32,11 +34,11 @@ mod pou;
 mod tests;
 mod variables;
 
-pub(crate) fn get_attributes(attributes: Attributes) -> Result<HashMap<String, String>, Error> {
+pub(crate) fn get_attributes(attributes: Attributes) -> Result<FxHashMap<String, String>, Error> {
     attributes
         .flatten()
         .map(|it| Ok((it.key.try_to_string()?, it.value.try_to_string()?)))
-        .collect::<Result<HashMap<_, _>, Error>>()
+        .collect::<Result<FxHashMap<_, _>, Error>>()
 }
 
 pub(crate) trait Parseable
@@ -72,12 +74,15 @@ pub fn parse_file(
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
+) -> Result<CompilationUnit, Diagnostic> {
     let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    diagnostician.handle(&errors);
-    unit
+    if diagnostician.handle(&errors) == Severity::Error {
+        Err(Diagnostic::new("Compilation aborted due to parse errors"))
+    } else {
+        Ok(unit)
+    }
 }
 
 fn parse(
@@ -134,14 +139,11 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
 
     /// parse the compilation unit from the addData field
     fn try_parse_declaration(&self) -> Option<(CompilationUnit, Vec<Diagnostic>)> {
-        let Some(content) = self
+        let content = self
             .project
             .pous
             .first()
-            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))
-        else {
-            return None;
-        };
+            .and_then(|it| it.interface.as_ref().and_then(|it| it.get_data_content()))?;
 
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration

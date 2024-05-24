@@ -2,7 +2,7 @@
 source: src/parser/tests/function_parser_tests.rs
 expression: diagnostics
 ---
-error: Data Type (green, yellow, red) not supported as a function return type!
+error[E027]: Data Type (green, yellow, red) not supported as a function return type!
   ┌─ <internal>:1:16
   │
 1 │ FUNCTION foo : (green, yellow, red) VAR_INPUT END_VAR END_FUNCTION

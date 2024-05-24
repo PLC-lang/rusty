@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: ULINT can not be used as a name because it is a built-in datatype
+error[E004]: ULINT can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE ULINT : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^^ ULINT can not be used as a name because it is a built-in datatype
 
-error: ULINT: Ambiguous datatype.
+error[E004]: ULINT: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE ULINT : STRUCT x : DINT; END_STRUCT END_TYPE

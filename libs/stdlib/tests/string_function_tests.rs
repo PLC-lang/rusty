@@ -507,7 +507,7 @@ fn delete_string_with_escape_sequence() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let mut res: [u8; 20] = [0u8; 20];
+    let mut res: [u8; 81] = [0u8; 81];
     let _: () = compile_and_run(sources, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
@@ -546,8 +546,8 @@ fn delete_ext_string_with_escape_sequence() {
     let src = r#"
     FUNCTION main : STRING
     VAR_TEMP
-        in : STRING;
         out : STRING;
+        in : STRING;
         l : LINT;
         p : USINT;
     END_VAR
@@ -560,7 +560,7 @@ fn delete_ext_string_with_escape_sequence() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let mut res: [u8; 20] = [0u8; 20];
+    let mut res: [u8; 81] = [0u8; 81];
     let _: () = compile_and_run(sources, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
@@ -820,7 +820,7 @@ fn left_wstring() {
         "#;
 
     let sources = add_std!(src, "string_functions.st");
-    let mut res: [u16; 10] = [0u16; 10];
+    let mut res: [u16; 81] = [0u16; 81];
     let _: () = compile_and_run(sources, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞m");

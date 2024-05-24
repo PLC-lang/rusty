@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: TOD can not be used as a name because it is a built-in datatype
+error[E004]: TOD can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE TOD : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^ TOD can not be used as a name because it is a built-in datatype
 
-error: TOD: Ambiguous datatype.
+error[E004]: TOD: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE TOD : STRUCT x : DINT; END_STRUCT END_TYPE

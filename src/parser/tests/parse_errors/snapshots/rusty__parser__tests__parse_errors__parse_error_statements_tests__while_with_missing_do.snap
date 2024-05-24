@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token KeywordDo
+error[E006]: Missing expected Token KeywordDo
   ┌─ <internal>:3:17
   │
 3 │                 y := x;

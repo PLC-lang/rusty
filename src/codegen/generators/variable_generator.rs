@@ -6,7 +6,7 @@ use crate::{
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
-use indexmap::IndexSet;
+
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -17,6 +17,7 @@ use super::{
     llvm::{GlobalValueExt, Llvm},
 };
 use crate::codegen::debug::DebugBuilderEnum;
+use crate::index::FxIndexSet;
 
 pub struct VariableGenerator<'ctx, 'b> {
     module: &'b Module<'ctx>,
@@ -41,7 +42,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
 
     pub fn generate_global_variables(
         &mut self,
-        dependencies: &IndexSet<Dependency>,
+        dependencies: &FxIndexSet<Dependency>,
         location: &'b str,
     ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
         let mut index = LlvmTypedIndex::default();
@@ -77,15 +78,17 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         for (name, variable) in globals {
             let linkage =
                 if !variable.is_in_unit(location) { LinkageType::External } else { variable.get_linkage() };
-            let global_variable =
-                self.generate_global_variable(variable, linkage).map_err(|err| match err.get_type() {
+            let global_variable = self.generate_global_variable(variable, linkage).map_err(|err| {
+                match err.get_error_code() {
+                    //If we encounter a missing function or an invalid reference, we wrap it in a more generic issue
                     "E072" | "E048" => {
-                        Diagnostic::error(format!("Cannot generate literal initializer for `{name}`."))
+                        Diagnostic::new(format!("Cannot generate literal initializer for `{name}`."))
                             .with_error_code("E041")
                             .with_sub_diagnostic(err)
                     }
                     _ => err,
-                })?;
+                }
+            })?;
             index.associate_global(name, global_variable)?;
             //generate debug info
             self.debug.create_global_variable(
@@ -113,8 +116,13 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         let type_name = global_variable.get_type_name();
         let variable_type = self.types_index.get_associated_type(type_name)?;
 
-        let mut global_ir_variable =
-            self.llvm.create_global_variable(self.module, global_variable.get_name(), variable_type);
+        let name = if self.global_index.get_type_information_or_void(type_name).is_enum() {
+            global_variable.get_qualified_name()
+        } else {
+            global_variable.get_name()
+        };
+
+        let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
         } else {

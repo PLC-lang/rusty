@@ -309,3 +309,17 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
     let var = &parse_result.global_vars[0].variables[1];
     assert_debug_snapshot!(var);
 }
+
+#[test]
+fn optional_semicolon_at_end_of_endstruct_keyword_is_consumed() {
+    let (_, diagnostics) = parse(
+        r#"
+        TYPE Position : STRUCT
+            x : DINT;
+            y : DINT;
+        END_STRUCT; END_TYPE
+        "#,
+    );
+
+    assert!(diagnostics.is_empty())
+}

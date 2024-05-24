@@ -183,7 +183,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
                 //If no current condition is available, log a diagnostic and add an empty condition
                 if current_condition.is_none() {
                     lexer.accept_diagnostic(
-                        Diagnostic::error("Missing Case-Condition")
+                        Diagnostic::new("Missing Case-Condition")
                             .with_error_code("E012")
                             .with_location(lexer.location()),
                     );

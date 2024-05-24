@@ -1,0 +1,156 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+note[E092]: Replace `0` with `Idle`
+   ┌─ <internal>:18:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+18 │                 localState := 0;
+   │                               ^ Replace `0` with `Idle`
+
+note[E092]: Replace `100` with `Working`
+   ┌─ <internal>:19:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+19 │                 localState := 100;
+   │                               ^^^ Replace `100` with `Working`
+
+note[E092]: Replace `0` with `red`
+   ┌─ <internal>:24:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+24 │                 color := 0;
+   │                          ^ Replace `0` with `red`
+
+note[E092]: Replace `1` with `green`
+   ┌─ <internal>:25:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+25 │                 color := 1;
+   │                          ^ Replace `1` with `green`
+
+note[E092]: Replace `2` with `blue`
+   ┌─ <internal>:26:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+26 │                 color := 2;
+   │                          ^ Replace `2` with `blue`
+
+note[E092]: Replace `State.Idle` with `red`
+   ┌─ <internal>:28:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+28 │                 color := State.Idle;    // State.Idle == 0 == Color.Red
+   │                          ^^^^^^^^^^ Replace `State.Idle` with `red`
+
+note[E092]: Replace `red` with `Idle`
+   ┌─ <internal>:29:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+29 │                 localState := red;      // Color.Red  == 0 == State.Idle
+   │                               ^^^ Replace `red` with `Idle`
+
+note[E092]: Replace `validReferenceForEnum` with `red`
+   ┌─ <internal>:31:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+31 │                 color := validReferenceForEnum; // We still want an error here, because no const-expr
+   │                          ^^^^^^^^^^^^^^^^^^^^^ Replace `validReferenceForEnum` with `red`
+
+note[E092]: Replace `validReferenceForEnum` with `Idle`
+   ┌─ <internal>:32:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+32 │                 localState := validReferenceForEnum;
+   │                               ^^^^^^^^^^^^^^^^^^^^^ Replace `validReferenceForEnum` with `Idle`
+
+error[E040]: Invalid enum value `99` for `(red := 0, green := 1, blue := 2)`
+   ┌─ <internal>:38:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+38 │                 color := 99;
+   │                          ^^ Invalid enum value `99` for `(red := 0, green := 1, blue := 2)`
+
+error[E040]: Invalid enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
+   ┌─ <internal>:39:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+39 │                 color := State.Working;
+   │                          ^^^^^^^^^^^^^ Invalid enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
+
+error[E040]: Invalid enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
+   ┌─ <internal>:40:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+40 │                 color := invalidReferenceForEnum;
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Invalid enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
+
+warning[E091]: Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
+   ┌─ <internal>:41:26
+   │
+ 8 │                     color       : (red := 0, green := 1, blue := 2);
+   │                                   --------------------------------- see also
+   ·
+41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
+   │                          ^^^^^^ Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
+
+error[E040]: Invalid enum value `99` for `State`
+   ┌─ <internal>:43:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+43 │                 localState := 99;
+   │                               ^^ Invalid enum value `99` for `State`
+
+error[E040]: Invalid enum value `green` for `State`
+   ┌─ <internal>:44:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+44 │                 localState := green;
+   │                               ^^^^^ Invalid enum value `green` for `State`
+
+error[E040]: Invalid enum value `blue` for `State`
+   ┌─ <internal>:45:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+45 │                 localState := blue;
+   │                               ^^^^ Invalid enum value `blue` for `State`
+
+error[E040]: Invalid enum value `invalidReferenceForEnum` for `State`
+   ┌─ <internal>:46:31
+   │
+ 2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+   │              ----- see also
+   ·
+46 │                 localState := invalidReferenceForEnum;
+   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid enum value `invalidReferenceForEnum` for `State`

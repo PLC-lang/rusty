@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error: Expected array access with 1 dimensions, found 2
+error[E045]: Expected array access with 1 dimensions, found 2
   ┌─ <internal>:8:21
   │
 8 │                 arr[0, 0]   := 1; // This should fail (arr is defined as a 1D array)
   │                     ^^^^ Expected array access with 1 dimensions, found 2
 
-error: Invalid assignment: cannot assign 'ARRAY[0..5, 5..10] OF DINT' to 'ARRAY[*] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5, 5..10] OF DINT' to 'ARRAY[*] OF DINT'
    ┌─ <internal>:18:20
    │
 18 │                 fn(local_b); // This call should fail, because we expect a 1D array

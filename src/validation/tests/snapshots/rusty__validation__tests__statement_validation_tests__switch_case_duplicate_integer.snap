@@ -2,25 +2,25 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Duplicate condition value: 4. Occurred more than once!
+error[E078]: Duplicate condition value: 4. Occurred more than once!
    ┌─ <internal>:16:17
    │
 16 │                 BASE*2:
    │                 ^^^^^^ Duplicate condition value: 4. Occurred more than once!
 
-error: Duplicate condition value: 4. Occurred more than once!
+error[E078]: Duplicate condition value: 4. Occurred more than once!
    ┌─ <internal>:18:17
    │
 18 │                 BASE+GLOB:
    │                 ^^^^^^^^^ Duplicate condition value: 4. Occurred more than once!
 
-error: Duplicate condition value: 4. Occurred more than once!
+error[E078]: Duplicate condition value: 4. Occurred more than once!
    ┌─ <internal>:20:17
    │
 20 │                 MYTYPE_A:
    │                 ^^^^^^^^ Duplicate condition value: 4. Occurred more than once!
 
-error: Duplicate condition value: 4. Occurred more than once!
+error[E078]: Duplicate condition value: 4. Occurred more than once!
    ┌─ <internal>:22:17
    │
 22 │                 2+2:

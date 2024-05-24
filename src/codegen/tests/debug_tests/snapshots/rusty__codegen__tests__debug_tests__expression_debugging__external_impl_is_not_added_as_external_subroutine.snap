@@ -11,11 +11,11 @@ source_filename = "main"
 @myPrg_instance = external global %myPrg, !dbg !0
 @__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !5
 
-declare i32 @myFunc()
+declare i32 @myFunc() section "fn-myFunc:i32"
 
-declare void @myPrg(%myPrg*)
+declare void @myPrg(%myPrg*) section "fn-myPrg:v"
 
-declare void @myFb(%myFb*)
+declare void @myFb(%myFb*) section "fn-myFb:v"
 
 !llvm.module.flags = !{!8, !9}
 !llvm.dbg.cu = !{!10}
@@ -32,4 +32,3 @@ declare void @myFb(%myFb*)
 !9 = !{i32 2, !"Debug Info Version", i32 3}
 !10 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
 !11 = !{!0, !5}
-

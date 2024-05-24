@@ -2,19 +2,19 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: Byte-Wise access for type WORD must be in range 0..1
+error[E057]: Byte-Wise access for type WORD must be in range 0..1
   ┌─ <internal>:6:19
   │
 6 │                 b.%B2;
   │                   ^^^ Byte-Wise access for type WORD must be in range 0..1
 
-error: Byte-Wise access for type DWORD must be in range 0..3
+error[E057]: Byte-Wise access for type DWORD must be in range 0..3
   ┌─ <internal>:7:19
   │
 7 │                 c.%B4;
   │                   ^^^ Byte-Wise access for type DWORD must be in range 0..3
 
-error: Byte-Wise access for type LWORD must be in range 0..7
+error[E057]: Byte-Wise access for type LWORD must be in range 0..7
   ┌─ <internal>:8:19
   │
 8 │                 d.%B8;

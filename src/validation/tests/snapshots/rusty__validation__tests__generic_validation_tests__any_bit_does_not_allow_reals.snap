@@ -2,13 +2,13 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. REAL is no ANY_BIT
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_BIT
   ┌─ <internal>:3:57
   │
 3 │         FUNCTION func  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid type nature for generic argument. REAL is no ANY_BIT
 
-error: Invalid type nature for generic argument. LREAL is no ANY_BIT
+error[E062]: Invalid type nature for generic argument. LREAL is no ANY_BIT
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func1  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION

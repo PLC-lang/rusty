@@ -7,7 +7,6 @@ source_filename = "main"
 
 @me = unnamed_addr constant i32 3
 @THREE = unnamed_addr constant i16 3
-@a = unnamed_addr constant i32 3
-@b = unnamed_addr constant i32 4
-@c = unnamed_addr constant i32 5
-
+@MyEnum.a = unnamed_addr constant i32 3
+@MyEnum.b = unnamed_addr constant i32 4
+@MyEnum.c = unnamed_addr constant i32 5

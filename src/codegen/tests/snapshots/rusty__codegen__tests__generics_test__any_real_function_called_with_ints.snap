@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer
 
-define float @foo__REAL(float %0) {
+define float @foo__REAL(float %0) section "fn-foo__REAL:f32[f32]" {
 entry:
   %foo__REAL = alloca float, align 4
   %in1 = alloca float, align 4
@@ -19,7 +19,7 @@ entry:
   ret float %foo__REAL_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %res_sint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %res_int = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -56,5 +56,4 @@ entry:
   ret void
 }
 
-declare double @foo__LREAL(double)
-
+declare double @foo__LREAL(double) section "fn-foo__LREAL:f64[f64]"

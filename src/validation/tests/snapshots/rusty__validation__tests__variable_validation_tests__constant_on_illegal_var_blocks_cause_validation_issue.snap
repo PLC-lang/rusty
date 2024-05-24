@@ -2,37 +2,37 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
   ┌─ <internal>:6:13
   │
 6 │             VAR_INPUT CONSTANT //illegal
   │             ^^^^^^^^^ This variable block does not support the CONSTANT modifier
 
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
   ┌─ <internal>:9:13
   │
 9 │             VAR_OUTPUT CONSTANT //illegal
   │             ^^^^^^^^^^ This variable block does not support the CONSTANT modifier
 
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
    ┌─ <internal>:12:13
    │
 12 │             VAR_IN_OUT CONSTANT //illegal
    │             ^^^^^^^^^^ This variable block does not support the CONSTANT modifier
 
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
    ┌─ <internal>:25:17
    │
 25 │                 VAR_INPUT CONSTANT //illegal
    │                 ^^^^^^^^^ This variable block does not support the CONSTANT modifier
 
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
    ┌─ <internal>:28:17
    │
 28 │                 VAR_OUTPUT CONSTANT //illegal
    │                 ^^^^^^^^^^ This variable block does not support the CONSTANT modifier
 
-error: This variable block does not support the CONSTANT modifier
+error[E034]: This variable block does not support the CONSTANT modifier
    ┌─ <internal>:31:17
    │
 31 │                 VAR_IN_OUT CONSTANT //illegal

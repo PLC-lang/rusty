@@ -2,16 +2,26 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+  ┌─ <internal>:9:20
+  │
+9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
+  │                    ^^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
+
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
   ┌─ <internal>:9:30
   │
 9 │             fb.foo(var_lint, var_wstr); // downcast, invalid
   │                              ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-error: Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'
+warning[E067]: Implicit downcast from 'LINT' to 'INT'.
+   ┌─ <internal>:10:22
+   │
+10 │             prog.bar(var_lint, var_arr); // downcast, invalid
+   │                      ^^^^^^^^ Implicit downcast from 'LINT' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'
    ┌─ <internal>:10:32
    │
 10 │             prog.bar(var_lint, var_arr); // downcast, invalid
    │                                ^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..3] OF LINT' to 'STRING'
-
-

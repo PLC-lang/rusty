@@ -26,9 +26,8 @@ source_filename = "prog.st"
 @c = external global i32
 @x = external global i32
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   store i32 7, i32* @x, align 4
   ret void
 }
-

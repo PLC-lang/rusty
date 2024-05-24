@@ -1,14 +1,11 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2002
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 @x = global i32 0
-@red = unnamed_addr constant i32 0
-@yellow = unnamed_addr constant i32 1
-@green = unnamed_addr constant i32 2
-
+@MyEnum.red = unnamed_addr constant i32 0
+@MyEnum.yellow = unnamed_addr constant i32 1
+@MyEnum.green = unnamed_addr constant i32 2

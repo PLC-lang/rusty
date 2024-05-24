@@ -505,21 +505,21 @@ fn pointer_assignment_validation() {
     v_dint := v_ptr_int; // INVALID
     v_word := v_ptr_int; // INVALID
     v_lword := v_ptr_int; // valid
-    v_ptr_int := &v_real; // INVALID -> TODO: should be valid
+    v_ptr_int := REF(v_real); // INVALID -> TODO: should be valid
     v_ptr_int^ := v_real; // valid
-    v_ptr_int := &v_udint; // valid
+    v_ptr_int := REF(v_udint); // valid
     v_ptr_int^ := v_udint; // valid
-    v_ptr_int := &v_dint; // valid
+    v_ptr_int := REF(v_dint); // valid
     v_ptr_int^ := v_dint; // valid
-    v_ptr_int := &v_time; // valid
+    v_ptr_int := REF(v_time); // valid
     v_ptr_int^ := v_time; // valid
-    v_ptr_int := &v_word; // valid
+    v_ptr_int := REF(v_word); // valid
     v_ptr_int^ := v_word; // valid
-    v_ptr_int := &v_string; // INVALID
+    v_ptr_int := REF(v_string); // INVALID
     v_ptr_int^ := v_string; // INVALID
-    v_ptr_int := &v_char; // INVALID -> TODO: missing validation
+    v_ptr_int := REF(v_char); // INVALID -> TODO: missing validation
     v_ptr_int^ := v_char; // INVALID
-    v_ptr_int := &v_date; // valid
+    v_ptr_int := REF(v_date); // valid
     v_ptr_int^ := v_date; // valid
     v_ptr_int^ := v_arr_int_3[0]; // valid
     v_ptr_int^ := v_arr_string_3[0]; // INVALID
@@ -655,7 +655,6 @@ fn struct_assignment_validation() {
 
     v_ref_to_struct1 := REF(v_struct1); // valid
     v_ref_to_struct1 := ADR(v_struct1); // valid
-    v_ref_to_struct1 := &(v_struct1); // valid
 
     v_ref_to_struct1 := ADR(v_real); // valid
     v_ref_to_struct1 := ADR(v_string); // valid
@@ -664,10 +663,6 @@ fn struct_assignment_validation() {
     v_ref_to_struct1 := REF(v_real); // INVALID
     v_ref_to_struct1 := REF(v_string); // INVALID
     v_ref_to_struct1 := REF(v_char); // INVALID
-
-    v_ref_to_struct1 := &(v_real); // INVALID
-    v_ref_to_struct1 := &(v_string); // INVALID
-    v_ref_to_struct1 := &(v_char); // INVALID
     END_FUNCTION
     "#,
     );
@@ -942,29 +937,6 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
 }
 
 #[test]
-fn enum_variants_mismatch() {
-    let diagnostics = parse_and_validate_buffered(
-        "
-        TYPE Animal: (Dog, Cat, Horse); END_TYPE
-
-        PROGRAM main
-        VAR
-            color: (red, green, blue);
-            water: (still, medium, sparkling);
-        END_VAR
-            color := green;     // ok
-            water := sparkling; // ok
-            color := Dog;       // warning
-            water := blue;      // warning
-            color := sparkling; // warning
-            color := 2;         // warning
-        END_PROGRAM",
-    );
-
-    assert_snapshot!(diagnostics);
-}
-
-#[test]
 fn string_type_alias_assignment_can_be_validated() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -984,4 +956,264 @@ fn string_type_alias_assignment_can_be_validated() {
     );
 
     assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn integral_promotion_in_expression_does_not_cause_downcast_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a, b, c : SINT;
+        END_VAR
+
+            a := a + b + c + 100;
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn downcast_will_report_bigger_types_in_expression() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a, b, c : SINT;
+            d, e : DINT;
+        END_VAR
+            a := a + b + c + d + e;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn literals_out_of_range_for_lhs_will_result_in_downcast_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : SINT;
+            b : USINT;
+        END_VAR
+
+            a := a + 255 + 1000;    // literals out of range of i8 -> warning
+            b := b + 255;           // 255 is in range of u8 -> no warning, but will silently overflow for anything other than b == 0. Not sure if there is a better way to guard against this
+            a := a + b;             // B is same size as a, but unsigned -> warning
+            a := a + USINT#100;     // will fit into a, but is cast to unsigned type -> warning
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn literals_out_of_range_inside_unary_expressions_will_cause_no_warning() {
+    // GIVEN literals behind unary expressions (which will be annotated as DINT)
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+        END_VAR
+            a := a;
+            a := a + 254;
+            a := a + 254 - 20;
+            a := a + 254 + (-(10+10));  //rewrite this as a unary expression
+        END_FUNCTION
+        ",
+    );
+    //WE EXPECT NO VALIDATION PROBLEMS
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn literals_out_of_range_in_a_modulo_operation_cannot_exceed_the_left_operand() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+        END_VAR
+            a := a + (a MOD 40000);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since a mod d should remain in a's datatype
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn modulo_operation_validates_if_the_left_hand_type_fits_into_the_target_type() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            d : DINT := 9;
+        END_VAR
+            a := a + (d MOD a);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast warning, since d mod a might overflow INT
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn rhs_of_a_mod_operation_is_ignored_in_downcast_validation() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            d : DINT := 9;
+            l : LINT;
+        END_VAR
+            a := a + (a MOD d);
+            a := a + (a MOD LINT#10);
+            a := a + (a MOD l);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast warning, since d mod a might overflow INT
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn builtin_sel_does_not_report_false_positive_downcasts_for_literals() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : INT;
+        END_VAR
+            a := SEL(TRUE, a, b);
+            a := SEL(FALSE, a, 1000);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since all arguments to SEL fit into the target type
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn builtin_mux_does_not_report_false_positive_downcasts() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : INT;
+        END_VAR
+            a := MUX(0, a, b);
+            a := MUX(2, a, b, 1000);
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect no validation problems, since all arguments to MUX fit into the target type
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn builtins_report_downcasts_depending_on_parameters() {
+    // GIVEN an expression INT MOD DINT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : INT
+        VAR
+            a : INT;
+            b : DINT;
+        END_VAR
+            a := SEL(TRUE, a, b); // b: DINT => INT
+            a := MUX(0, a, b); // b: DINT => INT
+            a := MUX(b, a, 1000); // selector arg is ignored
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect individual parameters to be validated and the selector argument to be ignored
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn call_results_are_validated_for_downcasts() {
+    // GIVEN a call-result assignment DINT to INT
+    // WHEN we validate
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo : DINT
+            foo := 9;
+        END_FUNCTION
+        FUNCTION main : INT
+        VAR
+            a : INT;
+        END_VAR
+            a := FOO();
+        END_FUNCTION
+        ",
+    );
+    //THEN we expect a downcast validation
+    assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn void_assignment_validation() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo
+            VAR_INPUT
+                x: LINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            VAR
+                x : LINT;
+            END_VAR
+
+            x := foo(x);
+            x := foo(foo(x));
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:13:13
+       │
+    13 │             x := foo(x);
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:22
+       │
+    14 │             x := foo(foo(x));
+       │                      ^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
+       ┌─ <internal>:14:13
+       │
+    14 │             x := foo(foo(x));
+       │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
+
+    "###)
 }

@@ -2,52 +2,62 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Cannot mix implicit and explicit call parameters!
+error[E031]: Cannot mix implicit and explicit call parameters!
    ┌─ <internal>:23:34
    │
 23 │             foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
    │                                  ^^^^ Cannot mix implicit and explicit call parameters!
 
-error: Cannot mix implicit and explicit call parameters!
+error[E031]: Cannot mix implicit and explicit call parameters!
    ┌─ <internal>:23:40
    │
 23 │             foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
    │                                        ^^^^ Cannot mix implicit and explicit call parameters!
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:25:17
    │
 25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
    │                 ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: The type DINT 32 is too small to hold a Pointer
+error[E065]: The type DINT 32 is too small to hold a Pointer
    ┌─ <internal>:25:33
    │
 25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
    │                                 ^^^^^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
 
-error: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
    ┌─ <internal>:25:33
    │
 25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
    │                                 ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+warning[E067]: Implicit downcast from 'REAL' to 'DINT'.
+   ┌─ <internal>:25:60
+   │
+25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+   │                                                            ^^^^ Implicit downcast from 'REAL' to 'DINT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:27:17
    │
 27 │             foo(var2, var3, var4); // invalid types assigned
    │                 ^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: The type DINT 32 is too small to hold a Pointer
+error[E065]: The type DINT 32 is too small to hold a Pointer
    ┌─ <internal>:27:23
    │
 27 │             foo(var2, var3, var4); // invalid types assigned
    │                       ^^^^ The type DINT 32 is too small to hold a Pointer
 
-error: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
    ┌─ <internal>:27:23
    │
 27 │             foo(var2, var3, var4); // invalid types assigned
    │                       ^^^^ Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
 
-
+warning[E067]: Implicit downcast from 'REAL' to 'DINT'.
+   ┌─ <internal>:27:29
+   │
+27 │             foo(var2, var3, var4); // invalid types assigned
+   │                             ^^^^ Implicit downcast from 'REAL' to 'DINT'.

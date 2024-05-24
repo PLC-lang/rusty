@@ -390,7 +390,7 @@ fn using_a_constant_var_string_should_be_memcpyable_nonref() {
     let result = codegen(
         r#"
         FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
+            VAR_INPUT op1, op2: STRING[1024]; END_VAR
         END_FUNCTION
 
         FUNCTION FSTRING_TO_DT : DT

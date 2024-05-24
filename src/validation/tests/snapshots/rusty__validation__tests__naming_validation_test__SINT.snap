@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: SINT can not be used as a name because it is a built-in datatype
+error[E004]: SINT can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE SINT : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^ SINT can not be used as a name because it is a built-in datatype
 
-error: SINT: Ambiguous datatype.
+error[E004]: SINT: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE SINT : STRUCT x : DINT; END_STRUCT END_TYPE

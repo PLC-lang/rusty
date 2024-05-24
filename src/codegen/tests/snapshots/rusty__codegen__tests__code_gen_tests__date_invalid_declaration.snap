@@ -2,9 +2,9 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: msg
 ---
-error: Some initial values were not generated
+error[E075]: Some initial values were not generated
 
-error: Cannot generate literal initializer for 'prg.a': Value cannot be derived
+error[E041]: Cannot generate literal initializer for 'prg.a': Value cannot be derived
   ┌─ <internal>:3:23
   │
 1 │ PROGRAM prg

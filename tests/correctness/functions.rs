@@ -592,7 +592,7 @@ fn var_output_assignment_in_functions() {
             END_VAR
             output1 := input1 + 2;
             output2 := input2 + 3;
-        END_PROGRAM
+        END_FUNCTION
 
         PROGRAM main
             VAR
@@ -791,7 +791,7 @@ fn by_ref_and_by_val_mixed_function_call() {
 
         FUNCTION main : DINT
             main := func(10,100,1000,10_000); //1 and 2 by ref, 3 and 4 by val
-        END_PROGRAM
+        END_FUNCTION
         "#;
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());
@@ -919,7 +919,7 @@ fn mux_string_ref() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
     VAR_TEMP
         str2 : STRING := 'str2 ';
@@ -948,7 +948,7 @@ fn mux_string_literal() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[3];
     END_VAR
         str1 := MUX(3, 'hello', 'world', 'foo', 'baz'); // baz
     END_PROGRAM
@@ -1098,7 +1098,7 @@ fn sel_string_ref() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
     VAR_TEMP
         str2 : STRING := 'hello';
@@ -1124,7 +1124,7 @@ fn sel_string_literal() {
     let function = r#"
     PROGRAM main
     VAR
-        str1 : STRING;
+        str1 : STRING[5];
     END_VAR
         str1 := SEL(TRUE, 'hello', 'world'); // world
     END_PROGRAM
@@ -1201,7 +1201,7 @@ fn sizeof_test() {
             s2 := SIZEOF(s2);
             s3 := SIZEOF(t5);
             s4 := SIZEOF(t1);
-            s5 := SIZEOF(&s1);
+            s5 := SIZEOF(REF(s1));
             s6 := SIZEOF(t2);
             s7 := SIZEOF(t3);
             s8 := SIZEOF(t4);

@@ -2,13 +2,13 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Literal '3.14' is not compatible to REAL
+error[E054]: Literal '3.14' is not compatible to REAL
    ┌─ <internal>:11:13
    │
 11 │             REAL#'3.14';
    │             ^^^^^^^^^^^ Literal '3.14' is not compatible to REAL
 
-error: Literal "3.14" is not compatible to LREAL
+error[E054]: Literal "3.14" is not compatible to LREAL
    ┌─ <internal>:15:13
    │
 15 │             LREAL#"3.14";

@@ -34,6 +34,7 @@ fn concat_date_tod() {
         .unwrap()
         .and_hms_nano_opt(12, 30, 15, 121121121)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(res, dt_2010y_3m_12d_12h_30m_15s_121121121ns);
@@ -52,6 +53,7 @@ fn concat_date_ltod() {
         .unwrap()
         .and_hms_nano_opt(12, 30, 15, 121121121)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(res, dt_2010y_3m_12d_12h_30m_15s_121121121ns);
@@ -88,6 +90,7 @@ fn concat_date_signed_ints() {
         .unwrap()
         .and_hms_opt(0, 0, 0)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, date_2000y_1m_1d);
@@ -115,6 +118,7 @@ fn concat_date_unsigned_ints() {
         .unwrap()
         .and_hms_opt(0, 0, 0)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, date_2000y_1m_1d);
@@ -140,8 +144,9 @@ fn concat_tod_signed_ints() {
     let sources = add_std!(src, "date_time_extra_functions.st");
     let mut maintype = MainType::<i64>::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).timestamp_nanos_opt().unwrap());
-    let tod_20h_15m_12s_341ms = get_time_from_hms_milli(20, 15, 12, 341).timestamp_nanos_opt().unwrap();
+    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).and_utc().timestamp_nanos_opt().unwrap());
+    let tod_20h_15m_12s_341ms =
+        get_time_from_hms_milli(20, 15, 12, 341).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.c, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.d, tod_20h_15m_12s_341ms);
@@ -165,8 +170,9 @@ fn concat_tod_unsigned_ints() {
     let sources = add_std!(src, "date_time_extra_functions.st");
     let mut maintype = MainType::<i64>::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).timestamp_nanos_opt().unwrap());
-    let tod_20h_15m_12s_341ms = get_time_from_hms_milli(20, 15, 12, 341).timestamp_nanos_opt().unwrap();
+    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).and_utc().timestamp_nanos_opt().unwrap());
+    let tod_20h_15m_12s_341ms =
+        get_time_from_hms_milli(20, 15, 12, 341).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.c, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.d, tod_20h_15m_12s_341ms);
@@ -190,8 +196,9 @@ fn concat_ltod_signed_ints() {
     let sources = add_std!(src, "date_time_extra_functions.st");
     let mut maintype = MainType::<i64>::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).timestamp_nanos_opt().unwrap());
-    let tod_20h_15m_12s_341ms = get_time_from_hms_milli(20, 15, 12, 341).timestamp_nanos_opt().unwrap();
+    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).and_utc().timestamp_nanos_opt().unwrap());
+    let tod_20h_15m_12s_341ms =
+        get_time_from_hms_milli(20, 15, 12, 341).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.c, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.d, tod_20h_15m_12s_341ms);
@@ -215,8 +222,9 @@ fn concat_ltod_unsigned_ints() {
     let sources = add_std!(src, "date_time_extra_functions.st");
     let mut maintype = MainType::<i64>::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
-    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).timestamp_nanos_opt().unwrap());
-    let tod_20h_15m_12s_341ms = get_time_from_hms_milli(20, 15, 12, 341).timestamp_nanos_opt().unwrap();
+    assert_eq!(maintype.a, get_time_from_hms_milli(20, 15, 12, 34).and_utc().timestamp_nanos_opt().unwrap());
+    let tod_20h_15m_12s_341ms =
+        get_time_from_hms_milli(20, 15, 12, 341).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.c, tod_20h_15m_12s_341ms);
     assert_eq!(maintype.d, tod_20h_15m_12s_341ms);
@@ -242,6 +250,7 @@ fn concat_dt_signed_ints() {
         .unwrap()
         .and_hms_milli_opt(20, 15, 12, 111)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_2d_20h_15m_12s_111ms);
@@ -269,6 +278,7 @@ fn concat_dt_unsigned_ints() {
         .unwrap()
         .and_hms_milli_opt(20, 15, 12, 111)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_2d_20h_15m_12s_111ms);
@@ -296,6 +306,7 @@ fn concat_ldt_signed_ints() {
         .unwrap()
         .and_hms_milli_opt(20, 15, 12, 111)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_2d_20h_15m_12s_111ms);
@@ -323,6 +334,7 @@ fn concat_ldt_unsigned_ints() {
         .unwrap()
         .and_hms_milli_opt(20, 15, 12, 111)
         .unwrap()
+        .and_utc()
         .timestamp_nanos_opt()
         .unwrap();
     assert_eq!(maintype.a, dt_2000y_1m_2d_20h_15m_12s_111ms);

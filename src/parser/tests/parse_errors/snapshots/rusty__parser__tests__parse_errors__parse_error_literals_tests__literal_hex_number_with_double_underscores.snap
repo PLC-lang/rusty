@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected KeywordSemicolon but found '__beef'
+error[E007]: Unexpected token: expected KeywordSemicolon but found '__beef'
   ┌─ <internal>:1:20
   │
 1 │ PROGRAM exp 16#DEAD__beef; END_PROGRAM

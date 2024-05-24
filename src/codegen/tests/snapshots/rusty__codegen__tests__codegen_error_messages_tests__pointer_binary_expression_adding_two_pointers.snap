@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: '+' operation must contain one int type
+error[E071]: '+' operation must contain one int type
   ┌─ <internal>:8:16
   │
 8 │         ptr := ptr + ptr;

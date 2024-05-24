@@ -2,70 +2,50 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'STRUCT1' to 'REAL'
+error[E037]: Invalid assignment: cannot assign 'STRUCT1' to 'REAL'
    ┌─ <internal>:46:5
    │
 46 │     v_real := v_struct1; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT1' to 'REAL'
 
-error: Invalid assignment: cannot assign 'REAL' to 'STRUCT1'
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'STRUCT1'
    ┌─ <internal>:47:5
    │
 47 │     v_struct1 := v_real; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'STRUCT1'
 
-error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+error[E037]: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
    ┌─ <internal>:50:5
    │
 50 │     v_struct1 := v_struct2; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
 
-error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+error[E037]: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
    ┌─ <internal>:53:19
    │
 53 │     v_struct3 := (var_struct1 := v_struct2); // INVALID
    │                   ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
 
-error: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
+error[E037]: Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
    ┌─ <internal>:56:10
    │
 56 │     myFB(var_inout_struct1 := v_struct2); // INVALID
    │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'
 
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
-   ┌─ <internal>:67:5
+warning[E090]: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
+   ┌─ <internal>:66:5
    │
-67 │     v_ref_to_struct1 := REF(v_real); // INVALID
+66 │     v_ref_to_struct1 := REF(v_real); // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
 
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
-   ┌─ <internal>:68:5
+warning[E090]: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
+   ┌─ <internal>:67:5
    │
-68 │     v_ref_to_struct1 := REF(v_string); // INVALID
+67 │     v_ref_to_struct1 := REF(v_string); // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
 
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
-   ┌─ <internal>:69:5
+warning[E090]: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
+   ┌─ <internal>:68:5
    │
-69 │     v_ref_to_struct1 := REF(v_char); // INVALID
+68 │     v_ref_to_struct1 := REF(v_char); // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
-
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
-   ┌─ <internal>:71:5
-   │
-71 │     v_ref_to_struct1 := &(v_real); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_REAL have different types
-
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
-   ┌─ <internal>:72:5
-   │
-72 │     v_ref_to_struct1 := &(v_string); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_STRING have different types
-
-warning: Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
-   ┌─ <internal>:73:5
-   │
-73 │     v_ref_to_struct1 := &(v_char); // INVALID
-   │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT1 and __POINTER_TO_CHAR have different types
-
-

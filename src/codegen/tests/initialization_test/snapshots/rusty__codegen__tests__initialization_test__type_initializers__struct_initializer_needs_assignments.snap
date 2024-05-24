@@ -2,7 +2,7 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
-error: struct literal must consist of explicit assignments in the form of member := value
+error[E071]: struct literal must consist of explicit assignments in the form of member := value
   ┌─ <internal>:9:39
   │
 9 │                 x : Point := (x := 1, 2);

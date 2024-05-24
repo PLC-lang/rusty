@@ -1,0 +1,15 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+  ┌─ <internal>:7:31
+  │
+7 │             a := SEL(TRUE, a, b); // b: DINT => INT
+  │                               ^ Implicit downcast from 'DINT' to 'INT'.
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+  ┌─ <internal>:8:28
+  │
+8 │             a := MUX(0, a, b); // b: DINT => INT
+  │                            ^ Implicit downcast from 'DINT' to 'INT'.

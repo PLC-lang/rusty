@@ -2,121 +2,121 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type SINT
+warning[E039]: This will overflow for type SINT
   ┌─ <internal>:5:42
   │
 5 │                 min_sint    : SINT  := ((-128 * 1) * 2);    // -128
   │                                          ^^^^^^^^^^^^^ This will overflow for type SINT
 
-warning: This will overflow for type SINT
+warning[E039]: This will overflow for type SINT
   ┌─ <internal>:6:43
   │
 6 │                 max_sint    : SINT  :=  ((127 * 1) * 2);    //  127
   │                                           ^^^^^^^^^^^^ This will overflow for type SINT
 
-warning: This will overflow for type USINT
+warning[E039]: This will overflow for type USINT
   ┌─ <internal>:7:43
   │
 7 │                 min_usint   : USINT  := ((1 * 1) * -2);     // 0
   │                                           ^^^^^^^^^^^ This will overflow for type USINT
 
-warning: This will overflow for type USINT
+warning[E039]: This will overflow for type USINT
   ┌─ <internal>:8:43
   │
 8 │                 max_usint   : USINT  := ((256 * 1) * 2);    // 256
   │                                           ^^^^^^^^^^^^ This will overflow for type USINT
 
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
    ┌─ <internal>:11:41
    │
 11 │                 min_int     : INT  := ((-32_768 * 1) * 2);   // -32768
    │                                         ^^^^^^^^^^^^^^^^ This will overflow for type INT
 
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
    ┌─ <internal>:12:42
    │
 12 │                 max_int     : INT  :=  ((32_767 * 1) * 2);   //  32767
    │                                          ^^^^^^^^^^^^^^^ This will overflow for type INT
 
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
    ┌─ <internal>:13:42
    │
 13 │                 min_uint    : UINT  := ((1 * 1) * -2);      // 0
    │                                          ^^^^^^^^^^^ This will overflow for type UINT
 
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
    ┌─ <internal>:14:42
    │
 14 │                 max_uint    : UINT  := ((65_536 * 1) * 2);  // 65536
    │                                          ^^^^^^^^^^^^^^^ This will overflow for type UINT
 
-warning: This will overflow for type DINT
+warning[E039]: This will overflow for type DINT
    ┌─ <internal>:17:42
    │
 17 │                 min_dint    : DINT  := ((-2_147_483_649 * 1) * 2);  // -2_147_483_648
    │                                          ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type DINT
 
-warning: This will overflow for type DINT
+warning[E039]: This will overflow for type DINT
    ┌─ <internal>:18:43
    │
 18 │                 max_dint    : DINT  := (( 2_147_483_648 * 1) * 2);  //  2_147_483_647
    │                                           ^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type DINT
 
-warning: This will overflow for type UDINT
+warning[E039]: This will overflow for type UDINT
    ┌─ <internal>:19:43
    │
 19 │                 min_udint   : UDINT  := ((1 * 1) * -2);             // 0
    │                                           ^^^^^^^^^^^ This will overflow for type UDINT
 
-warning: This will overflow for type UDINT
+warning[E039]: This will overflow for type UDINT
    ┌─ <internal>:20:43
    │
 20 │                 max_udint   : UDINT  := ((4_294_967_296 * 1) * 2);  // 4_294_967_296
    │                                           ^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type UDINT
 
-warning: This will overflow for type LINT
+warning[E039]: This will overflow for type LINT
    ┌─ <internal>:23:42
    │
 23 │                 min_lint    : LINT  := ((-9_223_372_036_854_775_808 * 1) * 2);  // -9_223_372_036_854_775_808
    │                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
 
-warning: This will overflow for type LINT
+warning[E039]: This will overflow for type LINT
    ┌─ <internal>:24:43
    │
 24 │                 max_lint    : LINT  := (( 9_223_372_036_854_775_807 * 1) * 2);  //  9_223_372_036_854_775_807
    │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
 
-warning: This will overflow for type ULINT
+warning[E039]: This will overflow for type ULINT
    ┌─ <internal>:25:43
    │
 25 │                 min_ulint   : ULINT  := ((1 * 1) * -2);                         // 0
    │                                           ^^^^^^^^^^^ This will overflow for type ULINT
 
-warning: This will overflow for type ULINT
+warning[E039]: This will overflow for type ULINT
    ┌─ <internal>:26:43
    │
 26 │                 max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
    │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type ULINT
 
-warning: This will overflow for type REAL
+warning[E039]: This will overflow for type REAL
    ┌─ <internal>:29:39
    │
 29 │                 min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -3.40282347E+38
    │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
 
-warning: This will overflow for type REAL
+warning[E039]: This will overflow for type REAL
    ┌─ <internal>:30:39
    │
 30 │                 max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  3.40282347E+38
    │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
 
-warning: This will overflow for type LREAL
+warning[E039]: This will overflow for type LREAL
    ┌─ <internal>:33:41
    │
 33 │                 min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -1.7976931348623157E+308
    │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
 
-warning: This will overflow for type LREAL
+warning[E039]: This will overflow for type LREAL
    ┌─ <internal>:34:41
    │
 34 │                 max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  1.7976931348623157E+308

@@ -2,13 +2,13 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: POU Type Class does not support a return type. Did you mean Function?
+error[E026]: POU Type Class does not support a return type. Did you mean Function?
   ┌─ <internal>:2:19
   │
 2 │         CLASS cls : INT
   │                   ^^^^^ POU Type Class does not support a return type. Did you mean Function?
 
-error: A class cannot have a return type
+error[E020]: A class cannot have a return type
   ┌─ <internal>:2:15
   │
 2 │         CLASS cls : INT

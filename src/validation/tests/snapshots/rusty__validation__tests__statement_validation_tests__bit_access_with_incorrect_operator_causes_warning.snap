@@ -2,16 +2,20 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error: Could not resolve reference to n1
+warning[E067]: Implicit downcast from 'DWORD' to 'BOOL'.
+   ┌─ <internal>:11:43
+   │
+11 │             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
+   │                                           ^^^^^^^^^^ Implicit downcast from 'DWORD' to 'BOOL'.
+
+error[E048]: Could not resolve reference to n1
    ┌─ <internal>:12:25
    │
 12 │             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
    │                         ^^ Could not resolve reference to n1
 
-note: If you meant to directly access a bit/byte/word/..., use %X/%B/%Wn1 instead.
+note[E060]: If you meant to directly access a bit/byte/word/..., use %X/%B/%Wn1 instead.
    ┌─ <internal>:12:25
    │
 12 │             Output.var1.n1             := Input.var1; // bitaccess without %X -> Warning
    │                         ^^ If you meant to directly access a bit/byte/word/..., use %X/%B/%Wn1 instead.
-
-

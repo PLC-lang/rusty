@@ -2,7 +2,7 @@
 source: tests/integration/cfc/validation_tests.rs
 expression: diagnostician.buffer().unwrap()
 ---
-error: lbl: Duplicate label.
+error[E018]: lbl: Duplicate label.
   ┌─ <internal>.cfc:1:1
   │
 1 │ 

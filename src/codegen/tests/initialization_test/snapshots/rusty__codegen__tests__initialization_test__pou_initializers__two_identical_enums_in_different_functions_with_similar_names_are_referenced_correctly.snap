@@ -1,0 +1,55 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+expression: function
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@__a_position.x = unnamed_addr constant i32 1
+@__aa_position.x = unnamed_addr constant i32 2
+@__bb_position.x = unnamed_addr constant i32 3
+@__b_position.x = unnamed_addr constant i32 4
+@__a_position.y = unnamed_addr constant i32 5
+@__aa_position.y = unnamed_addr constant i32 5
+@__bb_position.y = unnamed_addr constant i32 5
+@__b_position.y = unnamed_addr constant i32 5
+
+define i32 @a() section "fn-a:i32" {
+entry:
+  %a = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 1, i32* %position, align 4
+  store i32 0, i32* %a, align 4
+  %a_ret = load i32, i32* %a, align 4
+  ret i32 %a_ret
+}
+
+define i32 @aa() section "fn-aa:i32" {
+entry:
+  %aa = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 2, i32* %position, align 4
+  store i32 0, i32* %aa, align 4
+  %aa_ret = load i32, i32* %aa, align 4
+  ret i32 %aa_ret
+}
+
+define i32 @bb() section "fn-bb:i32" {
+entry:
+  %bb = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 3, i32* %position, align 4
+  store i32 0, i32* %bb, align 4
+  %bb_ret = load i32, i32* %bb, align 4
+  ret i32 %bb_ret
+}
+
+define i32 @b() section "fn-b:i32" {
+entry:
+  %b = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 4, i32* %position, align 4
+  store i32 0, i32* %b, align 4
+  %b_ret = load i32, i32* %b, align 4
+  ret i32 %b_ret
+}

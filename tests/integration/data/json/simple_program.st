@@ -4,5 +4,5 @@ PROGRAM prg
         b : REAL;
     END_VAR
     b := 1.5;
-    a := b;
+    a := INT#b;
 END_PROGRAM

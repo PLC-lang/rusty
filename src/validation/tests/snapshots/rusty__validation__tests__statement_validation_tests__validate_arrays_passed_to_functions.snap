@@ -2,49 +2,49 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF SINT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF SINT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:26:18
    │
 26 │             func(arr_sint);
    │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF SINT' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:27:18
    │
 27 │             func(arr_int);
    │                  ^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:29:18
    │
 29 │             func(arr_lint);
    │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF REAL' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF REAL' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:30:18
    │
 30 │             func(arr_real);
    │                  ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF REAL' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF LREAL' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LREAL' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:31:18
    │
 31 │             func(arr_lreal);
    │                  ^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LREAL' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[1..10] OF DINT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[1..10] OF DINT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:36:18
    │
 36 │             func(arr_dint_1_10);
    │                  ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..10] OF DINT' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[10..100] OF DINT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[10..100] OF DINT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:37:18
    │
 37 │             func(arr_dint_10_100);
    │                  ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[10..100] OF DINT' to 'ARRAY[0..1] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DINT' to 'ARRAY[0..1] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DINT' to 'ARRAY[0..1] OF DINT'
    ┌─ <internal>:40:18
    │
 40 │             func(arr_dint_2d);

@@ -2,13 +2,13 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
   ┌─ <internal>:7:13
   │
 7 │             x := "A";
   │             ^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
   ┌─ <internal>:8:13
   │
 8 │             y := 'B';

@@ -5,12 +5,9 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::hash::Hash;
 
-use indexmap::{IndexMap, IndexSet};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
@@ -25,9 +22,8 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-pub mod const_evaluator;
-pub mod generics;
-
+use crate::index::{FxIndexMap, FxIndexSet};
+use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -37,6 +33,9 @@ use crate::{
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
+
+pub mod const_evaluator;
+pub mod generics;
 
 #[cfg(test)]
 mod tests;
@@ -149,10 +148,10 @@ pub struct TypeAnnotator<'i> {
     pub(crate) index: &'i Index,
     pub(crate) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
-    dependencies: IndexSet<Dependency>,
+    dependencies: FxIndexSet<Dependency>,
     /// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
-    jumps_to_annotate: HashMap<String, HashMap<String, Vec<AstId>>>,
+    jumps_to_annotate: FxHashMap<String, FxHashMap<String, Vec<AstId>>>,
 }
 
 impl TypeAnnotator<'_> {
@@ -161,16 +160,18 @@ impl TypeAnnotator<'_> {
             StatementAnnotation::Function { return_type, qualified_name, call_name } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
                 self.dependencies.insert(Dependency::Call(name.to_string()));
-                self.dependencies.extend(self.get_datatype_dependencies(name, IndexSet::new()));
-                self.dependencies.extend(self.get_datatype_dependencies(return_type, IndexSet::new()));
+                self.dependencies.extend(self.get_datatype_dependencies(name, FxIndexSet::default()));
+                self.dependencies.extend(self.get_datatype_dependencies(return_type, FxIndexSet::default()));
             }
             StatementAnnotation::Program { qualified_name } => {
                 self.dependencies.insert(Dependency::Call(qualified_name.to_string()));
-                self.dependencies.extend(self.get_datatype_dependencies(qualified_name, IndexSet::new()));
+                self.dependencies
+                    .extend(self.get_datatype_dependencies(qualified_name, FxIndexSet::default()));
             }
             StatementAnnotation::Variable { resulting_type, qualified_name, argument_type, .. } => {
                 if matches!(argument_type.get_inner(), VariableType::Global) {
-                    self.dependencies.extend(self.get_datatype_dependencies(resulting_type, IndexSet::new()));
+                    self.dependencies
+                        .extend(self.get_datatype_dependencies(resulting_type, FxIndexSet::default()));
                     self.dependencies.insert(Dependency::Variable(qualified_name.to_string()));
                 }
             }
@@ -274,7 +275,7 @@ impl TypeAnnotator<'_> {
         };
         let operator_qualifier = &self.get_call_name(operator);
 
-        let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
+        let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
         let mut params = vec![];
         let mut parameters = parameters.into_iter();
 
@@ -606,16 +607,16 @@ impl AstAnnotations {
 #[derive(Default, Debug)]
 pub struct AnnotationMapImpl {
     /// maps a statement to the type it resolves to
-    type_map: IndexMap<AstId, StatementAnnotation>,
+    type_map: FxIndexMap<AstId, StatementAnnotation>,
 
     /// maps a statement to the target-type it should eventually resolve to
     /// example:
     /// x : BYTE := 1;  //1's actual type is DINT, 1's target type is BYTE
     /// x : INT := 1;   //1's actual type is DINT, 1's target type is INT
-    type_hint_map: IndexMap<AstId, StatementAnnotation>,
+    type_hint_map: FxIndexMap<AstId, StatementAnnotation>,
 
     /// A map from a call to the generic function name of that call
-    generic_nature_map: IndexMap<AstId, TypeNature>,
+    generic_nature_map: FxIndexMap<AstId, TypeNature>,
 
     /// maps a function to a statement
     ///
@@ -626,7 +627,7 @@ pub struct AnnotationMapImpl {
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    hidden_function_calls: IndexMap<AstId, AstNode>,
+    hidden_function_calls: FxIndexMap<AstId, AstNode>,
 
     //An index of newly created types
     pub new_index: Index,
@@ -700,8 +701,8 @@ impl AnnotationMap for AnnotationMapImpl {
 
 #[derive(Default)]
 pub struct StringLiterals {
-    pub utf08: HashSet<String>,
-    pub utf16: HashSet<String>,
+    pub utf08: FxHashSet<String>,
+    pub utf16: FxHashSet<String>,
 }
 
 impl StringLiterals {
@@ -717,9 +718,9 @@ impl<'i> TypeAnnotator<'i> {
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,
-            dependencies: IndexSet::new(),
-            string_literals: StringLiterals { utf08: HashSet::new(), utf16: HashSet::new() },
-            jumps_to_annotate: HashMap::new(),
+            dependencies: FxIndexSet::default(),
+            string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
+            jumps_to_annotate: FxHashMap::default(),
         }
     }
 
@@ -729,7 +730,7 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
-    ) -> (AnnotationMapImpl, IndexSet<Dependency>, StringLiterals) {
+    ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
@@ -757,24 +758,18 @@ impl<'i> TypeAnnotator<'i> {
 
         let body_ctx = ctx.enter_body();
         for i in &unit.implementations {
-            visitor.dependencies.extend(visitor.get_datatype_dependencies(&i.name, IndexSet::new()));
+            visitor.dependencies.extend(visitor.get_datatype_dependencies(&i.name, FxIndexSet::default()));
             i.statements.iter().for_each(|s| visitor.visit_statement(&body_ctx.with_pou(i.name.as_str()), s));
         }
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        for enum_element in
-            index.get_global_qualified_enums().values().filter(|it| it.is_in_unit(&unit.file_name))
-        {
+        for enum_element in index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(&unit.file_name)) {
             //Add to dependency map
             visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             if let Some((Some(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(&i))
             {
-                if visitor.annotation_map.get(statement).is_none() {
-                    panic!("new expression we did not visit yet")
-                }
-
                 if let Some(scope) = scope {
                     visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
@@ -809,7 +804,7 @@ impl<'i> TypeAnnotator<'i> {
             {
                 self.visit_statement(ctx, initializer);
 
-                //update the type-hint for the initializer
+                // Update the type-hint for the initializer
                 if let Some(right_type) = self.index.find_effective_type_by_name(name) {
                     self.update_expected_types(right_type, initializer);
                 }
@@ -1122,7 +1117,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type_declaration(&mut self, ctx: &VisitorContext, declaration: &DataTypeDeclaration) {
         if let Some(name) = declaration.get_name() {
-            let deps = self.get_datatype_dependencies(name, IndexSet::new());
+            let deps = self.get_datatype_dependencies(name, FxIndexSet::default());
             self.dependencies.extend(deps);
         }
         if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
@@ -1133,8 +1128,8 @@ impl<'i> TypeAnnotator<'i> {
     fn get_datatype_dependencies(
         &self,
         datatype_name: &str,
-        resolved: IndexSet<Dependency>,
-    ) -> IndexSet<Dependency> {
+        resolved: FxIndexSet<Dependency>,
+    ) -> FxIndexSet<Dependency> {
         let mut resolved_names = resolved;
         let Some(datatype) = self
             .index
@@ -1326,7 +1321,7 @@ impl<'i> TypeAnnotator<'i> {
                             )
                         };
 
-                        let target_name = if data.operator.is_bool_type() {
+                        let target_name = if data.operator.is_comparison_operator() {
                             BOOL_TYPE.to_string()
                         } else {
                             bigger_type.get_name().to_string()
@@ -1760,6 +1755,9 @@ impl<'i> TypeAnnotator<'i> {
                     return;
                 }
                 self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+            } else {
+                // Assuming this is a VOID function if no annotation is present
+                self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
         }
     }
@@ -2045,7 +2043,7 @@ impl ResolvingScope {
                     // look for variable, enum with name "qualifier.name"
                     index
                         .find_member(qualifier, name)
-                        .or_else(|| index.find_qualified_enum_element(format!("{qualifier}.{name}").as_str()))
+                        .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } else {
                     // look for member variable with name "pou.name"

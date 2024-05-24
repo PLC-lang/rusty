@@ -9,19 +9,21 @@ source_filename = "main"
 
 @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
-define void @foo(%__foo_vla %0) {
+define void @foo(%__foo_vla* %0) section "fn-foo:v[v]" {
 entry:
   %vla = alloca %__foo_vla, align 8
-  store %__foo_vla %0, %__foo_vla* %vla, align 8
+  %1 = bitcast %__foo_vla* %vla to i8*
+  %2 = bitcast %__foo_vla* %0 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%__foo_vla* getelementptr (%__foo_vla, %__foo_vla* null, i32 1) to i64), i1 false)
   ret void
 }
 
-define void @bar() {
+define void @bar() section "fn-bar:v" {
 entry:
   %arr = alloca [2 x i16], align 2
   %0 = bitcast [2 x i16]* %arr to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x i16]* getelementptr ([2 x i16], [2 x i16]* null, i32 1) to i64), i1 false)
-  %load_arr = load [2 x i16], [2 x i16]* %arr, align 2
+  %auto_deref = load [2 x i16], [2 x i16]* %arr, align 2
   %outer_arr_gep = getelementptr inbounds [2 x i16], [2 x i16]* %arr, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
   %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
@@ -29,12 +31,17 @@ entry:
   store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
   store i16* %outer_arr_gep, i16** %vla_array_gep, align 8
   %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-  call void @foo(%__foo_vla %1)
+  %vla_struct_ptr = alloca %__foo_vla, align 8
+  store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
+  call void @foo(%__foo_vla* %vla_struct_ptr)
   ret void
 }
 
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
 ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-
+attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #1 = { argmemonly nofree nounwind willreturn writeonly }

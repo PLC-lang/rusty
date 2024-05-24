@@ -754,14 +754,14 @@ fn address_of_operations() {
             END_VAR
 
             // Should work
-            &(a);
-            &b[1];
-            &c.a.b;
+            REF(a);
+            REF(b[1]);
+            REF(c.a.b);
 
             // Should not work
-            &&a;
-            &100;
-            &(a+3);
+            REF(REF(a));
+            REF(100);
+            REF(a+3);
         END_PROGRAM
         ",
     );
@@ -1321,7 +1321,7 @@ fn passing_compatible_numeric_types_to_functions_is_allowed() {
     "#,
     );
 
-    assert!(diagnostics.is_empty());
+    assert_snapshot!(diagnostics);
 }
 
 #[test]
@@ -1387,4 +1387,283 @@ fn invalid_cast_statement_causes_error() {
     );
 
     assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn for_loop_conditions_are_numerical() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : BOOL;
+                y : DINT;
+            END_VAR
+
+        FOR i := 100000 TO x BY y DO
+        END_FOR
+
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E094]: Expected an integer value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │             ^ Expected an integer value, got `STRING`
+
+    error[E094]: Expected an integer value, got `BOOL`
+      ┌─ <internal>:9:28
+      │
+    9 │         FOR i := 100000 TO x BY y DO
+      │                            ^ Expected an integer value, got `BOOL`
+
+    "###);
+}
+
+#[test]
+fn for_loop_conditions_are_real_and_trigger_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+            VAR
+                i : STRING;
+                x : REAL;
+                y : REAL;
+            END_VAR
+
+        FOR i := 10.0 TO x BY y DO
+        END_FOR
+
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E094]: Expected an integer value, got `STRING`
+      ┌─ <internal>:9:13
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │             ^ Expected an integer value, got `STRING`
+
+    error[E094]: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:18
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                  ^^^^ Expected an integer value, got `REAL`
+
+    error[E094]: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:26
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                          ^ Expected an integer value, got `REAL`
+
+    error[E094]: Expected an integer value, got `REAL`
+      ┌─ <internal>:9:31
+      │
+    9 │         FOR i := 10.0 TO x BY y DO
+      │                               ^ Expected an integer value, got `REAL`
+
+    "###);
+}
+
+#[test]
+fn if_statement_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            IF      y THEN // Returns a warning, because we're dealing with an integer
+            ELSIF   z THEN // Returns an error, because we're dealing with neither integers nor booleans
+
+            // These are OK
+            ELSIF   0 THEN
+            ELSIF   1 THEN
+            ELSIF   x               THEN
+            ELSIF   (0 < 1)         THEN
+            ELSIF   (y < 0)         THEN
+            ELSIF   ((1 = 2) = 3)   THEN
+            END_IF
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+      ┌─ <internal>:9:21
+      │
+    9 │             IF      y THEN // Returns a warning, because we're dealing with an integer
+      │                     ^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+
+    error[E094]: Expected a boolean, got `STRING`
+       ┌─ <internal>:10:21
+       │
+    10 │             ELSIF   z THEN // Returns an error, because we're dealing with neither integers nor booleans
+       │                     ^ Expected a boolean, got `STRING`
+
+    "###);
+}
+
+#[test]
+fn while_loop_triggers_error_if_condition_is_not_boolean() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : BOOL;
+                y : DINT;
+                z : STRING;
+            END_VAR
+
+            WHILE y DO END_WHILE // Returns a warning, because we're dealing with an integer
+            WHILE z DO END_WHILE // Returns an error, because we're dealing with neither integers nor booleans
+
+            // These are OK
+            WHILE 0 DO END_WHILE
+            WHILE 1 DO END_WHILE
+            WHILE x             DO END_WHILE
+            WHILE (0 < 1)       DO END_WHILE
+            WHILE (y < 0)       DO END_WHILE
+            WHILE ((1 = 2) = 3) DO END_WHILE
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+      ┌─ <internal>:9:19
+      │
+    9 │             WHILE y DO END_WHILE // Returns a warning, because we're dealing with an integer
+      │                   ^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+
+    error[E094]: Expected a boolean, got `STRING`
+       ┌─ <internal>:10:19
+       │
+    10 │             WHILE z DO END_WHILE // Returns an error, because we're dealing with neither integers nor booleans
+       │                   ^ Expected a boolean, got `STRING`
+
+    "###);
+}
+
+#[test]
+fn action_calls_without_parentheses() {
+    // Given a POU with defined actions,
+    // when trying to call them without parentheses
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb1
+            FOO;
+            BAR;
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+
+            ACTION BAR
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect a validation error for each "call"-statement
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:3:13
+      │
+    3 │             FOO;
+      │             ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E095]: A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+      ┌─ <internal>:4:13
+      │
+    4 │             BAR;
+      │             ^^^ A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
+
+    "###);
+}
+
+#[test]
+fn action_as_reference_does_not_cause_parentheses_diagnostic() {
+    // Given a POU with defined actions,
+    // when getting the address of a qualified action reference
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prog
+        VAR
+            fb : fb1;
+            address: LWORD;
+        END_VAR
+            address := ADR(fb1.FOO);
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect no missing parentheses diagnostic
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
+      ┌─ <internal>:7:28
+      │
+    7 │             address := ADR(fb1.FOO);
+      │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
+
+    "###);
+    // XXX: change assertion to `assert!(diagnostics.is_empty())` once
+    // https://github.com/PLC-lang/rusty/issues/1165 is resolved
+}
+
+#[test]
+fn action_assignment_attempt_does_not_report_missing_parentheses() {
+    // Given a qualified action reference,
+    // when trying to assign it to a variable
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prog
+        VAR
+            fb : fb1;
+            address: LWORD;
+        END_VAR
+            address := fb1.FOO;
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+
+        ACTIONS
+            ACTION FOO
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    // we expect no missing parentheses diagnostic
+    assert_snapshot!(diagnostics, @r###"
+    error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+      ┌─ <internal>:7:28
+      │
+    7 │             address := fb1.FOO;
+      │                            ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
+
+    error[E037]: Invalid assignment: cannot assign 'FOO' to 'LWORD'
+      ┌─ <internal>:7:13
+      │
+    7 │             address := fb1.FOO;
+      │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'
+
+    "###);
 }

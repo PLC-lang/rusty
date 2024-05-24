@@ -26,7 +26,7 @@ source_filename = "main"
 !9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
 !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 64, elements: !11)
 !11 = !{!12}
-!12 = !DISubrange(count: 10, lowerBound: 0)
+!12 = !DISubrange(count: 11, lowerBound: 0)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
 !14 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
@@ -36,4 +36,3 @@ source_filename = "main"
 !19 = !{i32 2, !"Debug Info Version", i32 3}
 !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
 !21 = !{!0, !13, !15}
-

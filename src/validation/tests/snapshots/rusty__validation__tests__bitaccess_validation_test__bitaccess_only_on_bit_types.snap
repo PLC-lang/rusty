@@ -2,19 +2,19 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: Bit-Wise access requires a Numerical type larger than 1 bits
+error[E055]: Bit-Wise access requires a Numerical type larger than 1 bits
    ┌─ <internal>:11:21
    │
 11 │             invalid.1;
    │                     ^ Bit-Wise access requires a Numerical type larger than 1 bits
 
-error: Bit-Wise access requires a Numerical type larger than 1 bits
+error[E055]: Bit-Wise access requires a Numerical type larger than 1 bits
    ┌─ <internal>:12:22
    │
 12 │             invalid2.1;
    │                      ^ Bit-Wise access requires a Numerical type larger than 1 bits
 
-error: Bit-Wise access requires a Numerical type larger than 1 bits
+error[E055]: Bit-Wise access requires a Numerical type larger than 1 bits
    ┌─ <internal>:13:21
    │
 13 │             valid.1.2; (*Invalid*)

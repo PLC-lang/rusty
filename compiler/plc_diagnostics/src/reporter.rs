@@ -35,6 +35,7 @@ impl ResolvedLocation {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDiagnostics {
+    pub code: String,
     pub message: String,
     pub severity: Severity,
     pub main_location: ResolvedLocation,

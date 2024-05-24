@@ -11,7 +11,10 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::{Diagnostic, Severity},
+};
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
     SourceCode, SourceContainer,
@@ -41,7 +44,7 @@ pub fn parse_file(
     linkage: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
-) -> CompilationUnit {
+) -> Result<CompilationUnit, Diagnostic> {
     let location_factory = SourceLocationFactory::for_source(source);
     let (unit, errors) = parse(
         lexer::lex_with_ids(&source.source, id_provider, location_factory),
@@ -51,8 +54,11 @@ pub fn parse_file(
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
     diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    diagnostician.handle(&errors);
-    unit
+    if diagnostician.handle(&errors) == Severity::Error {
+        Err(Diagnostic::new("Compilation aborted due to critical parse errors").with_sub_diagnostics(errors))
+    } else {
+        Ok(unit)
+    }
 }
 
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
@@ -193,7 +199,7 @@ fn parse_pou(
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
             let allowed_var_types =
-                vec![KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+                [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
             while allowed_var_types.contains(&lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
@@ -303,7 +309,7 @@ fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
         "__ANY_VLA" => TypeNature::__VLA,
         _ => {
             lexer.accept_diagnostic(
-                Diagnostic::error(format!("Unkown type nature `{nature}`"))
+                Diagnostic::new(format!("Unkown type nature `{nature}`"))
                     .with_location(lexer.location())
                     .with_error_code("E063"),
             );
@@ -345,17 +351,15 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
                 lexer.accept_diagnostic(
-                    Diagnostic::warning(
-                        "Return types cannot have a default value, the value will be ignored",
-                    )
-                    .with_location(init.get_location())
-                    .with_error_code("E016"),
+                    Diagnostic::new("Return types cannot have a default value, the value will be ignored")
+                        .with_location(init.get_location())
+                        .with_error_code("E016"),
                 );
             }
 
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "POU Type {pou_type:?} does not support a return type. Did you mean Function?"
                     ))
                     .with_error_code("E026")
@@ -374,7 +378,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
                         .expect("Expecing location to be a range during parsing");
                     lexer.accept_diagnostic(
                         ////TODO: This prints a debug version of the datatype, it should have a user readable version instead
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "Data Type {datatype_name} not supported as a function return type!"
                         ))
                         .with_error_code("E027")
@@ -600,7 +604,7 @@ fn parse_full_data_type_definition(
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
     let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
-    parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+    let parsed_datatype = parse_any_in_region(lexer, vec![end_keyword.clone()], |lexer| {
         let sized = lexer.try_consume(&PropertySized);
         if lexer.try_consume(&KeywordDotDotDot) {
             Some((
@@ -627,7 +631,15 @@ fn parse_full_data_type_definition(
                 }
             })
         }
-    })
+    });
+
+    // The standard allows semicolons at the end of an `END_STRUCT` keyword, hence if we parsed
+    // a struct, try to also consume a semicolon if it exists
+    if end_keyword == KeywordEndStruct {
+        lexer.try_consume(&KeywordSemicolon);
+    }
+
+    parsed_datatype
 }
 
 // TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
@@ -653,13 +665,15 @@ fn parse_data_type_definition(
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(
-            Diagnostic::warning("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
+            Diagnostic::new("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
                 .with_location(lexer.last_location())
                 .with_error_code("E015"),
         );
-        if let Err(diag) = lexer.expect(KeywordTo) {
-            lexer.accept_diagnostic(diag);
-        } else {
+        let expect_keyword_to = |lexer: &mut ParseSession| {
+            expect_token!(lexer, KeywordTo, None);
+            Some(())
+        };
+        if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
         parse_pointer_definition(lexer, name, start_pos)
@@ -783,12 +797,12 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
             {
                 lexer.accept_diagnostic(
-                    Diagnostic::error("Mismatched types of parentheses around string size expression")
+                    Diagnostic::new("Mismatched types of parentheses around string size expression")
                         .with_location(error_range)
                         .with_error_code("E009"),
                 );
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
-                lexer.accept_diagnostic(Diagnostic::warning(
+                lexer.accept_diagnostic(Diagnostic::new(
                     "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
                     with_location(error_range)
                     .with_error_code("E014")
@@ -899,7 +913,7 @@ fn parse_array_type_definition(
             Some(val) => val,
             None => {
                 lexer.accept_diagnostic(
-                    Diagnostic::error(format!("Expected a range statement, got {range:?} instead"))
+                    Diagnostic::new(format!("Expected a range statement, got {range:?} instead"))
                         .with_location(range.get_location())
                         .with_error_code("E008"),
                 );
@@ -975,13 +989,14 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> AstNode {
-    match expressions_parser::parse_call_statement(lexer) {
-        Ok(statement) => statement,
-        Err(diagnostic) => {
-            let statement = AstFactory::create_empty_statement(diagnostic.get_location(), lexer.next_id());
-            lexer.accept_diagnostic(diagnostic);
-            statement
-        }
+    if let Some(statement) = expressions_parser::parse_call_statement(lexer) {
+        statement
+    } else {
+        let statement = AstFactory::create_empty_statement(
+            lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
+            lexer.next_id(),
+        );
+        statement
     }
 }
 
@@ -997,7 +1012,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
-                Diagnostic::warning("Invalid pragma location: Only VAR_INPUT support by ref properties")
+                Diagnostic::new("Invalid pragma location: Only VAR_INPUT support by ref properties")
                     .with_error_code("E024")
                     .with_location(lexer.location()),
             )
@@ -1074,13 +1089,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let address = if lexer.try_consume(&KeywordAt) {
         //Look for a hardware address
         if let HardwareAccess((direction, access_type)) = lexer.token {
-            match parse_hardware_access(lexer, direction, access_type) {
-                Ok(it) => Some(it),
-                Err(err) => {
-                    lexer.accept_diagnostic(err);
-                    None
-                }
-            }
+            parse_hardware_access(lexer, direction, access_type)
         } else {
             lexer.accept_diagnostic(Diagnostic::missing_token("Hardware Access", lexer.location()));
             None
@@ -1117,7 +1126,7 @@ fn parse_hardware_access(
     lexer: &mut ParseSession,
     hardware_access_type: HardwareAccessType,
     access_type: DirectAccessType,
-) -> Result<AstNode, Diagnostic> {
+) -> Option<AstNode> {
     let start_location = lexer.last_location();
     lexer.advance();
     //Folowed by an integer
@@ -1132,7 +1141,7 @@ fn parse_hardware_access(
                 }
             }
         }
-        Ok(AstFactory::create_hardware_access(
+        Some(AstFactory::create_hardware_access(
             access_type,
             hardware_access_type,
             address,
@@ -1140,6 +1149,7 @@ fn parse_hardware_access(
             lexer.next_id(),
         ))
     } else {
-        Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
+        lexer.accept_diagnostic(Diagnostic::missing_token("LiteralInteger", lexer.location()));
+        None
     }
 }

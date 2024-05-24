@@ -2,61 +2,61 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
   ┌─ <internal>:3:56
   │
 3 │         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
   │                                                        ^ Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
 
-error: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
   ┌─ <internal>:3:56
   │
 3 │         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
   │                                                        ^ Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
 
-error: Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
   ┌─ <internal>:4:57
   │
 4 │         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'
 
-error: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
   ┌─ <internal>:4:57
   │
 4 │         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid type nature for generic argument. DATE_AND_TIME is no ANY_CHARS
 
-error: Invalid assignment: cannot assign 'DATE' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DATE' to 'CHAR'
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'DATE' to 'CHAR'
 
-error: Invalid type nature for generic argument. DATE is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. DATE is no ANY_CHARS
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. DATE is no ANY_CHARS
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
   ┌─ <internal>:6:57
   │
 6 │         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
 
-error: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_CHARS
   ┌─ <internal>:6:57
   │
 6 │         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid type nature for generic argument. TIME_OF_DAY is no ANY_CHARS
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
   ┌─ <internal>:7:58
   │
 7 │         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'
 
-error: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_CHARS
   ┌─ <internal>:7:58
   │
 7 │         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION

@@ -2,19 +2,19 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Literal 256 out of range (BYTE)
+error[E053]: Literal 256 out of range (BYTE)
   ┌─ <internal>:4:17
   │
 4 │                 BYTE#256;
   │                 ^^^^^^^^ Literal 256 out of range (BYTE)
 
-error: Literal 65536 out of range (UINT)
+error[E053]: Literal 65536 out of range (UINT)
   ┌─ <internal>:7:17
   │
 7 │                 UINT#65_536;
   │                 ^^^^^^^^^^^ Literal 65536 out of range (UINT)
 
-error: Literal 4294967296 out of range (UDINT)
+error[E053]: Literal 4294967296 out of range (UDINT)
    ┌─ <internal>:10:17
    │
 10 │                 UDINT#4_294_967_296;

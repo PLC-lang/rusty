@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: a: Ambiguous global variable.
+error[E004]: a: Ambiguous global variable.
   ┌─ <internal>:3:13
   │
 3 │             a: INT;
@@ -11,7 +11,7 @@ error: a: Ambiguous global variable.
 9 │             a: BOOL;
   │             - see also
 
-error: a: Ambiguous global variable.
+error[E004]: a: Ambiguous global variable.
   ┌─ <internal>:9:13
   │
 3 │             a: INT;

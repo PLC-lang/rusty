@@ -2,13 +2,13 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: diagnostics
 ---
-error: Could not resolve reference to b
+error[E048]: Could not resolve reference to b
    ┌─ <internal>:10:17
    │
 10 │                 b;
    │                 ^ Could not resolve reference to b
 
-error: Could not resolve reference to gb
+error[E048]: Could not resolve reference to gb
    ┌─ <internal>:12:17
    │
 12 │                 gb;

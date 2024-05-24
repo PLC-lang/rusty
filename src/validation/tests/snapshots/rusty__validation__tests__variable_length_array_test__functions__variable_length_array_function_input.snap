@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: "parse_and_validate_buffered(&function.replace(\"<VAR_TYPE>\", \"INPUT\"))"
 ---
-warning: Variable Length Arrays are always by-ref, even when declared in a by-value block
+warning[E047]: Variable Length Arrays are always by-ref, even when declared in a by-value block
   ┌─ <internal>:4:13
   │
 4 │             arr : ARRAY[*] OF DINT;

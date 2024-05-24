@@ -2,25 +2,25 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: `x` is no const reference. Non constant variables are not supported in case conditions
+error[E080]: `x` is no const reference. Non constant variables are not supported in case conditions
    ┌─ <internal>:14:17
    │
 14 │                 x: // x is no constant => error
    │                 ^ `x` is no const reference. Non constant variables are not supported in case conditions
 
-error: `y` is no const reference. Non constant variables are not supported in case conditions
+error[E080]: `y` is no const reference. Non constant variables are not supported in case conditions
    ┌─ <internal>:16:17
    │
 16 │                 y: // y is no constant => error
    │                 ^ `y` is no const reference. Non constant variables are not supported in case conditions
 
-error: `x` is no const reference. Non constant variables are not supported in case conditions
+error[E080]: `x` is no const reference. Non constant variables are not supported in case conditions
    ┌─ <internal>:18:17
    │
 18 │                 2+x: // x is no constant => error
    │                 ^^^ `x` is no const reference. Non constant variables are not supported in case conditions
 
-error: `x` is no const reference. Non constant variables are not supported in case conditions
+error[E080]: `x` is no const reference. Non constant variables are not supported in case conditions
    ┌─ <internal>:22:17
    │
 22 │                 CONST+x: // x is no constant => error

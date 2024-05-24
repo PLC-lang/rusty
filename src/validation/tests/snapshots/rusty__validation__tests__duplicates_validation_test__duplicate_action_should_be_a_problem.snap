@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: prg.foo: Ambiguous callable symbol.
+error[E004]: prg.foo: Ambiguous callable symbol.
    ┌─ <internal>:9:20
    │
  9 │             ACTION foo
@@ -11,7 +11,7 @@ error: prg.foo: Ambiguous callable symbol.
 17 │             ACTION foo
    │                    --- see also
 
-error: prg.foo: Ambiguous callable symbol.
+error[E004]: prg.foo: Ambiguous callable symbol.
    ┌─ <internal>:17:20
    │
  9 │             ACTION foo

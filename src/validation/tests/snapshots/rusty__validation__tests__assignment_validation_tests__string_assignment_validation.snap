@@ -2,115 +2,115 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'LREAL' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'LREAL' to 'STRING'
    ┌─ <internal>:31:5
    │
 31 │     v_string := v_lreal; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'LREAL' to 'STRING'
 
-error: Invalid assignment: cannot assign 'REAL' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'STRING'
    ┌─ <internal>:32:5
    │
 32 │     v_string := REAL#2.0; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'STRING'
 
-error: Invalid assignment: cannot assign 'UDINT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'UDINT' to 'STRING'
    ┌─ <internal>:33:5
    │
 33 │     v_string := v_udint; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'UDINT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'UDINT' to 'STRING'
    ┌─ <internal>:34:5
    │
 34 │     v_string := UDINT#10; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'UDINT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'DINT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
    ┌─ <internal>:35:5
    │
 35 │     v_string := v_dint; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'DINT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
    ┌─ <internal>:36:5
    │
 36 │     v_string := DINT#20; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'TIME' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'STRING'
    ┌─ <internal>:37:5
    │
 37 │     v_string := v_time; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'STRING'
 
-error: Invalid assignment: cannot assign 'TIME' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'STRING'
    ┌─ <internal>:38:5
    │
 38 │     v_string := TIME#10h20m30s; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WORD' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WORD' to 'STRING'
    ┌─ <internal>:39:5
    │
 39 │     v_string := v_word; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WORD' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WORD' to 'STRING'
    ┌─ <internal>:40:5
    │
 40 │     v_string := WORD#16#ffff; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WORD' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    ┌─ <internal>:44:5
    │
 44 │     v_string := v_wstring; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    ┌─ <internal>:45:5
    │
 45 │     v_string := WSTRING#"wstring"; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    ┌─ <internal>:46:5
    │
 46 │     v_string := "wstring"; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
    ┌─ <internal>:47:5
    │
 47 │     v_string := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
    ┌─ <internal>:48:5
    │
 48 │     v_string := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
    ┌─ <internal>:49:5
    │
 49 │     v_string := v_tod; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
 
-error: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
    ┌─ <internal>:50:5
    │
 50 │     v_string := TOD#15:36:30; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'TIME_OF_DAY' to 'STRING'
 
-error: Invalid assignment: cannot assign 'INT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'STRING'
    ┌─ <internal>:51:5
    │
 51 │     v_string := v_ptr_int^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'INT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'STRING'
    ┌─ <internal>:53:5
    │
 53 │     v_string := v_arr_int_3[0]; // INVALID

@@ -12,7 +12,7 @@ source_filename = "main"
 @__Point__init = unnamed_addr constant %Point zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %strct = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast %Point* %strct to i8*
@@ -24,4 +24,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

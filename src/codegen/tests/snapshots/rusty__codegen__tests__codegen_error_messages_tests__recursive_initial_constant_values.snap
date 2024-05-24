@@ -1,11 +1,13 @@
 ---
 source: src/codegen/tests/codegen_error_messages_tests.rs
-expression: msg
+expression: result
 ---
-error: Cannot propagate constant value for 'b'
+error[E041]: Cannot generate literal initializer for `a`.
+
+error[E048]: Could not resolve reference to b
   ┌─ <internal>:3:24
   │
 3 │             a : INT := b;
-  │                        ^ Cannot propagate constant value for 'b'
+  │                        ^ Could not resolve reference to b
 
 

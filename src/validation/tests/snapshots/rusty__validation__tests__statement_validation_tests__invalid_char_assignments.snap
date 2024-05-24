@@ -2,73 +2,73 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Value: 'AJK%&/231' exceeds length for type: CHAR
+error[E065]: Value: 'AJK%&/231' exceeds length for type: CHAR
    ┌─ <internal>:11:13
    │
 11 │             c := 'AJK%&/231'; // invalid
    │             ^^^^^^^^^^^^^^^^ Value: 'AJK%&/231' exceeds length for type: CHAR
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:11:13
    │
 11 │             c := 'AJK%&/231'; // invalid
    │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Value: '898JKAN' exceeds length for type: WCHAR
+error[E065]: Value: '898JKAN' exceeds length for type: WCHAR
    ┌─ <internal>:12:13
    │
 12 │             wc := "898JKAN"; // invalid
    │             ^^^^^^^^^^^^^^^ Value: '898JKAN' exceeds length for type: WCHAR
 
-error: Invalid assignment: cannot assign 'WSTRING' to 'WCHAR'
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'WCHAR'
    ┌─ <internal>:12:13
    │
 12 │             wc := "898JKAN"; // invalid
    │             ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'WCHAR'
 
-error: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
    ┌─ <internal>:14:13
    │
 14 │             c := wc; // invalid
    │             ^^^^^^^ Invalid assignment: cannot assign 'WCHAR' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'WCHAR'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'WCHAR'
    ┌─ <internal>:15:13
    │
 15 │             wc := c; // invalid
    │             ^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'WCHAR'
 
-error: Invalid assignment: cannot assign 'INT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'CHAR'
    ┌─ <internal>:18:13
    │
 18 │             c := i; // invalid
    │             ^^^^^^ Invalid assignment: cannot assign 'INT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'DINT' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'CHAR'
    ┌─ <internal>:19:13
    │
 19 │             c := 42; // invalid
    │             ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    ┌─ <internal>:22:13
    │
 22 │             c := s; // invalid
    │             ^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
 
-error: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
    ┌─ <internal>:23:13
    │
 23 │             wc := s; // invalid
    │             ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'WCHAR'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'INT'
    ┌─ <internal>:25:13
    │
 25 │             i := c; // invalid
    │             ^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
    ┌─ <internal>:26:13
    │
 26 │             s := c; // invalid

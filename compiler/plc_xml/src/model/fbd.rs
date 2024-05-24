@@ -1,8 +1,9 @@
-use indexmap::{IndexMap, IndexSet};
+use plc::index::{FxIndexMap, FxIndexSet};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 use quick_xml::events::{BytesStart, Event};
-use std::{cmp::Ordering, collections::HashMap, hash::Hash};
+use rustc_hash::FxHashMap;
+use std::{cmp::Ordering, hash::Hash};
 
 use crate::{error::Error, reader::Reader, xml_parser::Parseable};
 
@@ -15,7 +16,7 @@ use super::{
 
 /// Represent either a `localId` or `refLocalId`
 pub(crate) type NodeId = usize;
-pub(crate) type NodeIndex<'xml> = IndexMap<NodeId, Node<'xml>>;
+pub(crate) type NodeIndex<'xml> = FxIndexMap<NodeId, Node<'xml>>;
 
 #[derive(Debug, Default)]
 pub(crate) struct FunctionBlockDiagram<'xml> {
@@ -113,7 +114,7 @@ impl<'xml> Node<'xml> {
 
 impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
-        let mut nodes = IndexMap::new();
+        let mut nodes = FxIndexMap::default();
 
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
@@ -156,11 +157,11 @@ trait ConnectionResolver<'xml> {
         &mut self,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<(), Vec<Diagnostic>>;
-    fn get_source_references(&self) -> HashMap<&str, NodeId>;
+    fn get_source_references(&self) -> FxHashMap<&str, NodeId>;
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, NodeId>,
+        source_connections: &FxHashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic>;
 }
@@ -223,11 +224,11 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     fn get_resolved_connection_id(
         &self,
         connection: NodeId,
-        source_connections: &HashMap<&str, NodeId>,
+        source_connections: &FxHashMap<&str, NodeId>,
         source_location_factory: &SourceLocationFactory,
     ) -> Result<NodeId, Diagnostic> {
         let mut current = connection;
-        let mut visited = IndexSet::new();
+        let mut visited = FxIndexSet::default();
         visited.insert(connection);
         loop {
             match self.get(&current) {
@@ -235,14 +236,14 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                     kind: ConnectorKind::Source, name, ref_local_id, ..
                 })) => {
                     current = ref_local_id.ok_or_else(|| {
-                        Diagnostic::error(format!("Source '{name}' is not connected."))
+                        Diagnostic::new(format!("Source '{name}' is not connected."))
                             .with_error_code("E084")
                             .with_location(source_location_factory.create_block_location(current, None))
                     })?
                 }
                 Some(Node::Connector(Connector { kind: ConnectorKind::Sink, name, .. })) => {
                     current = *source_connections.get(name.as_ref()).ok_or_else(|| {
-                        Diagnostic::error(format!("Expected a corresponding source-connection mark for sink '{name}', but could not find one."))
+                        Diagnostic::new(format!("Expected a corresponding source-connection mark for sink '{name}', but could not find one."))
                             .with_error_code("E086")
                             .with_location(source_location_factory.create_block_location(current, None))
                     })?
@@ -260,7 +261,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
                 let node = self.get(&current).expect("Node exists");
                 msg.push_str(node.get_name());
 
-                return Err(Diagnostic::error(format!(
+                return Err(Diagnostic::new(format!(
                     "Sink is connected to itself. Found the following recursion: {msg}"
                 ))
                 .with_error_code("E085")
@@ -272,7 +273,7 @@ impl<'xml> ConnectionResolver<'xml> for NodeIndex<'xml> {
     }
 
     /// Returns a list of all sources along with the id they are connected to
-    fn get_source_references(&self) -> HashMap<&str, NodeId> {
+    fn get_source_references(&self) -> FxHashMap<&str, NodeId> {
         self.iter()
             .filter_map(|(_, node)| {
                 if let Node::Connector(Connector {
@@ -304,6 +305,7 @@ mod tests {
         xml_parser::Parseable,
     };
     use insta::assert_debug_snapshot;
+    use plc::index::FxIndexMap;
     use plc_source::source_location::SourceLocationFactory;
 
     use super::Node;
@@ -336,7 +338,7 @@ mod tests {
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
 
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -359,8 +361,7 @@ mod tests {
                         ref_local_id: Some(1),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -375,7 +376,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -418,8 +419,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -434,7 +434,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -498,8 +498,7 @@ mod tests {
                         ref_local_id: Some(5),
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -514,7 +513,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -577,8 +576,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -593,7 +591,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -626,8 +624,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -642,7 +639,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -675,8 +672,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -693,7 +689,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -756,8 +752,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -773,7 +768,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -816,8 +811,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);
@@ -834,7 +828,7 @@ mod tests {
         let mut model = Project::default();
         let mut pou = Pou { name: "TestProg".into(), ..Default::default() };
         let fbd = FunctionBlockDiagram {
-            nodes: [
+            nodes: FxIndexMap::from_iter([
                 (
                     1,
                     Node::FunctionBlockVariable(FunctionBlockVariable {
@@ -919,8 +913,7 @@ mod tests {
                         formal_parameter: None,
                     }),
                 ),
-            ]
-            .into(),
+            ]),
         };
         pou.body.function_block_diagram = fbd;
         model.pous.push(pou);

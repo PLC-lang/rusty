@@ -2,7 +2,7 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Cannot cast into [x], only elementary types are allowed
+error[E061]: Cannot cast into [x], only elementary types are allowed
   ┌─ <internal>:2:13
   │
 2 │             INT#[x];

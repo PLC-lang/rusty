@@ -9,11 +9,10 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
   ret void
 }
-

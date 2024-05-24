@@ -102,7 +102,7 @@ impl ProjectConfig {
             }
 
             // XXX: jsonschema does not provide error messages with location info
-            Diagnostic::error(message).with_error_code("E088")
+            Diagnostic::new(message).with_error_code("E088")
         })?;
         Ok(())
     }

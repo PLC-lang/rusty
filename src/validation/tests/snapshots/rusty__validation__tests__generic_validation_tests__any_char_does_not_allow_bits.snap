@@ -2,61 +2,61 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'BOOL' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'BOOL' to 'CHAR'
   ┌─ <internal>:3:58
   │
 3 │         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'BOOL' to 'CHAR'
 
-error: Invalid type nature for generic argument. BOOL is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. BOOL is no ANY_CHAR
   ┌─ <internal>:3:58
   │
 3 │         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. BOOL is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'BYTE' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'BYTE' to 'CHAR'
   ┌─ <internal>:4:58
   │
 4 │         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'BYTE' to 'CHAR'
 
-error: Invalid type nature for generic argument. BYTE is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. BYTE is no ANY_CHAR
   ┌─ <internal>:4:58
   │
 4 │         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. BYTE is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'WORD' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'WORD' to 'CHAR'
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid assignment: cannot assign 'WORD' to 'CHAR'
 
-error: Invalid type nature for generic argument. WORD is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. WORD is no ANY_CHAR
   ┌─ <internal>:5:58
   │
 5 │         FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. WORD is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'DWORD' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'DWORD' to 'CHAR'
   ┌─ <internal>:6:59
   │
 6 │         FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'DWORD' to 'CHAR'
 
-error: Invalid type nature for generic argument. DWORD is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. DWORD is no ANY_CHAR
   ┌─ <internal>:6:59
   │
 6 │         FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. DWORD is no ANY_CHAR
 
-error: Invalid assignment: cannot assign 'LWORD' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'LWORD' to 'CHAR'
   ┌─ <internal>:7:59
   │
 7 │         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid assignment: cannot assign 'LWORD' to 'CHAR'
 
-error: Invalid type nature for generic argument. LWORD is no ANY_CHAR
+error[E062]: Invalid type nature for generic argument. LWORD is no ANY_CHAR
   ┌─ <internal>:7:59
   │
 7 │         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION

@@ -777,6 +777,16 @@ impl AstNode {
         &self.stmt
     }
 
+    /// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.
+    /// For example if called on `((1))` this function would return a [`AstStatement::Literal`] ignoring the
+    /// parenthesized expressions altogether.
+    pub fn get_stmt_peeled(&self) -> &AstStatement {
+        match &self.stmt {
+            AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
+            _ => &self.stmt,
+        }
+    }
+
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         match &self.stmt {
@@ -942,6 +952,17 @@ impl AstNode {
         matches!(self.stmt, AstStatement::Literal(..))
     }
 
+    pub fn is_literal_integer(&self) -> bool {
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Integer(..), ..))
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        match &self.stmt {
+            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
+            _ => None,
+        }
+    }
+
     pub fn is_identifier(&self) -> bool {
         matches!(self.stmt, AstStatement::Identifier(..))
     }
@@ -1036,20 +1057,8 @@ pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
 }
 impl Operator {
-    /// returns true, if this operator results in a bool value
-    pub fn is_bool_type(&self) -> bool {
-        matches!(
-            self,
-            Operator::Equal
-                | Operator::NotEqual
-                | Operator::Less
-                | Operator::Greater
-                | Operator::LessOrEqual
-                | Operator::GreaterOrEqual
-        )
-    }
-
-    /// returns true, if this operator is a comparison operator
+    /// returns true, if this operator is a comparison operator,
+    /// resulting in a bool value
     /// (=, <>, >, <, >=, <=)
     pub fn is_comparison_operator(&self) -> bool {
         matches!(

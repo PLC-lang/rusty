@@ -6,5 +6,5 @@ VAR
 END_VAR
     pt.a := x;
     pt.b := y;
-    main := pt.a + pt.b
-END_PROGRAM
+    main := pt.a + pt.b;
+END_FUNCTION

@@ -1,7 +1,8 @@
-use std::{borrow::Cow, collections::HashMap, str::FromStr};
+use std::{borrow::Cow, str::FromStr};
 
 use plc_diagnostics::diagnostics::Diagnostic;
 use quick_xml::events::{BytesStart, Event};
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -22,7 +23,7 @@ pub(crate) struct Pou<'xml> {
 }
 
 impl<'xml> Pou<'xml> {
-    fn with_attributes(self, attributes: HashMap<String, String>) -> Result<Self, Error> {
+    fn with_attributes(self, attributes: FxHashMap<String, String>) -> Result<Self, Error> {
         Ok(Pou {
             name: Cow::from(attributes.get_or_err("name")?),
             pou_type: attributes.get_or_err("pouType").map(|it| it.parse())??,

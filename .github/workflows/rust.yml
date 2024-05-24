@@ -19,7 +19,7 @@ jobs:
 
       - name: Run Check
         run: |
-         ./scripts/build.sh --check
+          ./scripts/build.sh --check
 
   test-linux:
     name: Test Linux
@@ -67,7 +67,7 @@ jobs:
     name: Test Windows
     runs-on: windows-2022
     env:
-      toolchain-version: 1.70.0
+      toolchain-version: 1.77.0
       llvm-version: 14.0.6
     steps:
 
@@ -138,7 +138,7 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
-            files: lcov.info
+          files: lcov.info
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v1

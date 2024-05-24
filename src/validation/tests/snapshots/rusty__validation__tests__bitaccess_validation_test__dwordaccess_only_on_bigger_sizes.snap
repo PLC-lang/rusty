@@ -2,19 +2,19 @@
 source: src/validation/tests/bitaccess_validation_test.rs
 expression: "&diagnostics"
 ---
-error: DWord-Wise access requires a Numerical type larger than 32 bits
+error[E055]: DWord-Wise access requires a Numerical type larger than 32 bits
    ┌─ <internal>:10:21
    │
 10 │             invalid.%D1;
    │                     ^^^ DWord-Wise access requires a Numerical type larger than 32 bits
 
-error: DWord-Wise access requires a Numerical type larger than 32 bits
+error[E055]: DWord-Wise access requires a Numerical type larger than 32 bits
    ┌─ <internal>:11:22
    │
 11 │             invalid2.%D1;
    │                      ^^^ DWord-Wise access requires a Numerical type larger than 32 bits
 
-error: DWord-Wise access requires a Numerical type larger than 32 bits
+error[E055]: DWord-Wise access requires a Numerical type larger than 32 bits
    ┌─ <internal>:12:22
    │
 12 │             invalid3.%D1;

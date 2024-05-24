@@ -2,106 +2,128 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..8] OF STRING[1256]' to 'ARRAY[0..3] OF STRING[256]'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..8] OF STRING[1256]' to 'ARRAY[0..3] OF STRING[256]'
    ┌─ <internal>:30:5
    │
 30 │     v_arr_sized_string := v_arr_sized_string2; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..8] OF STRING[1256]' to 'ARRAY[0..3] OF STRING[256]'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..2] OF INT' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..2] OF INT' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:31:5
    │
 31 │     v_arr_int_3 := v_arr_int_2; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..2] OF INT' to 'ARRAY[0..3] OF INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..4] OF INT' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..4] OF INT' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:33:5
    │
 33 │     v_arr_int_3 := v_arr_int_4; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..4] OF INT' to 'ARRAY[0..3] OF INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..3] OF REAL' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..3] OF REAL' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:34:5
    │
 34 │     v_arr_int_3 := v_arr_real_3; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..3] OF REAL' to 'ARRAY[0..3] OF INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..3] OF STRING' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..3] OF STRING' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:35:5
    │
 35 │     v_arr_int_3 := v_arr_string_3; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..3] OF STRING' to 'ARRAY[0..3] OF INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..3] OF CHAR' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..3] OF CHAR' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:36:5
    │
 36 │     v_arr_int_3 := v_arr_char_3; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..3] OF CHAR' to 'ARRAY[0..3] OF INT'
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:37:20
    │
 37 │     v_arr_int_3 := 1, 2, 3, 4; // INVALID
    │                    ^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:38:21
    │
 38 │     v_arr_int_3 := (1, 2, 3, 4); // valid
    │                     ^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:39:21
    │
 39 │     v_arr_int_3 := (1, 2, 3, 4, 5, 6); // INVALID -> missing
    │                     ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:40:23
+   │
+40 │     v_arr_int_3[0] := v_dint; // valid
+   │                       ^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:41:23
+   │
+41 │     v_arr_int_3[0] := DINT#10; // valid
+   │                       ^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+warning[E067]: Implicit downcast from 'REAL' to 'INT'.
+   ┌─ <internal>:42:23
+   │
+42 │     v_arr_int_3[0] := v_real; // valid
+   │                       ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
+
+warning[E067]: Implicit downcast from 'REAL' to 'INT'.
+   ┌─ <internal>:43:23
+   │
+43 │     v_arr_int_3[0] := REAL#2.0; // valid
+   │                       ^^^^^^^^ Implicit downcast from 'REAL' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:44:5
    │
 44 │     v_arr_int_3[0] := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:45:5
    │
 45 │     v_arr_int_3[0] := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:46:5
    │
 46 │     v_arr_int_3[0] := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'INT'
    ┌─ <internal>:47:5
    │
 47 │     v_arr_int_3[0] := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'INT'
    ┌─ <internal>:48:5
    │
 48 │     v_arr_int_3[0] := CHAR#'a'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'INT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:50:5
    │
 50 │     v_arr_int_3[0] := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
 
-error: Invalid assignment: cannot assign 'DINT' to 'ARRAY[0..3] OF INT'
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'ARRAY[0..3] OF INT'
    ┌─ <internal>:51:5
    │
 51 │     v_arr_int_3 := v_dint; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'ARRAY[0..3] OF INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..3] OF INT' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..3] OF INT' to 'DINT'
    ┌─ <internal>:52:5
    │
 52 │     v_dint := v_arr_int_3; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..3] OF INT' to 'DINT'
-
-

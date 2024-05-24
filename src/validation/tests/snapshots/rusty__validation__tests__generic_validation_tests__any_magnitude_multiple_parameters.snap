@@ -2,37 +2,37 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. BYTE is no ANY_MAGNITUDE
+error[E062]: Invalid type nature for generic argument. BYTE is no ANY_MAGNITUDE
    ┌─ <internal>:15:60
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_MAGNITUDE
 
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid type nature for generic argument. STRING is no ANY_MAGNITUDE
+error[E062]: Invalid type nature for generic argument. STRING is no ANY_MAGNITUDE
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_MAGNITUDE
 
-error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'TIME'
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'TIME'
 
-error: Invalid type nature for generic argument. CHAR is no ANY_MAGNITUDE
+error[E062]: Invalid type nature for generic argument. CHAR is no ANY_MAGNITUDE
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no ANY_MAGNITUDE
 
-error: Invalid type nature for generic argument. DATE is no ANY_MAGNITUDE
+error[E062]: Invalid type nature for generic argument. DATE is no ANY_MAGNITUDE
    ┌─ <internal>:15:89
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);

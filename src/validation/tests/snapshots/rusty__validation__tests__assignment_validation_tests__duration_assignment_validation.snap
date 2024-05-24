@@ -2,46 +2,50 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+warning[E067]: Implicit downcast from 'LREAL' to 'TIME'.
+   ┌─ <internal>:29:15
+   │
+29 │     v_time := v_lreal; // valid
+   │               ^^^^^^^ Implicit downcast from 'LREAL' to 'TIME'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:39:5
    │
 39 │     v_time := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:40:5
    │
 40 │     v_time := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:41:5
    │
 41 │     v_time := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'TIME'
    ┌─ <internal>:42:5
    │
 42 │     v_time := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'TIME'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'TIME'
    ┌─ <internal>:43:5
    │
 43 │     v_time := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'TIME'
 
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:47:5
    │
 47 │     v_time := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
 
-error: Invalid assignment: cannot assign 'STRING' to 'TIME'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:49:5
    │
 49 │     v_time := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'TIME'
-
-

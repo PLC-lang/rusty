@@ -10,7 +10,7 @@ source_filename = "main"
 @__commands__init = unnamed_addr constant %commands zeroinitializer
 @__main.myStr1__init = unnamed_addr constant [81 x i8] zeroinitializer
 
-define i32 @main() {
+define i32 @main() section "fn-main:i32" {
 entry:
   %main = alloca i32, align 4
   %cmd1 = alloca %commands, align 8
@@ -41,4 +41,3 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-

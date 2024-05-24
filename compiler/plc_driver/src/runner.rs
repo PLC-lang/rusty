@@ -28,7 +28,7 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
     let project = Project::new("TestProject".to_string()).with_sources(source);
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
     let mut diagnostician = Diagnostician::null_diagnostician();
-    let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
+    let parsed_project = ParsedProject::parse(&ctxt, project, &mut diagnostician).unwrap();
     let indexed_project = parsed_project.index(ctxt.provider());
     let annotated_project = indexed_project.annotate(ctxt.provider());
     let compile_options = CompileOptions {
@@ -37,7 +37,10 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
         ..Default::default()
     };
 
-    annotated_project.generate_single_module(context, &compile_options).unwrap().unwrap()
+    match annotated_project.generate_single_module(context, &compile_options) {
+        Ok(res) => res.unwrap(),
+        Err(e) => panic!("{e}"),
+    }
 }
 
 ///
@@ -46,7 +49,6 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    module.print_to_stderr();
     module.run::<T, U>("main", params)
 }
 

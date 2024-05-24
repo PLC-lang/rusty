@@ -2,37 +2,37 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error: Invalid type nature for generic argument. REAL is no ANY_INT
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_INT
    ┌─ <internal>:18:30
    │
 18 │             LOWER_BOUND(vla, 3.1415); // invalid
    │                              ^^^^^^ Invalid type nature for generic argument. REAL is no ANY_INT
 
-error: Invalid type nature for generic argument. TIME is no ANY_INT
+error[E062]: Invalid type nature for generic argument. TIME is no ANY_INT
    ┌─ <internal>:19:30
    │
 19 │             LOWER_BOUND(vla, TIME#3s); // invalid
    │                              ^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_INT
 
-error: Index out of bound
+error[E046]: Index out of bound
    ┌─ <internal>:20:13
    │
 20 │             LOWER_BOUND(vla, 0); // index out of bounds
    │             ^^^^^^^^^^^ Index out of bound
 
-error: Invalid type nature for generic argument. REAL is no ANY_INT
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_INT
    ┌─ <internal>:22:30
    │
 22 │             UPPER_BOUND(vla, 3.1415); // invalid
    │                              ^^^^^^ Invalid type nature for generic argument. REAL is no ANY_INT
 
-error: Invalid type nature for generic argument. TIME is no ANY_INT
+error[E062]: Invalid type nature for generic argument. TIME is no ANY_INT
    ┌─ <internal>:23:30
    │
 23 │             UPPER_BOUND(vla, TIME#3s); // invalid
    │                              ^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_INT
 
-error: Index out of bound
+error[E046]: Index out of bound
    ┌─ <internal>:24:13
    │
 24 │             UPPER_BOUND(vla, 0); // index out of bounds

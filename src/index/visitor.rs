@@ -225,7 +225,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
         .map(|it| it.get_location())
         .as_ref()
         .or(Some(&implementation.location))
-        .map(Clone::clone)
+        .cloned()
         .unwrap();
     index.register_implementation(
         &implementation.name,
@@ -328,35 +328,37 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         }
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {
-            let enum_name = name.as_str();
-
-            let information = DataTypeInformation::Enum {
-                name: enum_name.to_string(),
-                elements: ast::get_enum_element_names(elements),
-                referenced_type: numeric_type.clone(),
-            };
+            let mut variants = Vec::new();
 
             for ele in ast::flatten_expression_list(elements) {
-                let element_name = ast::get_enum_element_name(ele);
+                let variant = ast::get_enum_element_name(ele);
                 if let AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                     let init = index.get_mut_const_expressions().add_constant_expression(
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
                     );
-                    index.register_enum_element(&element_name, enum_name, Some(init), ele.get_location())
+
+                    variants.push(index.register_enum_variant(name, &variant, Some(init), ele.get_location()))
                 } else {
                     unreachable!("the preprocessor should have provided explicit assignments for enum values")
                 }
             }
 
+            let information = DataTypeInformation::Enum {
+                name: name.to_owned(),
+                variants,
+                referenced_type: numeric_type.clone(),
+            };
+
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
                 type_declaration.initializer.clone(),
-                enum_name,
+                name,
                 scope.clone(),
             );
+
             index.register_type(typesystem::DataType {
-                name: enum_name.to_string(),
+                name: name.to_owned(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,

@@ -1,7 +1,4 @@
-use std::{
-    fmt::Debug,
-    ops::{BitAnd, Shr},
-};
+use std::ops::{BitAnd, Shr};
 
 /// .
 /// Check if input is a valid REAL
@@ -25,18 +22,13 @@ pub extern "C" fn IS_VALID__LREAL(input: f64) -> bool {
 
 const BITS_PER_BCD_DIGIT: usize = 4;
 
-fn is_valid_bcd<T, U>(input: T) -> bool
+fn is_valid_bcd<T>(input: T) -> bool
 where
-    T: Shr<usize, Output = T> + BitAnd<Output = T> + Copy + From<u8> + TryInto<u8, Error = U>,
-    U: Debug,
+    T: Shr<usize, Output = T> + BitAnd<Output = T> + Copy + From<u8> + PartialOrd,
 {
     let iterations = std::mem::size_of::<T>() * u8::BITS as usize / BITS_PER_BCD_DIGIT;
     for i in 0..iterations {
-        if ((input >> (BITS_PER_BCD_DIGIT * i)) & 0b1111.into())
-            .try_into()
-            .expect("The bitwise and operation is guaranteed to return a u8")
-            > 9u8
-        {
+        if ((input >> (BITS_PER_BCD_DIGIT * i)) & 0b1111.into()) > 9.into() {
             return false;
         }
     }

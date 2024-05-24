@@ -5,9 +5,9 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
 
-@a = unnamed_addr constant i32 1
-@b = unnamed_addr constant i32 2
-@c = unnamed_addr constant i32 3
+@myEnum.a = unnamed_addr constant i32 1
+@myEnum.b = unnamed_addr constant i32 2
+@myEnum.c = unnamed_addr constant i32 3
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
@@ -16,7 +16,7 @@ source_filename = "fb.st"
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
-define void @fb(%fb* %0) {
+define void @fb(%fb* %0) section "fn-fb:v" {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
@@ -31,7 +31,7 @@ source_filename = "myStruct.st"
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 @__fb__init = external global %fb.2
 
-declare void @fb(%fb.2*)
+declare void @fb(%fb.2*) section "fn-fb:v"
 
 ; ModuleID = 'fb2.st'
 source_filename = "fb2.st"
@@ -44,13 +44,13 @@ source_filename = "fb2.st"
 @__myStruct__init = external global %myStruct.4
 @__fb__init = external global %fb.5
 
-define void @fb2(%fb2* %0) {
+define void @fb2(%fb2* %0) section "fn-fb2:v" {
 entry:
   %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
   ret void
 }
 
-declare void @fb(%fb.5*)
+declare void @fb(%fb.5*) section "fn-fb:v"
 
 ; ModuleID = 'fb3.st'
 source_filename = "fb3.st"
@@ -59,8 +59,7 @@ source_filename = "fb3.st"
 
 @__fb3__init = unnamed_addr constant %fb3 zeroinitializer
 
-define void @fb3(%fb3* %0) {
+define void @fb3(%fb3* %0) section "fn-fb3:v" {
 entry:
   ret void
 }
-

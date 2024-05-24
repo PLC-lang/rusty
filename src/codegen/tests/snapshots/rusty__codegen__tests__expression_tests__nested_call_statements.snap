@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer
 
-define i32 @foo(i32 %0) {
+define i32 @foo(i32 %0) section "fn-foo:i32[i32]" {
 entry:
   %foo = alloca i32, align 4
   %a = alloca i32, align 4
@@ -19,10 +19,9 @@ entry:
   ret i32 %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %call = call i32 @foo(i32 2)
   %call1 = call i32 @foo(i32 %call)
   ret void
 }
-

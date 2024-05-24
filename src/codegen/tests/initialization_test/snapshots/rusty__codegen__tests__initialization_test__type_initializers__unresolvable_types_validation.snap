@@ -2,9 +2,9 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
-error: Some initial values were not generated
+error[E075]: Some initial values were not generated
 
-error: Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived
+error[E041]: Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived
   ┌─ <internal>:9:31
   │
 7 │         TYPE MyStruct2: STRUCT

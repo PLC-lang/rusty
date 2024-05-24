@@ -2,7 +2,7 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error: Could not resolve reference to var1
+error[E048]: Could not resolve reference to var1
   ┌─ <internal>:7:28
   │
 7 │                 i := INT#s.var1; // illegal, var1 cannot be found in INT

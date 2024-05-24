@@ -1,0 +1,50 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error[E040]: Invalid enum value `red` for `(metallic := 1, matte := 2, neon := 3) := red`
+  ┌─ <internal>:7:63
+  │
+7 │                 y : (metallic := 1, matte := 2, neon := 3) := red; // error
+  │                     ------------------------------------------^^^
+  │                     │                                         │
+  │                     │                                         Invalid enum value `red` for `(metallic := 1, matte := 2, neon := 3) := red`
+  │                     see also
+
+note[E092]: Replace `yellow` with `x1`
+   ┌─ <internal>:10:55
+   │
+10 │                 var1 : (x1 := 1, x2 := 2, x3 := 3) := yellow;   // warning
+   │                        -------------------------------^^^^^^
+   │                        │                              │
+   │                        │                              Replace `yellow` with `x1`
+   │                        see also
+
+error[E040]: Invalid enum value `neon` for `(x5, x6, x7) := neon`
+   ┌─ <internal>:11:40
+   │
+11 │                 var2 : (x5, x6, x7) := neon;                    // error
+   │                        ----------------^^^^
+   │                        │               │
+   │                        │               Invalid enum value `neon` for `(x5, x6, x7) := neon`
+   │                        see also
+
+error[E040]: Invalid enum value `7` for `(a, b, c) := 7`
+   ┌─ <internal>:12:37
+   │
+12 │                 var3 : (a, b, c) := 7;                          // error
+   │                        -------------^
+   │                        │            │
+   │                        │            Invalid enum value `7` for `(a, b, c) := 7`
+   │                        see also
+
+note[E092]: Replace `2` with `green`
+  ┌─ <internal>:2:45
+  │
+2 │                 x : (red, yellow, green) := 2; // error
+  │                     ------------------------^
+  │                     │                       │
+  │                     │                       Replace `2` with `green`
+  │                     see also
+
+

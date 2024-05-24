@@ -13,14 +13,14 @@ source_filename = "main"
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo2(%foo2* %0) {
+define void @foo2(%foo2* %0) section "fn-foo2:v[pi32][i32]" {
 entry:
   %inout = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
   %in = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 1
   ret void
 }
 
-define void @foo(%foo* %0) {
+define void @foo(%foo* %0) section "fn-foo:v[pi32]" {
 entry:
   %inout = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %deref = load i32*, i32** %inout, align 8
@@ -32,11 +32,10 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 8
   call void @foo(%foo* @foo_instance)
   ret void
 }
-

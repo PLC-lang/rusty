@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+  ┌─ <internal>:9:18
+  │
+9 │             a := FOO();
+  │                  ^^^^^^ Implicit downcast from 'DINT' to 'INT'.

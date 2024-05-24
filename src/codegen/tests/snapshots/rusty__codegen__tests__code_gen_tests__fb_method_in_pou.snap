@@ -12,14 +12,14 @@ source_filename = "main"
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @MyClass(%MyClass* %0) {
+define void @MyClass(%MyClass* %0) section "fn-MyClass:v" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-MyClass.testMethod:v[i16]" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
@@ -38,7 +38,7 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -57,4 +57,3 @@ entry:
   call void @MyClass.testMethod(%MyClass* %cl, %MyClass.testMethod* %MyClass.testMethod_instance3)
   ret void
 }
-

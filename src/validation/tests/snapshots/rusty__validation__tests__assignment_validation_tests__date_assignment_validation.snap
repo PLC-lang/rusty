@@ -2,46 +2,50 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+warning[E067]: Implicit downcast from 'LREAL' to 'DATE'.
+   ┌─ <internal>:29:15
+   │
+29 │     v_date := v_lreal; // valid
+   │               ^^^^^^^ Implicit downcast from 'LREAL' to 'DATE'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:39:5
    │
 39 │     v_date := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:40:5
    │
 40 │     v_date := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:41:5
    │
 41 │     v_date := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
    ┌─ <internal>:42:5
    │
 42 │     v_date := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
    ┌─ <internal>:43:5
    │
 43 │     v_date := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:47:5
    │
 47 │     v_date := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:49:5
    │
 49 │     v_date := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
-
-

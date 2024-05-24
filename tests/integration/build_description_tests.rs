@@ -130,7 +130,13 @@ fn build_with_cc_linker() {
         _ => "x86_64-unknown-linux-gnu",
 
         #[cfg(target_arch = "aarch64")]
-        _ => "aarch64-unknown-linux-gnu",
+        _ => match () {
+            #[cfg(target_os = "macos")]
+            _ => "aarch64-apple-darwin",
+
+            #[cfg(not(target_os = "macos"))]
+            _ => "aarch64-unknown-linux-gnu",
+        },
     };
 
     let parameters = &[

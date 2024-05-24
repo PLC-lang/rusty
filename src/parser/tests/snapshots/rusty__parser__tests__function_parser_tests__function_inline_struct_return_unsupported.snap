@@ -2,31 +2,31 @@
 source: src/parser/tests/function_parser_tests.rs
 expression: diagnostics
 ---
-error: Data Type STRUCT x : INT; y : INT; END_STRUCT not supported as a function return type!
+error[E027]: Data Type STRUCT x : INT; y : INT; END_STRUCT not supported as a function return type!
   ┌─ <internal>:1:16
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION
   │                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Data Type STRUCT x : INT; y : INT; END_STRUCT not supported as a function return type!
 
-error: Unexpected token: expected Literal but found END_STRUCT
+error[E007]: Unexpected token: expected Literal but found END_STRUCT
   ┌─ <internal>:1:41
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION
   │                                         ^^^^^^^^^^ Unexpected token: expected Literal but found END_STRUCT
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_STRUCT VAR_INPUT END_VAR'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_STRUCT VAR_INPUT END_VAR'
   ┌─ <internal>:1:41
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION
   │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_STRUCT VAR_INPUT END_VAR'
 
-error: Missing expected Token [KeywordSemicolon, KeywordColon]
+error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
   ┌─ <internal>:1:70
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION
   │                                                                      ^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION'
   ┌─ <internal>:1:70
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION

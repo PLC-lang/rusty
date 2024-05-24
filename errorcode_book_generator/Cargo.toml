@@ -1,0 +1,13 @@
+[package]
+name = "errorcode_book_generator"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "4.5.4"
+mdbook = "0.4.37"
+semver = "1.0.22"
+serde_json.workspace = true
+toml.workspace = true

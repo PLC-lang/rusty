@@ -2,19 +2,19 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected Literal but found END_PROGRAM
+error[E007]: Unexpected token: expected Literal but found END_PROGRAM
   ┌─ <internal>:8:12
   │
 8 │            END_PROGRAM
   │            ^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROGRAM
 
-error: Missing expected Token [KeywordEndRepeat]
+error[E006]: Missing expected Token [KeywordEndRepeat]
   ┌─ <internal>:8:12
   │
 8 │            END_PROGRAM
   │            ^^^^^^^^^^^ Missing expected Token [KeywordEndRepeat]
 
-error: Unexpected token: expected KeywordEndRepeat but found 'END_PROGRAM'
+error[E007]: Unexpected token: expected KeywordEndRepeat but found 'END_PROGRAM'
   ┌─ <internal>:8:12
   │
 8 │            END_PROGRAM

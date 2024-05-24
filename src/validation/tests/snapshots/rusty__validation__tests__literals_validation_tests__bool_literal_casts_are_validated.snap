@@ -2,19 +2,19 @@
 source: src/validation/tests/literals_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Literal 2 out of range (BOOL)
+error[E053]: Literal 2 out of range (BOOL)
   ┌─ <internal>:7:13
   │
 7 │             BOOL#2;
   │             ^^^^^^ Literal 2 out of range (BOOL)
 
-error: Literal 2.3 is not compatible to BOOL
+error[E054]: Literal 2.3 is not compatible to BOOL
   ┌─ <internal>:8:13
   │
 8 │             BOOL#2.3;
   │             ^^^^^^^^ Literal 2.3 is not compatible to BOOL
 
-error: Literal 'abc' is not compatible to BOOL
+error[E054]: Literal 'abc' is not compatible to BOOL
   ┌─ <internal>:9:13
   │
 9 │             BOOL#'abc';

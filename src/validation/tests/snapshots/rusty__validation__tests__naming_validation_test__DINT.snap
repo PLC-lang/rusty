@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: DINT can not be used as a name because it is a built-in datatype
+error[E004]: DINT can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE DINT : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^ DINT can not be used as a name because it is a built-in datatype
 
-error: DINT: Ambiguous datatype.
+error[E004]: DINT: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE DINT : STRUCT x : DINT; END_STRUCT END_TYPE

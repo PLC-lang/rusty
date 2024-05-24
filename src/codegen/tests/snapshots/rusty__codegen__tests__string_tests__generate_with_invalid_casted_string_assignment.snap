@@ -2,7 +2,7 @@
 source: src/codegen/tests/string_tests.rs
 expression: result
 ---
-error: Cannot generate String-Literal for type INT
+error[E074]: Cannot generate String-Literal for type INT
   ┌─ <internal>:5:10
   │
 5 │ y := INT#"seven";

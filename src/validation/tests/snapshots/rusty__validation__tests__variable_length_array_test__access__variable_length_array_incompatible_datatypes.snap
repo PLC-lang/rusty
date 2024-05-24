@@ -2,19 +2,19 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF INT' to 'ARRAY[*] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF INT' to 'ARRAY[*] OF DINT'
    ┌─ <internal>:15:20
    │
 15 │                 fn(local_int);
    │                    ^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF INT' to 'ARRAY[*] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF REAL' to 'ARRAY[*] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF REAL' to 'ARRAY[*] OF DINT'
    ┌─ <internal>:16:20
    │
 16 │                 fn(local_float);
    │                    ^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF REAL' to 'ARRAY[*] OF DINT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRAY[*] OF DINT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRAY[*] OF DINT'
    ┌─ <internal>:17:20
    │
 17 │                 fn(local_string);

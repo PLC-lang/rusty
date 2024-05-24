@@ -2,121 +2,121 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type SINT
+warning[E039]: This will overflow for type SINT
   ┌─ <internal>:5:40
   │
 5 │                 min_sint    : SINT  := -129;    // -128
   │                                        ^^^^ This will overflow for type SINT
 
-warning: This will overflow for type SINT
+warning[E039]: This will overflow for type SINT
   ┌─ <internal>:6:41
   │
 6 │                 max_sint    : SINT  :=  128;    //  127
   │                                         ^^^ This will overflow for type SINT
 
-warning: This will overflow for type USINT
+warning[E039]: This will overflow for type USINT
   ┌─ <internal>:7:41
   │
 7 │                 min_usint   : USINT  := -1;     // 0
   │                                         ^^ This will overflow for type USINT
 
-warning: This will overflow for type USINT
+warning[E039]: This will overflow for type USINT
   ┌─ <internal>:8:41
   │
 8 │                 max_usint   : USINT  := 257;    // 256
   │                                         ^^^ This will overflow for type USINT
 
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
    ┌─ <internal>:11:39
    │
 11 │                 min_int     : INT  := -32_769;  // -32768
    │                                       ^^^^^^^ This will overflow for type INT
 
-warning: This will overflow for type INT
+warning[E039]: This will overflow for type INT
    ┌─ <internal>:12:39
    │
 12 │                 max_int     : INT  := 32_768;   //  32767
    │                                       ^^^^^^ This will overflow for type INT
 
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
    ┌─ <internal>:13:40
    │
 13 │                 min_uint    : UINT  := -1;      // 0
    │                                        ^^ This will overflow for type UINT
 
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
    ┌─ <internal>:14:40
    │
 14 │                 max_uint    : UINT  := 65_537;  // 65536
    │                                        ^^^^^^ This will overflow for type UINT
 
-warning: This will overflow for type DINT
+warning[E039]: This will overflow for type DINT
    ┌─ <internal>:17:40
    │
 17 │                 min_dint    : DINT  := -2_147_483_649;  // -2_147_483_648
    │                                        ^^^^^^^^^^^^^^ This will overflow for type DINT
 
-warning: This will overflow for type DINT
+warning[E039]: This will overflow for type DINT
    ┌─ <internal>:18:41
    │
 18 │                 max_dint    : DINT  :=  2_147_483_648;  //  2_147_483_647
    │                                         ^^^^^^^^^^^^^ This will overflow for type DINT
 
-warning: This will overflow for type UDINT
+warning[E039]: This will overflow for type UDINT
    ┌─ <internal>:19:41
    │
 19 │                 min_udint   : UDINT  := -1;             // 0
    │                                         ^^ This will overflow for type UDINT
 
-warning: This will overflow for type UDINT
+warning[E039]: This will overflow for type UDINT
    ┌─ <internal>:20:41
    │
 20 │                 max_udint   : UDINT  := 4_294_967_296;  // 4_294_967_296
    │                                         ^^^^^^^^^^^^^ This will overflow for type UDINT
 
-warning: This will overflow for type LINT
+warning[E039]: This will overflow for type LINT
    ┌─ <internal>:23:40
    │
 23 │                 min_lint    : LINT  := -9_223_372_036_854_775_809;  // -9_223_372_036_854_775_808
    │                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
 
-warning: This will overflow for type LINT
+warning[E039]: This will overflow for type LINT
    ┌─ <internal>:24:41
    │
 24 │                 max_lint    : LINT  :=  9_223_372_036_854_775_808;  //  9_223_372_036_854_775_807
    │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LINT
 
-warning: This will overflow for type ULINT
+warning[E039]: This will overflow for type ULINT
    ┌─ <internal>:25:41
    │
 25 │                 min_ulint   : ULINT  := -1;                         // 0
    │                                         ^^ This will overflow for type ULINT
 
-warning: This will overflow for type ULINT
+warning[E039]: This will overflow for type ULINT
    ┌─ <internal>:26:41
    │
 26 │                 max_ulint   : ULINT  := 18_446_744_073_709_551_616; // 18_446_744_073_709_551_615
    │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type ULINT
 
-warning: This will overflow for type REAL
+warning[E039]: This will overflow for type REAL
    ┌─ <internal>:29:37
    │
 29 │                 min_real : REAL := -3.50282347E+38; // -3.40282347E+38
    │                                     ^^^^^^^^^^^^^^ This will overflow for type REAL
 
-warning: This will overflow for type REAL
+warning[E039]: This will overflow for type REAL
    ┌─ <internal>:30:37
    │
 30 │                 max_real : REAL :=  3.50282347E+38; //  3.40282347E+38
    │                                     ^^^^^^^^^^^^^^ This will overflow for type REAL
 
-warning: This will overflow for type LREAL
+warning[E039]: This will overflow for type LREAL
    ┌─ <internal>:33:39
    │
 33 │                 min_lreal : LREAL := -1.8076931348623157E+308; // -1.7976931348623157E+308
    │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
 
-warning: This will overflow for type LREAL
+warning[E039]: This will overflow for type LREAL
    ┌─ <internal>:34:39
    │
 34 │                 max_lreal : LREAL :=  1.8076931348623157E+308; //  1.7976931348623157E+308

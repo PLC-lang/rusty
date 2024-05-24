@@ -2,13 +2,13 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'INT' to 'STRING'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'STRING'
    ┌─ <internal>:11:13
    │
 11 │             my_str := i;
    │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'STRING'
 
-error: Invalid assignment: cannot assign 'INT' to 'MY_OTHER_STR'
+error[E037]: Invalid assignment: cannot assign 'INT' to 'MY_OTHER_STR'
    ┌─ <internal>:12:13
    │
 12 │             my_other_str := i;

@@ -142,7 +142,7 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfigura
         .collect();
 
     conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
-        .map_err(|message| Diagnostic::error(message).with_error_code("E002"))
+        .map_err(|message| Diagnostic::new(message).with_error_code("E002"))
 }
 
 pub fn generate_hardware_configuration(
@@ -151,10 +151,10 @@ pub fn generate_hardware_configuration(
 ) -> Result<String, Diagnostic> {
     match format {
         ConfigFormat::JSON => serde_json::to_string_pretty(&config).map_err(|e| {
-            Diagnostic::error(e.to_string()).with_error_code("E002").with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code("E002").with_internal_error(e.into())
         }),
         ConfigFormat::TOML => toml::ser::to_string_pretty(&config).map_err(|e| {
-            Diagnostic::error(e.to_string()).with_error_code("E002").with_internal_error(e.into())
+            Diagnostic::new(e.to_string()).with_error_code("E002").with_internal_error(e.into())
         }),
     }
 }

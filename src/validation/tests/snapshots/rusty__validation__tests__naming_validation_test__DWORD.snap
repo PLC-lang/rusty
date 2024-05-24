@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: DWORD can not be used as a name because it is a built-in datatype
+error[E004]: DWORD can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE DWORD : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^^ DWORD can not be used as a name because it is a built-in datatype
 
-error: DWORD: Ambiguous datatype.
+error[E004]: DWORD: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE DWORD : STRUCT x : DINT; END_STRUCT END_TYPE

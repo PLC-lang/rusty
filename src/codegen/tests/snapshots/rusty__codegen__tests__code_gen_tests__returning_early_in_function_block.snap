@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
 
-define void @abcdef(%abcdef* %0) {
+define void @abcdef(%abcdef* %0) section "fn-abcdef:v[i8]" {
 entry:
   %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
   %load_n = load i8, i8* %n, align 1
@@ -28,4 +28,3 @@ buffer_block:                                     ; No predecessors!
 continue:                                         ; preds = %buffer_block, %entry
   ret void
 }
-

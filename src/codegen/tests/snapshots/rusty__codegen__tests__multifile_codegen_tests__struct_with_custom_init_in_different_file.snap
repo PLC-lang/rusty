@@ -28,10 +28,9 @@ source_filename = "prog.st"
 @__myStruct2__init = external global %myStruct2.3
 @__prog.x__init = unnamed_addr constant %myStruct.2 { i32 5, i16 2 }
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v" {
 entry:
   %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %y = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
   ret void
 }
-

@@ -6,7 +6,7 @@ expression: result
 source_filename = "main"
 
 %STRUCT_params = type { i8, i8, i8 }
-%prog = type { %STRUCT_params*, %STRUCT_params*, %STRUCT_params* }
+%prog = type { %STRUCT_params*, %STRUCT_params* }
 %main = type {}
 
 @global1 = global %STRUCT_params zeroinitializer
@@ -19,24 +19,20 @@ source_filename = "main"
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(%prog* %0) section "fn-prog:v[pv][pv]" {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-  %input3 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
-  store %STRUCT_params* @global3, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 2), align 8
   call void @prog(%prog* @prog_instance)
   store %STRUCT_params* bitcast (i32* @global4 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* bitcast ([81 x i8]* @global5 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
-  store %STRUCT_params* bitcast (float* @global6 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 2), align 8
   call void @prog(%prog* @prog_instance)
   ret void
 }
-

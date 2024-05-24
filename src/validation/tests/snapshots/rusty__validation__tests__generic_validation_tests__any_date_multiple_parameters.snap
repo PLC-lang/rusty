@@ -2,55 +2,55 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid type nature for generic argument. REAL is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_DATE
    ┌─ <internal>:15:14
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │              ^^^^^^^^ Invalid type nature for generic argument. REAL is no ANY_DATE
 
-error: Invalid type nature for generic argument. UDINT is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. UDINT is no ANY_DATE
    ┌─ <internal>:15:24
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                        ^^^^^^^^^^^^ Invalid type nature for generic argument. UDINT is no ANY_DATE
 
-error: Invalid type nature for generic argument. DINT is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_DATE
    ┌─ <internal>:15:38
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                      ^^^^^^^^^^ Invalid type nature for generic argument. DINT is no ANY_DATE
 
-error: Invalid type nature for generic argument. TIME is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. TIME is no ANY_DATE
    ┌─ <internal>:15:50
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                  ^^^^^^^^ Invalid type nature for generic argument. TIME is no ANY_DATE
 
-error: Invalid type nature for generic argument. BYTE is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. BYTE is no ANY_DATE
    ┌─ <internal>:15:60
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_DATE
 
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid type nature for generic argument. STRING is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. STRING is no ANY_DATE
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_DATE
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
 
-error: Invalid type nature for generic argument. CHAR is no ANY_DATE
+error[E062]: Invalid type nature for generic argument. CHAR is no ANY_DATE
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);

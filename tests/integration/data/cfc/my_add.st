@@ -10,7 +10,7 @@ END_VAR
     // x := x + y + 1
     adder();
     main := adder.x;
-END_PROGRAM
+END_FUNCTION
 
 FUNCTION myAdd : DINT
 VAR_INPUT

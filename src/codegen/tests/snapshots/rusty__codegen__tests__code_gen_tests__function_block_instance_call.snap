@@ -11,17 +11,16 @@ source_filename = "main"
 @__foo__init = unnamed_addr constant %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(%foo* %0) section "fn-foo:v[i16][i16]" {
 entry:
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %fb_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   call void @foo(%foo* %fb_inst)
   ret void
 }
-

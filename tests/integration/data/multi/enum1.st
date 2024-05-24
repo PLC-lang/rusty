@@ -1,0 +1,5 @@
+FUNCTION_BLOCK FOO
+VAR
+	foo_enum : (stop, go) := go;
+END_VAR
+END_FUNCTION_BLOCK

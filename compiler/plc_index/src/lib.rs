@@ -3,13 +3,13 @@ use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, Default)]
 pub struct GlobalContext {
     /// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
-    sources: HashMap<&'static str, SourceCode>,
+    sources: FxHashMap<&'static str, SourceCode>,
 
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
@@ -24,7 +24,7 @@ pub struct GlobalContext {
 
 impl GlobalContext {
     pub fn new() -> Self {
-        Self { sources: HashMap::new(), provider: IdProvider::default() }
+        Self { sources: FxHashMap::default(), provider: IdProvider::default() }
     }
 
     /// Inserts a single [`SourceCode`] to the internal source map
@@ -35,7 +35,7 @@ impl GlobalContext {
         match container.load_source(encoding) {
             Ok(value) => self.sources.insert(container.get_location_str(), value),
             Err(why) => {
-                return Err(Diagnostic::error(format!(
+                return Err(Diagnostic::new(format!(
                     "Cannot read file '{}': {}'",
                     container.get_location_str(),
                     &why
@@ -76,6 +76,8 @@ impl GlobalContext {
         let slice = self.slice_raw(location);
         slice.split_whitespace().collect::<Vec<_>>().join(" ")
     }
+
+    // TODO(volsa): Transfer `get_datatype_name_or_slice(...)` here once crates / workspaces have been finalized
 
     /// Returns a slice representing the specified location of the source code.
     /// If the location, i.e. file path, does not exist an empty string will be returned.

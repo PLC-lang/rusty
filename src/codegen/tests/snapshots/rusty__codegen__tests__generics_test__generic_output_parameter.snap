@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer
 
-define i16 @foo__INT(i64 %0, i16* %1) {
+define i16 @foo__INT(i64 %0, i16* %1) section "fn-foo__INT:i16[i64][pi16]" {
 entry:
   %foo__INT = alloca i16, align 2
   %in1 = alloca i64, align 8
@@ -21,7 +21,7 @@ entry:
   ret i16 %foo__INT_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %theInt = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %iResult = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -31,4 +31,3 @@ entry:
   store i16 %call, i16* %iResult, align 2
   ret void
 }
-

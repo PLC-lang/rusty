@@ -48,9 +48,9 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
         DataType::StructType { variables, .. } => {
             if variables.is_empty() {
                 validator.push_diagnostic(
-                    Diagnostic::error("Variable block is empty")
+                    Diagnostic::new("Variable block is empty")
                         .with_error_code("E028")
-                        .with_location(location.clone()),
+                        .with_location(location),
                 );
             }
         }
@@ -59,15 +59,13 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
             ..
         } if expressions.is_empty() => {
             validator.push_diagnostic(
-                Diagnostic::error("Variable block is empty")
-                    .with_error_code("E028")
-                    .with_location(location.clone()),
+                Diagnostic::new("Variable block is empty").with_error_code("E028").with_location(location),
             );
         }
         DataType::VarArgs { referenced_type: None, sized: true } => validator.push_diagnostic(
-            Diagnostic::error("Missing datatype: Sized Variadics require a known datatype.")
+            Diagnostic::new("Missing datatype: Sized Variadics require a known datatype.")
                 .with_error_code("E038")
-                .with_location(location.clone()),
+                .with_location(location),
         ),
         _ => {}
     }

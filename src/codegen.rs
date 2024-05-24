@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::index::*;
-use indexmap::IndexSet;
+
 use inkwell::{
     attributes::{Attribute, AttributeLoc},
     context::Context,
@@ -103,7 +103,7 @@ impl<'ink> CodeGen<'ink> {
         context: &'ink CodegenContext,
         annotations: &AstAnnotations,
         literals: &StringLiterals,
-        dependencies: &IndexSet<Dependency>,
+        dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
@@ -244,8 +244,8 @@ impl<'ink> CodeGen<'ink> {
         {
             self.module
                 .verify()
-                .map_err(|it| Diagnostic::GeneralError { message: it.to_string(), err_no: "E071" })
-                .map(|_| GeneratedModule { module: self.module, debug: self.debug })
+                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))
+                .map(|_| GeneratedModule { module: self.module, engine: RefCell::new(None) })
         }
 
         #[cfg(not(feature = "verify"))]
@@ -256,16 +256,16 @@ impl<'ink> CodeGen<'ink> {
 impl<'ink> GeneratedModule<'ink> {
     pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
         let module = Module::parse_bitcode_from_path(path, context.deref())
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code("E071"))?;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
         Ok(GeneratedModule { module, engine: RefCell::new(None) })
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
         let buffer = MemoryBuffer::create_from_file(path)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code("E071"))?;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
         let module = context
             .create_module_from_ir(buffer)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code("E071"))?;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
 
         log::debug!("{}", module.to_string());
 
@@ -275,7 +275,7 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
         self.module
             .link_in_module(other.module)
-            .map_err(|it| Diagnostic::error(it.to_string_lossy()).with_error_code("E071"))?;
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
         log::debug!("Merged: {}", self.module.to_string());
 
         Ok(self)
@@ -466,7 +466,7 @@ impl<'ink> GeneratedModule<'ink> {
         self.module
             .print_to_file(&output)
             .map_err(|err| {
-                Diagnostic::error(format!(
+                Diagnostic::new(format!(
                     "Cannot write file {} {}",
                     output.to_str().unwrap_or_default(),
                     err.to_string()

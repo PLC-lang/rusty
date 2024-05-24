@@ -77,6 +77,8 @@ pub struct Project<T: SourceContainer> {
     objects: Vec<Object>,
     /// Libraries included in the project configuration
     libraries: Vec<LibraryInformation<T>>,
+    /// Additional library paths to consider
+    library_paths: Vec<PathBuf>,
     /// Output format
     format: FormatOption,
     /// Output Name
@@ -169,10 +171,11 @@ impl Project<PathBuf> {
             output: project_config.output,
             includes: vec![],
             objects: vec![],
+            library_paths: vec![],
         })
     }
 
-    pub fn with_file_pathes(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_file_paths(self, files: Vec<PathBuf>) -> Self {
         let mut proj = self;
         let files = resolve_file_paths(proj.get_location(), files).unwrap();
         for file in files {
@@ -186,9 +189,15 @@ impl Project<PathBuf> {
         proj
     }
 
-    pub fn with_include_pathes(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_include_paths(self, files: Vec<PathBuf>) -> Self {
         let mut proj = self;
         proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
+        proj
+    }
+
+    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
+        let mut proj = self;
+        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
         proj
     }
 
@@ -203,6 +212,10 @@ impl Project<PathBuf> {
         proj.output = output.or(proj.output);
         proj
     }
+
+    pub fn get_library_paths(&self) -> &[PathBuf] {
+        &self.library_paths
+    }
 }
 
 impl<S: SourceContainer> Project<S> {
@@ -214,6 +227,7 @@ impl<S: SourceContainer> Project<S> {
             includes: vec![],
             objects: vec![],
             libraries: vec![],
+            library_paths: vec![],
             format: FormatOption::default(),
             output: None,
         }
@@ -281,10 +295,17 @@ impl<S: SourceContainer> Project<S> {
     pub fn get_output_format(&self) -> FormatOption {
         self.format
     }
+
+    /// Returns the validation schema used for this project
+    pub fn get_validation_schema(&self) -> impl AsRef<str> {
+        include_str!("../schema/plc-json.schema")
+    }
 }
 
 fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut sources = Vec::new();
+    //Ensure we are working with a directory
+    let location = location.and_then(|it| if it.is_file() { it.parent() } else { Some(it) });
     for input in &inputs {
         let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         let path = &input.to_string_lossy();

@@ -70,7 +70,7 @@ fn validate_array<T: AnnotationMap>(
     let stmt_rhs = peel(rhs_stmt);
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
-            Diagnostic::error("Array assignments must be surrounded with `[]`")
+            Diagnostic::new("Array assignments must be surrounded with `[]`")
                 .with_error_code("E043")
                 .with_location(stmt_rhs.get_location()),
         );
@@ -88,7 +88,7 @@ fn validate_array<T: AnnotationMap>(
         let name = statement.lhs_name(validator.context);
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(
-            Diagnostic::error(format!(
+            Diagnostic::new(format!(
                 "Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided"
             ))
             .with_error_code("E043")
@@ -116,7 +116,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
         AstStatement::ExpressionList(expressions) => {
             for invalid in expressions.iter().filter(|it| !it.is_paren()) {
                 validator.push_diagnostic(
-                    Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
+                    Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                         .with_error_code("E043")
                         .with_location(invalid.get_location()),
                 );
@@ -126,7 +126,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
         // arr := [foo := 0]
         AstStatement::Assignment(..) => {
             validator.push_diagnostic(
-                Diagnostic::error("Struct initializers within arrays have to be wrapped by `()`")
+                Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                     .with_error_code("E043")
                     .with_location(rhs_stmt.get_location()),
             );

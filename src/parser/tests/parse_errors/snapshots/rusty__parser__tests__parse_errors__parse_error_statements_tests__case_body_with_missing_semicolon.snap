@@ -2,13 +2,13 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error: Missing expected Token [KeywordSemicolon, KeywordColon]
+error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
   ┌─ <internal>:4:12
   │
 4 │            END_CASE
   │            ^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
 
-error: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
+error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
   ┌─ <internal>:4:12
   │
 4 │            END_CASE

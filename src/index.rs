@@ -1,11 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    builtins::{self, BuiltIn},
-    datalayout::DataLayout,
-    typesystem::{self, *},
-};
-use indexmap::IndexMap;
+
+use std::hash::BuildHasherDefault;
+
 use itertools::Itertools;
+use rustc_hash::{FxHashSet, FxHasher};
+
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
     TypeNature,
@@ -13,6 +12,12 @@ use plc_ast::ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+
+use crate::{
+    builtins::{self, BuiltIn},
+    datalayout::DataLayout,
+    typesystem::{self, *},
+};
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
@@ -23,9 +28,16 @@ use self::{
 pub mod const_expressions;
 mod instance_iterator;
 pub mod symbol;
+pub mod visitor;
+
 #[cfg(test)]
 mod tests;
-pub mod visitor;
+
+/// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+
+/// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexSet<K> = indexmap::IndexSet<K, BuildHasherDefault<FxHasher>>;
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit
@@ -317,6 +329,10 @@ impl ArgumentType {
 
     pub fn is_private(&self) -> bool {
         matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
+    }
+
+    pub fn is_input(&self) -> bool {
+        matches!(self.get_inner_ref(), VariableType::Input)
     }
 }
 
@@ -703,6 +719,13 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Function { .. })
     }
 
+    pub fn is_void_function(&self) -> bool {
+        match self {
+            PouIndexEntry::Function { return_type, .. } => return_type.as_str() == VOID_TYPE,
+            _ => false,
+        }
+    }
+
     pub fn is_function_block(&self) -> bool {
         matches!(self, PouIndexEntry::FunctionBlock { .. })
     }
@@ -799,7 +822,7 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    global_variables: SymbolMap<String, VariableIndexEntry>, // IndexMap<String, Vec<VariableIndexEntry>>,
+    global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all struct initializers
     global_initializers: SymbolMap<String, VariableIndexEntry>,
@@ -807,16 +830,13 @@ pub struct Index {
     /// all enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    /// all enum-members with their qualified names <enum-type>.<element-name>
-    enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
-
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
-    implementations: IndexMap<String, ImplementationIndexEntry>,
+    implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -827,7 +847,7 @@ pub struct Index {
     data_layout: DataLayout,
 
     /// The labels contained in each pou
-    labels: IndexMap<String, SymbolMap<String, Label>>,
+    labels: FxIndexMap<String, SymbolMap<String, Label>>,
 }
 
 impl Index {
@@ -845,20 +865,6 @@ impl Index {
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
             self.global_variables.insert_many(name, entries);
-        }
-
-        //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
-        for (qualified_name, elements) in other.enum_qualified_variables.drain(..) {
-            let elements = elements
-                .into_iter()
-                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
-                .collect::<Vec<_>>();
-
-            for e in elements.iter() {
-                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
-            }
-
-            self.enum_qualified_variables.insert_many(qualified_name, elements);
         }
 
         //initializers
@@ -900,6 +906,19 @@ impl Index {
                                 })
                                 .collect::<Vec<_>>();
                             members.append(&mut variables);
+                        }
+                        DataTypeInformation::Enum { variants, .. } => {
+                            let mut variables = variants
+                                .drain(..)
+                                .map(|variable| {
+                                    self.transfer_constants(variable, &mut other.constant_expressions)
+                                })
+                                .collect::<Vec<_>>();
+
+                            for e in variables.iter() {
+                                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                            }
+                            variants.append(&mut variables);
                         }
                         _ => {}
                     }
@@ -1054,13 +1073,14 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
-        self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
-            //check qualifier
-            container_name
+        self.type_index
+            .find_type(container_name)
+            .and_then(|it| it.find_member(variable_name))
+            .or(self.find_enum_variant_in_pou(container_name, variable_name))
+            .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name))
-        })
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1112,27 +1132,47 @@ impl Index {
             None => self.find_global_variable(segments[0]),
         };
 
-        segments
-            .iter()
-            .skip(1)
-            .try_fold((segments[0], init), |accum, current| match accum {
-                (_, Some(context)) => Some((*current, self.find_member(&context.data_type_name, current))),
-                // The variable could be in a block that has no global variable (Function block)
-                (name, None) => Some((*current, self.find_member(name, current))),
-            })
-            .and_then(|(_, it)| it)
+        segments.iter().skip(1).fold(init, |context, current| {
+            context.and_then(|context| self.find_member(&context.data_type_name, current))
+        })
     }
 
-    /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
-    /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&qualified_name(enum_name, element_name).to_lowercase())
+    /// Returns the index entry of the enum variant or [`None`] if it does not exist.
+    pub fn find_enum_variant(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.type_index.find_type(name)?.find_member(variant)
     }
 
-    /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
-    /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&qualified_name.to_lowercase())
+    /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not exist.
+    pub fn find_enum_variant_by_qualified_name(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
+        let (name, variant) = qualified_name.split('.').next_tuple()?;
+        self.find_enum_variant(name, variant)
+    }
+
+    /// Returns all enum variants of the given variable.
+    pub fn get_enum_variants_by_variable(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
+        let Some(var) = self.type_index.find_type(&variable.data_type_name) else { return vec![] };
+        let DataTypeInformation::Enum { variants, .. } = var.get_type_information() else { return vec![] };
+        variants.iter().collect()
+    }
+
+    /// Tries to return an enum variant defined within a POU
+    pub fn find_enum_variant_in_pou(&self, pou: &str, variant: &str) -> Option<&VariableIndexEntry> {
+        self.get_enum_variants_in_pou(pou)
+            .into_iter()
+            .find(|it| it.name == variant)
+            .or(self.find_enum_variant(pou, variant))
+    }
+
+    /// Returns all enum variants defined in the given POU
+    pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        let mut hs: FxHashSet<&VariableIndexEntry> = FxHashSet::default();
+        for member in self.get_pou_members(pou) {
+            if self.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
+                hs.insert(member);
+            }
+        }
+
+        hs.iter().flat_map(|variable| self.get_enum_variants_by_variable(variable)).collect()
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
@@ -1326,11 +1366,11 @@ impl Index {
         &self.global_initializers
     }
 
-    pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
-        &self.enum_qualified_variables
+    pub fn get_all_enum_variants(&self) -> Vec<&VariableIndexEntry> {
+        self.enum_global_variables.values().collect()
     }
 
-    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(&self) -> &FxIndexMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 
@@ -1419,21 +1459,20 @@ impl Index {
         .set_varargs(member_info.varargs)
     }
 
-    pub fn register_enum_element(
+    pub fn register_enum_variant(
         &mut self,
-        element_name: &str,
-        enum_type_name: &str,
+        name: &str,
+        variant: &str,
         initial_value: Option<ConstId>,
         source_location: SourceLocation,
-    ) {
-        let qualified_name = qualified_name(enum_type_name, element_name);
-        let entry =
-            VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
-                .set_constant(true)
-                .set_initial_value(initial_value);
-        self.enum_global_variables.insert(element_name.to_lowercase(), entry.clone());
+    ) -> VariableIndexEntry {
+        let qualified_name = qualified_name(name, variant);
+        let entry = VariableIndexEntry::create_global(variant, &qualified_name, name, source_location)
+            .set_constant(true)
+            .set_initial_value(initial_value);
 
-        self.enum_qualified_variables.insert(qualified_name.to_lowercase(), entry);
+        self.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
+        entry
     }
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {

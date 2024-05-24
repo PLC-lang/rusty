@@ -2,13 +2,13 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-error: Could not resolve reference to xxx
+error[E048]: Could not resolve reference to xxx
   ┌─ <internal>:7:41
   │
 7 │             unknown_reference : foo := (xxx := 1);
   │                                         ^^^ Could not resolve reference to xxx
 
-error: Array assignments must be surrounded with `[]`
+error[E043]: Array assignments must be surrounded with `[]`
   ┌─ <internal>:8:62
   │
 8 │             invalid_array_assignment : ARRAY[0..1] OF INT := 0;

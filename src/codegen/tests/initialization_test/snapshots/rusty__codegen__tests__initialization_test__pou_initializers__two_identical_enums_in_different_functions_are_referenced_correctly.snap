@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+expression: function
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@__foo_position.x = unnamed_addr constant i32 1
+@__bar_position.x = unnamed_addr constant i32 3
+@__foo_position.y = unnamed_addr constant i32 2
+@__bar_position.y = unnamed_addr constant i32 4
+
+define i32 @foo() section "fn-foo:i32" {
+entry:
+  %foo = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 1, i32* %position, align 4
+  store i32 0, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
+  ret i32 %foo_ret
+}
+
+define i32 @bar() section "fn-bar:i32" {
+entry:
+  %bar = alloca i32, align 4
+  %position = alloca i32, align 4
+  store i32 3, i32* %position, align 4
+  store i32 0, i32* %bar, align 4
+  %bar_ret = load i32, i32* %bar, align 4
+  ret i32 %bar_ret
+}

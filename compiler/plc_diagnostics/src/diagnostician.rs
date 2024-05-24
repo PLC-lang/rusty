@@ -1,7 +1,10 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::{
-    diagnostics::{Diagnostic, Severity},
+    diagnostics::{
+        diagnostics_registry::{DiagnosticsConfiguration, DiagnosticsRegistry},
+        Diagnostic, Severity,
+    },
     reporter::{
         clang::ClangFormatDiagnosticReporter, codespan::CodeSpanDiagnosticReporter,
         null::NullDiagnosticReporter, DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation,
@@ -13,7 +16,7 @@ use crate::{
 pub struct Diagnostician {
     reporter: Box<dyn DiagnosticReporter>,
     assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize>,
+    filename_fileid_mapping: FxHashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -40,6 +43,7 @@ impl Diagnostician {
                 res
             })
             .map(|d| ResolvedDiagnostics {
+                code: d.get_error_code().to_string(),
                 message: d.get_message().to_string(),
                 severity: self.assess(d),
                 main_location: ResolvedLocation {
@@ -69,18 +73,18 @@ impl Diagnostician {
     /// Creates a null-diagnostician that does not report diagnostics
     pub fn null_diagnostician() -> Diagnostician {
         Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::<NullDiagnosticReporter>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
     /// Creates a buffered-diagnostician that saves its reports in a buffer
     pub fn buffered() -> Diagnostician {
         Diagnostician {
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
             reporter: Box::new(CodeSpanDiagnosticReporter::buffered()),
-            filename_fileid_mapping: HashMap::new(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 
@@ -88,9 +92,24 @@ impl Diagnostician {
     pub fn clang_format_diagnostician() -> Diagnostician {
         Diagnostician {
             reporter: Box::<ClangFormatDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
+    }
+
+    pub fn with_configuration(self, configuration: DiagnosticsConfiguration) -> Self {
+        let mut res = self;
+        let registry = DiagnosticsRegistry::default().with_configuration(configuration);
+        res.assessor = Box::new(registry);
+        res
+    }
+
+    /// Explain the error with the given code by consulting the diagnostics registry
+    pub fn explain(&self, error: &str) -> String {
+        self.assessor.explain(error)
+    }
+    pub fn get_diagnostic_configuration(&self) -> String {
+        self.assessor.get_diagnostic_configuration()
     }
 }
 
@@ -115,6 +134,14 @@ impl DiagnosticAssessor for Diagnostician {
         //delegate to assesor
         self.assessor.assess(d)
     }
+
+    fn explain(&self, _error: &str) -> String {
+        unimplemented!("Error explanation is not supported on this diagnostian")
+    }
+
+    fn get_diagnostic_configuration(&self) -> String {
+        unimplemented!("Diagnostic configuration is not supported on this diagnostian")
+    }
 }
 
 //This clippy lint is wrong her because the trait is expecting dyn
@@ -123,8 +150,8 @@ impl Default for Diagnostician {
     fn default() -> Self {
         Self {
             reporter: Box::<CodeSpanDiagnosticReporter>::default(),
-            assessor: Box::<DefaultDiagnosticAssessor>::default(),
-            filename_fileid_mapping: HashMap::new(),
+            assessor: Box::<DiagnosticsRegistry>::default(),
+            filename_fileid_mapping: FxHashMap::default(),
         }
     }
 }
@@ -135,18 +162,12 @@ impl Default for Diagnostician {
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: &Diagnostic) -> Severity;
-}
-
-/// the default assessor will treat ImprovementSuggestions as warnings
-/// and everything else as errors
-#[derive(Default)]
-pub struct DefaultDiagnosticAssessor;
-
-impl DiagnosticAssessor for DefaultDiagnosticAssessor {
-    fn assess(&self, d: &Diagnostic) -> Severity {
-        //TODO: Refer to some severity map to reassign severity here.
-        d.get_severity()
-    }
+    //TODO should these be results
+    /// Explains the given error based on the diagnostician information
+    fn explain(&self, error: &str) -> String;
+    /// Returns a serialized version of the diagnostics configuration this diagnostician will use
+    /// to assess errors
+    fn get_diagnostic_configuration(&self) -> String;
 }
 
 impl std::fmt::Display for Severity {
@@ -155,6 +176,7 @@ impl std::fmt::Display for Severity {
             Severity::Error => "error",
             Severity::Warning => "warning",
             Severity::Info => "info",
+            Severity::Ignore => "ignore",
         };
         write!(f, "{severity}")
     }

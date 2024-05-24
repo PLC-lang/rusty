@@ -8,14 +8,13 @@ source_filename = "main"
 %main = type { i32 }
 
 @main_instance = global %main zeroinitializer
-@White = unnamed_addr constant i32 0
-@Red = unnamed_addr constant i32 1
-@Yellow = unnamed_addr constant i32 2
-@Green = unnamed_addr constant i32 3
+@TrafficLight.White = unnamed_addr constant i32 0
+@TrafficLight.Red = unnamed_addr constant i32 1
+@TrafficLight.Yellow = unnamed_addr constant i32 2
+@TrafficLight.Green = unnamed_addr constant i32 3
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %tf1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
 }
-

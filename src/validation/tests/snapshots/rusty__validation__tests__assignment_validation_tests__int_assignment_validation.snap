@@ -2,88 +2,194 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
+warning[E067]: Implicit downcast from 'LREAL' to 'UDINT'.
+   ┌─ <internal>:31:16
+   │
+31 │     v_udint := v_lreal; // valid
+   │                ^^^^^^^ Implicit downcast from 'LREAL' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'REAL' to 'UDINT'.
+   ┌─ <internal>:32:16
+   │
+32 │     v_udint := REAL#2.0; // valid
+   │                ^^^^^^^^ Implicit downcast from 'REAL' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'ULINT' to 'UDINT'.
+   ┌─ <internal>:33:16
+   │
+33 │     v_udint := v_ulint; // valid
+   │                ^^^^^^^ Implicit downcast from 'ULINT' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'ULINT' to 'UDINT'.
+   ┌─ <internal>:34:16
+   │
+34 │     v_udint := ULINT#10; // valid
+   │                ^^^^^^^^ Implicit downcast from 'ULINT' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'UDINT'.
+   ┌─ <internal>:37:16
+   │
+37 │     v_udint := v_time; // valid
+   │                ^^^^^^ Implicit downcast from 'TIME' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'UDINT'.
+   ┌─ <internal>:38:16
+   │
+38 │     v_udint := TIME#10h20m30s; // valid
+   │                ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'UDINT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:41:5
    │
 41 │     v_udint := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:42:5
    │
 42 │     v_udint := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:43:5
    │
 43 │     v_udint := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
    ┌─ <internal>:44:5
    │
 44 │     v_udint := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
    ┌─ <internal>:45:5
    │
 45 │     v_udint := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
+   ┌─ <internal>:46:16
+   │
+46 │     v_udint := v_tod; // valid
+   │                ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
+
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
+   ┌─ <internal>:47:16
+   │
+47 │     v_udint := TOD#15:36:30; // valid
+   │                ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:49:5
    │
 49 │     v_udint := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'UDINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:51:5
    │
 51 │     v_udint := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
+   ┌─ <internal>:54:15
+   │
+54 │     v_dint := v_lreal; // valid
+   │               ^^^^^^^ Implicit downcast from 'LREAL' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'REAL' to 'DINT'.
+   ┌─ <internal>:55:15
+   │
+55 │     v_dint := REAL#2.0; // valid
+   │               ^^^^^^^^ Implicit downcast from 'REAL' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'UDINT' to 'DINT'.
+   ┌─ <internal>:56:15
+   │
+56 │     v_dint := v_udint; // valid
+   │               ^^^^^^^ Implicit downcast from 'UDINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'UDINT' to 'DINT'.
+   ┌─ <internal>:57:15
+   │
+57 │     v_dint := UDINT#10; // valid
+   │               ^^^^^^^^ Implicit downcast from 'UDINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+   ┌─ <internal>:58:15
+   │
+58 │     v_dint := v_lint; // valid
+   │               ^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+   ┌─ <internal>:59:15
+   │
+59 │     v_dint := LINT#20; // valid
+   │               ^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
+   ┌─ <internal>:60:15
+   │
+60 │     v_dint := v_time; // valid
+   │               ^^^^^^ Implicit downcast from 'TIME' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
+   ┌─ <internal>:61:15
+   │
+61 │     v_dint := TIME#10h20m30s; // valid
+   │               ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'DINT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:64:5
    │
 64 │     v_dint := v_string; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:65:5
    │
 65 │     v_dint := STRING#'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:66:5
    │
 66 │     v_dint := 'string'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DINT'
    ┌─ <internal>:67:5
    │
 67 │     v_dint := v_char; // INVALID
    │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DINT'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DINT'
    ┌─ <internal>:68:5
    │
 68 │     v_dint := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'DINT'.
+   ┌─ <internal>:69:15
+   │
+69 │     v_dint := v_tod; // valid
+   │               ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'DINT'.
+   ┌─ <internal>:70:15
+   │
+70 │     v_dint := TOD#15:36:30; // valid
+   │               ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'DINT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:72:5
    │
 72 │     v_dint := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-error: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:74:5
    │
 74 │     v_dint := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
-
-

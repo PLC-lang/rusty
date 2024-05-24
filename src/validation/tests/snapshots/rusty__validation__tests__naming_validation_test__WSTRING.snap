@@ -2,13 +2,13 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "&result"
 ---
-error: WSTRING can not be used as a name because it is a built-in datatype
+error[E004]: WSTRING can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
 1 │ TYPE WSTRING : STRUCT x : DINT; END_STRUCT END_TYPE
   │      ^^^^^^^ WSTRING can not be used as a name because it is a built-in datatype
 
-error: WSTRING: Ambiguous datatype.
+error[E004]: WSTRING: Ambiguous datatype.
   ┌─ <internal>:1:6
   │
 1 │ TYPE WSTRING : STRUCT x : DINT; END_STRUCT END_TYPE

@@ -142,48 +142,21 @@ fn representation_of_an_array_expression_reference() {
     "###);
 }
 
-/// Address-of and Deref expressions are stateless ReferenceAccess-Variants. They simply indicate
-/// the accessing operation and offer the operator as their base. Note that the address-of and
+/// Deref expressions are stateless ReferenceAccess-Variants. They simply indicate
+/// the accessing operation and offer the operator as their base. Note that the
 /// deref operation act on the whole (qualified) reference expression, not just on the
-/// segment next to it
+/// segment next to it.
 #[test]
 fn representation_of_a_pointer_expression_reference() {
     let (unit, _) = parse_and_preprocess(
         "
     PROGRAM prg
-        &obj.pos;
         obj.pos^;
     END_PROGRAM
     ",
     );
 
-    let address_of = &unit.implementations[0].statements[0];
-    insta::assert_debug_snapshot!(address_of, @r###"
-    ReferenceExpr {
-        kind: Address,
-        base: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "pos",
-                    },
-                ),
-                base: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "obj",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        ),
-    }
-    "###);
-
-    let deref = &unit.implementations[0].statements[1];
+    let deref = &unit.implementations[0].statements[0];
     insta::assert_debug_snapshot!(deref, @r###"
     ReferenceExpr {
         kind: Deref,

@@ -1,0 +1,15 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: diagnostics
+---
+warning[E067]: Implicit downcast from 'DINT' to 'SINT'.
+  ┌─ <internal>:7:30
+  │
+7 │             a := a + b + c + d + e;
+  │                              ^ Implicit downcast from 'DINT' to 'SINT'.
+
+warning[E067]: Implicit downcast from 'DINT' to 'SINT'.
+  ┌─ <internal>:7:34
+  │
+7 │             a := a + b + c + d + e;
+  │                                  ^ Implicit downcast from 'DINT' to 'SINT'.

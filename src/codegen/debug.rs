@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Range, path::Path};
+use std::{ops::Range, path::Path};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -11,6 +11,8 @@ use inkwell::{
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
+use rustc_hash::FxHashMap;
+
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -146,10 +148,10 @@ pub struct DebugBuilder<'ink> {
     context: &'ink Context,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
-    types: HashMap<String, DebugType<'ink>>,
-    variables: HashMap<String, DILocalVariable<'ink>>,
+    types: FxHashMap<String, DebugType<'ink>>,
+    variables: FxHashMap<String, DILocalVariable<'ink>>,
     optimization: OptimizationLevel,
-    files: HashMap<&'static str, DIFile<'ink>>,
+    files: FxHashMap<&'static str, DIFile<'ink>>,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -336,7 +338,7 @@ impl<'ink> DebugBuilder<'ink> {
         //Find the dimenstions as ranges
         let subscript = dimensions
             .iter()
-            .map(|it| it.get_range(index))
+            .map(|it| it.get_range_plus_one(index))
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
@@ -385,7 +387,7 @@ impl<'ink> DebugBuilder<'ink> {
         self.types
             .get(&dt_name)
             .ok_or_else(|| {
-                Diagnostic::error(format!("Cannot find debug information for type {dt_name}"))
+                Diagnostic::new(format!("Cannot find debug information for type {dt_name}"))
                     .with_error_code("E076")
             })
             .map(|it| it.to_owned())
@@ -412,7 +414,7 @@ impl<'ink> DebugBuilder<'ink> {
             size.bits().into(),
             alignment.bits(),
             #[allow(clippy::single_range_in_vec_init)]
-            &[(0..(length - 1))],
+            &[(0..length)],
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())

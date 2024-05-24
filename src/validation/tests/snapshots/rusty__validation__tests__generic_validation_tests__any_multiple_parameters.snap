@@ -2,13 +2,13 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'STRING' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
 
-error: Invalid assignment: cannot assign 'CHAR' to 'DATE'
+error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
    ┌─ <internal>:15:79
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);

@@ -2,19 +2,19 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Unresolved constant `cx` variable
+error[E033]: Unresolved constant `cx` variable
    ┌─ <internal>:19:29
    │
 19 │                 cx : INT := cx;  //unresolvable
    │                             ^^ Unresolved constant `cx` variable
 
-error: Could not resolve reference to a
+error[E048]: Could not resolve reference to a
    ┌─ <internal>:21:30
    │
 21 │                 cai : INT := a;  //unresolvable
    │                              ^ Could not resolve reference to a
 
-error: Unresolved constant `cai` variable
+error[E033]: Unresolved constant `cai` variable
    ┌─ <internal>:21:30
    │
 21 │                 cai : INT := a;  //unresolvable

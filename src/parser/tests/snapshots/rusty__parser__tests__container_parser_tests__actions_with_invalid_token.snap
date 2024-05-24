@@ -18,7 +18,6 @@ Diagnostic {
         ),
     },
     secondary_locations: None,
-    severity: Error,
     error_code: "E007",
     sub_diagnostics: [],
     internal_error: None,

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
@@ -16,6 +14,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use rustc_hash::FxHashMap;
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
@@ -26,13 +25,13 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
     validation::{Validator, Validators},
 };
 
 // Defines a set of functions that are always included in a compiled application
 lazy_static! {
-    static ref BUILTIN: HashMap<&'static str, BuiltIn> = HashMap::from([
+    static ref BUILTIN: FxHashMap<&'static str, BuiltIn> = FxHashMap::from_iter([
         (
             "ADR",
             BuiltIn {
@@ -141,11 +140,11 @@ lazy_static! {
 
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
+                        let type_hint = params.first()
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location.clone()))
+                        .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
-                        let result_type = params.first()
-                            .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
-                            .and_then(|it| generator.get_type_hint_info_for(it))
-                            .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
+                        let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
                         let result_var = generator.llvm.create_local_variable("", &result_type);
                         let k = generator.generate_expression(k)?;
 
@@ -154,16 +153,16 @@ lazy_static! {
                             let block = context.append_basic_block(function_context.function, "");
                             blocks.push((*it,block))
                         }
-                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
 
+                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
                         let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
-                            let expr = generator.generate_expression(it)?;
-                            builder.build_store(result_var, expr);
+                            generator.generate_store(result_var, type_hint.get_type_information(), it)?;
                             builder.build_unconditional_branch(continue_block);
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
+
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases);
                         builder.position_at_end(continue_block);
@@ -768,7 +767,7 @@ fn validate_variable_length_array_bound_function(
 
             if !idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(
-                    Diagnostic::error(format!(
+                    Diagnostic::new(format!(
                         "Invalid type nature for generic argument. {} is no {}",
                         idx_type.get_name(),
                         TypeNature::Int
@@ -791,7 +790,7 @@ fn validate_variable_length_array_bound_function(
 
                 if dimension_idx < 1 || dimension_idx > n_dimensions {
                     validator.push_diagnostic(
-                        Diagnostic::error("Index out of bound")
+                        Diagnostic::new("Index out of bound")
                             .with_error_code("E046")
                             .with_location(operator.get_location()),
                     )
@@ -893,7 +892,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 }
 
 type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &FxHashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstNode],

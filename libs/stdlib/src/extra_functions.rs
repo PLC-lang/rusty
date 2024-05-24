@@ -386,7 +386,7 @@ mod test {
         let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
             .and_then(|date| date.and_hms_nano_opt(0, 0, 0, 0))
             .expect("Cannot create date time from given parameters");
-        let timestamp = datetime.timestamp_nanos_opt().unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
@@ -403,7 +403,7 @@ mod test {
         let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
             .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123456789))
             .expect("Cannot create date time from given parameters");
-        let timestamp = datetime.timestamp_nanos_opt().unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
@@ -420,7 +420,7 @@ mod test {
         let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
             .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123456789))
             .expect("Cannot create date time from given parameters");
-        let timestamp = datetime.timestamp_nanos_opt().unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
@@ -437,7 +437,7 @@ mod test {
         let datetime = chrono::NaiveDate::from_ymd_opt(2023, 1, 23)
             .and_then(|date| date.and_hms_nano_opt(10, 10, 0, 123456789))
             .expect("Cannot create date time from given parameters");
-        let timestamp = datetime.timestamp_nanos_opt().unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();

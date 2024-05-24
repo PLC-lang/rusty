@@ -1,5 +1,6 @@
 use ast::ast::{AstFactory, AstNode, AstStatement};
-use indexmap::IndexMap;
+
+use plc::index::FxIndexMap;
 use plc_source::source_location::SourceLocation;
 
 use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
@@ -10,7 +11,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
-        let mut ast_association = IndexMap::new();
+        let mut ast_association = FxIndexMap::default();
 
         // transform each node to an ast-statement. since we might see and transform a node multiple times, we use an
         // ast-association map to keep track of the latest statement for each id
@@ -18,7 +19,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
             let (insert, remove_id) = self.transform_node(*id, session, &ast_association);
 
             if let Some(id) = remove_id {
-                ast_association.remove(&id);
+                ast_association.shift_remove(&id);
             };
 
             ast_association.insert(*id, insert);
@@ -36,7 +37,7 @@ impl<'xml> FunctionBlockDiagram<'xml> {
         &self,
         id: NodeId,
         session: &mut ParseSession,
-        ast_association: &IndexMap<usize, AstNode>,
+        ast_association: &FxIndexMap<usize, AstNode>,
     ) -> (AstNode, Option<NodeId>) {
         let Some(current_node) = self.nodes.get(&id) else { unreachable!() };
 

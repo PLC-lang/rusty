@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
    ┌─ <internal>:17:18
    │
 17 │             func(x, x);                                    // Invalid because we pass a whole array
    │                  ^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
    ┌─ <internal>:17:21
    │
 17 │             func(x, x);                                    // Invalid because we pass a whole array

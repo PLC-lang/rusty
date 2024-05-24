@@ -2,7 +2,7 @@
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
 ---
-error: prg.b: Duplicate symbol.
+error[E004]: prg.b: Duplicate symbol.
   ┌─ <internal>:5:13
   │
 5 │             b: INT;
@@ -11,7 +11,7 @@ error: prg.b: Duplicate symbol.
 9 │             b: BOOL;
   │             - see also
 
-error: prg.b: Duplicate symbol.
+error[E004]: prg.b: Duplicate symbol.
   ┌─ <internal>:9:13
   │
 5 │             b: INT;

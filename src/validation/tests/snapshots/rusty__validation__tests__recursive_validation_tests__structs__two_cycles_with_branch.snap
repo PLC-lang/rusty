@@ -2,7 +2,7 @@
 source: src/validation/tests/recursive_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Recursive data structure `F -> G -> H -> I -> F` has infinite size
+error[E029]: Recursive data structure `F -> G -> H -> I -> F` has infinite size
    ┌─ <internal>:18:18
    │
 18 │             TYPE F : STRUCT
@@ -20,7 +20,7 @@ error: Recursive data structure `F -> G -> H -> I -> F` has infinite size
 31 │             TYPE I : STRUCT
    │                  - see also
 
-error: Recursive data structure `B -> C -> E -> F -> B` has infinite size
+error[E029]: Recursive data structure `B -> C -> E -> F -> B` has infinite size
    ┌─ <internal>:6:18
    │
  6 │             TYPE B : STRUCT

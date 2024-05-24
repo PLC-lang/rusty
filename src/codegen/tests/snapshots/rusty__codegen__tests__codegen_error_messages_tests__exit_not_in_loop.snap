@@ -2,7 +2,7 @@
 source: src/codegen/tests/codegen_error_messages_tests.rs
 expression: msg
 ---
-error: Cannot break out of loop when not inside a loop
+error[E071]: Cannot break out of loop when not inside a loop
   ┌─ <internal>:6:13
   │
 6 │             EXIT;

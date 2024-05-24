@@ -2,37 +2,37 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: "&diagnostics"
 ---
-error: Could not resolve reference to field10
+error[E048]: Could not resolve reference to field10
    ┌─ <internal>:28:19
    │
 28 │                 s.field10;
    │                   ^^^^^^^ Could not resolve reference to field10
 
-error: Could not resolve reference to field20
+error[E048]: Could not resolve reference to field20
    ┌─ <internal>:29:19
    │
 29 │                 s.field20;
    │                   ^^^^^^^ Could not resolve reference to field20
 
-error: Could not resolve reference to field30
+error[E048]: Could not resolve reference to field30
    ┌─ <internal>:30:19
    │
 30 │                 s.field30;
    │                   ^^^^^^^ Could not resolve reference to field30
 
-error: Could not resolve reference to subfield10
+error[E048]: Could not resolve reference to subfield10
    ┌─ <internal>:38:23
    │
 38 │                 s.sub.subfield10;
    │                       ^^^^^^^^^^ Could not resolve reference to subfield10
 
-error: Could not resolve reference to subfield20
+error[E048]: Could not resolve reference to subfield20
    ┌─ <internal>:39:23
    │
 39 │                 s.sub.subfield20;
    │                       ^^^^^^^^^^ Could not resolve reference to subfield20
 
-error: Could not resolve reference to subfield30
+error[E048]: Could not resolve reference to subfield30
    ┌─ <internal>:40:23
    │
 40 │                 s.sub.subfield30;

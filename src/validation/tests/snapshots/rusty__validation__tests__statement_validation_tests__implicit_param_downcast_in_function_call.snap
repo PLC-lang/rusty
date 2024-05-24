@@ -2,10 +2,44 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+warning[E067]: Implicit downcast from 'LINT' to 'INT'.
+   ┌─ <internal>:12:17
+   │
+12 │                 var1_lint, // downcast
+   │                 ^^^^^^^^^ Implicit downcast from 'LINT' to 'INT'.
+
+warning[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
+   ┌─ <internal>:13:17
+   │
+13 │                 var_lword, // downcast
+   │                 ^^^^^^^^^ Implicit downcast from 'LWORD' to 'DWORD'.
+
+warning[E067]: Implicit downcast from 'LREAL' to 'REAL'.
+   ┌─ <internal>:14:17
+   │
+14 │                 var_lreal, // downcast
+   │                 ^^^^^^^^^ Implicit downcast from 'LREAL' to 'REAL'.
+
+warning[E067]: Implicit downcast from 'INT' to 'SINT'.
+   ┌─ <internal>:15:17
+   │
+15 │                 INT#var1_lint, // downcast
+   │                 ^^^^^^^^^^^^^ Implicit downcast from 'INT' to 'SINT'.
+
+warning[E067]: Implicit downcast from 'LINT' to 'INT'.
+   ┌─ <internal>:16:17
+   │
+16 │                 var2_lint, // downcast
+   │                 ^^^^^^^^^ Implicit downcast from 'LINT' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    ┌─ <internal>:17:17
    │
 17 │                 var_in_out_wstr, // invalid
    │                 ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
-
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+   ┌─ <internal>:18:17
+   │
+18 │                 var1_lint // downcast
+   │                 ^^^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.

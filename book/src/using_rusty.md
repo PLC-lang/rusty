@@ -83,8 +83,8 @@ plc hello_world.st -o hello_world --linker=cc
 Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option `-c`).
 
 - The `--linker=cc` flag tells RuSTy that it should link with the system's compiler driver  instead of the built in linker. This provides support to create executables.
-- Additional libraries can be linked using the `-l` flag, additial library pathes can be added with `-L`
-- You add library search pathes by providing additional `-L /path/...` options. By default, this will be the current directory.
+- Additional libraries can be linked using the `-l` flag, additional library paths can be added with `-L`
+- You add library search paths by providing additional `-L /path/...` options. By default, this will be the current directory.
 - The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
 
 ### Building for separate targets
@@ -112,13 +112,27 @@ It is considered to be the root directory for the purpose of locating headers an
 
 By default, `plc` uses parallel compilation.
 
-This option could be controlled with the `-j` or `--threads` flag. A value above `0` will indicate the number of threads to use for the compilation
-Leaving the value unset, setting it to `0` or simply specifying `-j` sets the value to the maximum threads that could run for the current machine.
+This option can be controlled with the `-j` or `--threads` flag. A value above `0` will indicate the number of threads to use for the compilation
+Leaving the value unset, setting it to `0` or simply specifying `-j` sets the value to the maximum threads that can run for the current machine.
 This is determined by the underlying parallelisation library [Rayon](https://crates.io/crates/rayon)
 
 ### Single module Compilation
 
 With the introducton of parallel compilation, every unit is compiled into an object file independently and then linked together in a single module.
-This behaviour might not always be desired and could be disabled using the `--single-module` flag.
+This behaviour might not always be desired and can be disabled using the `--single-module` flag.
 
 > Note that the single module flag is currently much slower to produce as it requires first generating all modules and then merging them together.
+
+## Configuration Options
+
+`plc` supports different configuration options, these can be printed using the `config` subcommand
+
+### `config schema`
+
+Outputs the json schema used for the validation of the `plc.json` file
+
+### `config diagnostics`
+
+Ouputs a json file with the default error severity configuration for the project.
+See [Error Configuration](./error_configuration.md) for more information.
+

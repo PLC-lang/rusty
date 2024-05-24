@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-error: Unresolved constant `c` variable: `a` is no const reference
+error[E033]: Unresolved constant `c` variable: `a` is no const reference
   ┌─ <internal>:5:24
   │
 5 │             c : INT := a + b; // Will overflow

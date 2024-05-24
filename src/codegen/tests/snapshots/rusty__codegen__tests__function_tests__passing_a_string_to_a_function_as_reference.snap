@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"12345\00"
 
-define i32 @func(i8* %0) {
+define i32 @func(i8* %0) section "fn-func:i32[ps8u6]" {
 entry:
   %func = alloca i32, align 4
   %x = alloca i8*, align 8
@@ -20,7 +20,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) {
+define void @main(%main* %0) section "fn-main:v" {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast [6 x i8]* %a to i8*
@@ -28,4 +28,3 @@ entry:
   %call1 = call i32 @func(i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
   ret void
 }
-

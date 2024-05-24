@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__myStruct__init = unnamed_addr constant %myStruct { i8 1 }
 
-define i16 @main() {
+define i16 @main() section "fn-main:i16" {
 entry:
   %main = alloca i16, align 2
   %str = alloca %myStruct, align 8
@@ -34,4 +34,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-

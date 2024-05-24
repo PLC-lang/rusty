@@ -310,6 +310,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let dimensions =
             dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
         let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
+        // FIXME: should be memcopied, but is an rvalue. can only initialize global variables with value types. any other way for alloca'd variables than using store?
         builder.build_store(vla_dimensions_ptr, array_value);
 
         builder.build_store(vla_arr_ptr, arr_gep);

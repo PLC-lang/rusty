@@ -1,0 +1,14 @@
+---
+source: src/validation/tests/enum_validation_test.rs
+expression: diagnostics
+---
+error[E040]: Invalid enum value `1000` for `Color`
+  ┌─ <internal>:7:24
+  │
+2 │         TYPE Color : (red, green, blue, yellow, cyan, orange, purple, violet); END_TYPE
+  │              ----- see also
+  ·
+7 │             myColor := 1000;
+  │                        ^^^^ Invalid enum value `1000` for `Color`
+
+

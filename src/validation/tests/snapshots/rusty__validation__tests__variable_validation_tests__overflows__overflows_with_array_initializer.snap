@@ -2,7 +2,7 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This will overflow for type UINT
+warning[E039]: This will overflow for type UINT
   ┌─ <internal>:3:46
   │
 3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];

@@ -1,8 +1,9 @@
-use itertools::Itertools;
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
+use crate::index::VariableIndexEntry;
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -42,19 +43,19 @@ impl GlobalValidator {
             if v.is_undefined() {
                 for other in others {
                     self.diagnostics.push(
-                        Diagnostic::error(format!(
+                        Diagnostic::new(format!(
                             "{name} can not be used as a name because it is a built-in datatype"
                         ))
-                        .with_location((other).clone())
+                        .with_location(other)
                         .with_error_code("E004"),
                     );
                 }
             } else {
                 let additional_text = additional_text.unwrap_or("Duplicate symbol.");
                 self.push_diagnostic(
-                    Diagnostic::error(format!("{name}: {additional_text}"))
+                    Diagnostic::new(format!("{name}: {additional_text}"))
                         .with_error_code("E004")
-                        .with_location((*v).clone())
+                        .with_location(*v)
                         .with_secondary_locations(others),
                 );
             }
@@ -91,30 +92,36 @@ impl GlobalValidator {
 
         self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
+        // Report name conflicts between any member variables in the VAR block
         for ty in index.get_types().values().chain(index.get_pou_types().values()) {
-            let members = ty.get_members().iter().sorted_by_key(|it| it.get_qualified_name().to_lowercase());
-            for (_, mut vars) in &members.group_by(|it| it.get_qualified_name().to_lowercase()) {
-                if let Some(first) = vars.next() {
-                    if let Some(second) = vars.next() {
-                        //Collect remaining
-                        let mut locations: Vec<_> = vars.map(|it| &it.source_location).collect();
-                        locations.push(&first.source_location);
-                        locations.push(&second.source_location);
-                        self.report_name_conflict(first.get_qualified_name(), locations.as_slice(), None)
-                    }
-                }
+            let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
+            for variable in ty.get_members() {
+                let group = groups.entry(variable.get_qualified_name()).or_default();
+                group.push(variable);
+            }
+
+            for duplicates in groups.values().filter(|it| it.len() > 1) {
+                let locations = duplicates.iter().map(|it| &it.source_location).collect::<Vec<_>>();
+                self.report_name_conflict(duplicates[0].get_qualified_name(), &locations, None);
             }
         }
-        //check enums
-        let duplication_enums =
-            index.get_global_qualified_enums().entries().filter(|(_, vars)| vars.len() > 1).map(
-                |(_, variables)| {
-                    (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location))
-                },
-            );
 
-        for (name, locations) in duplication_enums {
-            self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
+        // Report name conflicts between enum variants and any other member variable in the VAR block
+        for pou in index.get_pou_types().values() {
+            let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
+            let variants = index.get_enum_variants_in_pou(pou.get_name());
+
+            for variant in variants {
+                let group = groups.entry(variant.get_name()).or_default();
+                group.push(variant);
+            }
+
+            for member in helper::get_non_enum_pou_members(index, pou.get_name()) {
+                if let Some(variant) = groups.get(member.get_name()) {
+                    let locations = vec![&member.source_location, &variant[0].source_location];
+                    self.report_name_conflict(member.get_name(), &locations, None);
+                }
+            }
         }
     }
 
@@ -214,5 +221,17 @@ impl GlobalValidator {
         for (name, locations) in cluster_map.entries().filter(|(_, v)| v.len() > 1) {
             self.report_name_conflict(name, locations, additional_text);
         }
+    }
+}
+
+mod helper {
+    use crate::index::{Index, VariableIndexEntry};
+
+    pub fn get_non_enum_pou_members<'a>(index: &'a Index, pou_name: &str) -> Vec<&'a VariableIndexEntry> {
+        index
+            .get_pou_members(pou_name)
+            .iter()
+            .filter(|it| !index.get_effective_type_or_void_by_name(it.get_type_name()).is_enum())
+            .collect()
     }
 }

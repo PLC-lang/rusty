@@ -2,13 +2,13 @@
 source: src/validation/tests/recursive_validation_tests.rs
 expression: "&diagnostics"
 ---
-error: Recursive data structure `C -> C` has infinite size
+error[E029]: Recursive data structure `C -> C` has infinite size
    ┌─ <internal>:10:18
    │
 10 │             TYPE C : STRUCT
    │                  ^ Recursive data structure `C -> C` has infinite size
 
-error: Recursive data structure `C -> E -> C` has infinite size
+error[E029]: Recursive data structure `C -> E -> C` has infinite size
    ┌─ <internal>:10:18
    │
 10 │             TYPE C : STRUCT

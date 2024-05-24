@@ -2,37 +2,37 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning: This equal statement has no effect, did you mean `value := 1`?
+warning[E023]: This equal statement has no effect, did you mean `value := 1`?
    ┌─ <internal>:24:13
    │
 24 │             value = 1;
    │             ^^^^^^^^^ This equal statement has no effect, did you mean `value := 1`?
 
-warning: This equal statement has no effect, did you mean `value := condition`?
+warning[E023]: This equal statement has no effect, did you mean `value := condition`?
    ┌─ <internal>:25:13
    │
 25 │             value = condition AND condition;
    │             ^^^^^^^^^^^^^^^^^ This equal statement has no effect, did you mean `value := condition`?
 
-warning: This equal statement has no effect, did you mean `value := condition`?
+warning[E023]: This equal statement has no effect, did you mean `value := condition`?
    ┌─ <internal>:26:13
    │
 26 │             value = condition AND (condition = TRUE);
    │             ^^^^^^^^^^^^^^^^^ This equal statement has no effect, did you mean `value := condition`?
 
-warning: This equal statement has no effect, did you mean `condition := TRUE`?
+warning[E023]: This equal statement has no effect, did you mean `condition := TRUE`?
    ┌─ <internal>:26:36
    │
 26 │             value = condition AND (condition = TRUE);
    │                                    ^^^^^^^^^^^^^^^^ This equal statement has no effect, did you mean `condition := TRUE`?
 
-warning: This equal statement has no effect, did you mean `value := 1`?
+warning[E023]: This equal statement has no effect, did you mean `value := 1`?
    ┌─ <internal>:28:26
    │
 28 │             IF TRUE THEN value = 1; END_IF
    │                          ^^^^^^^^^ This equal statement has no effect, did you mean `value := 1`?
 
-warning: This equal statement has no effect, did you mean `value := 1`?
+warning[E023]: This equal statement has no effect, did you mean `value := 1`?
    ┌─ <internal>:29:27
    │
 29 │             WHILE TRUE DO value = 1; END_WHILE

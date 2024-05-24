@@ -2,7 +2,7 @@
 source: tests/integration/cfc/validation_tests.rs
 expression: diagnostician.buffer().unwrap()
 ---
-error: Could not resolve reference to lbl_x
+error[E048]: Could not resolve reference to lbl_x
   ┌─ <internal>.cfc:1:1
   │
 1 │ 

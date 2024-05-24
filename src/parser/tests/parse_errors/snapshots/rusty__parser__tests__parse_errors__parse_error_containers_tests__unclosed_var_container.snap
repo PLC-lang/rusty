@@ -2,7 +2,7 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error: Unexpected token: expected KeywordEndVar but found 'VAR b : INT;'
+error[E007]: Unexpected token: expected KeywordEndVar but found 'VAR b : INT;'
   ┌─ <internal>:4:21
   │
 4 │                     VAR b : INT; END_VAR

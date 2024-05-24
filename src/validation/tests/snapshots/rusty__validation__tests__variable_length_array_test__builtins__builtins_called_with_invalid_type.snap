@@ -2,49 +2,49 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:10:25
    │
 10 │             LOWER_BOUND(arr, MY_CONST + 1);
    │                         ^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
 
-error: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:11:25
    │
 11 │             LOWER_BOUND(duration, 1);
    │                         ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 
-error: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter arr because their type is InOut
    ┌─ <internal>:12:25
    │
 12 │             LOWER_BOUND('i am a string', 1);
    │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter arr because their type is InOut
 
-error: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:12:25
    │
 12 │             LOWER_BOUND('i am a string', 1);
    │                         ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
 
-error: Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:14:25
    │
 14 │             UPPER_BOUND(arr, MY_CONST + 1);
    │                         ^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF DINT' to 'VARIABLE LENGTH ARRAY'
 
-error: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:15:25
    │
 15 │             UPPER_BOUND(duration, 1);
    │                         ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 
-error: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter arr because their type is InOut
    ┌─ <internal>:16:25
    │
 16 │             UPPER_BOUND('i am a string', 1);
    │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter arr because their type is InOut
 
-error: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:16:25
    │
 16 │             UPPER_BOUND('i am a string', 1);

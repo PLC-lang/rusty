@@ -12,15 +12,14 @@ source_filename = "main"
 @__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
 @prg_instance = global %prg { %MyFB { i16 77 } }
 
-define void @MyFB(%MyFB* %0) {
+define void @MyFB(%MyFB* %0) section "fn-MyFB:v" {
 entry:
   %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
 }
-

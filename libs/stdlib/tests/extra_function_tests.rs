@@ -558,7 +558,7 @@ fn dt_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -584,7 +584,7 @@ fn ldt_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -610,7 +610,7 @@ fn date_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -636,7 +636,7 @@ fn ldate_to_lword_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -990,7 +990,7 @@ fn date_to_lint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1016,7 +1016,7 @@ fn ldate_to_lint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1197,7 +1197,7 @@ fn date_to_ulint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 
@@ -1223,7 +1223,7 @@ fn ldate_to_ulint_conversion() {
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let expected = NaiveDateTime::new(date, time).timestamp_nanos_opt().unwrap() as u64;
+    let expected = NaiveDateTime::new(date, time).and_utc().timestamp_nanos_opt().unwrap() as u64;
     assert_eq!(expected, res)
 }
 

@@ -1,3 +1,5 @@
+use insta::assert_snapshot;
+
 use plc_ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -14,7 +16,6 @@ use crate::{
     typesystem,
     validation::Validator,
 };
-use insta::assert_snapshot;
 
 #[test]
 fn duplicate_pous_validation() {
@@ -251,8 +252,8 @@ fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
                 x : INT;
             END_VAR
 
-            a := &x;  //generates ptr_to_INT type
-            a := &x;  //also? generates ptr to INT type
+            a := REF(x);  //generates ptr_to_INT type
+            a := REF(x);  //also? generates ptr to INT type
             END_PROGRAM
             "#,
     );
@@ -530,6 +531,162 @@ fn generics_with_duplicate_symbol_dont_err() {
 
     // THEN there should be no duplication diagnostics
     assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn duplicate_enum_names() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            foo : (a, b);
+            foo : (c, d);
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: foo: Ambiguous datatype.
+      ┌─ <internal>:3:13
+      │
+    3 │             foo : (a, b);
+      │             ^^^ foo: Ambiguous datatype.
+    4 │             foo : (c, d);
+      │             --- see also
+
+    error[E004]: foo: Ambiguous datatype.
+      ┌─ <internal>:4:13
+      │
+    3 │             foo : (a, b);
+      │             --- see also
+    4 │             foo : (c, d);
+      │             ^^^ foo: Ambiguous datatype.
+
+    "###);
+}
+
+#[test]
+fn duplicate_enum_inline_variants() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION main : DINT
+            VAR
+                foo : (a, b, c, a);
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: __main_foo.a: Duplicate symbol.
+      ┌─ <internal>:4:24
+      │
+    4 │                 foo : (a, b, c, a);
+      │                        ^        - see also
+      │                        │         
+      │                        __main_foo.a: Duplicate symbol.
+
+    error[E004]: __main_foo.a: Duplicate symbol.
+      ┌─ <internal>:4:33
+      │
+    4 │                 foo : (a, b, c, a);
+      │                        -        ^ __main_foo.a: Duplicate symbol.
+      │                        │         
+      │                        see also
+
+    "###);
+}
+
+// https://github.com/PLC-lang/rusty/issues/1156
+#[test]
+fn multiple_enum_instances_in_var_block_wont_trigger_duplicate_check() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            Foo : (A, B, C);
+        END_TYPE
+
+        FUNCTION main
+            VAR
+                fooA : Foo;
+                fooB : Foo;
+                fooC : Foo;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        TYPE
+            Position : (x, y);
+        END_TYPE
+        FUNCTION main : DINT
+            VAR
+                x : DINT;
+                pos : Position;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: x: Duplicate symbol.
+      ┌─ <internal>:7:17
+      │
+    3 │             Position : (x, y);
+      │                         - see also
+      ·
+    7 │                 x : DINT;
+      │                 ^ x: Duplicate symbol.
+
+    error[E004]: x: Duplicate symbol.
+      ┌─ <internal>:3:25
+      │
+    3 │             Position : (x, y);
+      │                         ^ x: Duplicate symbol.
+      ·
+    7 │                 x : DINT;
+      │                 - see also
+
+    "###);
+}
+
+#[test]
+fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION main : DINT
+            VAR
+                x : DINT;
+                position : (x, y);
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: x: Duplicate symbol.
+      ┌─ <internal>:4:17
+      │
+    4 │                 x : DINT;
+      │                 ^ x: Duplicate symbol.
+    5 │                 position : (x, y);
+      │                             - see also
+
+    error[E004]: x: Duplicate symbol.
+      ┌─ <internal>:5:29
+      │
+    4 │                 x : DINT;
+      │                 - see also
+    5 │                 position : (x, y);
+      │                             ^ x: Duplicate symbol.
+
+    "###);
 }
 
 // #[test]

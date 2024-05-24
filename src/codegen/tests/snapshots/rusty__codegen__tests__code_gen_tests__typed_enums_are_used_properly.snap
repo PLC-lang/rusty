@@ -8,17 +8,17 @@ source_filename = "main"
 %prg = type { i8, i16, i32 }
 
 @prg_instance = global %prg zeroinitializer
-@red = unnamed_addr constant i8 5
-@yellow = unnamed_addr constant i8 6
-@green = unnamed_addr constant i8 7
-@red.1 = unnamed_addr constant i16 15
-@yellow.2 = unnamed_addr constant i16 16
-@red.3 = unnamed_addr constant i32 25
-@yellow.4 = unnamed_addr constant i32 26
-@green.5 = unnamed_addr constant i16 17
-@green.6 = unnamed_addr constant i32 27
+@MyEnum.red = unnamed_addr constant i8 5
+@MyEnum.yellow = unnamed_addr constant i8 6
+@MyEnum.green = unnamed_addr constant i8 7
+@MyEnum2.red = unnamed_addr constant i16 15
+@MyEnum2.yellow = unnamed_addr constant i16 16
+@MyEnum2.green = unnamed_addr constant i16 17
+@MyEnum3.red = unnamed_addr constant i32 25
+@MyEnum3.yellow = unnamed_addr constant i32 26
+@MyEnum3.green = unnamed_addr constant i32 27
 
-define void @prg(%prg* %0) {
+define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -28,4 +28,3 @@ entry:
   store i32 26, i32* %z, align 4
   ret void
 }
-

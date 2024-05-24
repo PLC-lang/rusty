@@ -6,15 +6,15 @@ expression: codegen
 source_filename = "main"
 
 @en3 = global i64 0, !dbg !0
-@a = unnamed_addr constant i32 0, !dbg !5
-@b = unnamed_addr constant i32 1, !dbg !9
-@c = unnamed_addr constant i32 2, !dbg !11
-@d = unnamed_addr constant i8 0, !dbg !13
-@e = unnamed_addr constant i8 1, !dbg !17
-@f = unnamed_addr constant i8 2, !dbg !19
-@a.1 = unnamed_addr constant i64 0, !dbg !21
-@b.2 = unnamed_addr constant i64 1, !dbg !23
-@c.3 = unnamed_addr constant i64 2, !dbg !25
+@en1.a = unnamed_addr constant i32 0, !dbg !5
+@en1.b = unnamed_addr constant i32 1, !dbg !9
+@en1.c = unnamed_addr constant i32 2, !dbg !11
+@en2.d = unnamed_addr constant i8 0, !dbg !13
+@en2.e = unnamed_addr constant i8 1, !dbg !17
+@en2.f = unnamed_addr constant i8 2, !dbg !19
+@__global_en3.a = unnamed_addr constant i64 0, !dbg !21
+@__global_en3.b = unnamed_addr constant i64 1, !dbg !23
+@__global_en3.c = unnamed_addr constant i64 2, !dbg !25
 
 !llvm.module.flags = !{!27, !28}
 !llvm.dbg.cu = !{!29}
@@ -50,4 +50,3 @@ source_filename = "main"
 !28 = !{i32 2, !"Debug Info Version", i32 3}
 !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
 !30 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}
-
