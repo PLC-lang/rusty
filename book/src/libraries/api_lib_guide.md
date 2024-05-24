@@ -246,7 +246,7 @@ To stay standard compliant, an API/Library should try and follow these guideline
 
 Datatypes are generally convertable to `C` equivalent. With the compiler defaulting to 64bit, some sizes were also fixed to 64bit.
 
-Below is a table of primitive types and how they can be used from `C`
+Below is a table of types and how they can be used from `C`
 
 | type            | c equivalent | size | comment                                                                             |
 | --------------- | ------------ | ---- | ----------------------------------------------------------                          |
