@@ -61,7 +61,7 @@ The difference between the two blocks is how the values are passed.
 A `VAR_INPUT` variable is passed _by value_, while a `VAR_IN_OUT` variable is passed _by reference_.
 In general, it is recommended to use a `VAR_IN_OUT` for data that needs to be both read and written, while `VAR_INPUT` should be reserved to read only values.
 
-> **_NOTE:_** In `FUNCTION`s complex datatypes are handled as pointers.
+> **_NOTE:_** In `FUNCTION`s complex datatypes are handled as pointers. They are however copied and changes in the function will have no effect on the actual variable.
 
 Examples:
 
@@ -148,8 +148,29 @@ void Count(CountStruct* countInst) {
 
 A `FUNCTION` defines a return value in the signature, while a `FUNCTION_BLOCK` relies on `VAR_OUTPUT` definitions.
 
+Example:
+```iecst
+FUNCTION myFunc : DINT
+  VAR_INPUT
+    x : DINT;
+  END_VAR
+  VAR_IN_OUT
+    y : DINT;
+  END_VAR
+END_FUNCTION
+```
+
+The C interface would look like:
+
+```c
+int32_t myFunc(int32_t x, int32_t* y);
+```
+
+
 The return type for a function can also include complex datatypes, such as strings, arrays and structs.
-Internally, complex return types are treated as reference parameters.
+Internally, complex return types are treated as reference parameters (pointers).
+
+For complex return types, the function signature expects the return value as the first parameter.
 
 Example:
 
@@ -207,7 +228,7 @@ void myFb(myFbStruct* myFbInst);
 ### 2.2.4 When to use a `FUNCTION` vs. `FUNCTION_BLOCK`
 
 A `FUNCTION` can be well integrated into the API because of its return value which
-can be nested into expressions. They however don't keep data over subssequent
+can be nested into expressions. They however don't keep data over subsequent
 executions. If you need to store static data use a `FUNCTION_BLOCK` or use
 `VAR_IN_OUT`.
 
@@ -296,7 +317,6 @@ The `C` struct would look like:
 typedef struct {
   int32_t x;
   int32_t* y;
-  int32_t myOut;
   char z[256];
 
 } myStruct;
