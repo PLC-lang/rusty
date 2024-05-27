@@ -681,17 +681,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                 if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
                     let (Some(base), _) = (base, ..) else { panic!() };
-                    // Step 1
-                    let var = self.annotations.get_qualified_name(base).unwrap();
-                    let error_bits_lvalue =
-                        self.llvm_index.find_loaded_associated_variable_value(var).unwrap();
+                    // Given `foo.bar.baz.%W1.%B1.%X3`, we want to grab the lvalue of `foo.bar.baz`
+                    let (base, _) = collect_base_and_direct_access_for_assignment(base).unwrap();
 
-                    // Step 2
-                    let q_lvalue = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap();
+                    let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
+                    let rhs = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap(); // TODO(volsa): Is a `impl From<...>` possible for inkwell results?
 
-                    // lhs = lvalue
-                    // rhs = astnode
-                    self.generate_bit_access(error_bits_lvalue, q_lvalue, &assignment, &dt)?;
+                    self.generate_bit_access(lhs.into_pointer_value(), rhs, assignment, dt)?;
                 };
             }
 
@@ -2815,7 +2811,7 @@ fn int_value_multiply_accumulate<'ink>(
 }
 
 /// Returns false if any argument in the given list is an (output-)assignment and true otherwise
-fn is_implicit_function_call(arguments: &Vec<&AstNode>) -> bool {
+fn is_implicit_function_call(arguments: &[&AstNode]) -> bool {
     !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
 }
 
