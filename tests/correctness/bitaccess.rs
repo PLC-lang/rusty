@@ -217,9 +217,8 @@ fn byteaccess_assignment_should_not_override_current_values() {
     assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }
 
-// TODO: Add more tests, see [`directaccess_test.rs`] for inspo
 #[test]
-fn bitaccess_in_output_assignments_simple() {
+fn bitaccess_in_output_assignments_with_simple_expression() {
     let prog = "
     FUNCTION_BLOCK foo
         VAR_OUTPUT
@@ -261,7 +260,7 @@ fn bitaccess_in_output_assignments_simple() {
 }
 
 #[test]
-fn bitaccess_in_output_assignments_complex() {
+fn bitaccess_in_output_assignment_with_complexish_expression() {
     let prog = "
         TYPE foo_struct : STRUCT
             bar : bar_struct;
@@ -300,7 +299,7 @@ fn bitaccess_in_output_assignments_complex() {
 }
 
 #[test]
-fn bitaccess_in_output_assignments_complex_implicit() {
+fn bitaccess_in_output_assignment_with_complexish_expression_implicit() {
     let prog = "
         TYPE foo_struct : STRUCT
             bar : bar_struct;

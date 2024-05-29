@@ -115,7 +115,7 @@ fn qualified_reference_assignment() {
 }
 
 #[test]
-fn temp_output_and_normal_assignments() {
+fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     let ir = codegen(
         r"
         FUNCTION_BLOCK FOO
@@ -221,9 +221,134 @@ fn temp_output_and_normal_assignments() {
     "###);
 }
 
-// TODO: Add correctness tests
 #[test]
-fn temp_complex_bit_access() {
+fn direct_acess_in_output_assignment_with_simple_expression() {
+    let ir = codegen(
+        r"
+        FUNCTION_BLOCK FOO
+            VAR_OUTPUT
+                Q : BOOL := TRUE;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                error_bits : BYTE := 2#1110_1111;
+                f : FOO;
+            END_VAR
+
+            f(Q => error_bits.4);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %FOO = type { i8 }
+
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+
+    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
+    entry:
+      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      ret void
+    }
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %error_bits = alloca i8, align 1
+      %f = alloca %FOO, align 8
+      store i8 -17, i8* %error_bits, align 1
+      %0 = bitcast %FOO* %f to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      call void @FOO(%FOO* %f)
+      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %2 = load i8, i8* %error_bits, align 1
+      %3 = load i8, i8* %1, align 1
+      %erase = and i8 %2, -17
+      %value = shl i8 %3, 4
+      %or = or i8 %erase, %value
+      store i8 %or, i8* %error_bits, align 1
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
+
+#[test]
+fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
+    let ir = codegen(
+        r"
+        FUNCTION_BLOCK FOO
+            VAR_OUTPUT
+                Q : BOOL := TRUE;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                error_bits : BYTE := 2#1110_1111;
+                f : FOO;
+            END_VAR
+
+            f(error_bits.4);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %FOO = type { i8 }
+
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+
+    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
+    entry:
+      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      ret void
+    }
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %error_bits = alloca i8, align 1
+      %f = alloca %FOO, align 8
+      store i8 -17, i8* %error_bits, align 1
+      %0 = bitcast %FOO* %f to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      call void @FOO(%FOO* %f)
+      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %2 = load i8, i8* %error_bits, align 1
+      %3 = load i8, i8* %1, align 1
+      %erase = and i8 %2, -17
+      %value = shl i8 %3, 4
+      %or = or i8 %erase, %value
+      store i8 %or, i8* %error_bits, align 1
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
+
+#[test]
+fn direct_acess_in_output_assignment_with_complexe_expression() {
     let ir = codegen(
         r"
         TYPE foo_struct : STRUCT
@@ -302,132 +427,6 @@ fn temp_complex_bit_access() {
       %value4 = shl i64 %9, 50
       %or5 = or i64 %erase3, %value4
       store i64 %or5, i64* %baz2, align 4
-      %main_ret = load i32, i32* %main, align 4
-      ret i32 %main_ret
-    }
-
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
-
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    "###);
-}
-
-#[test]
-fn temp_explicity() {
-    let ir = codegen(
-        r"
-        FUNCTION_BLOCK FOO
-            VAR_OUTPUT
-                Q : BOOL := TRUE;
-            END_VAR
-        END_FUNCTION_BLOCK
-
-        FUNCTION main : DINT
-            VAR
-                error_bits : BYTE := 2#1110_1111;
-                f : FOO;
-            END_VAR
-
-            f(Q => error_bits.4);
-        END_FUNCTION
-        ",
-    );
-
-    assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %FOO = type { i8 }
-
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
-    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
-    entry:
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      ret void
-    }
-
-    define i32 @main() section "fn-main:i32" {
-    entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, i8* %error_bits, align 1
-      %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %2 = load i8, i8* %error_bits, align 1
-      %3 = load i8, i8* %1, align 1
-      %erase = and i8 %2, -17
-      %value = shl i8 %3, 4
-      %or = or i8 %erase, %value
-      store i8 %or, i8* %error_bits, align 1
-      %main_ret = load i32, i32* %main, align 4
-      ret i32 %main_ret
-    }
-
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
-
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    "###);
-}
-
-#[test]
-fn temp_implicit() {
-    let ir = codegen(
-        r"
-        FUNCTION_BLOCK FOO
-            VAR_OUTPUT
-                Q : BOOL := TRUE;
-            END_VAR
-        END_FUNCTION_BLOCK
-
-        FUNCTION main : DINT
-            VAR
-                error_bits : BYTE := 2#1110_1111;
-                f : FOO;
-            END_VAR
-
-            f(error_bits.4);
-        END_FUNCTION
-        ",
-    );
-
-    assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %FOO = type { i8 }
-
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
-    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
-    entry:
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      ret void
-    }
-
-    define i32 @main() section "fn-main:i32" {
-    entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, i8* %error_bits, align 1
-      %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %2 = load i8, i8* %error_bits, align 1
-      %3 = load i8, i8* %1, align 1
-      %erase = and i8 %2, -17
-      %value = shl i8 %3, 4
-      %or = or i8 %erase, %value
-      store i8 %or, i8* %error_bits, align 1
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
