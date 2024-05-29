@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-// TODO: Update tests, variable initialization into program body
+// TODO: Some of these tests are incorrect, because a `default()` call will override the values defined in the
+//       VAR block. Thus any tests relying on data initialized in the VAR block needs to be updated such that
+//       the initialization happens in the POU body. However, this won't be any issue once we convert to LIT.
 
 use crate::*;
 use pretty_assertions::assert_eq;

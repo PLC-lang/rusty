@@ -778,9 +778,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 }
 
-/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
-/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
-/// of direct-access commands (vec![%W3, %X2])
+/// Deconstructs assignments such as `a.b.c.%W3.%X2 := 2` into a base statement and its direct-access sequences.
+/// For the given example this function would return `(Node(a.b.c), vec![Node(%W3), Node(%X2)])`
 fn collect_base_and_direct_access_for_assignment(
     left_statement: &AstNode,
 ) -> Option<(&AstNode, Vec<&AstNode>)> {

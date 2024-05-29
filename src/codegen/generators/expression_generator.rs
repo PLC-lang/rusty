@@ -534,9 +534,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
             let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
 
-            // Assume we have the following ST function `fn foo(param1: Input, param2: Output, param3: Input)`
-            // Calls like fn(arg2_out, arg1_in, arg3_in) should not generate an output assignment for `arg1_in`
-            // (but really, the call is just invalid at this point?)
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
                 self.assign_output_value(&CallParameterAssignment {
                     assignment: assignment_statement,
@@ -568,7 +565,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         left_value: IntValue,
         left_pointer: PointerValue,
         right_type: &DataType,
-        right_expr: BasicValueEnum, // IDK?
+        right_expr: BasicValueEnum,
     ) -> Result<(), Diagnostic> {
         let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
         else {
@@ -597,7 +594,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 type_left,
             )
         } else {
-            //TODO: using the global context we could get a slice here
+            // TODO: using the global context we could get a slice here; currently not possible because the
+            //       global context isn't passed into codegen
             Err(Diagnostic::new(format!("{element:?} not a direct access"))
                 .with_error_code("E055")
                 .with_location(element.get_location()))
@@ -611,7 +609,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     type_left,
                 )
             } else {
-                //TODO: using the global context we could get a slice here
+                // TODO: using the global context we could get a slice here; currently not possible because the
+                //       global context isn't passed into codegen
                 Err(Diagnostic::new(&format!("{element:?} not a direct access"))
                     .with_error_code("E055")
                     .with_location(element.get_location()))
@@ -647,20 +646,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn generate_output_assignment_with_direct_access(
         &self,
+        left_statement: &AstNode,
         left_pointer: PointerValue,
-        lvalue_rhs: PointerValue,
-        statement_lhs: &AstNode,
-        type_rhs: &DataType,
+        right_pointer: PointerValue,
+        right_type: &DataType,
     ) -> Result<(), Diagnostic> {
         let left_value = self.llvm.builder.build_load(left_pointer, "").into_int_value();
 
         //Generate an expression for the right size
-        let right = self.llvm.builder.build_load(lvalue_rhs, "");
+        let right = self.llvm.builder.build_load(right_pointer, "");
         self.generate_assignment_with_direct_access(
-            statement_lhs,
+            left_statement,
             left_value,
             left_pointer,
-            type_rhs,
+            right_type,
             right,
         )?;
 
@@ -668,63 +667,56 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), Diagnostic> {
-        let &CallParameterAssignment { assignment, function_name, index, parameter_struct } = context;
+        let &CallParameterAssignment { assignment: expr, function_name, index, parameter_struct } = context;
         let builder = &self.llvm.builder;
 
-        let Some(parameter) = self.index.get_declared_parameter(function_name, index) else {
-            panic!("or return?");
-        };
-        assert!(parameter.get_variable_type().is_output());
-
-        // Don't generate code if right-hand side of an assignment is an empty statement (e.g. `foo(out => )`)
-        if assignment.is_empty_statement() {
+        // We don't want to generate any code if the right side of an assignment is empty, e.g. `foo(out =>)`
+        if expr.is_empty_statement() {
             return Ok(());
         }
 
-        // FOO(x => y)
-        // FOO(x => y.0)
-        match assignment.get_stmt() {
-            AstStatement::ReferenceExpr(_) if assignment.has_direct_access() => {
+        let parameter = self.index.get_declared_parameter(function_name, index).expect("must exist");
+
+        match expr.get_stmt() {
+            AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
                 // TODO: Can we this be simplified?
-                let dt = {
+                let rhs_type = {
                     let pou = self.index.find_pou(function_name).unwrap();
                     let pou_struct = &pou.find_instance_struct_type(self.index).unwrap().information;
                     let DataTypeInformation::Struct { members, .. } = pou_struct else { panic!() };
-                    let param = &members[index as usize]; // TODO: Create a test for this; this fucks up if populating the members is not in order
 
-                    self.index.find_effective_type_by_name(&param.data_type_name).unwrap()
+                    self.index.find_effective_type_by_name(&members[index as usize].data_type_name).unwrap()
                 };
 
                 let AstStatement::ReferenceExpr(ReferenceExpr {
                     access: ReferenceAccess::Member(member),
                     base,
-                }) = &assignment.get_stmt()
+                }) = &expr.get_stmt()
                 else {
                     unreachable!("must be a bitaccess, will return early for all other cases")
                 };
 
                 if let AstStatement::DirectAccess(_) = member.as_ref().get_stmt() {
+                    // Given `foo.bar.baz.%W1.%B1.%X3`, we want to grab the base i.e. `foo.bar.baz`
                     let (Some(base), _) = (base, ..) else { panic!() };
-                    // Given `foo.bar.baz.%W1.%B1.%X3`, we want to grab the lvalue of `foo.bar.baz`
                     let (base, _) = collect_base_and_direct_access_for_assignment(base).unwrap();
 
                     let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
-                    let rhs = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap(); // TODO(volsa): Is a `impl From<...>` possible for inkwell results?
+                    let rhs = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap();
 
                     self.generate_output_assignment_with_direct_access(
+                        expr,
                         lhs.into_pointer_value(),
                         rhs,
-                        assignment,
-                        dt,
+                        rhs_type,
                     )?;
                 };
             }
 
             _ => {
-                let assigned_output = self.generate_lvalue(assignment)?;
-
+                let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
-                    self.annotations.get_type_or_void(assignment, self.index).get_type_information();
+                    self.annotations.get_type_or_void(expr, self.index).get_type_information();
 
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
@@ -735,7 +727,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
-                //Special string handling
+                // Special string handling
                 if (assigned_output_type.is_string() && output_value_type.is_string())
                     || (assigned_output_type.is_struct() && output_value_type.is_struct())
                     || (assigned_output_type.is_array() && output_value_type.is_array())
@@ -743,7 +735,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_string_store(
                         assigned_output,
                         assigned_output_type,
-                        assignment.get_location(),
+                        expr.get_location(),
                         output,
                         output_value_type,
                         parameter.source_location.clone(),
@@ -758,8 +750,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
-    /// Given an output assignment such as `foo => bar`, the right-hand side of the assignment (i.e. `bar`)
-    /// will be extracted and fed into [`generate_output_assignment`] in a subsequent call.
     fn generate_explicit_output_assignment(
         &self,
         parameter_struct: PointerValue<'ink>,
