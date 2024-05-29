@@ -529,11 +529,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         parameters: Vec<&AstNode>,
     ) -> Result<(), Diagnostic> {
         let pou_info = self.index.get_declared_parameters(function_name);
-        let implicit = is_implicit_function_call(&parameters);
+        let implicit = arguments_are_implicit(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
             let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
 
+            // Assume we have the following ST function `fn foo(param1: Input, param2: Output, param3: Input)`
+            // Calls like fn(arg2_out, arg1_in, arg3_in) should not generate an output assignment for `arg1_in`
+            // (but really, the call is just invalid at this point?)
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
                 self.assign_output_value(&CallParameterAssignment {
                     assignment: assignment_statement,
@@ -559,35 +562,48 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn generate_bit_access(
+    pub fn generate_assignment_with_direct_access(
         &self,
-        lvalue_lhs: PointerValue,
-        lvalue_rhs: PointerValue,
-        statement_lhs: &AstNode,
-        type_rhs: &DataType,
+        left_statement: &AstNode,
+        left_value: IntValue,
+        left_pointer: PointerValue,
+        right_type: &DataType,
+        right_expr: BasicValueEnum, // IDK?
     ) -> Result<(), Diagnostic> {
-        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(statement_lhs)
+        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
         else {
-            unreachable!("Invalid direct-access expression: {statement_lhs:#?}")
+            unreachable!("Invalid direct-access expression: {left_statement:#?}")
         };
 
         let type_left = self.get_type_hint_for(target)?;
-
-        //special case if we deal with a single bit, then we need to switch to a faked u1 type
         let type_right =
             if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
-                *type_rhs.get_type_information()
+                *right_type.get_type_information()
             {
+                // we need to switch to a faked u1 type, when dealing with a single bit
                 self.index.get_type_or_panic(typesystem::U1_TYPE)
             } else {
-                type_rhs
+                right_type
             };
 
-        let value_lhs = self.llvm.builder.build_load(lvalue_lhs, "").into_int_value();
+        let Some((element, direct_access)) = access_sequence.split_first() else { unreachable!("") };
 
-        //Build index
-        if let Some((element, direct_access)) = access_sequence.split_first() {
-            let mut index = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+        // Build index
+        let mut index = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
+            self.generate_direct_access_index(
+                &data.access,
+                &data.index,
+                type_right.get_type_information(),
+                type_left,
+            )
+        } else {
+            //TODO: using the global context we could get a slice here
+            Err(Diagnostic::new(format!("{element:?} not a direct access"))
+                .with_error_code("E055")
+                .with_location(element.get_location()))
+        }?;
+        for element in direct_access {
+            let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
                 self.generate_direct_access_index(
                     &data.access,
                     &data.index,
@@ -596,53 +612,57 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )
             } else {
                 //TODO: using the global context we could get a slice here
-                Err(Diagnostic::new(format!("{element:?} not a direct access"))
+                Err(Diagnostic::new(&format!("{element:?} not a direct access"))
                     .with_error_code("E055")
                     .with_location(element.get_location()))
             }?;
-            for element in direct_access {
-                let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
-                    self.generate_direct_access_index(
-                        &data.access,
-                        &data.index,
-                        type_right.get_type_information(),
-                        type_left,
-                    )
-                } else {
-                    //TODO: using the global context we could get a slice here
-                    Err(Diagnostic::new(&format!("{element:?} not a direct access"))
-                        .with_error_code("E055")
-                        .with_location(element.get_location()))
-                }?;
-                index = self.llvm.builder.build_int_add(index, rhs_next, "");
-            }
-            //Build mask for the index
-            //Get the target bit type as all ones
-            let rhs_type = self.llvm_index.get_associated_type(type_right.get_name())?.into_int_type();
-            let ones = rhs_type.const_all_ones();
-
-            //Extend the mask to the target type
-            let extended_mask = self.llvm.builder.build_int_z_extend(ones, value_lhs.get_type(), "ext");
-            //Position the ones in their correct locations
-            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, index, "shift");
-            //Invert the mask
-            let mask = self.llvm.builder.build_not(shifted_mask, "invert");
-            //And the result with the mask to erase the set bits at the target location
-            let and_value = self.llvm.builder.build_and(value_lhs, mask, "erase");
-
-            //Generate an expression for the right size
-            let right = self.llvm.builder.build_load(lvalue_rhs, "");
-            //Cast the right side to the left side type
-            let lhs = cast_if_needed!(self, type_left, type_right, right, None).into_int_value();
-            //Shift left by the direct access
-            let value = self.llvm.builder.build_left_shift(lhs, index, "value");
-
-            //OR the result and store it in the left side
-            let or_value = self.llvm.builder.build_or(and_value, value, "or");
-            self.llvm.builder.build_store(lvalue_lhs, or_value);
-        } else {
-            unreachable!()
+            index = self.llvm.builder.build_int_add(index, rhs_next, "");
         }
+
+        //Build mask for the index
+        //Get the target bit type as all ones
+        let rhs_type = self.llvm_index.get_associated_type(type_right.get_name())?.into_int_type();
+        let ones = rhs_type.const_all_ones();
+
+        //Extend the mask to the target type
+        let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
+        //Position the ones in their correct locations
+        let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, index, "shift");
+        //Invert the mask
+        let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+        //And the result with the mask to erase the set bits at the target location
+        let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
+
+        //Cast the right side to the left side type
+        let lhs = cast_if_needed!(self, type_left, type_right, right_expr, None).into_int_value();
+        //Shift left by the direct access
+        let value = self.llvm.builder.build_left_shift(lhs, index, "value");
+
+        //OR the result and store it in the left side
+        let or_value = self.llvm.builder.build_or(and_value, value, "or");
+        self.llvm.builder.build_store(left_pointer, or_value);
+
+        Ok(())
+    }
+
+    fn generate_output_assignment_with_direct_access(
+        &self,
+        left_pointer: PointerValue,
+        lvalue_rhs: PointerValue,
+        statement_lhs: &AstNode,
+        type_rhs: &DataType,
+    ) -> Result<(), Diagnostic> {
+        let left_value = self.llvm.builder.build_load(left_pointer, "").into_int_value();
+
+        //Generate an expression for the right size
+        let right = self.llvm.builder.build_load(lvalue_rhs, "");
+        self.generate_assignment_with_direct_access(
+            statement_lhs,
+            left_value,
+            left_pointer,
+            type_rhs,
+            right,
+        )?;
 
         Ok(())
     }
@@ -665,11 +685,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // FOO(x => y.0)
         match assignment.get_stmt() {
             AstStatement::ReferenceExpr(_) if assignment.has_direct_access() => {
-                let _pou = self.index.find_pou(function_name).unwrap();
-                let _struct = &_pou.find_instance_struct_type(self.index).unwrap().information;
-                let DataTypeInformation::Struct { members, .. } = _struct else { panic!() };
-                let param = &members[index as usize]; // TODO: Create a test for this; this fucks up if populating the members is not in order
-                let dt = self.index.find_effective_type_by_name(&param.data_type_name).unwrap();
+                // TODO: Can we this be simplified?
+                let dt = {
+                    let pou = self.index.find_pou(function_name).unwrap();
+                    let pou_struct = &pou.find_instance_struct_type(self.index).unwrap().information;
+                    let DataTypeInformation::Struct { members, .. } = pou_struct else { panic!() };
+                    let param = &members[index as usize]; // TODO: Create a test for this; this fucks up if populating the members is not in order
+
+                    self.index.find_effective_type_by_name(&param.data_type_name).unwrap()
+                };
 
                 let AstStatement::ReferenceExpr(ReferenceExpr {
                     access: ReferenceAccess::Member(member),
@@ -687,7 +711,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
                     let rhs = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap(); // TODO(volsa): Is a `impl From<...>` possible for inkwell results?
 
-                    self.generate_bit_access(lhs.into_pointer_value(), rhs, assignment, dt)?;
+                    self.generate_output_assignment_with_direct_access(
+                        lhs.into_pointer_value(),
+                        rhs,
+                        assignment,
+                        dt,
+                    )?;
                 };
             }
 
@@ -2811,7 +2840,7 @@ fn int_value_multiply_accumulate<'ink>(
 }
 
 /// Returns false if any argument in the given list is an (output-)assignment and true otherwise
-fn is_implicit_function_call(arguments: &[&AstNode]) -> bool {
+fn arguments_are_implicit(arguments: &[&AstNode]) -> bool {
     !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
 }
 
@@ -2823,6 +2852,7 @@ fn collect_base_and_direct_access_for_assignment(
 ) -> Option<(&AstNode, Vec<&AstNode>)> {
     let mut current = Some(left_statement);
     let mut access_sequence = Vec::new();
+
     while let Some(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
         current.map(|it| it.get_stmt())
     {
@@ -2833,5 +2863,6 @@ fn collect_base_and_direct_access_for_assignment(
             break;
         }
     }
+
     current.zip(Some(access_sequence))
 }

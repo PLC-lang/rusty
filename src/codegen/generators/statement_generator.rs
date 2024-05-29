@@ -4,11 +4,11 @@ use super::{
     llvm::Llvm,
 };
 use crate::{
-    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
+    codegen::debug::Debug,
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{self, DataTypeInformation},
+    typesystem::DataTypeInformation,
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -244,7 +244,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.register_debug_location(left_statement);
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
-            return self.generate_direct_access_assignment(left_statement, right_statement);
+            return self.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
         //TODO: Also hacky but for now we cannot generate assignments for hardware access
         if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
@@ -279,96 +279,32 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
 
-    fn generate_direct_access_assignment(
+    fn generate_assignment_statement_direct_access(
         &self,
         left_statement: &AstNode,
         right_statement: &AstNode,
     ) -> Result<(), Diagnostic> {
-        //TODO : Validation
         let exp_gen = self.create_expr_generator();
 
-        // given a complex direct-access assignemnt: a.b.c.%W3,%X1
-        // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
-        let Some((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
-        else {
+        // Left pointer
+        let Some((base, _)) = collect_base_and_direct_access_for_assignment(left_statement) else {
             unreachable!("Invalid direct-access expression: {left_statement:#?}")
         };
+        let left_expr_value = exp_gen.generate_expression_value(base)?;
+        let left_value = left_expr_value.as_r_value(self.llvm, None).into_int_value();
+        let left_pointer = left_expr_value.get_basic_value_enum().into_pointer_value();
 
-        let left_type = exp_gen.get_type_hint_for(target)?;
+        // Generate an expression for the right size
         let right_type = exp_gen.get_type_hint_for(right_statement)?;
+        let right_expr = exp_gen.generate_expression(right_statement)?;
 
-        //special case if we deal with a single bit, then we need to switch to a faked u1 type
-        let right_type =
-            if let DataTypeInformation::Integer { semantic_size: Some(typesystem::U1_SIZE), .. } =
-                *right_type.get_type_information()
-            {
-                self.index.get_type_or_panic(typesystem::U1_TYPE)
-            } else {
-                right_type
-            };
-
-        //Left pointer
-        let left_expression_value = exp_gen.generate_expression_value(target)?;
-        let left_value = left_expression_value.as_r_value(self.llvm, None).into_int_value();
-        let left = left_expression_value.get_basic_value_enum().into_pointer_value();
-        //Build index
-        if let Some((element, direct_access)) = access_sequence.split_first() {
-            let mut rhs = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
-                exp_gen.generate_direct_access_index(
-                    &data.access,
-                    &data.index,
-                    right_type.get_type_information(),
-                    left_type,
-                )
-            } else {
-                //TODO: using the global context we could get a slice here
-                Err(Diagnostic::new(format!("{element:?} not a direct access"))
-                    .with_error_code("E055")
-                    .with_location(element.get_location()))
-            }?;
-            for element in direct_access {
-                let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
-                    exp_gen.generate_direct_access_index(
-                        &data.access,
-                        &data.index,
-                        right_type.get_type_information(),
-                        left_type,
-                    )
-                } else {
-                    //TODO: using the global context we could get a slice here
-                    Err(Diagnostic::new(&format!("{element:?} not a direct access"))
-                        .with_error_code("E055")
-                        .with_location(element.get_location()))
-                }?;
-                rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
-            }
-            //Build mask for the index
-            //Get the target bit type as all ones
-            let rhs_type = self.llvm_index.get_associated_type(right_type.get_name())?.into_int_type();
-            let ones = rhs_type.const_all_ones();
-            //Extend the mask to the target type
-            let extended_mask = self.llvm.builder.build_int_z_extend(ones, left_value.get_type(), "ext");
-            //Position the ones in their correct locations
-            let shifted_mask = self.llvm.builder.build_left_shift(extended_mask, rhs, "shift");
-            //Invert the mask
-            let mask = self.llvm.builder.build_not(shifted_mask, "invert");
-            //And the result with the mask to erase the set bits at the target location
-            let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
-
-            //Generate an expression for the right size
-            let right = exp_gen.generate_expression(right_statement)?;
-            //Cast the right side to the left side type
-            let lhs = cast_if_needed!(self, left_type, right_type, right, None).into_int_value();
-            //Shift left by the direct access
-            let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
-
-            //OR the result and store it in the left side
-            let or_value = self.llvm.builder.build_or(and_value, value, "or");
-            self.llvm.builder.build_store(left, or_value);
-        } else {
-            unreachable!();
-        }
-        Ok(())
+        exp_gen.generate_assignment_with_direct_access(
+            left_statement,
+            left_value,
+            left_pointer,
+            right_type,
+            right_expr,
+        )
     }
 
     /// generates a for-loop statement

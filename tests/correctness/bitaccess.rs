@@ -298,3 +298,44 @@ fn bitaccess_in_output_assignments_complex() {
     let res: i32 = compile_and_run(prog, &mut crate::MainType::default());
     assert_eq!(res, 0b0000_1010_0000_0000_0000_0000_0000_0000);
 }
+
+#[test]
+fn bitaccess_in_output_assignments_complex_implicit() {
+    let prog = "
+        TYPE foo_struct : STRUCT
+            bar : bar_struct;
+        END_STRUCT END_TYPE
+        
+        TYPE bar_struct : STRUCT
+            baz : DINT; // 0000_0000_0000_0000_0000_0000_0000_0000
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK QUUX
+            VAR_INPUT
+                x : DINT;
+            END_VAR
+            VAR_OUTPUT
+                Q : BOOL;
+            END_VAR
+
+            Q := TRUE;
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                foo : foo_struct;
+                f : QUUX;
+            END_VAR
+
+            foo.bar.baz := 0; // ...just to be sure
+
+            // foo.bar.baz:                                0000_0000_0000_0000_0000_0000_0000_0000
+            f(x := 0, Q => foo.bar.baz.%W1.%B1.%X3);    // 0000_1000_0000_0000_0000_0000_0000_0000
+            f(0, foo.bar.baz.%W1.%B1.%X1);              // 0000_1010_0000_0000_0000_0000_0000_0000
+            main := foo.bar.baz;
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default());
+    assert_eq!(res, 0b0000_1010_0000_0000_0000_0000_0000_0000);
+}

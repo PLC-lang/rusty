@@ -173,8 +173,8 @@ fn temp_output_and_normal_assignments() {
       call void @FOO(%FOO* %f)
       %3 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %4 = load i8, i8* %error_bits, align 1
-      %erase = and i8 %4, -2
       %5 = load i8, i8* %3, align 1
+      %erase = and i8 %4, -2
       %value = shl i8 %5, 0
       %or = or i8 %erase, %value
       store i8 %or, i8* %error_bits, align 1
@@ -186,8 +186,8 @@ fn temp_output_and_normal_assignments() {
       call void @FOO(%FOO* %f)
       %8 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %9 = load i8, i8* %error_bits, align 1
-      %erase3 = and i8 %9, -2
       %10 = load i8, i8* %8, align 1
+      %erase3 = and i8 %9, -2
       %value4 = shl i8 %10, 0
       %or5 = or i8 %erase3, %value4
       store i8 %or5, i8* %error_bits, align 1
@@ -199,8 +199,8 @@ fn temp_output_and_normal_assignments() {
       call void @FOO(%FOO* %f)
       %13 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %14 = load i8, i8* %error_bits, align 1
-      %erase8 = and i8 %14, -2
       %15 = load i8, i8* %13, align 1
+      %erase8 = and i8 %14, -2
       %value9 = shl i8 %15, 0
       %or10 = or i8 %erase8, %value9
       store i8 %or10, i8* %error_bits, align 1
@@ -285,8 +285,8 @@ fn temp_complex_bit_access() {
       %baz = getelementptr inbounds %bar_struct, %bar_struct* %bar, i32 0, i32 0
       %2 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
       %3 = load i64, i64* %baz, align 4
-      %erase = and i64 %3, -281474976710657
       %4 = load i8, i8* %2, align 1
+      %erase = and i64 %3, -281474976710657
       %5 = zext i8 %4 to i64
       %value = shl i64 %5, 48
       %or = or i64 %erase, %value
@@ -296,8 +296,8 @@ fn temp_complex_bit_access() {
       %baz2 = getelementptr inbounds %bar_struct, %bar_struct* %bar1, i32 0, i32 0
       %6 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
       %7 = load i64, i64* %baz2, align 4
-      %erase3 = and i64 %7, -1125899906842625
       %8 = load i8, i8* %6, align 1
+      %erase3 = and i64 %7, -1125899906842625
       %9 = zext i8 %8 to i64
       %value4 = shl i64 %9, 50
       %or5 = or i64 %erase3, %value4
@@ -360,8 +360,8 @@ fn temp_explicity() {
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
-      %erase = and i8 %2, -17
       %3 = load i8, i8* %1, align 1
+      %erase = and i8 %2, -17
       %value = shl i8 %3, 4
       %or = or i8 %erase, %value
       store i8 %or, i8* %error_bits, align 1
@@ -423,8 +423,8 @@ fn temp_implicit() {
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
-      %erase = and i8 %2, -17
       %3 = load i8, i8* %1, align 1
+      %erase = and i8 %2, -17
       %value = shl i8 %3, 4
       %or = or i8 %erase, %value
       store i8 %or, i8* %error_bits, align 1
