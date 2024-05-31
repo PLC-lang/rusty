@@ -5,6 +5,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+mod ast_visitor_tests;
 mod class_parser_tests;
 mod container_parser_tests;
 mod control_parser_tests;
