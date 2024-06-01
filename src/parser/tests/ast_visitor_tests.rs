@@ -12,7 +12,7 @@ struct IdentifierCollector {
     identifiers: Vec<String>,
 }
 
-impl AstVisitor<()> for IdentifierCollector {
+impl AstVisitor for IdentifierCollector {
     fn visit_identifier(&mut self, stmt: &str, _node: &plc_ast::ast::AstNode) {
         self.identifiers.push(stmt.to_string());
     }
@@ -220,7 +220,7 @@ struct AssignmentCounter {
     count: usize,
 }
 
-impl AstVisitor<()> for AssignmentCounter {
+impl AstVisitor for AssignmentCounter {
     fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
         self.count += 1;
         stmt.walk(self)
