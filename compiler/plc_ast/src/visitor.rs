@@ -60,9 +60,61 @@ pub trait Walker {
 /// }
 /// ```
 pub trait AstVisitor: Sized {
-    /// Walks through an `AstNode` and applies the visitor's `walk` method to each node.
+    /// visits through an `AstNode` and applies the visitor's `walk` method to each node.
     fn visit(&mut self, node: &AstNode) {
         node.walk(self)
+    }
+
+    /// Visits a `CompilationUnit` node.
+    /// Make sure to call `walk` on the `CompilationUnit` node to visit its children.
+    fn visit_compilation_unit(&mut self, unit: &CompilationUnit) {
+        unit.walk(self)
+    }
+
+    /// Visits an `Implementation` node.
+    /// Make sure to call `walk` on the `Implementation` node to visit its children.
+    fn visit_implementation(&mut self, implementation: &Implementation) {
+        implementation.walk(self);
+    }
+
+    /// Visits a `DataTypeDeclaration` node.
+    /// Make sure to call `walk` on the `VariableBlock` node to visit its children.
+    fn visit_variable_block(&mut self, block: &VariableBlock) {
+        block.walk(self)
+    }
+
+    /// Visits a `Variable` node.
+    /// Make sure to call `walk` on the `Variable` node to visit its children.
+    fn visit_variable(&mut self, variable: &Variable) {
+        variable.walk(self);
+    }
+
+    fn visit_enum_element(&mut self, element: &AstNode) {
+        element.walk(self);
+    }
+
+    /// Visits a `DataTypeDeclaration` node.
+    /// Make sure to call `walk` on the `DataTypeDeclaration` node to visit its children.
+    fn visit_data_type_declaration(&mut self, data_type_declaration: &DataTypeDeclaration) {
+        data_type_declaration.walk(self);
+    }
+
+    /// Visits a `UserTypeDeclaration` node.
+    /// Make sure to call `walk` on the `UserTypeDeclaration` node to visit its children.
+    fn visit_user_type_declaration(&mut self, user_type: &UserTypeDeclaration) {
+        user_type.walk(self);
+    }
+
+    /// Visits a `UserTypeDeclaration` node.
+    /// Make sure to call `walk` on the `DataType` node to visit its children.
+    fn visit_data_type(&mut self, data_type: &DataType) {
+        data_type.walk(self);
+    }
+
+    /// Visits a `Pou` node.
+    /// Make sure to call `walk` on the `Pou` node to visit its children.
+    fn visit_pou(&mut self, pou: &Pou) {
+        pou.walk(self);
     }
 
     /// Visits an `EmptyStatement` node.
@@ -96,6 +148,7 @@ pub trait AstVisitor: Sized {
     }
 
     /// Visits an `Identifier` node.
+    /// Make sure to call `walk` on the `Identifier` node to visit its children.
     fn visit_identifier(&mut self, _stmt: &str, _node: &AstNode) {}
 
     /// Visits a `DirectAccess` node.
@@ -424,6 +477,151 @@ impl Walker for AstNode {
             AstStatement::ReturnStatement(stmt) => visitor.visit_return_statement(stmt, node),
             AstStatement::JumpStatement(stmt) => visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) => visitor.visit_label_statement(stmt, node),
+        }
+    }
+}
+
+impl Walker for CompilationUnit {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        for block in &self.global_vars {
+            visitor.visit_variable_block(block);
+        }
+
+        for user_type in &self.user_types {
+            visitor.visit_user_type_declaration(user_type);
+        }
+
+        for pou in &self.units {
+            visitor.visit_pou(pou);
+        }
+
+        for i in &self.implementations {
+            visitor.visit_implementation(i);
+        }
+    }
+}
+
+impl Walker for UserTypeDeclaration {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        visitor.visit_data_type(&self.data_type);
+        visit_all_nodes!(visitor, &self.initializer);
+    }
+}
+
+impl Walker for VariableBlock {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        for v in self.variables.iter() {
+            visitor.visit_variable(v);
+        }
+    }
+}
+
+impl Walker for Variable {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        visit_all_nodes!(visitor, &self.address);
+        visitor.visit_data_type_declaration(&self.data_type_declaration);
+        visit_all_nodes!(visitor, &self.initializer);
+    }
+}
+
+impl Walker for DataType {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        match self {
+            DataType::StructType { variables, .. } => {
+                for v in variables.iter() {
+                    visitor.visit_variable(v);
+                }
+            }
+            DataType::EnumType { elements, .. } => {
+                for ele in flatten_expression_list(elements) {
+                    visitor.visit_enum_element(ele);
+                }
+            }
+            DataType::SubRangeType { bounds, .. } => {
+                visit_all_nodes!(visitor, bounds);
+            }
+            DataType::ArrayType { bounds, referenced_type, .. } => {
+                visitor.visit(bounds);
+                visitor.visit_data_type_declaration(referenced_type);
+            }
+            DataType::PointerType { referenced_type, .. } => {
+                visitor.visit_data_type_declaration(referenced_type);
+            }
+            DataType::StringType { size, .. } => {
+                visit_all_nodes!(visitor, size);
+            }
+            DataType::VarArgs { referenced_type, .. } => {
+                if let Some(data_type_declaration) = referenced_type {
+                    visitor.visit_data_type_declaration(data_type_declaration);
+                }
+            }
+            DataType::GenericType { .. } => {
+                //no further visits
+            }
+        }
+    }
+}
+
+impl Walker for DataTypeDeclaration {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
+            visitor.visit_data_type(data_type);
+        }
+    }
+}
+
+impl<T> Walker for Option<T>
+where
+    T: Walker,
+{
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        if let Some(node) = self {
+            node.walk(visitor);
+        }
+    }
+}
+
+impl Walker for Pou {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        for block in &self.variable_blocks {
+            visitor.visit_variable_block(block);
+        }
+
+        self.return_type.as_ref().inspect(|rt| visitor.visit_data_type_declaration(rt));
+    }
+}
+
+impl Walker for Implementation {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        for n in &self.statements {
+            visitor.visit(n);
         }
     }
 }

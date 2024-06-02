@@ -23,6 +23,13 @@ fn get_character_range(start: char, end: char) -> Vec<String> {
 }
 
 fn collect_identifiers(src: &str) -> IdentifierCollector {
+    let mut visitor = IdentifierCollector::default();
+    visit(src, &mut visitor);
+    visitor.identifiers.sort();
+    visitor
+}
+
+fn visit(src: &str, visitor: &mut impl AstVisitor) {
     let id_provider = IdProvider::default();
     let (compilation_unit, _) = parser::parse(
         lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
@@ -30,13 +37,7 @@ fn collect_identifiers(src: &str) -> IdentifierCollector {
         "test.st",
     );
 
-    let mut visitor = IdentifierCollector::default();
-
-    for st in &compilation_unit.implementations[0].statements {
-        visitor.visit(st);
-    }
-    visitor.identifiers.sort();
-    visitor
+    visitor.visit_compilation_unit(&compilation_unit)
 }
 
 #[test]
@@ -216,24 +217,63 @@ fn test_visit_return_statement() {
     assert_eq!(get_character_range('a', 'b'), visitor.identifiers);
 }
 
-struct AssignmentCounter {
-    count: usize,
-}
-
-impl AstVisitor for AssignmentCounter {
-    fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-        self.count += 1;
-        stmt.walk(self)
+#[test]
+fn test_visit_data_type_declaration() {
+    struct FieldCollector {
+        fields: Vec<String>,
     }
 
-    fn visit_output_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-        self.count += 1;
-        stmt.walk(self)
+    impl AstVisitor for FieldCollector {
+        fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
+            self.fields.push(variable.name.clone());
+            variable.walk(self);
+        }
+
+        fn visit_enum_element(&mut self, element: &plc_ast::ast::AstNode) {
+            if let Some(name) = element.get_flat_reference_name() {
+                self.fields.push(name.to_string());
+            }
+            element.walk(self);
+        }
     }
+    let mut visitor = FieldCollector { fields: vec![] };
+
+    visit(
+        "TYPE myStruct: STRUCT
+            a, b, c: DINT;
+            s: STRING;
+            e: (enum1, enum2, enum3);
+        END_STRUCT;
+      ",
+        &mut visitor,
+    );
+
+    visitor.fields.sort();
+    assert_eq!(vec!["a", "b", "c", "e", "enum1", "enum2", "enum3", "s"], visitor.fields);
 }
 
 #[test]
 fn test_count_assignments() {
+    struct AssignmentCounter {
+        count: usize,
+    }
+
+    impl AstVisitor for AssignmentCounter {
+        fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
+            self.count += 1;
+            stmt.walk(self)
+        }
+
+        fn visit_output_assignment(
+            &mut self,
+            stmt: &plc_ast::ast::Assignment,
+            _node: &plc_ast::ast::AstNode,
+        ) {
+            self.count += 1;
+            stmt.walk(self)
+        }
+    }
+
     let id_provider = IdProvider::default();
     let (compilation_unit, _) = parser::parse(
         lexer::lex_with_ids(
