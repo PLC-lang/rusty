@@ -20,9 +20,7 @@
                 }
             },
             "args": [
-                "--check",
                 "target/demo.st",
-                "-i","libs/stdlib/iec61131-st/timers.st"
             ],
             "cwd": "${workspaceFolder}"
         },
