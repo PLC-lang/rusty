@@ -101,7 +101,7 @@ impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
 
 #[rustfmt::skip]
 lazy_static! {
-    static ref DIAGNOSTICS: FxHashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
+    pub static ref DIAGNOSTICS: FxHashMap<&'static str, DiagnosticEntry> = add_diagnostic!(
         E001,   Error,      include_str!("./error_codes/E001.md"), //General Error
         E002,   Error,      include_str!("./error_codes/E002.md"), //General IO Error
         E003,   Error,      include_str!("./error_codes/E003.md"), //Parameter Error

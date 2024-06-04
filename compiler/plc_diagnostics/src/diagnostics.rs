@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+use crate::diagnostics::diagnostics_registry::DIAGNOSTICS;
 use plc_ast::ast::AstNode;
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
@@ -88,8 +89,10 @@ impl Diagnostic {
         self
     }
 
-    pub fn with_error_code(mut self, error_code: &'static str) -> Self {
-        self.error_code = error_code;
+    pub fn with_error_code(mut self, code: &'static str) -> Self {
+        debug_assert!(DIAGNOSTICS.get(code).is_some(), "Error {code} does not exist");
+
+        self.error_code = code;
         self
     }
 
