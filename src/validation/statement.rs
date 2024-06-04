@@ -1508,7 +1508,6 @@ fn validate_argument_count<T: AnnotationMap>(
             arguments.len() > parameters.len() && !has_variadic_parameter
         }
 
-        // TODO: _ or match each variant?
         _ => false,
     };
 

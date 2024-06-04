@@ -202,11 +202,10 @@ impl Diagnostic {
             .with_error_code("E006")
     }
 
-    pub fn invalid_argument_count(
-        expected: usize,
-        actual: usize,
-        location: impl Into<SourceLocation>,
-    ) -> Diagnostic {
+    pub fn invalid_argument_count<T>(expected: usize, actual: usize, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!(
             "this POU takes {expected} argument(s) but {actual} argument(s) were supplied",
         ))
