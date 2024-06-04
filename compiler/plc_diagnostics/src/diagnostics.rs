@@ -199,12 +199,16 @@ impl Diagnostic {
             .with_error_code("E006")
     }
 
-    pub fn invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -> Diagnostic {
-        Diagnostic::new(
-            format!(
-                "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
-            )).with_error_code("E032")
-            .with_location(location)
+    pub fn invalid_argument_count(
+        expected: usize,
+        actual: usize,
+        location: impl Into<SourceLocation>,
+    ) -> Diagnostic {
+        Diagnostic::new(format!(
+            "this POU takes {expected} argument(s) but {actual} argument(s) were supplied",
+        ))
+        .with_error_code("E032")
+        .with_location(location.into())
     }
 
     pub fn unknown_type(type_name: &str, location: SourceLocation) -> Diagnostic {

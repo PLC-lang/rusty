@@ -1131,7 +1131,7 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
 fn validate_call<T: AnnotationMap>(
     validator: &mut Validator,
     operator: &AstNode,
-    parameters: Option<&AstNode>,
+    operator_arguments: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
     // visit called pou
@@ -1140,20 +1140,24 @@ fn validate_call<T: AnnotationMap>(
     if let Some(pou) = context.find_pou(operator) {
         // additional validation for builtin calls if necessary
         if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, parameters, context.annotations, context.index)
+            validation(validator, operator, operator_arguments, context.annotations, context.index)
         }
 
-        let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        let passed_parameters = parameters.map(flatten_expression_list).unwrap_or_default();
+        let arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
+        let parameters = context.index.get_declared_parameters(pou.get_name());
 
-        let mut are_implicit_parameters = true;
+        if builtins::get_builtin(pou.get_name()).is_none() {
+            validate_argument_count(context, validator, pou, &arguments, &operator.location);
+        }
+
+        let mut argument_are_implicit = true;
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
-        for (i, param) in passed_parameters.iter().enumerate() {
-            match get_implicit_call_parameter(param, &declared_parameters, i) {
+        for (i, param) in arguments.iter().enumerate() {
+            match get_implicit_call_parameter(param, &parameters, i) {
                 Ok((parameter_location_in_parent, right, is_implicit)) => {
-                    let left = declared_parameters.get(parameter_location_in_parent);
+                    let left = parameters.get(parameter_location_in_parent);
                     if let Some(left) = left {
                         validate_call_by_ref(validator, left, param);
                         // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
@@ -1167,11 +1171,11 @@ fn validate_call<T: AnnotationMap>(
                         validate_assignment(validator, right, None, &param.get_location(), context);
                     }
 
-                    // mixing implicit and explicit parameters is not allowed
-                    // allways compare to the first passed parameter
+                    // mixing implicit and explicit arguments is not allowed
+                    // allways compare to the first argument
                     if i == 0 {
-                        are_implicit_parameters = is_implicit;
-                    } else if are_implicit_parameters != is_implicit {
+                        argument_are_implicit = is_implicit;
+                    } else if argument_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
@@ -1202,7 +1206,7 @@ fn validate_call<T: AnnotationMap>(
                 return;
             }
             let declared_in_out_params: Vec<&&VariableIndexEntry> =
-                declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+                parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
 
             // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
             if !declared_in_out_params.is_empty() {
@@ -1220,7 +1224,7 @@ fn validate_call<T: AnnotationMap>(
         }
     } else {
         // POU could not be found, we can still partially validate the passed parameters
-        if let Some(s) = parameters.as_ref() {
+        if let Some(s) = operator_arguments.as_ref() {
             visit_statement(validator, s, context);
         }
     }
@@ -1482,6 +1486,39 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 );
             })
         });
+}
+
+fn validate_argument_count<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    pou: &PouIndexEntry,
+    arguments: &[&AstNode],
+    operator_location: &SourceLocation,
+) {
+    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
+
+    let argument_count_is_incorrect = match pou {
+        PouIndexEntry::Function { .. } => {
+            !((has_variadic_parameter && arguments.len() >= parameters.len())
+                || (arguments.len() == parameters.len()))
+        }
+
+        PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } => {
+            arguments.len() > parameters.len() && !has_variadic_parameter
+        }
+
+        // TODO: _ or match each variant?
+        _ => false,
+    };
+
+    if argument_count_is_incorrect {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            parameters.len(),
+            arguments.len(),
+            operator_location,
+        ));
+    }
 }
 
 mod helper {

@@ -2,23 +2,23 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: diagnostics
 ---
-error[E032]: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 0 argument(s) were supplied
    ┌─ <internal>:13:13
    │
 13 │             LOWER_BOUND();
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 0 argument(s) were supplied
 
-error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
    ┌─ <internal>:14:13
    │
 14 │             LOWER_BOUND(vla);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
 
-error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
    ┌─ <internal>:15:13
    │
 15 │             LOWER_BOUND(1);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
 
 error[E031]: Expected a reference for parameter arr because their type is InOut
    ┌─ <internal>:15:25
@@ -32,29 +32,29 @@ error[E037]: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
 15 │             LOWER_BOUND(1);
    │                         ^ Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
 
-error[E032]: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 4 argument(s) were supplied
    ┌─ <internal>:16:13
    │
 16 │             LOWER_BOUND(vla, 1, 2, 3);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 4 argument(s) were supplied
 
-error[E032]: Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 0 argument(s) were supplied
    ┌─ <internal>:18:13
    │
 18 │             UPPER_BOUND();
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 0 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 0 argument(s) were supplied
 
-error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
    ┌─ <internal>:19:13
    │
 19 │             UPPER_BOUND(vla);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
 
-error[E032]: Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
    ┌─ <internal>:20:13
    │
 20 │             UPPER_BOUND(1);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 1 parameters while 2 parameters were expected.
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
 
 error[E031]: Expected a reference for parameter arr because their type is InOut
    ┌─ <internal>:20:25
@@ -68,10 +68,8 @@ error[E037]: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
 20 │             UPPER_BOUND(1);
    │                         ^ Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
 
-error[E032]: Invalid parameter count. Received 4 parameters while 2 parameters were expected.
+error[E032]: this POU takes 2 argument(s) but 4 argument(s) were supplied
    ┌─ <internal>:21:13
    │
 21 │             UPPER_BOUND(vla, 1, 2, 3);
-   │             ^^^^^^^^^^^ Invalid parameter count. Received 4 parameters while 2 parameters were expected.
-
-
+   │             ^^^^^^^^^^^ this POU takes 2 argument(s) but 4 argument(s) were supplied

@@ -92,14 +92,14 @@ lazy_static! {
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, 0, operator.get_location()));
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
                         return;
                     };
 
                     let params = flatten_expression_list(params);
 
                     if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
                     }
                 }),
                 generic_name_resolver: no_generic_name_resolver,
@@ -579,7 +579,7 @@ fn validate_builtin_symbol_parameter_count(
     operation: Operator,
 ) {
     let Some(params) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator.get_location()));
         return;
     };
 
@@ -588,7 +588,7 @@ fn validate_builtin_symbol_parameter_count(
         // non-extensible operators
         Operator::Minus | Operator::Division | Operator::NotEqual => {
             if count != 2 {
-                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(
                     2,
                     count,
                     operator.get_location(),
@@ -597,7 +597,7 @@ fn validate_builtin_symbol_parameter_count(
         }
         _ => {
             if count < 2 {
-                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(
                     2,
                     count,
                     operator.get_location(),
@@ -746,7 +746,7 @@ fn validate_variable_length_array_bound_function(
     index: &Index,
 ) {
     let Some(parameters) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator.get_location()));
         // no params, nothing to validate
         return;
     };
@@ -754,7 +754,7 @@ fn validate_variable_length_array_bound_function(
     let params = ast::flatten_expression_list(parameters);
 
     if params.len() > 2 {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
             2,
             params.len(),
             operator.get_location(),
@@ -798,7 +798,7 @@ fn validate_variable_length_array_bound_function(
             };
         }
         (Some(_), None) => {
-            validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 1, operator.get_location()))
+            validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
         }
         _ => unreachable!(),
     }
