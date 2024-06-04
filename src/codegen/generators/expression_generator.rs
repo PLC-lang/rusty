@@ -572,7 +572,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output_value_type =
                         self.index.get_type_information_or_void(parameter.get_type_name());
 
-                    //Special string handling
                     if assigned_output_type.is_aggregate() && output_value_type.is_aggregate() {
                         self.build_memcpy(
                             assigned_output,
