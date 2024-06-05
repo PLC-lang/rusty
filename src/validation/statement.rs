@@ -1488,6 +1488,9 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         });
 }
 
+/// Validates if a POU call has the correct amount of arguments. Specifically for functions the
+/// argument count must be greater or equal depending on if a variadic parameter is present whereas for
+/// stateful POUs the argument count can be less since VAR_INPUT and VAR_OUTPUT arguments are optional
 fn validate_argument_count<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
