@@ -206,8 +206,18 @@ impl Diagnostic {
     where
         T: Into<SourceLocation>,
     {
+        // Let's be extra fancy here 🕺
+        fn message(value: usize) -> String {
+            match value {
+                1 => format!("{value} argument"),
+                _ => format!("{value} arguments"),
+            }
+        }
+
         Diagnostic::new(format!(
-            "this POU takes {expected} argument(s) but {actual} argument(s) were supplied",
+            "this POU takes {expected} but {actual} were supplied",
+            expected = message(expected),
+            actual = message(actual)
         ))
         .with_error_code("E032")
         .with_location(location.into())

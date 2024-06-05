@@ -1267,29 +1267,29 @@ fn function_where_arguments_are_less_than_parameters() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E032]: this POU takes 1 argument(s) but 0 argument(s) were supplied
+    error[E032]: this POU takes 1 argument but 0 arguments were supplied
       ┌─ <internal>:3:13
       │
     3 │             fn_with_one_parameter();
-      │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument(s) but 0 argument(s) were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument but 0 arguments were supplied
 
-    error[E032]: this POU takes 1 argument(s) but 2 argument(s) were supplied
+    error[E032]: this POU takes 1 argument but 2 arguments were supplied
       ┌─ <internal>:4:13
       │
     4 │             fn_with_one_parameter(1, 2);
-      │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument(s) but 2 argument(s) were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument but 2 arguments were supplied
 
-    error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
+    error[E032]: this POU takes 2 arguments but 1 argument were supplied
       ┌─ <internal>:6:13
       │
     6 │             fn_with_two_parameters(1);
-      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 1 argument were supplied
 
-    error[E032]: this POU takes 2 argument(s) but 3 argument(s) were supplied
+    error[E032]: this POU takes 2 arguments but 3 arguments were supplied
       ┌─ <internal>:7:13
       │
     7 │             fn_with_two_parameters(1, 2, 3);
-      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 argument(s) but 3 argument(s) were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 3 arguments were supplied
 
     error[E031]: Expected a reference for parameter out_two because their type is Output
       ┌─ <internal>:7:39
@@ -1297,11 +1297,11 @@ fn function_where_arguments_are_less_than_parameters() {
     7 │             fn_with_two_parameters(1, 2, 3);
       │                                       ^ Expected a reference for parameter out_two because their type is Output
 
-    error[E032]: this POU takes 3 argument(s) but 2 argument(s) were supplied
+    error[E032]: this POU takes 3 arguments but 2 arguments were supplied
       ┌─ <internal>:9:13
       │
     9 │             fn_with_three_parameters(1, 2);
-      │             ^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 3 argument(s) but 2 argument(s) were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
 
     error[E031]: Expected a reference for parameter out_two because their type is Output
       ┌─ <internal>:9:41
@@ -1309,11 +1309,11 @@ fn function_where_arguments_are_less_than_parameters() {
     9 │             fn_with_three_parameters(1, 2);
       │                                         ^ Expected a reference for parameter out_two because their type is Output
 
-    error[E032]: this POU takes 3 argument(s) but 4 argument(s) were supplied
+    error[E032]: this POU takes 3 arguments but 4 arguments were supplied
        ┌─ <internal>:10:13
        │
     10 │             fn_with_three_parameters(1, 2, 3, 4);
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 3 argument(s) but 4 argument(s) were supplied
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 3 arguments but 4 arguments were supplied
 
     error[E031]: Expected a reference for parameter out_two because their type is Output
        ┌─ <internal>:10:41

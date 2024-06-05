@@ -2,20 +2,20 @@
 source: src/validation/tests/builtin_validation_tests.rs
 expression: "&diagnostics"
 ---
-error[E032]: this POU takes 2 argument(s) but 0 argument(s) were supplied
+error[E032]: this POU takes 2 arguments but 0 arguments were supplied
   ┌─ <internal>:7:13
   │
 7 │             EQ();
-  │             ^^ this POU takes 2 argument(s) but 0 argument(s) were supplied
+  │             ^^ this POU takes 2 arguments but 0 arguments were supplied
 
-error[E032]: this POU takes 2 argument(s) but 1 argument(s) were supplied
+error[E032]: this POU takes 2 arguments but 1 argument were supplied
   ┌─ <internal>:8:13
   │
 8 │             GT(x1);
-  │             ^^ this POU takes 2 argument(s) but 1 argument(s) were supplied
+  │             ^^ this POU takes 2 arguments but 1 argument were supplied
 
-error[E032]: this POU takes 2 argument(s) but 4 argument(s) were supplied
+error[E032]: this POU takes 2 arguments but 4 arguments were supplied
    ┌─ <internal>:10:13
    │
 10 │             NE(x2, x2, x1, x2); // NE is not extensible
-   │             ^^ this POU takes 2 argument(s) but 4 argument(s) were supplied
+   │             ^^ this POU takes 2 arguments but 4 arguments were supplied
