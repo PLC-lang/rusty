@@ -223,6 +223,7 @@ fn test_visit_data_type_declaration() {
         fields: Vec<String>,
     }
 
+    // This is a simple visitor that collects all field names in a datatype
     impl AstVisitor for FieldCollector {
         fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
             self.fields.push(variable.name.clone());
@@ -235,21 +236,50 @@ fn test_visit_data_type_declaration() {
             }
             element.walk(self);
         }
+
+        fn visit_range_statement(
+            &mut self,
+            stmt: &plc_ast::ast::RangeStatement,
+            _node: &plc_ast::ast::AstNode,
+        ) {
+            if let Some((start, end)) =
+                stmt.start.get_flat_reference_name().zip(stmt.end.get_flat_reference_name())
+            {
+                self.fields.push(start.to_string());
+                self.fields.push(end.to_string());
+            }
+            stmt.walk(self);
+        }
     }
     let mut visitor = FieldCollector { fields: vec![] };
 
     visit(
-        "TYPE myStruct: STRUCT
+        "
+        TYPE myStruct: STRUCT
             a, b, c: DINT;
             s: STRING;
             e: (enum1, enum2, enum3);
         END_STRUCT;
+        END_TYPE
+
+        TYPE MyEnum: (myEnum1, myEnum2, myEnum3);
+        END_TYPE
+
+        TYPE MySubRange: INT(max..min); END_TYPE
+
+        TYPE MyArray: ARRAY[start..end] OF INT; END_TYPE
       ",
         &mut visitor,
     );
 
     visitor.fields.sort();
-    assert_eq!(vec!["a", "b", "c", "e", "enum1", "enum2", "enum3", "s"], visitor.fields);
+    assert_eq!(
+        vec![
+            "a", "b", "c", "e", "end", "enum1", "enum2", "enum3", "max", "min", "myEnum1", "myEnum2",
+            "myEnum3", "s", "start"
+        ],
+        visitor.fields
+    );
 }
 
 #[test]
@@ -297,4 +327,114 @@ fn test_count_assignments() {
         visitor.visit(st);
     }
     assert_eq!(6, visitor.count);
+}
+
+#[test]
+fn test_visit_datatype_initializers_statement() {
+    let visitor = collect_identifiers(
+        "
+        TYPE MyStruct: STRUCT
+            field1: DINT := a;
+            field2: DINT := (b + c);
+            field3: ARRAY[0..3] OF DINT := 4(d);
+            field4: ARRAY[0..3] OF DINT := (e, f, g, h);
+            field5: (i := j, k := l) := m;
+        END_STRUCT
+        END_TYPE",
+    );
+    assert_eq!(get_character_range('a', 'm'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_array_declaration_statement() {
+    let visitor = collect_identifiers(
+        "
+        TYPE MyArray: ARRAY[(a+b)..(c+d)] OF INT; END_TYPE",
+    );
+    assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_if_statement() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            IF a THEN
+                b;
+            ELSIF c THEN
+                d;
+            ELSE
+                e;
+            END_IF;",
+    );
+    assert_eq!(get_character_range('a', 'e'), visitor.identifiers);
+}
+
+#[test]
+fn test_for_loop_visting() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            FOR a := b TO c BY d DO
+                e;
+            END_FOR;
+        END_PROGRAM",
+    );
+    assert_eq!(get_character_range('a', 'e'), visitor.identifiers);
+}
+
+#[test]
+fn test_while_loop_visiting() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            WHILE a DO
+                b;
+            END_WHILE;
+        END_PROGRAM",
+    );
+    assert_eq!(get_character_range('a', 'b'), visitor.identifiers);
+
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            REPEAT
+                a;
+            UNTIL
+                b = 0
+            END_REPEAT;
+        END_PROGRAM",
+    );
+    assert_eq!(get_character_range('a', 'b'), visitor.identifiers);
+}
+
+#[test]
+fn test_case_stmt_visiting() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            CASE a OF
+                b:
+                    c;
+                d, e:
+                    f;
+                ELSE
+                    g;
+            END_CASE;
+        END_PROGRAM",
+    );
+    assert_eq!(get_character_range('a', 'g'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_qualified_expressions() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            a.b;
+            c.d^.e;
+            f.g[h].i;
+        END_PROGRAM",
+    );
+    assert_eq!(get_character_range('a', 'i'), visitor.identifiers);
 }
