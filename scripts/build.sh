@@ -147,37 +147,25 @@ function run_test() {
         #Delete the test results if they exist
         rm -rf "$project_location/test_results"
         make_dir "$project_location/test_results"
-        # JUnit test should run on nightly
-        log "cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
-            -Zunstable-options \
-         | split -l1 - "$project_location"/test_results/unit_tests \
-         -d --additional-suffix=.xml
-        "
-        cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
-            -Zunstable-options \
-         | split -l1 - "$project_location"/test_results/unit_tests \
-         -d --additional-suffix=.xml
+        # JUnit test should run via cargo-nextest
+        log "cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci \ 
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml"
+        cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml
 
         # Run only the integration tests
         #https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
-        log "cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/integration_tests \
-         -d --additional-suffix=.xml"
-        cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/integration_tests \
-         -d --additional-suffix=.xml
+        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci --test '*' \
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/integration_tests.xml "
+        cargo-nextest nextest run $CARGO_OPTIONS --profile ci --test '*'
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/integration_tests.xml
 
         # Run the std integration
-        log "cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/std_integration_tests \
-         -d --additional-suffix=.xml"
-        cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/std_integration_tests \
-         -d --additional-suffix=.xml
+        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*' \ 
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml"
+        cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*'
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml
+        
     else
         cargo test $CARGO_OPTIONS --workspace
     fi
