@@ -1174,8 +1174,8 @@ fn validate_call<T: AnnotationMap>(
                     // mixing implicit and explicit arguments is not allowed
                     // allways compare to the first argument
                     if i == 0 {
-                        argument_are_implicit = is_implicit;
-                    } else if argument_are_implicit != is_implicit {
+                        arguments_are_implicit = is_implicit;
+                    } else if arguments_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
