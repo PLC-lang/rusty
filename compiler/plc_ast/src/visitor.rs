@@ -89,6 +89,8 @@ pub trait AstVisitor: Sized {
         variable.walk(self);
     }
 
+    /// Visits an enum element `AstNode` node.
+    /// Make sure to call `walk` on the `AstNode` node to visit its children.
     fn visit_enum_element(&mut self, element: &AstNode) {
         element.walk(self);
     }
@@ -118,20 +120,14 @@ pub trait AstVisitor: Sized {
     }
 
     /// Visits an `EmptyStatement` node.
-    /// Make sure to call `walk` on the `EmptyStatement` node to visit its children.
     fn visit_empty_statement(&mut self, _stmt: &EmptyStatement, _node: &AstNode) {}
 
     /// Visits a `DefaultValue` node.
-    /// Make sure to call `walk` on the `DefaultValue` node to visit its children.
     fn visit_default_value(&mut self, _stmt: &DefaultValue, _node: &AstNode) {}
 
     /// Visits an `AstLiteral` node.
     /// Make sure to call `walk` on the `AstLiteral` node to visit its children.
-    fn visit_literal(&mut self, _stmt: &AstLiteral, _node: &AstNode) {}
-
-    /// Visits a `CastStatement` node.
-    /// Make sure to call `walk` on the `CastStatement` node to visit its children.
-    fn visit_cast_statement(&mut self, stmt: &CastStatement, _node: &AstNode) {
+    fn visit_literal(&mut self, stmt: &AstLiteral, _node: &AstNode) {
         stmt.walk(self)
     }
 
@@ -245,10 +241,7 @@ pub trait AstVisitor: Sized {
     }
 
     /// Visits a `LabelStatement` node.
-    /// Make sure to call `walk` on the `LabelStatement` node to visit its children.
-    fn visit_label_statement(&mut self, stmt: &LabelStatement, _node: &AstNode) {
-        stmt.walk(self)
-    }
+    fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
 }
 
 /// Walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
@@ -259,24 +252,6 @@ where
     for b in blocks {
         visit_nodes!(visitor, &b.condition);
         visit_all_nodes!(visitor, &b.body);
-    }
-}
-
-impl Walker for Vec<AstNode> {
-    fn walk<V>(&self, visitor: &mut V)
-    where
-        V: AstVisitor,
-    {
-        visit_all_nodes!(visitor, self);
-    }
-}
-
-impl Walker for EmptyStatement {
-    fn walk<V>(&self, _visitor: &mut V)
-    where
-        V: AstVisitor,
-    {
-        // do nothing
     }
 }
 
@@ -313,15 +288,6 @@ impl Walker for ReferenceExpr {
             }
             _ => {}
         }
-    }
-}
-
-impl Walker for CastStatement {
-    fn walk<V>(&self, visitor: &mut V)
-    where
-        V: AstVisitor,
-    {
-        visitor.visit(&self.target);
     }
 }
 
@@ -428,14 +394,6 @@ impl Walker for ReturnStatement {
     }
 }
 
-impl Walker for LabelStatement {
-    fn walk<V>(&self, _visitor: &mut V)
-    where
-        V: AstVisitor,
-    {
-    }
-}
-
 impl Walker for JumpStatement {
     fn walk<V>(&self, visitor: &mut V)
     where
@@ -455,7 +413,6 @@ impl Walker for AstNode {
             AstStatement::EmptyStatement(stmt) => visitor.visit_empty_statement(stmt, node),
             AstStatement::DefaultValue(stmt) => visitor.visit_default_value(stmt, node),
             AstStatement::Literal(stmt) => visitor.visit_literal(stmt, node),
-            AstStatement::CastStatement(stmt) => visitor.visit_cast_statement(stmt, node),
             AstStatement::MultipliedStatement(stmt) => visitor.visit_multiplied_statement(stmt, node),
             AstStatement::ReferenceExpr(stmt) => visitor.visit_reference_expr(stmt, node),
             AstStatement::Identifier(stmt) => visitor.visit_identifier(stmt, node),

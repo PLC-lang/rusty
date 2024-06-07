@@ -198,31 +198,6 @@ fn test_visit_assignment_expressions() {
 }
 
 #[test]
-fn test_visit_cast_statement_expressions() {
-    struct CastVisitor{
-        visited: bool,
-    }
-
-    impl AstVisitor for CastVisitor{
-        fn visit_cast_statement(&mut self, _stmt: &plc_ast::ast::CastStatement, _node: &plc_ast::ast::AstNode) {
-            self.visited = true;
-        }
-    }
-
-    let mut visited = CastVisitor{visited: false};
-
-    visit(
-        "
-        PROGRAM prg
-            INT#3;
-        END_PROGRAM", &mut visited
-    );
-    
-    assert!(visited.visited);
-}
-
-
-#[test]
 fn test_visit_direct_access_statement_expressions() {
     let visitor = collect_identifiers(
         "
@@ -265,12 +240,10 @@ fn test_visit_into_var_global() {
         VAR_GLOBAL
             a : INT := c;
             c : INT := d;
-        END_VAR"
+        END_VAR",
     );
     assert_eq!(get_character_range('c', 'd'), visitor.identifiers);
 }
-
-
 
 #[test]
 fn test_visit_data_type_declaration() {
@@ -394,14 +367,12 @@ fn test_visit_datatype_initializers_statement() {
             field3: ARRAY[1..3] OF DINT := 4(d);
             field4: ARRAY[4..7] OF DINT := (e, f, g, h);
             field5: (i := j, k := l) := m;
+
         END_STRUCT
         END_TYPE",
     );
 
-    let mut expected = vec!["1", "3", "4", "7"]
-            .iter()
-            .map(|c| c.to_string())
-            .collect::<Vec<String>>();
+    let mut expected = vec!["1", "3", "4", "7"].iter().map(|c| c.to_string()).collect::<Vec<String>>();
 
     expected.extend(get_character_range('a', 'm'));
     assert_eq!(expected, visitor.identifiers);
@@ -501,7 +472,6 @@ fn test_visit_qualified_expressions() {
     assert_eq!(get_character_range('a', 'i'), visitor.identifiers);
 }
 
-
 #[test]
 fn test_visit_variable_block() {
     let visitor = collect_identifiers(
@@ -512,6 +482,9 @@ fn test_visit_variable_block() {
             END_VAR
             VAR_OUTPUT
                 b : INT := Y;
+            END_VAR
+            VAR CONSTANT
+                c : INT
             END_VAR
         END_PROGRAM",
     );
@@ -544,15 +517,15 @@ fn test_visit_default_value() {
         }
     }
 
-    let mut visitor =  DefaultValueCollector{visited: false};
-    
+    let mut visitor = DefaultValueCollector { visited: false };
+
     visit(
         "
         VAR_GLOBAL CONSTANT
             a : INT;
         END_VAR
-        ", 
-        &mut visitor
+        ",
+        &mut visitor,
     );
     assert!(visitor.visited);
 }
@@ -569,18 +542,74 @@ fn test_visit_direct_access() {
         }
     }
 
-    let mut visitor =  Visited{visited: false};
-    
+    let mut visitor = Visited { visited: false };
+
     visit(
         "
         PROGRAM prg
             x.1;
-        ", 
-        &mut visitor
+        ",
+        &mut visitor,
+    );
+    assert!(visitor.visited);
+
+    let v = collect_identifiers(
+        "
+        PROGRAM prg
+            x.1;
+        ",
+    );
+    assert_eq!(vec!["1", "x"], v.identifiers);
+}
+
+#[test]
+fn test_invalid_case_condition() {
+    struct Visited {
+        visited: bool,
+    }
+
+    impl AstVisitor for Visited {
+        fn visit_case_condition(&mut self, _child: &plc_ast::ast::AstNode, _node: &plc_ast::ast::AstNode) {
+            self.visited = true;
+        }
+    }
+
+    let mut visitor = Visited { visited: false };
+
+    visit(
+        "
+        PROGRAM prg
+            x:
+        ",
+        &mut visitor,
     );
     assert!(visitor.visited);
 }
 
+#[test]
+fn test_visit_string_declaration() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            VAR
+                str: STRING(X);
+            END_VAR
+        ",
+    );
 
+    assert_eq!(vec!["X"], visitor.identifiers);
+}
 
+#[test]
+fn test_visit_pointer_declaration() {
+    let visitor = collect_identifiers(
+        "
+        PROGRAM prg
+            VAR
+                str: POINTER TO ARRAY[a..b] OF INT := c;
+            END_VAR
+        ",
+    );
 
+    assert_eq!(get_character_range('a', 'c'), visitor.identifiers);
+}
