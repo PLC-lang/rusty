@@ -1150,7 +1150,7 @@ fn validate_call<T: AnnotationMap>(
             validate_argument_count(context, validator, pou, &arguments, &operator.location);
         }
 
-        let mut argument_are_implicit = true;
+        let mut arguments_are_implicit = true;
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
