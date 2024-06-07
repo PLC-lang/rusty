@@ -1722,11 +1722,11 @@ fn incorrect_argument_count_stateless_pous() {
     4 │             fn_with_one_parameter(1, 2);
       │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument but 2 arguments were supplied
 
-    error[E032]: this POU takes 2 arguments but 1 argument were supplied
+    error[E032]: this POU takes 2 arguments but 1 argument was supplied
       ┌─ <internal>:6:13
       │
     6 │             fn_with_two_parameters(1);
-      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 1 argument were supplied
+      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 1 argument was supplied
 
     error[E032]: this POU takes 2 arguments but 3 arguments were supplied
       ┌─ <internal>:7:13

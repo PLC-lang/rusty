@@ -8,11 +8,11 @@ error[E032]: this POU takes 2 arguments but 0 arguments were supplied
 7 │             EQ();
   │             ^^ this POU takes 2 arguments but 0 arguments were supplied
 
-error[E032]: this POU takes 2 arguments but 1 argument were supplied
+error[E032]: this POU takes 2 arguments but 1 argument was supplied
   ┌─ <internal>:8:13
   │
 8 │             GT(x1);
-  │             ^^ this POU takes 2 arguments but 1 argument were supplied
+  │             ^^ this POU takes 2 arguments but 1 argument was supplied
 
 error[E032]: this POU takes 2 arguments but 4 arguments were supplied
    ┌─ <internal>:10:13

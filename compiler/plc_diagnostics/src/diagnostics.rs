@@ -215,9 +215,10 @@ impl Diagnostic {
         }
 
         Diagnostic::new(format!(
-            "this POU takes {expected} but {actual} were supplied",
+            "this POU takes {expected} but {actual} {was_or_were} supplied",
             expected = message(expected),
-            actual = message(actual)
+            actual = message(actual),
+            was_or_were = if actual == 1 { "was" } else { "were" }
         ))
         .with_error_code("E032")
         .with_location(location.into())
