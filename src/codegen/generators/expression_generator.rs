@@ -680,11 +680,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         match expr.get_stmt() {
             AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
-                // TODO: Can we this be simplified?
                 let rhs_type = {
                     let pou = self.index.find_pou(function_name).unwrap();
                     let pou_struct = &pou.find_instance_struct_type(self.index).unwrap().information;
-                    let DataTypeInformation::Struct { members, .. } = pou_struct else { panic!() };
+                    let DataTypeInformation::Struct { members, .. } = pou_struct else { unreachable!() };
 
                     self.index.find_effective_type_by_name(&members[index as usize].data_type_name).unwrap()
                 };
@@ -2807,6 +2806,7 @@ fn int_value_multiply_accumulate<'ink>(
     llvm.builder.build_load(accum, "accessor").into_int_value()
 }
 
+// XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
 /// Returns false if any argument in the given list is an (output-)assignment and true otherwise
 fn arguments_are_implicit(arguments: &[&AstNode]) -> bool {
     !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
