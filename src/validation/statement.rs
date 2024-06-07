@@ -1150,7 +1150,7 @@ fn validate_call<T: AnnotationMap>(
             validate_argument_count(context, validator, pou, &arguments, &operator.location);
         }
 
-        let mut argument_are_implicit = true;
+        let mut arguments_are_implicit = true;
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
@@ -1174,8 +1174,8 @@ fn validate_call<T: AnnotationMap>(
                     // mixing implicit and explicit arguments is not allowed
                     // allways compare to the first argument
                     if i == 0 {
-                        argument_are_implicit = is_implicit;
-                    } else if argument_are_implicit != is_implicit {
+                        arguments_are_implicit = is_implicit;
+                    } else if arguments_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
@@ -1488,9 +1488,11 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         });
 }
 
-/// Validates if a POU call has the correct amount of arguments. Specifically for functions the
-/// argument count must be greater or equal depending on if a variadic parameter is present whereas for
-/// stateful POUs the argument count can be less since VAR_INPUT and VAR_OUTPUT arguments are optional
+/// Validates if a POU call has the correct number of arguments. Specifically, for functions,
+/// the argument count must be equal to the required count unless the interface is variadic,
+/// in which case the argument count may be greater than or equal to the required count. For stateful
+/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and 
+/// VAR_OUTPUT arguments are optional.
 fn validate_argument_count<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
