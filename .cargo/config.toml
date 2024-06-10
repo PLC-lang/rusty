@@ -16,6 +16,9 @@ rustflags = [
 ]
 linker = "clang"
 
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
 [profile.profiling]
 inherits = "release"
 debug = true
