@@ -1,0 +1,50 @@
+name: Build Windows
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Windows Build
+    runs-on: windows-2022
+    env:
+      toolchain-version: 1.77.0
+      llvm-version: 14.0.6
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.toolchain-version }}
+
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
+
+      - name: Cargo test (Unit)
+        run: cargo test --lib -- --nocapture
+
+      - name: Cargo test (Correctness)
+        run: cargo test correctness -- --nocapture --test-threads=1
+
+      - name: Cargo test (Integration)
+        run: cargo test integration -- --nocapture --test-threads=1
+
+      - name: Release Build
+        run: cargo build --release --workspace
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: plc.exe
+          path: target/release/plc.exe
+
