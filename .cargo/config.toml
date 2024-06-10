@@ -17,7 +17,9 @@ rustflags = [
 linker = "clang"
 
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+rustflags = [
+"-C", "link-arg=-fuse-ld=lld",
+"-C", "link-arg=/D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"]
 
 [profile.profiling]
 inherits = "release"
