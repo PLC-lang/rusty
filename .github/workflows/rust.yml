@@ -85,28 +85,16 @@ jobs:
           directory: "./llvm"
 
       - name: Cargo test (Unit)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --lib -- --nocapture
+        run: cargo test --lib -- --nocapture
 
       - name: Cargo test (Correctness)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: correctness -- --nocapture --test-threads=1
+        run: cargo test correctness -- --nocapture --test-threads=1
 
       - name: Cargo test (Integration)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: integration -- --nocapture --test-threads=1
+        run: cargo test integration -- --nocapture --test-threads=1
 
       - name: Release Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release --workspace
 
       - uses: actions/upload-artifact@master
         with:
