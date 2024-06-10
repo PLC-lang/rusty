@@ -34,16 +34,23 @@ macro_rules! visit_nodes {
 ///
 /// # Example
 /// ```
-/// use plc_ast::{
-///   ast::{Assignment, AstNode},
-///  visitor::{AstVisitor, Walker},
-/// };
-///
-/// impl Walker for Assignment {
-///    fn walk<V>(&self, visitor: &mut V)
-///      where V: AstVisitor {
-///     visitor.visit(&self.right);
-///     visitor.visit(&self.left);
+/// use plc_ast::ast::AstNode;
+/// use plc_ast::visitor::Walker;
+/// use plc_ast::visitor::AstVisitor;
+/// 
+/// struct MyAssignment {
+///   left: AstNode,
+///  right: AstNode,
+/// }
+/// 
+/// impl Walker for MyAssignment {
+///     fn walk<V>(&self, visitor: &mut V)
+///     where
+///         V: AstVisitor,
+///     {
+///         visitor.visit(&self.right);
+///         visitor.visit(&self.left);
+///     }
 /// }
 /// ```
 ///
@@ -52,6 +59,8 @@ pub trait Walker {
     where
         V: AstVisitor;
 }
+
+
 
 /// The `AstVisitor` trait provides a set of methods for visiting different types of AST nodes.
 /// Implementors can individually override the methods they are interested in. When overriding a method,
