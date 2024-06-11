@@ -1491,7 +1491,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
 /// Validates if a POU call has the correct number of arguments. Specifically, for functions,
 /// the argument count must be equal to the required count unless the interface is variadic,
 /// in which case the argument count may be greater than or equal to the required count. For stateful
-/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and 
+/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and
 /// VAR_OUTPUT arguments are optional.
 fn validate_argument_count<T: AnnotationMap>(
     context: &ValidationContext<T>,
