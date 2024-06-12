@@ -321,13 +321,13 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         unit: &CompilationUnit,
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
-        got_layout: &Mutex<Option<HashMap<String, u64>>>,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
             &unit.file_name,
-            compile_options.got_layout_file.clone().zip(compile_options.got_layout_format),
+            (compile_options.got_layout_file.clone(), compile_options.got_layout_format),
             compile_options.optimization,
             compile_options.debug_level,
             compile_options.online_change,
@@ -388,12 +388,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         ensure_compile_dirs(targets, &compile_directory)?;
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
 
-        let got_layout = compile_options
-            .got_layout_file
-            .as_ref()
-            .map(|path| read_got_layout(path, ConfigFormat::JSON))
-            .transpose()?;
-
+        let got_layout = read_got_layout(&compile_options.got_layout_file, ConfigFormat::JSON)?;
         let got_layout = Mutex::new(got_layout);
 
         let res = targets
@@ -456,9 +451,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        compile_options.got_layout_file.as_ref().map(|path| {
-            write_got_layout(got_layout.into_inner().unwrap().unwrap(), path, ConfigFormat::JSON)
-        });
+        write_got_layout(got_layout.into_inner().unwrap(), &compile_options.got_layout_file, ConfigFormat::JSON)?;
 
         Ok(res)
     }

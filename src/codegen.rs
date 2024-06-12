@@ -78,7 +78,7 @@ pub struct CodeGen<'ink> {
     /// Whether we are generating a hot-reloadable binary or not
     pub online_change: OnlineChange,
 
-    pub got_layout_file: Option<(String, ConfigFormat)>,
+    pub got_layout_file: (String, ConfigFormat),
 
     pub module_location: String,
 }
@@ -97,7 +97,7 @@ impl<'ink> CodeGen<'ink> {
         context: &'ink CodegenContext,
         root: Option<&Path>,
         module_location: &str,
-        got_layout_file: Option<(String, ConfigFormat)>,
+        got_layout_file: (String, ConfigFormat),
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
         online_change: OnlineChange,
@@ -121,7 +121,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
-        got_layout: &Mutex<Option<HashMap<String, u64>>>,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -135,8 +135,14 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator =
-            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+        let mut variable_generator = VariableGenerator::new(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+        );
 
         //Generate global variables
         let llvm_gv_index =
@@ -175,7 +181,10 @@ impl<'ink> CodeGen<'ink> {
                 acc
             });
 
-        if let Some(got_entries) = &mut *got_layout.lock().unwrap() {
+
+        if self.online_change == OnlineChange::Enabled {
+            let got_entries = &mut *got_layout.lock().unwrap();
+
             let mut new_symbols = Vec::new();
             let mut new_got_entries = HashMap::new();
             let mut new_got = HashMap::new();

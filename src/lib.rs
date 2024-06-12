@@ -143,6 +143,8 @@ impl FromStr for ConfigFormat {
     }
 }
 
+pub const DEFAULT_GOT_LAYOUT_FILE: &str = "online_change_got.json";
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
 pub enum ErrorFormat {
     #[default]

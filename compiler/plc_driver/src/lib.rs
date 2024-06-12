@@ -20,7 +20,7 @@ use cli::{CompileParameters, ParameterError, SubCommands};
 use pipelines::AnnotatedProject;
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat,
-    OnlineChange, OptimizationLevel, Target, Threads,
+    OnlineChange, OptimizationLevel, Target, Threads, DEFAULT_GOT_LAYOUT_FILE,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -50,8 +50,8 @@ pub struct CompileOptions {
     /// The name of the resulting compiled file
     pub output: String,
     pub output_format: FormatOption,
-    pub got_layout_file: Option<String>,
-    pub got_layout_format: Option<ConfigFormat>,
+    pub got_layout_file: String,
+    pub got_layout_format: ConfigFormat,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
@@ -66,8 +66,8 @@ impl Default for CompileOptions {
             build_location: None,
             output: String::new(),
             output_format: Default::default(),
-            got_layout_file: None,
-            got_layout_format: None,
+            got_layout_file: String::from(DEFAULT_GOT_LAYOUT_FILE),
+            got_layout_format: ConfigFormat::JSON,
             optimization: OptimizationLevel::None,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
