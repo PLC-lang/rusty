@@ -8,6 +8,7 @@ check_style=0
 build=0
 doc=0
 test=0
+lit=0
 coverage=0
 release=0
 debug=0
@@ -140,6 +141,15 @@ function run_check_style() {
     cargo fmt -- --check
 }
 
+function run_lit_test() {
+    # We need a binary to execute the lit tests
+    cargo build
+    cargo build --release
+
+    lit -v -DCOMPILER=$project_location/target/debug/plc tests/lit/
+    lit -v -DCOMPILER=$project_location/target/release/plc tests/lit/
+}
+
 function run_test() {
     CARGO_OPTIONS=$(set_cargo_options)
     log "Running cargo test"
@@ -168,10 +178,6 @@ function run_test() {
         
     else
         cargo test $CARGO_OPTIONS --workspace
-
-        # We need a binary to execute the lit tests
-        cargo build
-        lit -v -DCOMPILER=$project_location/target/debug/plc tests/lit/
     fi
 }
 
@@ -295,6 +301,9 @@ function run_in_container() {
     if [[ $test -ne 0 ]]; then
         params="$params --test"
     fi
+    if [[ $lit -ne 0 ]]; then
+        params="$params --lit"
+    fi
     if [[ $junit -ne 0 ]]; then
         params="$params --junit"
     fi
@@ -334,7 +343,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -385,6 +394,9 @@ while true; do
             ;;
         --test)
             test=1
+            ;;
+        --lit)
+            lit=1
             ;;
         --junit)
             junit=1
@@ -459,6 +471,10 @@ fi
 
 if [[ $test -ne 0 ]]; then
     run_test
+fi
+
+if [[ $lit -ne 0 ]]; then
+    run_lit_test
 fi
 
 if [[ $doc -ne 0 ]]; then
