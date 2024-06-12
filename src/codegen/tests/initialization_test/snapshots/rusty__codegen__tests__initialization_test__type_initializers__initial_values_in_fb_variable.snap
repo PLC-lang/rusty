@@ -8,8 +8,8 @@ source_filename = "main"
 %TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
 
-@__TON__init = unnamed_addr constant %TON zeroinitializer
-@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
+@__TON__init = unnamed_addr constant %TON zeroinitializer, section "var-__TON__init:v"
+@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }, section "var-main_instance:v"
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 

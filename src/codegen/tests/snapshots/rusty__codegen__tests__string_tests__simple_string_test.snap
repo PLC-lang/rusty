@@ -1,11 +1,9 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@str = global [21 x i8] zeroinitializer
-@wstr = global [21 x i16] zeroinitializer
-
+@str = global [21 x i8] zeroinitializer, section "var-str:s8u21"
+@wstr = global [21 x i16] zeroinitializer, section "var-wstr:s16u21"

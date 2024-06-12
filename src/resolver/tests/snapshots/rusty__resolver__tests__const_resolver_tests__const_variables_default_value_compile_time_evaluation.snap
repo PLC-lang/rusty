@@ -5,12 +5,12 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "main"
 
-@false_bool = unnamed_addr constant i8 0
-@zero_int = unnamed_addr constant i16 0
-@zero_real = unnamed_addr constant double 0.000000e+00
-@empty_string = unnamed_addr constant [81 x i8] zeroinitializer
-@null_ptr = unnamed_addr constant i16* null
-@zero_enum = unnamed_addr constant i32 0
-@myEnum.a = unnamed_addr constant i32 0
-@myEnum.b = unnamed_addr constant i32 1
-@myEnum.c = unnamed_addr constant i32 2
+@false_bool = unnamed_addr constant i8 0, section "var-false_bool:u8"
+@zero_int = unnamed_addr constant i16 0, section "var-zero_int:i16"
+@zero_real = unnamed_addr constant double 0.000000e+00, section "var-zero_real:f64"
+@empty_string = unnamed_addr constant [81 x i8] zeroinitializer, section "var-empty_string:s8u81"
+@null_ptr = unnamed_addr constant i16* null, section "var-null_ptr:pi16"
+@zero_enum = unnamed_addr constant i32 0, section "var-zero_enum:v"
+@myEnum.a = unnamed_addr constant i32 0, section "var-a:v"
+@myEnum.b = unnamed_addr constant i32 1, section "var-b:v"
+@myEnum.c = unnamed_addr constant i32 2, section "var-c:v"

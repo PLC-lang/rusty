@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@FORWARD = unnamed_addr constant i32 7
-@UP = unnamed_addr constant i32 8
-@DOWN = unnamed_addr constant i32 15
+@FORWARD = unnamed_addr constant i32 7, section "var-FORWARD:i32"
+@UP = unnamed_addr constant i32 8, section "var-UP:i32"
+@DOWN = unnamed_addr constant i32 15, section "var-DOWN:i32"
 
 define i32 @drive() section "fn-drive:i32" {
 entry:

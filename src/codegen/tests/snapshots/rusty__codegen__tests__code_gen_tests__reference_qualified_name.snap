@@ -9,9 +9,9 @@ source_filename = "main"
 %foo = type { i32, i32, %fb }
 %prg = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer
-@foo_instance = global %foo zeroinitializer
-@prg_instance = global %prg zeroinitializer
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:v"
+@foo_instance = global %foo zeroinitializer, section "var-foo_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @fb(%fb* %0) section "fn-fb:v[i32]" {
 entry:

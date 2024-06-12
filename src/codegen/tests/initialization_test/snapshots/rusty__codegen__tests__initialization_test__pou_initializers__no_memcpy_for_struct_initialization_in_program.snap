@@ -8,8 +8,8 @@ source_filename = "main"
 %prog = type { %__prog_a }
 %__prog_a = type { i16 }
 
-@prog_instance = global %prog zeroinitializer
-@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer, section "var-____prog_a__init:v"
 
 define void @prog(%prog* %0) section "fn-prog:v" {
 entry:

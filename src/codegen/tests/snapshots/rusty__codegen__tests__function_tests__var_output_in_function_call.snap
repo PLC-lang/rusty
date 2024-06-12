@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { i16 }
 
-@main_instance = global %main { i16 4 }
+@main_instance = global %main { i16 4 }, section "var-main_instance:v"
 
 define i32 @func(i16* %0) section "fn-func:i32[pi16]" {
 entry:

@@ -1751,7 +1751,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            AstStatement::CastStatement(data) => self.generate_expression_value(&data.target),
             _ => Err(cannot_generate_literal()),
         }
     }

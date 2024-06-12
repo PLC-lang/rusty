@@ -7,7 +7,7 @@ source_filename = "main"
 
 %MyStruct = type { i32, i16 }
 
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:v"
 
 define i16 @foo_int() section "fn-foo_int:i16" {
 entry:

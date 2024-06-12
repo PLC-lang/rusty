@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type {}
 
-@prg_instance = global %prg zeroinitializer
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define i32 @foo(i32 %0) section "fn-foo:i32[i32]" {
 entry:

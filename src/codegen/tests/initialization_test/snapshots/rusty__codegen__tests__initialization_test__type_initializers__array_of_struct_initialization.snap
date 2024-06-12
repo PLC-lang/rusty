@@ -8,11 +8,11 @@ source_filename = "main"
 %myStruct = type { i32, i32, [2 x i32] }
 %main = type { [2 x %myStruct], [2 x %myStruct] }
 
-@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
-@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40]
-@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }
+@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "var-str:v"
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:v"
+@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "var-alias_str:v"
+@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40], section "var-global_arr:v"
+@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }, section "var-main_instance:v"
 @__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 @__main.alias_arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 

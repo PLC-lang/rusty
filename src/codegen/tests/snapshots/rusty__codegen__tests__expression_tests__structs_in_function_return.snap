@@ -7,7 +7,7 @@ source_filename = "main"
 
 %myStruct = type { i16 }
 
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:v"
 
 define void @func(%myStruct* %0, %myStruct* %1) section "fn-func:v[pv]" {
 entry:

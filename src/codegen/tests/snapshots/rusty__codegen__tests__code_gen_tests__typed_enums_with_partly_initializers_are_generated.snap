@@ -5,15 +5,15 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@twenty = unnamed_addr constant i16 20
-@x = global i8 0
-@MyEnum.red = unnamed_addr constant i8 7
-@MyEnum.yellow = unnamed_addr constant i8 8
-@MyEnum.green = unnamed_addr constant i8 9
-@MyEnum2.a = unnamed_addr constant i8 0
-@MyEnum2.b = unnamed_addr constant i8 1
-@MyEnum2.c = unnamed_addr constant i8 7
-@MyEnum2.d = unnamed_addr constant i8 8
-@MyEnum2.e = unnamed_addr constant i8 9
-@MyEnum2.f = unnamed_addr constant i8 20
-@MyEnum2.g = unnamed_addr constant i8 21
+@twenty = unnamed_addr constant i16 20, section "var-twenty:i16"
+@x = global i8 0, section "var-x:v"
+@MyEnum.red = unnamed_addr constant i8 7, section "var-red:v"
+@MyEnum.yellow = unnamed_addr constant i8 8, section "var-yellow:v"
+@MyEnum.green = unnamed_addr constant i8 9, section "var-green:v"
+@MyEnum2.a = unnamed_addr constant i8 0, section "var-a:v"
+@MyEnum2.b = unnamed_addr constant i8 1, section "var-b:v"
+@MyEnum2.c = unnamed_addr constant i8 7, section "var-c:v"
+@MyEnum2.d = unnamed_addr constant i8 8, section "var-d:v"
+@MyEnum2.e = unnamed_addr constant i8 9, section "var-e:v"
+@MyEnum2.f = unnamed_addr constant i8 20, section "var-f:v"
+@MyEnum2.g = unnamed_addr constant i8 21, section "var-g:v"

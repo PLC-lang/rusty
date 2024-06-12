@@ -7,10 +7,10 @@ source_filename = "main"
 
 %aaa = type { i16, i16, [5 x i8], [3 x i8] }
 
-@a = unnamed_addr constant i16 0
-@b = unnamed_addr constant i16 2
-@c = unnamed_addr constant i16 5
-@aaa_instance = global %aaa { i16 3, i16 7, [5 x i8] zeroinitializer, [3 x i8] zeroinitializer }
+@a = unnamed_addr constant i16 0, section "var-a:i16"
+@b = unnamed_addr constant i16 2, section "var-b:i16"
+@c = unnamed_addr constant i16 5, section "var-c:i16"
+@aaa_instance = global %aaa { i16 3, i16 7, [5 x i8] zeroinitializer, [3 x i8] zeroinitializer }, section "var-aaa_instance:v"
 
 define void @aaa(%aaa* %0) section "fn-aaa:v" {
 entry:

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %mainPROG = type { i8, i16 }
 
-@mainPROG_instance = global %mainPROG zeroinitializer
+@mainPROG_instance = global %mainPROG zeroinitializer, section "var-mainPROG_instance:v"
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c" \00"
 @utf08_literal_1 = private unnamed_addr constant [2 x i8] c"a\00"
 @utf16_literal_0 = private unnamed_addr constant [2 x i16] [i16 32, i16 0]

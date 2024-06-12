@@ -5,15 +5,15 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global i8 0
-@y = global i16 0
-@z = global i32 0
-@MyEnum.red = unnamed_addr constant i8 0
-@MyEnum.yellow = unnamed_addr constant i8 1
-@MyEnum.green = unnamed_addr constant i8 2
-@MyEnum2.red = unnamed_addr constant i16 0
-@MyEnum2.yellow = unnamed_addr constant i16 1
-@MyEnum2.green = unnamed_addr constant i16 2
-@MyEnum3.red = unnamed_addr constant i32 0
-@MyEnum3.yellow = unnamed_addr constant i32 1
-@MyEnum3.green = unnamed_addr constant i32 2
+@x = global i8 0, section "var-x:v"
+@y = global i16 0, section "var-y:v"
+@z = global i32 0, section "var-z:v"
+@MyEnum.red = unnamed_addr constant i8 0, section "var-red:v"
+@MyEnum.yellow = unnamed_addr constant i8 1, section "var-yellow:v"
+@MyEnum.green = unnamed_addr constant i8 2, section "var-green:v"
+@MyEnum2.red = unnamed_addr constant i16 0, section "var-red:v"
+@MyEnum2.yellow = unnamed_addr constant i16 1, section "var-yellow:v"
+@MyEnum2.green = unnamed_addr constant i16 2, section "var-green:v"
+@MyEnum3.red = unnamed_addr constant i32 0, section "var-red:v"
+@MyEnum3.yellow = unnamed_addr constant i32 1, section "var-yellow:v"
+@MyEnum3.green = unnamed_addr constant i32 2, section "var-green:v"

@@ -5,14 +5,14 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-@__a_position.x = unnamed_addr constant i32 1
-@__aa_position.x = unnamed_addr constant i32 2
-@__bb_position.x = unnamed_addr constant i32 3
-@__b_position.x = unnamed_addr constant i32 4
-@__a_position.y = unnamed_addr constant i32 5
-@__aa_position.y = unnamed_addr constant i32 5
-@__bb_position.y = unnamed_addr constant i32 5
-@__b_position.y = unnamed_addr constant i32 5
+@__a_position.x = unnamed_addr constant i32 1, section "var-x:v"
+@__aa_position.x = unnamed_addr constant i32 2, section "var-x:v"
+@__bb_position.x = unnamed_addr constant i32 3, section "var-x:v"
+@__b_position.x = unnamed_addr constant i32 4, section "var-x:v"
+@__a_position.y = unnamed_addr constant i32 5, section "var-y:v"
+@__aa_position.y = unnamed_addr constant i32 5, section "var-y:v"
+@__bb_position.y = unnamed_addr constant i32 5, section "var-y:v"
+@__b_position.y = unnamed_addr constant i32 5, section "var-y:v"
 
 define i32 @a() section "fn-a:i32" {
 entry:

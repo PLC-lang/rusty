@@ -9,9 +9,9 @@ source_filename = "main"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = global %Main zeroinitializer
-@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
-@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
+@Main_instance = global %Main zeroinitializer, section "var-Main_instance:v"
+@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "var-__OuterStruct__init:v"
+@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "var-__InnerStruct__init:v"
 
 define void @Main(%Main* %0) section "fn-Main:v" {
 entry:

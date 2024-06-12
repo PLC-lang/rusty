@@ -1,10 +1,8 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global i16 7
-
+@x = global i16 7, section "var-x:i16"

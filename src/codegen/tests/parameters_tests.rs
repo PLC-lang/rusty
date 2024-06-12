@@ -897,7 +897,7 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:v"
 
     define i32 @foo(%S_TY* %0) section "fn-foo:i32[v]" {
     entry:
@@ -969,8 +969,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
 
-    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "var-__AGGREGATE_COLLECTOR_TY__init:v"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:v"
 
     define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-foo:i32[v]" {
     entry:
@@ -1031,7 +1031,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-__FOO__init:v"
 
     define i32 @main() section "fn-main:i32" {
     entry:
@@ -1121,9 +1121,9 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__FB__init = unnamed_addr constant %FB zeroinitializer
-    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer
-    @PRG_instance = global %PRG zeroinitializer
+    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "var-__FB__init:v"
+    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "var-__OUT_TYPE__init:v"
+    @PRG_instance = global %PRG zeroinitializer, section "var-PRG_instance:v"
 
     define void @FB(%FB* %0) section "fn-FB:v[v][v][v][s8u81][s16u81]" {
     entry:

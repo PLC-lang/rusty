@@ -8,8 +8,8 @@ source_filename = "main"
 %foo = type { i16, i16 }
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer
-@prg_instance = global %prg zeroinitializer
+@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-__foo__init:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @foo(%foo* %0) section "fn-foo:v[i16][i16]" {
 entry:

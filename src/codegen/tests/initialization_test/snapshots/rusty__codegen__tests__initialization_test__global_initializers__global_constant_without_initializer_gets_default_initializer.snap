@@ -7,7 +7,7 @@ source_filename = "main"
 
 %commands = type { i8, i8 }
 
-@__commands__init = unnamed_addr constant %commands zeroinitializer
+@__commands__init = unnamed_addr constant %commands zeroinitializer, section "var-__commands__init:v"
 @__main.myStr1__init = unnamed_addr constant [81 x i8] zeroinitializer
 
 define i32 @main() section "fn-main:i32" {

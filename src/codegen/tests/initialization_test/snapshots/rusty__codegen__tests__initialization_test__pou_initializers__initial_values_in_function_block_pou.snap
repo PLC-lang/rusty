@@ -8,8 +8,8 @@ source_filename = "main"
 %FB = type { i16, i16, i8, i8, float, float }
 %main = type { %FB }
 
-@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
-@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
+@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-__FB__init:v"
+@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }, section "var-main_instance:v"
 
 define void @FB(%FB* %0) section "fn-FB:v" {
 entry:
