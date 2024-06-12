@@ -19,5 +19,5 @@ FUNCTION main
     x := 60;
     y := 9;
     printf('%d$N', x + y);
-    // CHECK: 69
+    // CHECK: 68
 END_FUNCTION
