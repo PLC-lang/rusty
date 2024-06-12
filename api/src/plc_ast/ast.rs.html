@@ -1608,10 +1608,6 @@
 <a href="#1606" id="1606">1606</a>
 <a href="#1607" id="1607">1607</a>
 <a href="#1608" id="1608">1608</a>
-<a href="#1609" id="1609">1609</a>
-<a href="#1610" id="1610">1610</a>
-<a href="#1611" id="1611">1611</a>
-<a href="#1612" id="1612">1612</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2214,7 +2210,6 @@
     </span>DefaultValue(DefaultValue),
     <span class="comment">// Literals
     </span>Literal(AstLiteral),
-    CastStatement(CastStatement),
     MultipliedStatement(MultipliedStatement),
     <span class="comment">// Expressions
     </span>ReferenceExpr(ReferenceExpr),
@@ -2349,9 +2344,6 @@
             }
             AstStatement::ContinueStatement(..) =&gt; f.debug_struct(<span class="string">"ContinueStatement"</span>).finish(),
             AstStatement::ExitStatement(..) =&gt; f.debug_struct(<span class="string">"ExitStatement"</span>).finish(),
-            AstStatement::CastStatement(CastStatement { target, type_name }) =&gt; {
-                f.debug_struct(<span class="string">"CastStatement"</span>).field(<span class="string">"type_name"</span>, type_name).field(<span class="string">"target"</span>, target).finish()
-            }
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) =&gt; {
                 f.debug_struct(<span class="string">"ReferenceExpr"</span>).field(<span class="string">"kind"</span>, access).field(<span class="string">"base"</span>, base).finish()
             }

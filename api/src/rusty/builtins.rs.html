@@ -935,20 +935,6 @@
 <a href="#933" id="933">933</a>
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
@@ -1796,20 +1782,6 @@
             // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
             </span><span class="kw">let </span>offset = <span class="kw">if </span>is_lower { (value - <span class="number">1</span>) <span class="kw">as </span>u64 * <span class="number">2 </span>} <span class="kw">else </span>{ (value - <span class="number">1</span>) <span class="kw">as </span>u64 * <span class="number">2 </span>+ <span class="number">1 </span>};
             llvm.i32_type().const_int(offset, <span class="bool-val">false</span>)
-        }
-        AstStatement::CastStatement(data) =&gt; {
-            <span class="kw">let </span>ExpressionValue::RValue(value) = generator.generate_expression_value(<span class="kw-2">&amp;</span>data.target)<span class="question-mark">? </span><span class="kw">else </span>{
-                <span class="macro">unreachable!</span>()
-            };
-
-            <span class="kw">if </span>!value.is_int_value() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">"Expected INT value, found {}"</span>, value.get_type()),
-                    location,
-                ));
-            };
-
-            value.into_int_value()
         }
         <span class="comment">// e.g. LOWER_BOUND(arr, idx + 3)
         </span><span class="kw">_ </span>=&gt; {

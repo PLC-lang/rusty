@@ -158,7 +158,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["pin_utils",["",[],["lib.rs","projection.rs","stack_pin.rs"]]],\
 ["piper",["",[],["lib.rs"]]],\
 ["plc",["",[],["main.rs"]]],\
-["plc_ast",["",[],["ast.rs","control_statements.rs","lib.rs","literals.rs","pre_processor.rs","provider.rs"]]],\
+["plc_ast",["",[],["ast.rs","control_statements.rs","lib.rs","literals.rs","pre_processor.rs","provider.rs","visitor.rs"]]],\
 ["plc_derive",["",[],["lib.rs"]]],\
 ["plc_diagnostics",["",[["diagnostics",[],["diagnostics_registry.rs"]],["reporter",[],["clang.rs","codespan.rs","null.rs"]]],["diagnostician.rs","diagnostics.rs","lib.rs","reporter.rs"]]],\
 ["plc_driver",["",[],["cli.rs","lib.rs","pipelines.rs","runner.rs"]]],\

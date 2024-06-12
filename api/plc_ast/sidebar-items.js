@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["ast","control_statements","literals","provider"]};
+window.SIDEBAR_ITEMS = {"mod":["ast","control_statements","literals","provider","visitor"]};
