@@ -20,6 +20,8 @@ jobs:
       - name: Run lit
         shell: bash
         run: |
-          /opt/venv/bin/pipx ensurepath
+          echo $PATH
+          /opt/venv/bin/pipx ensurepath && echo $PATH
           /opt/venv/bin/pipx ensurepath --global
+          echo $PATH
           ./scripts/build.sh --lit
