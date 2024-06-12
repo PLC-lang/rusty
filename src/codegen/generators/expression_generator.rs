@@ -287,6 +287,42 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(const_expression)
     }
 
+    /// Generate an access to the appropriate GOT entry to achieve an access to the given base
+    /// lvalue.
+    pub fn generate_got_access(
+        &self,
+        context: &AstNode,
+        llvm_type: &BasicTypeEnum<'ink>,
+    ) -> Result<Option<PointerValue<'ink>>, Diagnostic> {
+        match self.annotations.get(context) {
+            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                // We will generate a GEP, which has as its base address the magic constant which
+                // will eventually be replaced by the location of the GOT.
+                let base = self
+                    .llvm
+                    .context
+                    .i64_type()
+                    .const_int(0xdeadbeef00000000, false)
+                    .const_to_pointer(llvm_type
+                        .ptr_type(AddressSpace::default())
+                        .ptr_type(AddressSpace::default()));
+
+                self.llvm_index
+                    .find_got_index(qualified_name)
+                    .map(|idx| {
+                        let ptr = self.llvm.load_array_element(
+                            base,
+                            &[self.llvm.context.i32_type().const_int(idx, false)],
+                            "",
+                        )?;
+                        Ok(self.llvm.load_pointer(&ptr, "").into_pointer_value())
+                    })
+                    .transpose()
+            }
+            _ => Ok(None),
+        }
+    }
+
     /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
     /// - `left` the AstStatement left of the operator
     /// - `right` the AstStatement right of the operator
@@ -1376,13 +1412,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
+        let ctx_type =
+            self.annotations.get_type_or_void(context, self.index).get_type_information();
+
         // no context ... so just something like 'x'
         match self.annotations.get(context) {
             Some(StatementAnnotation::Variable { qualified_name, .. })
-            | Some(StatementAnnotation::Program { qualified_name, .. }) => self
-                .llvm_index
-                .find_loaded_associated_variable_value(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, offset.clone())),
+            | Some(StatementAnnotation::Program { qualified_name, .. }) =>
+                self.generate_got_access(context, &self.llvm_index.get_associated_type(ctx_type.get_name())?)?.map_or(self
+                    .llvm_index
+                    .find_loaded_associated_variable_value(qualified_name)
+                    .ok_or_else(|| Diagnostic::unresolved_reference(name, offset.clone())), Ok),
             _ => Err(Diagnostic::unresolved_reference(name, offset.clone())),
         }
     }

@@ -149,6 +149,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             for (name, _) in &globals {
                 if let Some(idx) = got_entries.get(&name.to_string()) {
                     new_got_entries.insert(name.to_string(), *idx);
+                    index.associate_got_index(name, *idx);
                     new_got.insert(*idx, name.to_string());
                 } else {
                     new_globals.push(name.to_string());
@@ -162,6 +163,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                     idx += 1;
                 }
                 new_got_entries.insert(name.to_string(), idx);
+                index.associate_got_index(name, idx);
                 new_got.insert(idx, name.to_string());
             }
 

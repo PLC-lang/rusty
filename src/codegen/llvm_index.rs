@@ -14,6 +14,7 @@ pub struct LlvmTypedIndex<'ink> {
     type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
     pou_type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
     global_values: FxHashMap<String, GlobalValue<'ink>>,
+    got_indices: FxHashMap<String, u64>,
     initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: FxHashMap<String, PointerValue<'ink>>,
     implementations: FxHashMap<String, FunctionValue<'ink>>,
@@ -29,6 +30,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             type_associations: FxHashMap::default(),
             pou_type_associations: FxHashMap::default(),
             global_values: FxHashMap::default(),
+            got_indices: FxHashMap::default(),
             initial_value_associations: FxHashMap::default(),
             loaded_variable_associations: FxHashMap::default(),
             implementations: FxHashMap::default(),
@@ -50,6 +52,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
         }
         for (name, value) in other.global_values.drain() {
             self.global_values.insert(name, value);
+        }
+        for (name, index) in other.got_indices.drain() {
+            self.got_indices.insert(name, index);
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
@@ -110,6 +115,13 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
+    pub fn find_got_index(&self, name: &str) -> Option<u64> {
+        self.got_indices
+            .get(&name.to_lowercase())
+            .copied()
+            .or_else(|| self.parent_index.and_then(|it| it.find_got_index(name)))
+    }
+
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
         self.type_associations
             .get(&type_name.to_lowercase())
@@ -150,6 +162,15 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.global_values.insert(variable_name.to_lowercase(), global_variable);
         self.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
+        Ok(())
+    }
+
+    pub fn associate_got_index(
+        &mut self,
+        variable_name: &str,
+        index: u64,
+    ) -> Result<(), Diagnostic> {
+        self.got_indices.insert(variable_name.to_lowercase(), index);
         Ok(())
     }
 
