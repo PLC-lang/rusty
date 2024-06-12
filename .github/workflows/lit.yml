@@ -17,9 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run lit
+      - name: Run `build.sh --lit`
         shell: bash
         run: |
-          echo $PATH
           ./scripts/build.sh --lit
-          echo $PATH

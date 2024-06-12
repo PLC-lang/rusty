@@ -16,8 +16,8 @@ FUNCTION main
         y : DINT;
     END_VAR
 
-    x := 60;
-    y := 9;
+    x := 5;
+    y := 5;
     printf('%d$N', x + y);
-    // CHECK: 68
+    // CHECK: 10
 END_FUNCTION
