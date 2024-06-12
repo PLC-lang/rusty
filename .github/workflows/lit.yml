@@ -19,4 +19,4 @@ jobs:
 
       - name: Run lit
         shell: bash
-        run: ./scripts/build.sh --test
+        run: ./scripts/build.sh --lit
