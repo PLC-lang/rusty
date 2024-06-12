@@ -1,13 +1,11 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x0 = global i32 1
-@x1 = global i32 1
-@x2 = global i32 2
-@x3 = global i32 3
-
+@x0 = global i32 1, section "var-x0:i32"
+@x1 = global i32 1, section "var-x1:i32"
+@x2 = global i32 2, section "var-x2:i32"
+@x3 = global i32 3, section "var-x3:i32"

@@ -24,7 +24,7 @@ fn declaring_a_struct() {
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
-    @__Person__init = unnamed_addr constant %Person zeroinitializer
+    @__Person__init = unnamed_addr constant %Person zeroinitializer, section "var-__Person__init:v"
     "###);
 }
 
@@ -54,8 +54,8 @@ fn default_values_of_a_struct() {
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
-    @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
-    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
+    @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-p:v"
+    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-__Person__init:v"
     "###);
 }
 
@@ -97,9 +97,9 @@ fn initializing_a_struct() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
+    @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }, section "var-prg_instance:v"
+    @__Rect__init = unnamed_addr constant %Rect zeroinitializer, section "var-__Rect__init:v"
+    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-__Point__init:v"
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
@@ -143,8 +143,8 @@ fn assigning_structs() {
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-__Point__init:v"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
@@ -200,9 +200,9 @@ fn accessing_struct_members() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg zeroinitializer
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+    @__Rect__init = unnamed_addr constant %Rect zeroinitializer, section "var-__Rect__init:v"
+    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-__Point__init:v"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %MyStrct = type { i32, i32, i32 }
 
-@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer
+@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer, section "var-__MyStrct__init:v"
 
 define i16 @foo_int() section "fn-foo_int:v" {
 entry:

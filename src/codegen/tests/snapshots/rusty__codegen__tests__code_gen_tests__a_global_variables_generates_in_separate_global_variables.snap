@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type {}
 
-@gX = global i16 0
-@gY = global i8 0
-@main_instance = global %main zeroinitializer
+@gX = global i16 0, section "var-gX:i16"
+@gY = global i8 0, section "var-gY:u8"
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

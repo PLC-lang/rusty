@@ -316,7 +316,7 @@ fn pass() {
 
     %__foo_arr = type { i32*, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-____foo_arr__init:v"
 
     define i32 @main() section "fn-main:i32" {
     entry:
@@ -382,7 +382,7 @@ fn access() {
 
     %__foo_arr = type { i32*, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-____foo_arr__init:v"
 
     define i32 @foo(%__foo_arr* %0) section "fn-foo:i32[pv]" {
     entry:
@@ -440,7 +440,7 @@ fn multi_dimensional() {
 
     %__foo_arr = type { i32*, [4 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-____foo_arr__init:v"
 
     define i32 @foo(%__foo_arr* %0) section "fn-foo:i32[pv]" {
     entry:

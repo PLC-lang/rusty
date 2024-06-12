@@ -7,8 +7,8 @@ source_filename = "main"
 
 %prg = type { i16 }
 
-@MIN = unnamed_addr constant i16 7
-@prg_instance = global %prg zeroinitializer
+@MIN = unnamed_addr constant i16 7, section "var-MIN:i16"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) section "fn-CheckRangeSigned:i16[i16][i16][i16]" {
 entry:

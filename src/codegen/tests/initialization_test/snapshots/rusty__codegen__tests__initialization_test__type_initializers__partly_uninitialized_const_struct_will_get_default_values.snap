@@ -7,7 +7,6 @@ source_filename = "main"
 
 %Point = type { i32, i32, i32 }
 
-@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }
-@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
-@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
-
+@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }, section "var-x:v"
+@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-__Point__init:v"
+@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-empty:v"

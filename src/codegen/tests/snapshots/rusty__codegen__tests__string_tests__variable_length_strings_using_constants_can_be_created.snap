@@ -7,9 +7,9 @@ source_filename = "main"
 
 %prg = type { [16 x i8], [4 x i8], [31 x i16], [7 x i16] }
 
-@LONG_STRING = unnamed_addr constant i16 15
-@SHORT_STRING = unnamed_addr constant i16 3
-@prg_instance = global %prg { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }
+@LONG_STRING = unnamed_addr constant i16 15, section "var-LONG_STRING:i16"
+@SHORT_STRING = unnamed_addr constant i16 3, section "var-SHORT_STRING:i16"
+@prg_instance = global %prg { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }, section "var-prg_instance:v"
 @__prg.z__init = unnamed_addr constant [4 x i8] c"xyz\00"
 @__prg.wz__init = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0]
 @utf08_literal_0 = private unnamed_addr constant [12 x i8] c"im a genius\00"

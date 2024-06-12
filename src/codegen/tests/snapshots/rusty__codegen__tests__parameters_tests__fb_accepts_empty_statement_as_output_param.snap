@@ -8,8 +8,8 @@ source_filename = "main"
 %fb_t = type { i32, i32 }
 %main = type { %fb_t, i32 }
 
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
-@main_instance = global %main zeroinitializer
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-__fb_t__init:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
 
 define void @fb_t(%fb_t* %0) section "fn-fb_t:v[i32][i32]" {
 entry:

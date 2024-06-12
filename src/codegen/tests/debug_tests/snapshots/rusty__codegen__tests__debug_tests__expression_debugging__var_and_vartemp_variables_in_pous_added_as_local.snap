@@ -8,8 +8,8 @@ source_filename = "main"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = global %myPrg zeroinitializer, !dbg !0
-@__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !9
+@myPrg_instance = global %myPrg zeroinitializer, section "var-myPrg_instance:v", !dbg !0
+@__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "var-__myFb__init:v", !dbg !9
 
 define i32 @myFunc() section "fn-myFunc:i32" !dbg !20 {
 entry:

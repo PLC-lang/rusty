@@ -8,8 +8,8 @@ source_filename = "main"
 %bar = type { %fb }
 %fb = type { i32 }
 
-@bar_instance = global %bar zeroinitializer
-@__fb__init = unnamed_addr constant %fb zeroinitializer
+@bar_instance = global %bar zeroinitializer, section "var-bar_instance:v"
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:v"
 
 define void @bar(%bar* %0) section "fn-bar:v" {
 entry:

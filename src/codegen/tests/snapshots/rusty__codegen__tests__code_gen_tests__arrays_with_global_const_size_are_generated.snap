@@ -1,18 +1,15 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1989
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@THREE = unnamed_addr constant i16 3
-@ZERO = unnamed_addr constant i16 0
-@LEN = unnamed_addr constant i16 9
-@x = global [10 x i16] zeroinitializer
-@y = global [11 x i32] zeroinitializer
-@z = global [19 x i8] zeroinitializer
-@zz = global [100 x i8] zeroinitializer
-@zzz = global [10 x [8 x i8]] zeroinitializer
-
+@THREE = unnamed_addr constant i16 3, section "var-THREE:i16"
+@ZERO = unnamed_addr constant i16 0, section "var-ZERO:i16"
+@LEN = unnamed_addr constant i16 9, section "var-LEN:i16"
+@x = global [10 x i16] zeroinitializer, section "var-x:v"
+@y = global [11 x i32] zeroinitializer, section "var-y:v"
+@z = global [19 x i8] zeroinitializer, section "var-z:v"
+@zz = global [100 x i8] zeroinitializer, section "var-zz:v"
+@zzz = global [10 x [8 x i8]] zeroinitializer, section "var-zzz:v"

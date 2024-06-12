@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { i16, i16, i16* }
 
-@main_instance = global %main { i16 10, i16 20, i16* null }
+@main_instance = global %main { i16 10, i16 20, i16* null }, section "var-main_instance:v"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

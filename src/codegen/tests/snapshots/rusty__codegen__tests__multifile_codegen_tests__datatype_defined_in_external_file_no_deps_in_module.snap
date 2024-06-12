@@ -7,14 +7,14 @@ source_filename = "myStruct.st"
 
 %myStruct = type { i32, i16* }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i32 20, i16* null }
+@__myStruct__init = unnamed_addr constant %myStruct { i32 20, i16* null }, section "var-__myStruct__init:v"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
 
 %prog = type { i32 }
 
-@prog_instance = global %prog zeroinitializer
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
 
 define void @prog(%prog* %0) section "fn-prog:v" {
 entry:

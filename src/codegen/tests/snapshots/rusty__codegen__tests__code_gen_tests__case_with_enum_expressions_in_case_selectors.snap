@@ -5,10 +5,10 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@BASE = unnamed_addr constant i32 7
-@Direction.FORWARD = unnamed_addr constant i32 7
-@Direction.UP = unnamed_addr constant i32 8
-@Direction.DOWN = unnamed_addr constant i32 28
+@BASE = unnamed_addr constant i32 7, section "var-BASE:i32"
+@Direction.FORWARD = unnamed_addr constant i32 7, section "var-FORWARD:v"
+@Direction.UP = unnamed_addr constant i32 8, section "var-UP:v"
+@Direction.DOWN = unnamed_addr constant i32 28, section "var-DOWN:v"
 
 define i32 @drive() section "fn-drive:i32" {
 entry:

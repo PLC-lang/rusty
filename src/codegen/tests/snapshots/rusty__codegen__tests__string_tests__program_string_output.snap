@@ -8,8 +8,8 @@ source_filename = "main"
 %prog = type { [81 x i8], [81 x i16] }
 %main = type { [7 x i8], [8 x i16] }
 
-@prog_instance = global %prog zeroinitializer
-@main_instance = global %main zeroinitializer
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
 @utf08_literal_0 = private unnamed_addr constant [7 x i8] c"string\00"
 @utf16_literal_0 = private unnamed_addr constant [8 x i16] [i16 119, i16 115, i16 116, i16 114, i16 105, i16 110, i16 103, i16 0]
 

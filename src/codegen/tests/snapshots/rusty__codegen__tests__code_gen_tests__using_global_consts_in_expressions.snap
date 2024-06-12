@@ -7,10 +7,10 @@ source_filename = "main"
 
 %prg = type { i32 }
 
-@cA = unnamed_addr constant i16 1
-@cB = unnamed_addr constant i16 2
-@cC = unnamed_addr constant i16 3
-@prg_instance = global %prg zeroinitializer
+@cA = unnamed_addr constant i16 1, section "var-cA:i16"
+@cB = unnamed_addr constant i16 2, section "var-cB:i16"
+@cC = unnamed_addr constant i16 3, section "var-cC:i16"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
