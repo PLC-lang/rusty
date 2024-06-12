@@ -1,0 +1,22 @@
+name: Build
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  lit-linux:
+    name: LIT
+    runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run lit
+        shell: bash
+        run: ./scripts/build.sh --test

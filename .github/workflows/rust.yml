@@ -21,24 +21,6 @@ jobs:
         run: |
           ./scripts/build.sh --check
 
-  test-linux-lit:
-    name: LIT
-    runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install pipx
-        shell: bash
-        run: |
-          apt-get -y install pipx
-          pipx ensurepath
-
-
-      - name: Install lit
-        shell: bash
-        run: pipx install lit
-
   test-linux:
     name: Test Linux
     runs-on: ubuntu-latest
