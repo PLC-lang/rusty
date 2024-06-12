@@ -11,7 +11,7 @@ on:
 
 jobs:
   lit-linux:
-    name: LIT
+    name: Lit (Linux)
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
@@ -21,7 +21,5 @@ jobs:
         shell: bash
         run: |
           echo $PATH
-          /opt/venv/bin/pipx ensurepath && echo $PATH
-          /opt/venv/bin/pipx ensurepath --global
-          echo $PATH
           ./scripts/build.sh --lit
+          echo $PATH
