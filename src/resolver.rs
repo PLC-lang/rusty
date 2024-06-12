@@ -11,9 +11,8 @@ use std::hash::Hash;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CastStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
-        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
-        Variable,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
+        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -1441,57 +1440,6 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::CallStatement(..) => {
                 self.visit_call_statement(statement, ctx);
-            }
-            AstStatement::CastStatement(CastStatement { target, type_name }, ..) => {
-                //see if this type really exists
-                let data_type = self.index.find_effective_type_info(type_name);
-                let statement_to_annotation = if let Some(DataTypeInformation::Enum { name, .. }) = data_type
-                {
-                    //enum cast
-                    self.visit_statement(&ctx.with_qualifier(name.to_string()), target);
-                    //use the type of the target
-                    let type_name = self.annotation_map.get_type_or_void(target, self.index).get_name();
-                    vec![(statement, type_name.to_string())]
-                } else if let Some(t) = data_type {
-                    // special handling for unlucky casted-strings where caste-type does not match the literal encoding
-                    // ´STRING#"abc"´ or ´WSTRING#'abc'´
-                    match (t, target.as_ref().get_stmt()) {
-                        (
-                            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-                            AstStatement::Literal(AstLiteral::String(StringValue {
-                                value,
-                                is_wide: is_wide @ true,
-                            })),
-                        )
-                        | (
-                            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-                            AstStatement::Literal(AstLiteral::String(StringValue {
-                                value,
-                                is_wide: is_wide @ false,
-                            })),
-                        ) => {
-                            // visit the target-statement as if the programmer used the correct quotes to prevent
-                            // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
-                            self.visit_statement(
-                                ctx,
-                                &AstNode::new_literal(
-                                    AstLiteral::new_string(value.clone(), !is_wide),
-                                    target.get_id(),
-                                    target.get_location(),
-                                ),
-                            );
-                        }
-                        _ => {}
-                    }
-                    vec![(statement, t.get_name().to_string()), (target, t.get_name().to_string())]
-                } else {
-                    //unknown type? what should we do here?
-                    self.visit_statement(ctx, target);
-                    vec![]
-                };
-                for (stmt, annotation) in statement_to_annotation {
-                    self.annotate(stmt, StatementAnnotation::value(annotation));
-                }
             }
             AstStatement::ReferenceExpr(data, ..) => {
                 self.visit_reference_expr(&data.access, data.base.as_deref(), statement, ctx);
