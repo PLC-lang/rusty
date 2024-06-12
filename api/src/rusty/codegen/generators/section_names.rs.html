@@ -33,17 +33,21 @@
 <a href="#31" id="31">31</a>
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::index::Index;
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, DataTypeInformation, StringEncoding, TypeSize};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>section_mangler::{StringEncoding <span class="kw">as </span>SectionStringEncoding, Type};
 
-<span class="kw">pub fn </span>mangle_type(index: <span class="kw-2">&amp;</span>Index, ty: <span class="kw-2">&amp;</span>typesystem::DataType) -&gt; section_mangler::Type {
+<span class="kw">pub fn </span>mangle_type(index: <span class="kw-2">&amp;</span>Index, ty: <span class="kw-2">&amp;</span>typesystem::DataType) -&gt; <span class="prelude-ty">Result</span>&lt;section_mangler::Type, Diagnostic&gt; {
     <span class="comment">// TODO: This is a bit ugly because we keep dereferencing references to Copy types like
     // bool, u32, etc, because `DataTypeInformation::Pointer` keeps a `String` which is not
     // Copy. the alternative is for section_mangle::Type to keep references everywhere, and
     // have a lifetime generic parameter, e.g. `section_mangler::Type&lt;'a&gt;` - which is also
     // annoying.
-    </span><span class="kw">match </span>ty.get_type_information() {
+    </span><span class="kw">let </span>mangled = <span class="kw">match </span>ty.get_type_information() {
         DataTypeInformation::Void =&gt; Type::Void,
         DataTypeInformation::Integer { signed, size, semantic_size, .. } =&gt; {
             Type::Integer { signed: <span class="kw-2">*</span>signed, size: <span class="kw-2">*</span>size, semantic_size: <span class="kw-2">*</span>semantic_size }
@@ -58,12 +62,14 @@
             Type::String { size: <span class="kw-2">*</span>size <span class="kw">as </span>usize, encoding }
         }
         DataTypeInformation::Pointer { inner_type_name, .. } =&gt; Type::Pointer {
-            inner: Box::new(mangle_type(index, index.get_effective_type_by_name(inner_type_name).unwrap())),
+            inner: Box::new(mangle_type(index, index.get_effective_type_by_name(inner_type_name)<span class="question-mark">?</span>)<span class="question-mark">?</span>),
         },
         <span class="comment">// FIXME: For now, encode all unknown types as "void" since this is not required for
         // execution. Not doing so (and doing an `unreachable!()` for example) obviously causes
         // failures, because complex types are already implemented in the compiler.
         </span><span class="kw">_ </span>=&gt; Type::Void,
-    }
+    };
+
+    <span class="prelude-val">Ok</span>(mangled)
 }
 </code></pre></div></section></main></body></html>

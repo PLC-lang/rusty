@@ -863,6 +863,10 @@
 <a href="#861" id="861">861</a>
 <a href="#862" id="862">862</a>
 <a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
@@ -1018,17 +1022,16 @@
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
-    <span class="kw">fn </span>mangle_function(<span class="kw-2">&amp;</span><span class="self">self</span>, implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry) -&gt; String {
+    <span class="kw">fn </span>mangle_function(<span class="kw-2">&amp;</span><span class="self">self</span>, implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
         <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name());
 
         <span class="kw">let </span>params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
 
-        <span class="kw">let </span>ctx = params.into_iter().fold(ctx, |ctx, param| {
-            <span class="comment">// FIXME: Can we unwrap here?
-            </span><span class="kw">let </span>ty = section_names::mangle_type(
+        <span class="kw">let </span>ctx = params.into_iter().try_fold(ctx, |ctx, param| -&gt; <span class="prelude-ty">Result</span>&lt;SectionMangler, Diagnostic&gt; {
+            <span class="kw">let </span>ty = section_names::mangle_type(
                 <span class="self">self</span>.index,
-                <span class="self">self</span>.index.get_effective_type_by_name(<span class="kw-2">&amp;</span>param.data_type_name).unwrap(),
-            );
+                <span class="self">self</span>.index.get_effective_type_by_name(<span class="kw-2">&amp;</span>param.data_type_name)<span class="question-mark">?</span>,
+            )<span class="question-mark">?</span>;
             <span class="kw">let </span>parameter = <span class="kw">match </span>param.argument_type {
                 <span class="comment">// TODO: We need to handle the `VariableType` enum as well - this describes the mode of
                 // argument passing, e.g. inout
@@ -1036,15 +1039,20 @@
                 index::ArgumentType::ByRef(<span class="kw">_</span>) =&gt; FunctionArgument::ByRef(ty),
             };
 
-            ctx.with_parameter(parameter)
-        });
+            <span class="prelude-val">Ok</span>(ctx.with_parameter(parameter))
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>return_ty = <span class="self">self
             </span>.index
             .find_return_type(implementation.get_type_name())
             .map(|ty| section_names::mangle_type(<span class="self">self</span>.index, ty));
 
-        ctx.with_return_type(return_ty).mangle()
+        <span class="kw">let </span>ctx = <span class="kw">match </span>return_ty {
+            <span class="prelude-val">Some</span>(rty) =&gt; ctx.with_return_type(rty<span class="question-mark">?</span>),
+            <span class="prelude-val">None </span>=&gt; ctx,
+        };
+
+        <span class="prelude-val">Ok</span>(ctx.mangle())
     }
 
     <span class="doccomment">/// generates an empty llvm function for the given implementation, including all parameters and the return type
@@ -1146,7 +1154,7 @@
 
         <span class="kw">let </span>curr_f = module.add_function(implementation.get_call_name(), function_declaration, <span class="prelude-val">None</span>);
 
-        <span class="kw">let </span>section_name = <span class="self">self</span>.mangle_function(implementation);
+        <span class="kw">let </span>section_name = <span class="self">self</span>.mangle_function(implementation)<span class="question-mark">?</span>;
         curr_f.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section_name));
 
         <span class="kw">let </span>pou_name = implementation.get_call_name();
