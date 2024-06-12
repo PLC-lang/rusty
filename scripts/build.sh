@@ -168,6 +168,10 @@ function run_test() {
         
     else
         cargo test $CARGO_OPTIONS --workspace
+
+        # We need a binary to execute the lit tests
+        cargo build
+        lit -v -DCOMPILER=$project_location/target/debug/plc tests/lit/
     fi
 }
 
