@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  lit-linux:
-    name: Lit (Linux)
+  lit-linux-debug:
+    name: lit tests (Linux, debug build)
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
@@ -21,3 +21,15 @@ jobs:
         shell: bash
         run: |
           ./scripts/build.sh --lit
+
+  lit-linux-release:
+    name: lit tests (Linux, release build)
+    runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run `build.sh --lit --release`
+        shell: bash
+        run: |
+          ./scripts/build.sh --lit --release

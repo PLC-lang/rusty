@@ -1,4 +1,5 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// CHECK: 10
 FUNCTION main
     VAR
         x : DINT;
@@ -8,5 +9,4 @@ FUNCTION main
     x := 5;
     y := 5;
     printf('%d$N', x + y);
-    // CHECK: 10
 END_FUNCTION

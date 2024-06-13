@@ -142,12 +142,16 @@ function run_check_style() {
 }
 
 function run_lit_test() {
-    # We need a binary to execute the lit tests
-    cargo build
-    cargo build --release
+    # We need a binary as well as the stdlib and its *.so file before running lit tests
+    run_build
+    run_std_build
+    run_package_std
 
-    lit -v -DCOMPILER=$project_location/target/debug/plc tests/lit/
-    lit -v -DCOMPILER=$project_location/target/release/plc tests/lit/
+    if [[ $release -eq 0 ]]; then
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/debug/plc tests/lit/
+    else
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/release/plc tests/lit/
+    fi
 }
 
 function run_test() {
@@ -201,6 +205,8 @@ function set_offline() {
 
 function run_package_std() {
     cc=$(get_compiler)
+    OUTPUT_DIR=$project_location/output
+    make_dir "$OUTPUT_DIR"
     log "Packaging Standard functions"
     log "Removing previous output folder"
     rm -rf $OUTPUT_DIR
@@ -431,11 +437,6 @@ if [[ $container -ne 0 ]]; then
     log "Container Build"
     run_in_container
     exit 0
-fi
-
-if [[ $package -ne 0 ]]; then
-    OUTPUT_DIR=$project_location/output
-    make_dir "$OUTPUT_DIR"
 fi
 
 if [[ $vendor -ne 0 ]]; then
