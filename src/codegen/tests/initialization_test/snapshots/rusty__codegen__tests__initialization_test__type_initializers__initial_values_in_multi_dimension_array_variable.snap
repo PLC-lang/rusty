@@ -1,11 +1,8 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
-assertion_line: 158
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [4 x i8] c"\01\02\03\04"
-
+@a = global [4 x i8] c"\01\02\03\04", section "var-a:v"

@@ -1,10 +1,8 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [2 x i8] zeroinitializer
-
+@a = global [2 x i8] zeroinitializer, section "var-a:v"

@@ -5,8 +5,8 @@ expression: "results.join(\"\\n\")"
 ; ModuleID = 'main.st'
 source_filename = "main.st"
 
-@x = external global i16
-@y = external global i16
+@x = external global i16, section "var-x:i16"
+@y = external global i16, section "var-y:i16"
 
 define i16 @main() section "fn-main:i16" {
 entry:
@@ -24,7 +24,7 @@ declare i16 @external() section "fn-external:i16"
 ; ModuleID = 'external.st'
 source_filename = "external.st"
 
-@x = external global i16
-@y = external global i16
+@x = external global i16, section "var-x:i16"
+@y = external global i16, section "var-y:i16"
 
 declare i16 @external() section "fn-external:i16"

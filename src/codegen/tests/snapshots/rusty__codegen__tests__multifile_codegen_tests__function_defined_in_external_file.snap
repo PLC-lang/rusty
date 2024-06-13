@@ -18,7 +18,7 @@ source_filename = "fb.st"
 
 %fb = type {}
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:v"
 
 define void @fb(%fb* %0) section "fn-fb:v" {
 entry:
@@ -30,7 +30,7 @@ source_filename = "prg.st"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @prg(%prg* %0) section "fn-prg:v" {
 entry:
@@ -43,7 +43,7 @@ source_filename = "prg2.st"
 
 %prg2 = type { i32 }
 
-@prg2_instance = global %prg2 zeroinitializer
+@prg2_instance = global %prg2 zeroinitializer, section "var-prg2_instance:v"
 
 define void @prg2(%prg2* %0) section "fn-prg2:v" {
 entry:
@@ -59,10 +59,10 @@ source_filename = "prog.st"
 %prg.5 = type { i32 }
 %prg2.6 = type { i32 }
 
-@prog_instance = global %prog zeroinitializer
-@__fb__init = external global %fb.4
-@prg_instance = external global %prg.5
-@prg2_instance = external global %prg2.6
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
+@__fb__init = external global %fb.4, section "var-__fb__init:v"
+@prg_instance = external global %prg.5, section "var-prg_instance:v"
+@prg2_instance = external global %prg2.6, section "var-prg2_instance:v"
 
 define void @prog(%prog* %0) section "fn-prog:v" {
 entry:

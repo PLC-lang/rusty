@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { [11 x i8], [81 x i8] }
 
-@prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }
+@prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }, section "var-prg_instance:v"
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 

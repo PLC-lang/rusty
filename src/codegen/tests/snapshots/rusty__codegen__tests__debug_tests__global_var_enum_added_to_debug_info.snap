@@ -5,16 +5,16 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-@en3 = global i64 0, !dbg !0
-@en1.a = unnamed_addr constant i32 0, !dbg !5
-@en1.b = unnamed_addr constant i32 1, !dbg !9
-@en1.c = unnamed_addr constant i32 2, !dbg !11
-@en2.d = unnamed_addr constant i8 0, !dbg !13
-@en2.e = unnamed_addr constant i8 1, !dbg !17
-@en2.f = unnamed_addr constant i8 2, !dbg !19
-@__global_en3.a = unnamed_addr constant i64 0, !dbg !21
-@__global_en3.b = unnamed_addr constant i64 1, !dbg !23
-@__global_en3.c = unnamed_addr constant i64 2, !dbg !25
+@en3 = global i64 0, section "var-en3:v", !dbg !0
+@en1.a = unnamed_addr constant i32 0, section "var-a:v", !dbg !5
+@en1.b = unnamed_addr constant i32 1, section "var-b:v", !dbg !9
+@en1.c = unnamed_addr constant i32 2, section "var-c:v", !dbg !11
+@en2.d = unnamed_addr constant i8 0, section "var-d:v", !dbg !13
+@en2.e = unnamed_addr constant i8 1, section "var-e:v", !dbg !17
+@en2.f = unnamed_addr constant i8 2, section "var-f:v", !dbg !19
+@__global_en3.a = unnamed_addr constant i64 0, section "var-a:v", !dbg !21
+@__global_en3.b = unnamed_addr constant i64 1, section "var-b:v", !dbg !23
+@__global_en3.c = unnamed_addr constant i64 2, section "var-c:v", !dbg !25
 
 !llvm.module.flags = !{!27, !28}
 !llvm.dbg.cu = !{!29}

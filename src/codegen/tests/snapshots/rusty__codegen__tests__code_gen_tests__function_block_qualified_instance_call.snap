@@ -9,9 +9,9 @@ source_filename = "main"
 %bar = type {}
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer
-@__bar__init = unnamed_addr constant %bar zeroinitializer
-@prg_instance = global %prg zeroinitializer
+@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-__foo__init:v"
+@__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-__bar__init:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 
 define void @foo(%foo* %0) section "fn-foo:v" {
 entry:

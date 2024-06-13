@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type {}
 
-@prg_instance = global %prg zeroinitializer
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
 @__prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
 define void @prg(%prg* %0) section "fn-prg:v" {

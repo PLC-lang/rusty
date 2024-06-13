@@ -7,7 +7,7 @@ source_filename = "main"
 
 %__func_a = type { i16 }
 
-@____func_a__init = unnamed_addr constant %__func_a zeroinitializer
+@____func_a__init = unnamed_addr constant %__func_a zeroinitializer, section "var-____func_a__init:v"
 
 define i16 @func() section "fn-func:i16" {
 entry:

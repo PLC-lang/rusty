@@ -7,8 +7,8 @@ source_filename = "main"
 
 %STRUCT1 = type { i32 }
 
-@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
+@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }, section "var-MyStruct:v"
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-__STRUCT1__init:v"
 
 define i32 @main() section "fn-main:i32" {
 entry:

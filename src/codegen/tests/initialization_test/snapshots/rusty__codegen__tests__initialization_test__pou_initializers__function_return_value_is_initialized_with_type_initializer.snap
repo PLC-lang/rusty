@@ -7,8 +7,8 @@ source_filename = "main"
 
 %main = type { [4 x i32], [4 x i32] }
 
-@main_instance = global %main zeroinitializer
-@__myArray__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4]
+@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@__myArray__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4], section "var-__myArray__init:v"
 
 define void @target([4 x i32]* %0) section "fn-target:v" {
 entry:

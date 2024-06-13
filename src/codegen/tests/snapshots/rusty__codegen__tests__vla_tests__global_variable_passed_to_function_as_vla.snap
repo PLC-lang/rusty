@@ -7,8 +7,8 @@ source_filename = "main"
 
 %__foo_vla = type { i16*, [2 x i32] }
 
-@arr = global [2 x i16] zeroinitializer
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
+@arr = global [2 x i16] zeroinitializer, section "var-arr:v"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-____foo_vla__init:v"
 
 define i16 @foo(%__foo_vla* %0) section "fn-foo:i16[v]" {
 entry:

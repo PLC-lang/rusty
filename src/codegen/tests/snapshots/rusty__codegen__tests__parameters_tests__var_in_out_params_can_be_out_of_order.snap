@@ -8,8 +8,8 @@ source_filename = "main"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = global %mainProg zeroinitializer
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
+@mainProg_instance = global %mainProg zeroinitializer, section "var-mainProg_instance:v"
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-__fb_t__init:v"
 
 define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {
 entry:

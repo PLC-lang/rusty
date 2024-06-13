@@ -8,8 +8,8 @@ source_filename = "main"
 %fb = type { i16 }
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb { i16 9 }
-@main_instance = global %main { %fb { i16 9 } }
+@__fb__init = unnamed_addr constant %fb { i16 9 }, section "var-__fb__init:v"
+@main_instance = global %main { %fb { i16 9 } }, section "var-main_instance:v"
 
 define void @fb(%fb* %0) section "fn-fb:v" {
 entry:

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %fbWithConstant = type { i16, i16 }
 
-@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }
+@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }, section "var-__fbWithConstant__init:v"
 
 define void @fbWithConstant(%fbWithConstant* %0) section "fn-fbWithConstant:v" {
 entry:

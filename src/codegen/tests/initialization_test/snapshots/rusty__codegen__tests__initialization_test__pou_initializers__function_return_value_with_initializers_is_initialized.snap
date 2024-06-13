@@ -7,9 +7,9 @@ source_filename = "main"
 
 %MyStrct = type { i32, i32, i32 }
 
-@__MyStr__init = unnamed_addr constant [11 x i8] c"init\00\00\00\00\00\00\00"
-@__MyArr__init = unnamed_addr constant [10 x float] [float 0.000000e+00, float 0x3FF19999A0000000, float 0x40019999A0000000, float 0x400A666660000000, float 0x40119999A0000000, float 5.500000e+00, float 0x401A666660000000, float 0x401ECCCCC0000000, float 0x40219999A0000000, float 0x4023CCCCC0000000]
-@__MyStrct__init = unnamed_addr constant %MyStrct { i32 1, i32 2, i32 3 }
+@__MyStr__init = unnamed_addr constant [11 x i8] c"init\00\00\00\00\00\00\00", section "var-__MyStr__init:s8u11"
+@__MyArr__init = unnamed_addr constant [10 x float] [float 0.000000e+00, float 0x3FF19999A0000000, float 0x40019999A0000000, float 0x400A666660000000, float 0x40119999A0000000, float 5.500000e+00, float 0x401A666660000000, float 0x401ECCCCC0000000, float 0x40219999A0000000, float 0x4023CCCCC0000000], section "var-__MyArr__init:v"
+@__MyStrct__init = unnamed_addr constant %MyStrct { i32 1, i32 2, i32 3 }, section "var-__MyStrct__init:v"
 
 define i16 @foo_int() section "fn-foo_int:v" {
 entry:
