@@ -7,12 +7,12 @@ source_filename = "main"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r4s8u81f32f64i16"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
 @__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-declare i32 @printf(i8*, ...) section "fn-printf:i32[ps8u81]"
+declare i32 @printf(i8*, ...) section "fn-$RUSTY$printf:i32[ps8u81]"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %s = alloca [81 x i8], align 1
   %float = alloca float, align 4

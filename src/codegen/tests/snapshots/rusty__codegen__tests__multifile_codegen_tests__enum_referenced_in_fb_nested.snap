@@ -5,18 +5,18 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
 
-@myEnum.a = unnamed_addr constant i32 1, section "var-a:e3i32"
-@myEnum.b = unnamed_addr constant i32 2, section "var-b:e3i32"
-@myEnum.c = unnamed_addr constant i32 3, section "var-c:e3i32"
+@myEnum.a = unnamed_addr constant i32 1, section "var-$RUSTY$a:e3i32"
+@myEnum.b = unnamed_addr constant i32 2, section "var-$RUSTY$b:e3i32"
+@myEnum.c = unnamed_addr constant i32 3, section "var-$RUSTY$c:e3i32"
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
 
 %fb = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r1e3i32"
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r1e3i32"
 
-define void @fb(%fb* %0) section "fn-fb:v" {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v" {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
@@ -28,10 +28,10 @@ source_filename = "myStruct.st"
 %myStruct = type { %fb.2 }
 %fb.2 = type { i32 }
 
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:r1r1e3i32"
-@__fb__init = external global %fb.2, section "var-__fb__init:r1e3i32"
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r1r1e3i32"
+@__fb__init = external global %fb.2, section "var-$RUSTY$__fb__init:r1e3i32"
 
-declare void @fb(%fb.2*) section "fn-fb:v"
+declare void @fb(%fb.2*) section "fn-$RUSTY$fb:v"
 
 ; ModuleID = 'fb2.st'
 source_filename = "fb2.st"
@@ -40,26 +40,26 @@ source_filename = "fb2.st"
 %myStruct.4 = type { %fb.5 }
 %fb.5 = type { i32 }
 
-@__fb2__init = unnamed_addr constant %fb2 zeroinitializer, section "var-__fb2__init:r1r1r1e3i32"
-@__myStruct__init = external global %myStruct.4, section "var-__myStruct__init:r1r1e3i32"
-@__fb__init = external global %fb.5, section "var-__fb__init:r1e3i32"
+@__fb2__init = unnamed_addr constant %fb2 zeroinitializer, section "var-$RUSTY$__fb2__init:r1r1r1e3i32"
+@__myStruct__init = external global %myStruct.4, section "var-$RUSTY$__myStruct__init:r1r1e3i32"
+@__fb__init = external global %fb.5, section "var-$RUSTY$__fb__init:r1e3i32"
 
-define void @fb2(%fb2* %0) section "fn-fb2:v" {
+define void @fb2(%fb2* %0) section "fn-$RUSTY$fb2:v" {
 entry:
   %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
   ret void
 }
 
-declare void @fb(%fb.5*) section "fn-fb:v"
+declare void @fb(%fb.5*) section "fn-$RUSTY$fb:v"
 
 ; ModuleID = 'fb3.st'
 source_filename = "fb3.st"
 
 %fb3 = type {}
 
-@__fb3__init = unnamed_addr constant %fb3 zeroinitializer, section "var-__fb3__init:r0"
+@__fb3__init = unnamed_addr constant %fb3 zeroinitializer, section "var-$RUSTY$__fb3__init:r0"
 
-define void @fb3(%fb3* %0) section "fn-fb3:v" {
+define void @fb3(%fb3* %0) section "fn-$RUSTY$fb3:v" {
 entry:
   ret void
 }

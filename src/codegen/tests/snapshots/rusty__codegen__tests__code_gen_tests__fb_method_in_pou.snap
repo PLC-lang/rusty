@@ -9,17 +9,17 @@ source_filename = "main"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-__MyClass__init:r2i16i16"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2r2i16i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r2i16i16"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2r2i16i16i16"
 
-define void @MyClass(%MyClass* %0) section "fn-MyClass:v" {
+define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-MyClass.testMethod:v[i16]" {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:v[i16]" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
@@ -38,7 +38,7 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

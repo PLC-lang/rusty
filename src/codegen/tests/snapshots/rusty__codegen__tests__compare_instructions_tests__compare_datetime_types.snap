@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i64, i64, i64, i64 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r4i64i64i64i64"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4i64i64i64i64"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %var_time = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %var_time_of_day = getelementptr inbounds %main, %main* %0, i32 0, i32 1

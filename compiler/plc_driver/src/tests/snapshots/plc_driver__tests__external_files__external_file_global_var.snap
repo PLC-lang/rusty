@@ -5,10 +5,10 @@ expression: "results.join(\"\\n\")"
 ; ModuleID = 'main.st'
 source_filename = "main.st"
 
-@x = external global i16, section "var-x:i16"
-@y = external global i16, section "var-y:i16"
+@x = external global i16, section "var-$RUSTY$x:i16"
+@y = external global i16, section "var-$RUSTY$y:i16"
 
-define i16 @main() section "fn-main:i16" {
+define i16 @main() section "fn-$RUSTY$main:i16" {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -19,12 +19,12 @@ entry:
   ret i16 %main_ret
 }
 
-declare i16 @external() section "fn-external:i16"
+declare i16 @external() section "fn-$RUSTY$external:i16"
 
 ; ModuleID = 'external.st'
 source_filename = "external.st"
 
-@x = external global i16, section "var-x:i16"
-@y = external global i16, section "var-y:i16"
+@x = external global i16, section "var-$RUSTY$x:i16"
+@y = external global i16, section "var-$RUSTY$y:i16"
 
-declare i16 @external() section "fn-external:i16"
+declare i16 @external() section "fn-$RUSTY$external:i16"

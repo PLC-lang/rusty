@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r11pi16i16i32i8i16i32i64u8u16u32u64"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r11pi16i16i32i8i16i32i64u8u16u32u64"
 
-define i64 @foo() section "fn-foo:i64" {
+define i64 @foo() section "fn-$RUSTY$foo:i64" {
 entry:
   %foo = alloca i64, align 8
   store i64 0, i64* %foo, align 4
@@ -17,7 +17,7 @@ entry:
   ret i64 %foo_ret
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %ptr_int = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 1

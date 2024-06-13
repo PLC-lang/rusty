@@ -7,9 +7,9 @@ source_filename = "main"
 
 %prg = type { [14 x i16] }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1ai16"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1ai16"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void

@@ -7,9 +7,9 @@ source_filename = "main"
 
 %Main = type { i16 }
 
-@Main_instance = global %Main zeroinitializer, section "var-Main_instance:r1i16"
+@Main_instance = global %Main zeroinitializer, section "var-$RUSTY$Main_instance:r1i16"
 
-define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) section "fn-Check_XX_RangeSigned:i16[i16][i16][i16]" {
+define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) section "fn-$RUSTY$Check_XX_RangeSigned:i16[i16][i16][i16]" {
 entry:
   %Check_XX_RangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
@@ -25,7 +25,7 @@ entry:
   ret i16 %Check_XX_RangeSigned_ret
 }
 
-define void @Main(%Main* %0) section "fn-Main:v" {
+define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
 entry:
   %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   store i16 7, i16* %x, align 2

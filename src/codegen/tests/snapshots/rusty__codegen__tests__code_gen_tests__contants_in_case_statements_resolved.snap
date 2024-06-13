@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i32, i32 }
 
-@main_instance = global %main { i32 0, i32 60 }, section "var-main_instance:r2i32i32"
+@main_instance = global %main { i32 0, i32 60 }, section "var-$RUSTY$main_instance:r2i32i32"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %DAYS_IN_MONTH = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %SIXTY = getelementptr inbounds %main, %main* %0, i32 0, i32 1

@@ -2,7 +2,7 @@
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 ---
-define i32 @main() section "fn-main:i32" {
+define i32 @main() section "fn-$RUSTY$main:i32" {
 entry:
   %main = alloca i32, align 4
   %value = alloca i32, align 4
@@ -15,7 +15,7 @@ entry:
   ret i32 %main_ret
 }
 
-define i32 @myAdd(i32 %0, i32 %1) section "fn-myAdd:i32[i32][i32]" {
+define i32 @myAdd(i32 %0, i32 %1) section "fn-$RUSTY$myAdd:i32[i32][i32]" {
 entry:
   %myAdd = alloca i32, align 4
   %a = alloca i32, align 4
@@ -31,7 +31,7 @@ entry:
   ret i32 %myAdd_ret
 }
 
-define i32 @myConnection(i32 %0) section "fn-myConnection:i32[i32]" {
+define i32 @myConnection(i32 %0) section "fn-$RUSTY$myConnection:i32[i32]" {
 entry:
   %myConnection = alloca i32, align 4
   %x = alloca i32, align 4

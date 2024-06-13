@@ -7,5 +7,5 @@ source_filename = "main"
 
 %__global_x = type { i32, i32 }
 
-@x = global %__global_x zeroinitializer, section "var-x:r2i32i32"
-@____global_x__init = unnamed_addr constant %__global_x zeroinitializer, section "var-____global_x__init:r2i32i32"
+@x = global %__global_x zeroinitializer, section "var-$RUSTY$x:r2i32i32"
+@____global_x__init = unnamed_addr constant %__global_x zeroinitializer, section "var-$RUSTY$____global_x__init:r2i32i32"

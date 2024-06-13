@@ -4,9 +4,9 @@ expression: output_file_content_without_headers
 ---
 %foo = type { i32 }
 
-@foo_instance = global %foo zeroinitializer, section "var-foo_instance:r1i32", !dbg !0
+@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r1i32", !dbg !0
 
-define void @foo(%foo* %0) section "fn-foo:v" !dbg !11 {
+define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" !dbg !11 {
 entry:
   call void @llvm.dbg.declare(metadata %foo* %0, metadata !15, metadata !DIExpression()), !dbg !16
   %val = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !17

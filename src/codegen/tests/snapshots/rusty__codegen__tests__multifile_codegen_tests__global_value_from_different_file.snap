@@ -5,28 +5,28 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ; ModuleID = 'g1.st'
 source_filename = "g1.st"
 
-@x = global i32 6, section "var-x:i32"
-@d = external global i32, section "var-d:i32"
-@y = global i32 7, section "var-y:i32"
-@e = external global i32, section "var-e:i32"
+@x = global i32 6, section "var-$RUSTY$x:i32"
+@d = external global i32, section "var-$RUSTY$d:i32"
+@y = global i32 7, section "var-$RUSTY$y:i32"
+@e = external global i32, section "var-$RUSTY$e:i32"
 
 ; ModuleID = 'g2.st'
 source_filename = "g2.st"
 
-@c = unnamed_addr constant i32 5, section "var-c:i32"
-@d = unnamed_addr constant i32 6, section "var-d:i32"
-@e = unnamed_addr constant i32 7, section "var-e:i32"
+@c = unnamed_addr constant i32 5, section "var-$RUSTY$c:i32"
+@d = unnamed_addr constant i32 6, section "var-$RUSTY$d:i32"
+@e = unnamed_addr constant i32 7, section "var-$RUSTY$e:i32"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
 
 %prog = type {}
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r0"
-@c = external global i32, section "var-c:i32"
-@x = external global i32, section "var-x:i32"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r0"
+@c = external global i32, section "var-$RUSTY$c:i32"
+@x = external global i32, section "var-$RUSTY$x:i32"
 
-define void @prog(%prog* %0) section "fn-prog:v" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
 entry:
   store i32 7, i32* @x, align 4
   ret void

@@ -7,16 +7,16 @@ source_filename = "myStruct.st"
 
 %myStruct = type { i32, i16* }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i32 20, i16* null }, section "var-__myStruct__init:r2i32pi16"
+@__myStruct__init = unnamed_addr constant %myStruct { i32 20, i16* null }, section "var-$RUSTY$__myStruct__init:r2i32pi16"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
 
 %prog = type { i32 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r1i32"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1i32"
 
-define void @prog(%prog* %0) section "fn-prog:v" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
 entry:
   %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void

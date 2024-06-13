@@ -5,16 +5,16 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-@__a_position.x = unnamed_addr constant i32 1, section "var-x:e2i32"
-@__aa_position.x = unnamed_addr constant i32 2, section "var-x:e2i32"
-@__bb_position.x = unnamed_addr constant i32 3, section "var-x:e2i32"
-@__b_position.x = unnamed_addr constant i32 4, section "var-x:e2i32"
-@__a_position.y = unnamed_addr constant i32 5, section "var-y:e2i32"
-@__aa_position.y = unnamed_addr constant i32 5, section "var-y:e2i32"
-@__bb_position.y = unnamed_addr constant i32 5, section "var-y:e2i32"
-@__b_position.y = unnamed_addr constant i32 5, section "var-y:e2i32"
+@__a_position.x = unnamed_addr constant i32 1, section "var-$RUSTY$x:e2i32"
+@__aa_position.x = unnamed_addr constant i32 2, section "var-$RUSTY$x:e2i32"
+@__bb_position.x = unnamed_addr constant i32 3, section "var-$RUSTY$x:e2i32"
+@__b_position.x = unnamed_addr constant i32 4, section "var-$RUSTY$x:e2i32"
+@__a_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
+@__aa_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
+@__bb_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
+@__b_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
 
-define i32 @a() section "fn-a:i32" {
+define i32 @a() section "fn-$RUSTY$a:i32" {
 entry:
   %a = alloca i32, align 4
   %position = alloca i32, align 4
@@ -24,7 +24,7 @@ entry:
   ret i32 %a_ret
 }
 
-define i32 @aa() section "fn-aa:i32" {
+define i32 @aa() section "fn-$RUSTY$aa:i32" {
 entry:
   %aa = alloca i32, align 4
   %position = alloca i32, align 4
@@ -34,7 +34,7 @@ entry:
   ret i32 %aa_ret
 }
 
-define i32 @bb() section "fn-bb:i32" {
+define i32 @bb() section "fn-$RUSTY$bb:i32" {
 entry:
   %bb = alloca i32, align 4
   %position = alloca i32, align 4
@@ -44,7 +44,7 @@ entry:
   ret i32 %bb_ret
 }
 
-define i32 @b() section "fn-b:i32" {
+define i32 @b() section "fn-$RUSTY$b:i32" {
 entry:
   %b = alloca i32, align 4
   %position = alloca i32, align 4
