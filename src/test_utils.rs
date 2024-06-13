@@ -65,7 +65,7 @@ pub mod tests {
         //Import builtins
         let builtins = builtins::parse_built_ins(id_provider.clone());
 
-        index.import(index::visitor::visit(&builtins));
+        index.import(index::indexer::index(&builtins));
         // import built-in types like INT, BOOL, etc.
         for data_type in get_builtin_types() {
             index.register_type(data_type);
@@ -79,7 +79,7 @@ pub mod tests {
         );
 
         pre_process(&mut unit, id_provider);
-        index.import(index::visitor::visit(&unit));
+        index.import(index::indexer::index(&unit));
         (unit, index, diagnostics)
     }
 

@@ -9,7 +9,7 @@ use plc_source::source_location::SourceLocationFactory;
 use plc_source::SourceCode;
 
 use crate::{
-    index::{visitor, Index},
+    index::{indexer, Index},
     lexer, parser,
     resolver::TypeAnnotator,
     test_utils::tests::parse_and_validate_buffered,
@@ -352,7 +352,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
             "test.st",
         );
         pre_process(&mut unit, id_provider);
-        index.import(visitor::visit(&unit));
+        index.import(indexer::index(&unit));
         index
     }
 
@@ -412,7 +412,7 @@ fn duplicate_with_generic() {
             file_name,
         );
         pre_process(&mut unit, id_provider);
-        index.import(visitor::visit(&unit));
+        index.import(indexer::index(&unit));
         (index, unit)
     }
 
