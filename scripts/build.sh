@@ -146,8 +146,8 @@ function run_lit_test() {
     cargo build
     cargo build --release
 
-    lit -DCOMPILER=$project_location/target/debug/plc tests/lit/
-    lit -DCOMPILER=$project_location/target/release/plc tests/lit/
+    lit -v -DCOMPILER=$project_location/target/debug/plc tests/lit/
+    lit -v -DCOMPILER=$project_location/target/release/plc tests/lit/
 }
 
 function run_test() {
