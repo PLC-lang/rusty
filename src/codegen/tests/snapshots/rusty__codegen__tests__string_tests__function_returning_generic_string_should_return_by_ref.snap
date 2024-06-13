@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { [61 x i8], [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r2s8u61s8u81"
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 
 define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) section "fn-MID__STRING:s8u81[ps8u81][i32][i32]" {

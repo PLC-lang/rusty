@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { [6 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1s8u6"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"12345\00"
 
 define i32 @func(i8* %0) section "fn-func:i32[ps8u6]" {

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r0"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

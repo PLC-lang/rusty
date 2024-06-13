@@ -8,8 +8,8 @@ source_filename = "main"
 %foo = type { i16 }
 %prg = type {}
 
-@foo_instance = global %foo { i16 7 }, section "var-foo_instance:v"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@foo_instance = global %foo { i16 7 }, section "var-foo_instance:r3i16i16i16"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r0"
 
 define void @foo(%foo* %0) section "fn-foo:v" {
 entry:

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { i16, [10 x i16], [10 x i16*], [10 x i16]* }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r4i16ai16api16pai16"
 
 define void @prg(%prg* %0) section "fn-prg:v" {
 entry:

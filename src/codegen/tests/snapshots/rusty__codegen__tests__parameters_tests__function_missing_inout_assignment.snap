@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { i32, i32, i32 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r3i32i32i32"
 
 define i32 @foo(i32 %0, i32* %1, i32* %2) section "fn-foo:i32[i32][pi32][pi32]" {
 entry:

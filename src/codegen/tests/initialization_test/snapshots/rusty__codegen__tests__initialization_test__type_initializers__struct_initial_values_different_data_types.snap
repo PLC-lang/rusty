@@ -7,5 +7,5 @@ source_filename = "main"
 
 %MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
 
-@x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-x:v"
-@__MyStruct__init = unnamed_addr constant %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-__MyStruct__init:v"
+@x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-x:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"
+@__MyStruct__init = unnamed_addr constant %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-__MyStruct__init:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"

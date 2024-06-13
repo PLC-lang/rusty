@@ -10,7 +10,7 @@ source_filename = "prog.st"
 
 %prog = type { i16 }
 
-@prog_instance = global %prog { i16 5 }, section "var-prog_instance:v"
+@prog_instance = global %prog { i16 5 }, section "var-prog_instance:r1i16"
 
 define void @prog(%prog* %0) section "fn-prog:v" {
 entry:

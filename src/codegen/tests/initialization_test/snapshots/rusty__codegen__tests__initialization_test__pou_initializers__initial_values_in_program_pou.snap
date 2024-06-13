@@ -7,7 +7,7 @@ source_filename = "main"
 
 %Main = type { i16, i16, i8, i8, float, float }
 
-@Main_instance = global %Main { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-Main_instance:v"
+@Main_instance = global %Main { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-Main_instance:r6i16i16u8u8f32f32"
 
 define void @Main(%Main* %0) section "fn-Main:v" {
 entry:

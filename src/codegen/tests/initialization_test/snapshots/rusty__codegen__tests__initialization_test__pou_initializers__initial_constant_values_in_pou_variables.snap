@@ -10,7 +10,7 @@ source_filename = "main"
 @MAX_LEN = unnamed_addr constant i16 99, section "var-MAX_LEN:i16"
 @MIN_LEN = unnamed_addr constant i16 10, section "var-MIN_LEN:i16"
 @LEN = unnamed_addr constant i16 20, section "var-LEN:i16"
-@prg_instance = global %prg { i16 24, i16 89 }, section "var-prg_instance:v"
+@prg_instance = global %prg { i16 24, i16 89 }, section "var-prg_instance:r2i16i16"
 
 define void @prg(%prg* %0) section "fn-prg:v[i16][i16]" {
 entry:

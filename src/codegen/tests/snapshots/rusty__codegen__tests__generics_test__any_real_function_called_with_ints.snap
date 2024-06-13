@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
 
 define float @foo__REAL(float %0) section "fn-foo__REAL:f32[f32]" {
 entry:

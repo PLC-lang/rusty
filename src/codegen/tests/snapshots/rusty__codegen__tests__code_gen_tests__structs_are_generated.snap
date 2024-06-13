@@ -8,7 +8,7 @@ source_filename = "main"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@x = global %MyStruct zeroinitializer, section "var-x:v"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:v"
-@y = global %__global_y zeroinitializer, section "var-y:v"
-@____global_y__init = unnamed_addr constant %__global_y zeroinitializer, section "var-____global_y__init:v"
+@x = global %MyStruct zeroinitializer, section "var-x:r2i32i16"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r2i32i16"
+@y = global %__global_y zeroinitializer, section "var-y:r2u8u8"
+@____global_y__init = unnamed_addr constant %__global_y zeroinitializer, section "var-____global_y__init:r2u8u8"
