@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1s8u81"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"dolor\00"
 @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"ipsum\00"
 @utf08_literal_2 = private unnamed_addr constant [6 x i8] c"lorem\00"

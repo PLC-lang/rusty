@@ -8,8 +8,8 @@ source_filename = "main"
 %MainProg = type { %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@MainProg_instance = global %MainProg zeroinitializer, section "var-MainProg_instance:v"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:v"
+@MainProg_instance = global %MainProg zeroinitializer, section "var-MainProg_instance:r1r2i32i32"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r2i32i32"
 
 define void @MainProg(%MainProg* %0) section "fn-MainProg:v" {
 entry:

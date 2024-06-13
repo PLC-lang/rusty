@@ -8,8 +8,8 @@ source_filename = "main"
 %Main = type { %MyStruct }
 %MyStruct = type { [5 x i16] }
 
-@Main_instance = global %Main zeroinitializer, section "var-Main_instance:v"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:v"
+@Main_instance = global %Main zeroinitializer, section "var-Main_instance:r1r1ai16"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r1ai16"
 
 define void @Main(%Main* %0) section "fn-Main:v" {
 entry:

@@ -7,6 +7,6 @@ source_filename = "main"
 
 %prg = type { i32, i32 }
 
-@prg_instance = external global %prg, section "var-prg_instance:v"
+@prg_instance = external global %prg, section "var-prg_instance:r2i32i32"
 
 declare void @prg(%prg*) section "fn-prg:v"

@@ -5,5 +5,5 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global [10 x i16] zeroinitializer, section "var-x:v"
-@y = global [6 x float] zeroinitializer, section "var-y:v"
+@x = global [10 x i16] zeroinitializer, section "var-x:ai16"
+@y = global [6 x float] zeroinitializer, section "var-y:af32"

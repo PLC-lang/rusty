@@ -9,9 +9,9 @@ source_filename = "main"
 %STRUCT1 = type { i32, [2 x %STRUCT2] }
 %STRUCT2 = type { i32, i32 }
 
-@main_instance = global %main { [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }] }, section "var-main_instance:v"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-__STRUCT1__init:v"
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-__STRUCT2__init:v"
+@main_instance = global %main { [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }] }, section "var-main_instance:r1ar2i32ar2i32i32"
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-__STRUCT1__init:r2i32ar2i32i32"
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-__STRUCT2__init:r2i32i32"
 @__main.var_init1__init = unnamed_addr constant [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }]
 
 define void @main(%main* %0) section "fn-main:v" {

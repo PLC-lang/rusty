@@ -7,7 +7,7 @@ source_filename = "external_file1.st"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "var-mainProg_instance:v"
+@mainProg_instance = external global %mainProg, section "var-mainProg_instance:r0"
 
 define i16 @main() section "fn-main:i16" {
 entry:
@@ -25,7 +25,7 @@ source_filename = "external_file2.st"
 
 %mainProg = type {}
 
-@mainProg_instance = global %mainProg zeroinitializer, section "var-mainProg_instance:v"
+@mainProg_instance = global %mainProg zeroinitializer, section "var-mainProg_instance:r0"
 
 define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {
 entry:

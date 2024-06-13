@@ -68,7 +68,7 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2s8u11s8u11"
 
     define void @prg(%prg* %0) section "fn-prg:v" {
     entry:
@@ -109,7 +109,7 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2s8u11s8u11"
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 

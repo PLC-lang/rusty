@@ -8,8 +8,8 @@ source_filename = "main"
 %myProg = type { i32 }
 %fb = type { i32 }
 
-@myProg_instance = global %myProg zeroinitializer, section "var-myProg_instance:v", !dbg !0
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:v", !dbg !7
+@myProg_instance = global %myProg zeroinitializer, section "var-myProg_instance:r1i32", !dbg !0
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r1i32", !dbg !7
 
 define void @myProg(%myProg* %0) section "fn-myProg:v[i32]" !dbg !16 {
 entry:

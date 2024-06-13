@@ -9,8 +9,8 @@ source_filename = "main"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-__MyClass__init:v"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-__MyClass__init:r2i16i16"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2r2i16i16i16"
 
 define void @MyClass(%MyClass* %0) section "fn-MyClass:v" {
 entry:

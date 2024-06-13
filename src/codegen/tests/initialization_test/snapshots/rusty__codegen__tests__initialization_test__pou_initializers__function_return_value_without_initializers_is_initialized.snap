@@ -7,9 +7,9 @@ source_filename = "main"
 
 %MyStrct = type { i32, i32, i32 }
 
-@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer, section "var-__MyStrct__init:v"
+@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer, section "var-__MyStrct__init:r3i32i32i32"
 
-define i16 @foo_int() section "fn-foo_int:v" {
+define i16 @foo_int() section "fn-foo_int:i16" {
 entry:
   %foo_int = alloca i16, align 2
   store i16 0, i16* %foo_int, align 2
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @foo_arr([10 x float]* %0) section "fn-foo_arr:v" {
+define void @foo_arr([10 x float]* %0) section "fn-foo_arr:af32" {
 entry:
   %foo_arr = alloca [10 x float]*, align 8
   store [10 x float]* %0, [10 x float]** %foo_arr, align 8
@@ -37,7 +37,7 @@ entry:
   ret void
 }
 
-define void @foo_strct(%MyStrct* %0) section "fn-foo_strct:v" {
+define void @foo_strct(%MyStrct* %0) section "fn-foo_strct:r3i32i32i32" {
 entry:
   %foo_strct = alloca %MyStrct*, align 8
   store %MyStrct* %0, %MyStrct** %foo_strct, align 8
