@@ -250,6 +250,23 @@
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This crate provides functionality for encoding and decoding the type
 //! information of Strutured Text functions and variables. The goal is to store
 //! that information in the resulting binary, in the section name containing the
@@ -296,21 +313,26 @@
 
 </span><span class="kw">use </span>std::fmt;
 
+<span class="kw">mod </span>parser;
+
 <span class="doccomment">/// The main builder type of this crate. Use it to create mangling contexts, in
 /// order to encode and decode binary type information.
 </span><span class="comment">// TODO: Add example code for using this builder
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub enum </span>SectionMangler {
     Function(FunctionMangler),
     Variable(VariableMangler),
 }
 
-<span class="kw">pub struct </span>FunctionMangler {
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>FunctionMangler {
     name: String,
     parameters: Vec&lt;FunctionArgument&gt;,
     return_type: <span class="prelude-ty">Option</span>&lt;Type&gt;,
 }
 
-<span class="kw">pub struct </span>VariableMangler {
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>VariableMangler {
     name: String,
     ty: Type,
 }
@@ -322,6 +344,13 @@
 
     <span class="kw">pub fn </span>variable&lt;S: Into&lt;String&gt;&gt;(name: S, ty: Type) -&gt; SectionMangler {
         SectionMangler::Variable(VariableMangler { name: name.into(), ty })
+    }
+
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            SectionMangler::Function(FunctionMangler { name, .. })
+            | SectionMangler::Variable(VariableMangler { name, .. }) =&gt; name,
+        }
     }
 
     <span class="kw">pub fn </span>with_parameter(<span class="self">self</span>, param: FunctionArgument) -&gt; SectionMangler {
@@ -365,6 +394,7 @@
 // NOTE: This is called `variable_linkage` in the `MemberInfo` struct.
 
 </span><span class="doccomment">/// We have to encode this because if it changes, the function needs to be reloaded - this is an ABI breakage
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub enum </span>FunctionArgument {
     ByValue(Type),
     ByRef(Type),
@@ -381,6 +411,7 @@
 }
 
 <span class="comment">// TODO: Do we have to encode this? Does that affect ABI? Probably
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub enum </span>StringEncoding {
     <span class="comment">// TODO: Should we encode this differently? this could cause problems compared to encoding unsigned types
     </span><span class="doccomment">/// Encoded as `8u`
@@ -400,6 +431,7 @@
 
 <span class="comment">// This maps directly to the [`DataTypeInformation`] enum in RuSTy - we simply remove some fields and add the ability to encode/decode serialize/deserialize
 // TODO: Do we have to handle Generic?
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub enum </span>Type {
     <span class="doccomment">/// Encoded as `v`
     </span>Void,
@@ -487,6 +519,8 @@
     }
 }
 
+<span class="kw">pub const </span>PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">"$RUSTY$"</span>;
+
 <span class="comment">// TODO: How to encode variadics?
 </span><span class="kw">fn </span>mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMangler) -&gt; String {
     <span class="kw">let </span>mangled = parameters
@@ -494,10 +528,10 @@
         <span class="comment">/* FIXME: Is that correct? */
         </span>.fold(return_type.unwrap_or(Type::Void).to_string(), |mangled, arg| <span class="macro">format!</span>(<span class="string">"{mangled}[{arg}]"</span>));
 
-    <span class="macro">format!</span>(<span class="string">"{name}:{mangled}"</span>)
+    <span class="macro">format!</span>(<span class="string">"{PREFIX}{name}:{mangled}"</span>)
 }
 
 <span class="kw">fn </span>mangle_variable(VariableMangler { name, ty }: VariableMangler) -&gt; String {
-    <span class="macro">format!</span>(<span class="string">"{name}:{ty}"</span>)
+    <span class="macro">format!</span>(<span class="string">"{PREFIX}{name}:{ty}"</span>)
 }
 </code></pre></div></section></main></body></html>
