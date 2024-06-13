@@ -8,16 +8,16 @@ source_filename = "main"
 %MyClass = type { i16, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-__MyClass__init:r2i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r2i16i16"
 
-define void @MyClass(%MyClass* %0) section "fn-MyClass:v" {
+define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-MyClass.testMethod:v[i16]" {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:v[i16]" {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1

@@ -8,16 +8,16 @@ source_filename = "main"
 %fb = type { i16 }
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb { i16 9 }, section "var-__fb__init:r1i16"
-@main_instance = global %main { %fb { i16 9 } }, section "var-main_instance:r1r1i16"
+@__fb__init = unnamed_addr constant %fb { i16 9 }, section "var-$RUSTY$__fb__init:r1i16"
+@main_instance = global %main { %fb { i16 9 } }, section "var-$RUSTY$main_instance:r1r1i16"
 
-define void @fb(%fb* %0) section "fn-fb:v" {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v" {
 entry:
   %a = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
-define i32 @func(%fb* %0) section "fn-func:i32[r1i16]" {
+define i32 @func(%fb* %0) section "fn-$RUSTY$func:i32[r1i16]" {
 entry:
   %func = alloca i32, align 4
   %in = alloca %fb, align 8
@@ -32,7 +32,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %call = call i32 @func(%fb* %fb0)

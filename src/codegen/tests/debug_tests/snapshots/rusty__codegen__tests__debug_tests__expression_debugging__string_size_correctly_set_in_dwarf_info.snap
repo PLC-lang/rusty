@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [65 x i8] zeroinitializer, section "var-a:s8u65", !dbg !0
+@a = global [65 x i8] zeroinitializer, section "var-$RUSTY$a:s8u65", !dbg !0
 
 !llvm.module.flags = !{!7, !8}
 !llvm.dbg.cu = !{!9}

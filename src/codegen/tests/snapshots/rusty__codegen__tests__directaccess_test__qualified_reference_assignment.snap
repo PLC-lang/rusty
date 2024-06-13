@@ -7,9 +7,9 @@ source_filename = "main"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "var-__myStruct__init:r1u8"
+@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "var-$RUSTY$__myStruct__init:r1u8"
 
-define i16 @main() section "fn-main:i16" {
+define i16 @main() section "fn-$RUSTY$main:i16" {
 entry:
   %main = alloca i16, align 2
   %str = alloca %myStruct, align 8

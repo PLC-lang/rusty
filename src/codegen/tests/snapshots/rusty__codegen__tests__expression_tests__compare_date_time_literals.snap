@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r8u8u8u8u8u8u8u8u8"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r8u8u8u8u8u8u8u8u8"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %cmp1 = alloca i8, align 1
   %cmp2 = alloca i8, align 1

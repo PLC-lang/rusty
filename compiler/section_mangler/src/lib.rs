@@ -44,20 +44,25 @@
 
 use std::fmt;
 
+mod parser;
+
 /// The main builder type of this crate. Use it to create mangling contexts, in
 /// order to encode and decode binary type information.
 // TODO: Add example code for using this builder
+#[derive(Debug, PartialEq, Clone)]
 pub enum SectionMangler {
     Function(FunctionMangler),
     Variable(VariableMangler),
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct FunctionMangler {
     name: String,
     parameters: Vec<FunctionArgument>,
     return_type: Option<Type>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableMangler {
     name: String,
     ty: Type,
@@ -70,6 +75,13 @@ impl SectionMangler {
 
     pub fn variable<S: Into<String>>(name: S, ty: Type) -> SectionMangler {
         SectionMangler::Variable(VariableMangler { name: name.into(), ty })
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            SectionMangler::Function(FunctionMangler { name, .. })
+            | SectionMangler::Variable(VariableMangler { name, .. }) => name,
+        }
     }
 
     pub fn with_parameter(self, param: FunctionArgument) -> SectionMangler {
@@ -113,6 +125,7 @@ impl SectionMangler {
 // NOTE: This is called `variable_linkage` in the `MemberInfo` struct.
 
 /// We have to encode this because if it changes, the function needs to be reloaded - this is an ABI breakage
+#[derive(Debug, PartialEq, Clone)]
 pub enum FunctionArgument {
     ByValue(Type),
     ByRef(Type),
@@ -129,6 +142,7 @@ impl fmt::Display for FunctionArgument {
 }
 
 // TODO: Do we have to encode this? Does that affect ABI? Probably
+#[derive(Debug, PartialEq, Clone)]
 pub enum StringEncoding {
     // TODO: Should we encode this differently? this could cause problems compared to encoding unsigned types
     /// Encoded as `8u`
@@ -148,6 +162,7 @@ impl fmt::Display for StringEncoding {
 
 // This maps directly to the [`DataTypeInformation`] enum in RuSTy - we simply remove some fields and add the ability to encode/decode serialize/deserialize
 // TODO: Do we have to handle Generic?
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     /// Encoded as `v`
     Void,
@@ -235,6 +250,8 @@ impl fmt::Display for Type {
     }
 }
 
+pub const PREFIX: &str = "$RUSTY$";
+
 // TODO: How to encode variadics?
 fn mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMangler) -> String {
     let mangled = parameters
@@ -242,9 +259,9 @@ fn mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMa
         /* FIXME: Is that correct? */
         .fold(return_type.unwrap_or(Type::Void).to_string(), |mangled, arg| format!("{mangled}[{arg}]"));
 
-    format!("{name}:{mangled}")
+    format!("{PREFIX}{name}:{mangled}")
 }
 
 fn mangle_variable(VariableMangler { name, ty }: VariableMangler) -> String {
-    format!("{name}:{ty}")
+    format!("{PREFIX}{name}:{ty}")
 }

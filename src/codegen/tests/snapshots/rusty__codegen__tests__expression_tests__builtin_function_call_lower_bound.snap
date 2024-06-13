@@ -8,10 +8,10 @@ source_filename = "main"
 %main = type { [2 x i32], i32 }
 %__foo_vla = type { i32*, [2 x i32] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r2ai32i32"
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-____foo_vla__init:r2pai32ai32"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2ai32i32"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-$RUSTY$____foo_vla__init:r2pai32ai32"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -30,7 +30,7 @@ entry:
   ret void
 }
 
-define i32 @foo(%__foo_vla* %0) section "fn-foo:i32[pr2pai32ai32]" {
+define i32 @foo(%__foo_vla* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
 entry:
   %foo = alloca i32, align 4
   %vla = alloca %__foo_vla*, align 8

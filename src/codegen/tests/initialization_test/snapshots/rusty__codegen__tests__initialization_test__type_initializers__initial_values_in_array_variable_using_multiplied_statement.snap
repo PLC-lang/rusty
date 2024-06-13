@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [4 x i8] c"\07\07\07\07", section "var-a:au8"
-@b = global [4 x i8] c"\02\07\07\03", section "var-b:au8"
-@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01", section "var-c:au8"
-@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02", section "var-d:au8"
+@a = global [4 x i8] c"\07\07\07\07", section "var-$RUSTY$a:au8"
+@b = global [4 x i8] c"\02\07\07\03", section "var-$RUSTY$b:au8"
+@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01", section "var-$RUSTY$c:au8"
+@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02", section "var-$RUSTY$d:au8"

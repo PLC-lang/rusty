@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r10u8i8u8u16i16u16i32u32i64u64"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r10u8i8u8u16i16u16i32u32i64u64"
 
-define i32 @CheckRangeSigned(i32 %0, i32 %1, i32 %2) section "fn-CheckRangeSigned:i32[i32][i32][i32]" {
+define i32 @CheckRangeSigned(i32 %0, i32 %1, i32 %2) section "fn-$RUSTY$CheckRangeSigned:i32[i32][i32][i32]" {
 entry:
   %CheckRangeSigned = alloca i32, align 4
   %v = alloca i32, align 4
@@ -24,7 +24,7 @@ entry:
   ret i32 %CheckRangeSigned_ret
 }
 
-define i32 @CheckRangeUnsigned(i32 %0, i32 %1, i32 %2) section "fn-CheckRangeUnsigned:u32[u32][u32][u32]" {
+define i32 @CheckRangeUnsigned(i32 %0, i32 %1, i32 %2) section "fn-$RUSTY$CheckRangeUnsigned:u32[u32][u32][u32]" {
 entry:
   %CheckRangeUnsigned = alloca i32, align 4
   %v = alloca i32, align 4
@@ -39,7 +39,7 @@ entry:
   ret i32 %CheckRangeUnsigned_ret
 }
 
-define i64 @CheckLRangeSigned(i64 %0, i64 %1, i64 %2) section "fn-CheckLRangeSigned:i64[i64][i64][i64]" {
+define i64 @CheckLRangeSigned(i64 %0, i64 %1, i64 %2) section "fn-$RUSTY$CheckLRangeSigned:i64[i64][i64][i64]" {
 entry:
   %CheckLRangeSigned = alloca i64, align 8
   %v = alloca i64, align 8
@@ -54,7 +54,7 @@ entry:
   ret i64 %CheckLRangeSigned_ret
 }
 
-define i64 @CheckLRangeUnsigned(i64 %0, i64 %1, i64 %2) section "fn-CheckLRangeUnsigned:u64[u64][u64][u64]" {
+define i64 @CheckLRangeUnsigned(i64 %0, i64 %1, i64 %2) section "fn-$RUSTY$CheckLRangeUnsigned:u64[u64][u64][u64]" {
 entry:
   %CheckLRangeUnsigned = alloca i64, align 8
   %v = alloca i64, align 8
@@ -69,7 +69,7 @@ entry:
   ret i64 %CheckLRangeUnsigned_ret
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1

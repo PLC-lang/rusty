@@ -8,10 +8,10 @@ source_filename = "main"
 %prog = type { i32, i32 }
 %main = type { i32 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r2i32i32"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r1i32"
+@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r2i32i32"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1i32"
 
-define void @prog(%prog* %0) section "fn-prog:v[i32][i32]" {
+define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[i32][i32]" {
 entry:
   %out1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %out2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
@@ -20,7 +20,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   call void @prog(%prog* @prog_instance)
