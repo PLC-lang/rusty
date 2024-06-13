@@ -9,9 +9,9 @@ source_filename = "main"
 %foo = type { i32, i32, %fb }
 %prg = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:v"
-@foo_instance = global %foo zeroinitializer, section "var-foo_instance:v"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r1i32"
+@foo_instance = global %foo zeroinitializer, section "var-foo_instance:r3i32i32r1i32"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1i32"
 
 define void @fb(%fb* %0) section "fn-fb:v[i32]" {
 entry:
@@ -19,7 +19,7 @@ entry:
   ret void
 }
 
-define void @foo(%foo* %0) section "fn-foo:v[i32][i32][v]" {
+define void @foo(%foo* %0) section "fn-foo:v[i32][i32][r1i32]" {
 entry:
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1

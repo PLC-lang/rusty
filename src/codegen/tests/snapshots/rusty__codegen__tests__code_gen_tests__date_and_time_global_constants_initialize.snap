@@ -23,7 +23,7 @@ source_filename = "main"
 @cDT_SHORT = unnamed_addr constant i64 172799000000000, section "var-cDT_SHORT:i64"
 @cLDT = unnamed_addr constant i64 172799123000000, section "var-cLDT:i64"
 @cLDT_SHORT = unnamed_addr constant i64 172799123000000, section "var-cLDT_SHORT:i64"
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r16i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

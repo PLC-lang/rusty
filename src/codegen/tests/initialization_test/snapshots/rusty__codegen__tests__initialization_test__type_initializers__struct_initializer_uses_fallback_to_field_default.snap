@@ -7,5 +7,5 @@ source_filename = "main"
 
 %Point = type { i32, i32, i32 }
 
-@x = global %Point { i32 1, i32 2, i32 3 }, section "var-x:v"
-@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-__Point__init:v"
+@x = global %Point { i32 1, i32 2, i32 3 }, section "var-x:r3i32i32i32"
+@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-__Point__init:r3i32i32i32"

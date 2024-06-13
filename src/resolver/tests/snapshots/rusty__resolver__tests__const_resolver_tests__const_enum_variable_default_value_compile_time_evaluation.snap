@@ -5,8 +5,8 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "main"
 
-@me = unnamed_addr constant i32 3, section "var-me:v"
+@me = unnamed_addr constant i32 3, section "var-me:e3i32"
 @THREE = unnamed_addr constant i16 3, section "var-THREE:i16"
-@MyEnum.a = unnamed_addr constant i32 3, section "var-a:v"
-@MyEnum.b = unnamed_addr constant i32 4, section "var-b:v"
-@MyEnum.c = unnamed_addr constant i32 5, section "var-c:v"
+@MyEnum.a = unnamed_addr constant i32 3, section "var-a:e3i32"
+@MyEnum.b = unnamed_addr constant i32 4, section "var-b:e3i32"
+@MyEnum.c = unnamed_addr constant i32 5, section "var-c:e3i32"

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %baz = type { i8*, i16 }
 
-@baz_instance = global %baz zeroinitializer, section "var-baz_instance:v"
+@baz_instance = global %baz zeroinitializer, section "var-baz_instance:r2pu8u16"
 
 define void @baz(%baz* %0) section "fn-baz:v" {
 entry:

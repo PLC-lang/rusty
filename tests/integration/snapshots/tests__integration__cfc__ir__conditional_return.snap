@@ -4,7 +4,7 @@ expression: output_file_content_without_headers
 ---
 %conditional_return = type { i32 }
 
-@__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer, section "var-__conditional_return__init:v"
+@__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer, section "var-__conditional_return__init:r1i32"
 
 define void @conditional_return(%conditional_return* %0) section "fn-conditional_return:v[i32]" {
 entry:

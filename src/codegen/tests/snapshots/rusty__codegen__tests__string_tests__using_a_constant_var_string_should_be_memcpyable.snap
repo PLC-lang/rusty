@@ -20,7 +20,7 @@ entry:
   ret i8 %STRING_EQUAL_ret
 }
 
-define i64 @FSTRING_TO_DT() section "fn-FSTRING_TO_DT:v" {
+define i64 @FSTRING_TO_DT() section "fn-FSTRING_TO_DT:i64" {
 entry:
   %FSTRING_TO_DT = alloca i64, align 8
   %ignore = alloca [2 x i8], align 1

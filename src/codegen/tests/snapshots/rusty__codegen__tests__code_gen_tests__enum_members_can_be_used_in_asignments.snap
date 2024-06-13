@@ -7,10 +7,10 @@ source_filename = "main"
 
 %main = type { i32 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
-@MyEnum.red = unnamed_addr constant i32 0, section "var-red:v"
-@MyEnum.yellow = unnamed_addr constant i32 1, section "var-yellow:v"
-@MyEnum.green = unnamed_addr constant i32 2, section "var-green:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1e3i32"
+@MyEnum.red = unnamed_addr constant i32 0, section "var-red:e3i32"
+@MyEnum.yellow = unnamed_addr constant i32 1, section "var-yellow:e3i32"
+@MyEnum.green = unnamed_addr constant i32 2, section "var-green:e3i32"
 
 define void @main(%main* %0) section "fn-main:v" {
 entry:

@@ -7,7 +7,7 @@ source_filename = "main"
 
 %prg = type { i8 }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:v"
+@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1i8"
 
 define void @prg(%prg* %0) section "fn-prg:v" {
 entry:

@@ -6,9 +6,9 @@ expression: result
 source_filename = "main"
 
 @BASE = unnamed_addr constant i32 7, section "var-BASE:i32"
-@Direction.FORWARD = unnamed_addr constant i32 7, section "var-FORWARD:v"
-@Direction.UP = unnamed_addr constant i32 8, section "var-UP:v"
-@Direction.DOWN = unnamed_addr constant i32 28, section "var-DOWN:v"
+@Direction.FORWARD = unnamed_addr constant i32 7, section "var-FORWARD:e3i32"
+@Direction.UP = unnamed_addr constant i32 8, section "var-UP:e3i32"
+@Direction.DOWN = unnamed_addr constant i32 28, section "var-DOWN:e3i32"
 
 define i32 @drive() section "fn-drive:i32" {
 entry:

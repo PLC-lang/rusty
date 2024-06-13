@@ -8,8 +8,8 @@ source_filename = "main"
 %prog = type { i32, i32 }
 %main = type { i32 }
 
-@prog_instance = global %prog zeroinitializer, section "var-prog_instance:v"
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@prog_instance = global %prog zeroinitializer, section "var-prog_instance:r2i32i32"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r1i32"
 
 define void @prog(%prog* %0) section "fn-prog:v[i32][i32]" {
 entry:

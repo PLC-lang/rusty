@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type { i8, i8, i16, i16, i32, i32, i64, i64, float, float, double, double }
 
-@main_instance = global %main { i8 1, i8 1, i16 2, i16 2, i32 3, i32 3, i64 4, i64 4, float 5.000000e+00, float 5.000000e+00, double 6.000000e+00, double 6.000000e+00 }, section "var-main_instance:v"
+@main_instance = global %main { i8 1, i8 1, i16 2, i16 2, i32 3, i32 3, i64 4, i64 4, float 5.000000e+00, float 5.000000e+00, double 6.000000e+00, double 6.000000e+00 }, section "var-main_instance:r12i8i8i16i16i32i32i64i64f32f32f64f64"
 
 define i8 @fn_sint(i8* %0, i8* %1) section "fn-fn_sint:i8[pi8][pi8]" {
 entry:

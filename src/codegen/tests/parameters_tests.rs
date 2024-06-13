@@ -842,7 +842,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i32* %0) section "fn-foo:i32[v]" {
+    define i32 @foo(i32* %0) section "fn-foo:i32[ai32]" {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [65537 x i32], align 4
@@ -897,9 +897,9 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:v"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:r2u8u8"
 
-    define i32 @foo(%S_TY* %0) section "fn-foo:i32[v]" {
+    define i32 @foo(%S_TY* %0) section "fn-foo:i32[r2u8u8]" {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %S_TY, align 8
@@ -969,10 +969,10 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
 
-    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "var-__AGGREGATE_COLLECTOR_TY__init:v"
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:v"
+    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "var-__AGGREGATE_COLLECTOR_TY__init:r3ai32s8u65537r2u8u8"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-__S_TY__init:r2u8u8"
 
-    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-foo:i32[v]" {
+    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-foo:i32[r3ai32s8u65537r2u8u8]" {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %AGGREGATE_COLLECTOR_TY, align 8
@@ -1031,7 +1031,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-__FOO__init:v"
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-__FOO__init:r2s8u65537ai32"
 
     define i32 @main() section "fn-main:i32" {
     entry:
@@ -1059,7 +1059,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define void @FOO(%FOO* %0) section "fn-FOO:v[s8u65537][v]" {
+    define void @FOO(%FOO* %0) section "fn-FOO:v[s8u65537][ai32]" {
     entry:
       %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
@@ -1121,11 +1121,11 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "var-__FB__init:v"
-    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "var-__OUT_TYPE__init:v"
-    @PRG_instance = global %PRG zeroinitializer, section "var-PRG_instance:v"
+    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "var-__FB__init:r5r1u8ai32ar1u8s8u81s16u81"
+    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "var-__OUT_TYPE__init:r1u8"
+    @PRG_instance = global %PRG zeroinitializer, section "var-PRG_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
 
-    define void @FB(%FB* %0) section "fn-FB:v[v][v][v][s8u81][s16u81]" {
+    define void @FB(%FB* %0) section "fn-FB:v[r1u8][ai32][ar1u8][s8u81][s16u81]" {
     entry:
       %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1

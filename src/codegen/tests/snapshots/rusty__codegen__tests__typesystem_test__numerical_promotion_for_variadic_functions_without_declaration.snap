@@ -7,7 +7,7 @@ source_filename = "main"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:v"
+@main_instance = global %main zeroinitializer, section "var-main_instance:r4s8u81f32f64i16"
 @__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
 declare i32 @printf(i8*, ...) section "fn-printf:i32[ps8u81]"
