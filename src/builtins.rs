@@ -846,20 +846,6 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatement::CastStatement(data) => {
-            let ExpressionValue::RValue(value) = generator.generate_expression_value(&data.target)? else {
-                unreachable!()
-            };
-
-            if !value.is_int_value() {
-                return Err(Diagnostic::codegen_error(
-                    format!("Expected INT value, found {}", value.get_type()),
-                    location,
-                ));
-            };
-
-            value.into_int_value()
-        }
         // e.g. LOWER_BOUND(arr, idx + 3)
         _ => {
             let expression_value = generator.generate_expression(params[1])?;
