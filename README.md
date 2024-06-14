@@ -1,7 +1,11 @@
 # RuSTy
 
-[![Rust Build](https://github.com/PLC-lang/rusty/actions/workflows/rust.yml/badge.svg)](https://github.com/PLC-lang/ruSTy/actions)
+[![Linux Build](https://github.com/PLC-lang/rusty/actions/workflows/linux.yml/badge.svg)](https://github.com/PLC-lang/ruSTy/actions)
+[![Windows Build](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml/badge.svg)](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml)
+[![Documentation](https://github.com/PLC-lang/rusty/actions/workflows/doc.yml/badge.svg)](https://plc-lang.github.io/rusty)
 [![codecov](https://codecov.io/gh/PLC-lang/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V)](https://codecov.io/gh/PLC-lang/rusty)
+[![Metrics](https://github.com/PLC-lang/rusty/actions/workflows/metrics.yml/badge.svg)](https://plc-lang.github.io/metrics)
+
 [![Lines of Code](https://tokei.rs/b1/github/PLC-lang/rusty)](https://github.com/XAMPPRocky/tokei)
 
 [Structured text](https://en.wikipedia.org/wiki/Structured_text) compiler written in Rust

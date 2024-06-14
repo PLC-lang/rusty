@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @bump(i8* %0) section "fn-bump:i32[pi8]" {
+define i32 @bump(i8* %0) section "fn-$RUSTY$bump:i32[pi8]" {
 entry:
   %bump = alloca i32, align 4
   %v = alloca i8*, align 8

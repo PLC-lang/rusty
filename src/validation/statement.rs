@@ -58,18 +58,6 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
             visit_statement(validator, elements.as_ref(), context);
         }
-        AstStatement::CastStatement(data) => {
-            if let AstStatement::Literal(literal) = data.target.get_stmt() {
-                validate_cast_literal(
-                    validator,
-                    literal,
-                    statement,
-                    &data.type_name,
-                    &statement.get_location(),
-                    context,
-                );
-            }
-        }
         AstStatement::MultipliedStatement(data) => {
             visit_statement(validator, &data.element, context);
         }
