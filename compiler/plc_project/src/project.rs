@@ -3,13 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context, Result};
-use glob::glob;
-
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},
     object::Object,
 };
+use anyhow::{Context, Result};
+use glob::glob;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use plc::output::FormatOption;
 use source_code::{SourceContainer, SourceType};
@@ -309,8 +309,11 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     for input in &inputs {
         let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
         let path = &input.to_string_lossy();
-        let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
+        if !input.exists() {
+            return Err(Diagnostic::new(format!("{} does not exist.", path)).into());
+        }
 
+        let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
         for p in paths {
             let path = p.context("Illegal Path")?;
             sources.push(path);
