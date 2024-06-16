@@ -1,0 +1,6 @@
+---
+source: compiler/plc_driver/./src/tests/external_files.rs
+assertion_line: 79
+expression: msg.to_string()
+---
+Could not find generated stub for main at: external_file.st:2:8:{2:8-3:16}:

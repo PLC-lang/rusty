@@ -421,6 +421,20 @@ impl Walker for ReferenceExpr {
     }
 }
 
+impl Walker for ReferenceAccess {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor {
+        
+        match &self {
+            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) | ReferenceAccess::Cast(t) => {
+                visitor.visit(t)
+            }
+            _ => {}
+        }
+    }
+}
+
 impl Walker for DirectAccess {
     fn walk<V>(&self, visitor: &mut V)
     where
@@ -686,6 +700,18 @@ where
         if let Some(node) = self {
             node.walk(visitor);
         }
+    }
+}
+
+impl<T> Walker for Box<T>
+where
+    T: Walker,
+{
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        self.as_ref().walk(visitor);
     }
 }
 

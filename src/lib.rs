@@ -42,6 +42,7 @@ pub mod linker;
 pub mod output;
 pub mod parser;
 pub mod resolver;
+pub mod name_resolver;
 mod test_utils;
 
 pub mod typesystem;

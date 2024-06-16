@@ -726,6 +726,10 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn is_program(&self) -> bool {
+        matches!(self, PouIndexEntry::Program { .. })
+    }
+
     pub fn is_function_block(&self) -> bool {
         matches!(self, PouIndexEntry::FunctionBlock { .. })
     }

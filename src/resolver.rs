@@ -6,6 +6,7 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use type_hint_annotator::TypeHintAnnotator;
 use std::hash::Hash;
 
 use plc_ast::{
@@ -16,12 +17,12 @@ use plc_ast::{
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
-    provider::IdProvider,
+    provider::IdProvider, visitor::Walker,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{FxIndexMap, FxIndexSet};
+use crate::{index::{FxIndexMap, FxIndexSet}, name_resolver::NameResolver};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -35,6 +36,7 @@ use crate::{
 
 pub mod const_evaluator;
 pub mod generics;
+pub mod type_hint_annotator;
 
 #[cfg(test)]
 mod tests;
@@ -467,6 +469,12 @@ impl From<&PouIndexEntry> for StatementAnnotation {
     }
 }
 
+impl From<&DataTypeInformation> for StatementAnnotation {
+    fn from(value: &DataTypeInformation) -> Self {
+        StatementAnnotation::Type { type_name: value.get_name().to_string() }
+    }
+}
+
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 //TODO: Maybe refactor to struct
 pub enum Dependency {
@@ -488,6 +496,11 @@ pub trait AnnotationMap {
 
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
+    fn get_type_hint_or_type<'i>(&self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
+        self.get_hint(s).or_else(|| self.get(s))
+            .and_then(|s| self.get_type_for_annotation(index, s))
+    }
+
     fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode>;
 
     fn get_type_or_void<'i>(&'i self, s: &AstNode, index: &'i Index) -> &'i typesystem::DataType {
@@ -504,6 +517,10 @@ pub trait AnnotationMap {
 
     fn get_type<'i>(&'i self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
         self.get(s).and_then(|it| self.get_type_for_annotation(index, it))
+    }
+
+    fn get_type_name<'i>(&'i self, s: &AstNode) -> Option<&str> {
+        self.get(s).and_then(|it| self.get_type_name_for_annotation(it))
     }
 
     fn get_type_for_annotation<'a>(
@@ -645,6 +662,13 @@ impl AnnotationMapImpl {
         self.new_index.import(other.new_index);
     }
 
+    /// copies the annotation from one statement to another
+    pub fn copy_annotation(&mut self, from: &AstNode, to: &AstNode) {
+        if let Some(f) = self.get(from) {
+            self.annotate(to, f.clone());
+        }
+    }
+
     /// annotates the given statement (using it's `get_id()`) with the given type-name
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         log::trace!("Annotation: {annotation:?} @ {s:?}");
@@ -653,7 +677,11 @@ impl AnnotationMapImpl {
 
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         log::trace!("Annotation (type-hint): {annotation:?} @ {s:?}");
-        self.type_hint_map.insert(s.get_id(), annotation);
+
+        //only hint if the type is not already the same
+        if self.get(s) != Some(&annotation) {
+            self.type_hint_map.insert(s.get_id(), annotation);
+        }
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate
@@ -730,6 +758,17 @@ impl<'i> TypeAnnotator<'i> {
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
+
+        let mut resolver = NameResolver::new(index);
+        unit.walk(&mut resolver);
+
+        let mut type_hint_annotator = TypeHintAnnotator::new(index, resolver.annotations);
+        unit.walk(&mut type_hint_annotator);
+
+        return (type_hint_annotator.annotations, FxIndexSet::default(), resolver.strings);
+
+
+
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
@@ -1766,7 +1805,7 @@ impl<'i> TypeAnnotator<'i> {
 
                     AstLiteral::String(StringValue { is_wide, value, .. }) => {
                         let string_type_name =
-                            register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
+                            register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len()).to_string();
                         self.annotate(statement, StatementAnnotation::value(string_type_name));
 
                         //collect literals so we can generate global constants later
@@ -1838,7 +1877,7 @@ fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
 }
 
 /// adds a string-type to the given index and returns it's name
-fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
+pub fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> &str {
     let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
     let new_type_name = internal_type_name(prefix, len.to_string().as_str());
 
@@ -1854,7 +1893,8 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
             location: SourceLocation::internal(),
         });
     }
-    new_type_name
+    index.find_type(new_type_name.as_str()).map(|d| d.get_name()).unwrap_or(VOID_TYPE)
+    
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name

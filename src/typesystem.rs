@@ -145,6 +145,15 @@ impl DataType {
         self.nature.is_numerical()
     }
 
+    // returns true if this type can be used to perform arithmetic operations (+,-,*...)
+    pub fn is_arithmetic(&self) -> bool {
+        (self.is_numerical() || self.is_bit()) && !self.is_bool()
+    }
+
+    pub fn is_bool(&self) -> bool{
+        self.information.is_bool()
+    }
+
     pub fn is_real(&self) -> bool {
         self.nature.is_real()
     }

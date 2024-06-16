@@ -1067,6 +1067,32 @@ impl Operator {
                 | Operator::GreaterOrEqual
         )
     }
+
+    /// returns true, if this operator is an arithmetic operator
+    /// (+, -, *, /, EXP, ...)
+    pub fn is_arithmetic_operator(&self) -> bool {
+        matches!(
+            self,
+            Operator::Plus
+                | Operator::Minus
+                | Operator::Multiplication
+                | Operator::Exponentiation
+                | Operator::Division
+        )
+    }
+
+    /// returns true, if this operator is a binary operator.
+    /// this means it can be applied bitwise to two operators
+    /// (e.g. `flags AND 16#0F`)
+    pub fn is_binary_operator(&self) -> bool {
+        matches!(
+            self,
+            Operator::And
+            | Operator::Or
+            | Operator::Xor
+            | Operator::Not
+        )
+    }
 }
 
 #[cfg(test)]
