@@ -12,26 +12,29 @@ entry:
   store i32 0, i32* %myFunc, align 4, !dbg !8
   store i32 1, i32* %myFunc, align 4, !dbg !12
   %0 = load i32, i32* %myFunc, align 4, !dbg !12
-  br i1 true, label %predicate_inc, label %predicate_dec, !dbg !13
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !13
 
-predicate_inc:                                    ; preds = %loop, %entry
+predicate_sle:                                    ; preds = %increment, %entry
   %1 = load i32, i32* %myFunc, align 4, !dbg !13
   %condition = icmp sle i32 %1, 20, !dbg !13
   br i1 %condition, label %loop, label %continue, !dbg !13
 
-predicate_dec:                                    ; preds = %loop, %entry
+predicate_sge:                                    ; preds = %increment, %entry
   %2 = load i32, i32* %myFunc, align 4, !dbg !13
   %condition1 = icmp sge i32 %2, 20, !dbg !13
   br i1 %condition1, label %loop, label %continue, !dbg !13
 
-loop:                                             ; preds = %predicate_dec, %predicate_inc
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   store i32 1, i32* %myFunc, align 4, !dbg !14
-  %3 = load i32, i32* %myFunc, align 4, !dbg !14
-  %increment = add i32 %3, 2, !dbg !14
-  store i32 %increment, i32* %myFunc, align 4, !dbg !14
-  br i1 true, label %predicate_inc, label %predicate_dec, !dbg !14
+  br label %increment, !dbg !14
 
-continue:                                         ; preds = %predicate_dec, %predicate_inc
+increment:                                        ; preds = %loop
+  %3 = load i32, i32* %myFunc, align 4, !dbg !14
+  %next = add i32 %3, 2, !dbg !14
+  store i32 %next, i32* %myFunc, align 4, !dbg !14
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !14
+
+continue:                                         ; preds = %predicate_sge, %predicate_sle
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !14
   ret i32 %myFunc_ret, !dbg !14
 }

@@ -483,6 +483,30 @@ fn for_loop_and_increment_10_times_skipping_1() {
     assert_eq!(res, 1005);
 }
 
+
+#[test]
+fn for_loop_does_not_execute_if_condition_is_not_met() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i, end, step, res: DINT;
+    END_VAR
+        end := -1;
+        step := -1;
+        res := 100;
+
+        FOR i := end TO 0 BY step DO
+            res := i;
+        END_FOR
+
+        main := res;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 100);
+}
+
 #[test]
 fn while_loop_no_entry() {
     let function = r#"

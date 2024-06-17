@@ -14,20 +14,19 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 3, i32* %x, align 4
   %1 = load i32, i32* %x, align 4
-  %is_incrementing = icmp sgt i32 %1, 0
-  br i1 %is_incrementing, label %predicate_inc, label %predicate_dec
+  br i1 true, label %predicate_sle, label %predicate_sge
 
-predicate_inc:                                    ; preds = %buffer_block, %entry
+predicate_sle:                                    ; preds = %increment, %entry
   %2 = load i32, i32* %x, align 4
   %condition = icmp sle i32 %2, 10
   br i1 %condition, label %loop, label %continue
 
-predicate_dec:                                    ; preds = %buffer_block, %entry
+predicate_sge:                                    ; preds = %increment, %entry
   %3 = load i32, i32* %x, align 4
   %condition1 = icmp sge i32 %3, 10
   br i1 %condition1, label %loop, label %continue
 
-loop:                                             ; preds = %predicate_dec, %predicate_inc
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   %load_x = load i32, i32* %x, align 4
   %tmpVar = add i32 %load_x, 2
   store i32 %tmpVar, i32* %x, align 4
@@ -37,11 +36,14 @@ buffer_block:                                     ; No predecessors!
   %load_x2 = load i32, i32* %x, align 4
   %tmpVar3 = add i32 %load_x2, 5
   store i32 %tmpVar3, i32* %x, align 4
-  %4 = load i32, i32* %x, align 4
-  %increment = add i32 %4, 7
-  store i32 %increment, i32* %x, align 4
-  br i1 %is_incrementing, label %predicate_inc, label %predicate_dec
+  br label %increment
 
-continue:                                         ; preds = %loop, %predicate_dec, %predicate_inc
+increment:                                        ; preds = %buffer_block
+  %4 = load i32, i32* %x, align 4
+  %next = add i32 %4, 7
+  store i32 %next, i32* %x, align 4
+  br i1 true, label %predicate_sle, label %predicate_sge
+
+continue:                                         ; preds = %loop, %predicate_sge, %predicate_sle
   ret void
 }

@@ -391,15 +391,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let exp_gen = self.create_expr_generator();
         self.generate_assignment_statement(counter, start)?;
-        let predicate_incrementing = context.append_basic_block(current_function, "predicate_inc");
-        let predicate_decrementing = context.append_basic_block(current_function, "predicate_dec");
-        let loop_body = context.append_basic_block(current_function, "loop");
-        let afterloop = context.append_basic_block(current_function, "continue");
-
         let counter = exp_gen.generate_lvalue(counter)?;
-        let end = exp_gen.generate_expression(end)?;
         let counter_value = builder.build_load(counter, "");
-
         let by_step = by_step.as_ref().map_or_else(
             || self.llvm.create_const_numeric(&counter_value.get_type(), "1", SourceLocation::undefined()),
             |step| {
@@ -407,47 +400,92 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 exp_gen.generate_expression(step)
             },
         )?;
+        // let predicate_select = context.append_basic_block(current_function, "predicate_select");
+        let predicate_incrementing = context.append_basic_block(current_function, "predicate_sle");
+        let predicate_decrementing = context.append_basic_block(current_function, "predicate_sge");
+        let loop_body = context.append_basic_block(current_function, "loop");
+        let increment = context.append_basic_block(current_function, "increment");
+        let afterloop = context.append_basic_block(current_function, "continue");
+        
+        // XXX(mhasel): could the generated IR be improved by using phi instructions?
+        // select loop predicate
         let is_incrementing = builder.build_int_compare(
             inkwell::IntPredicate::SGT,
             by_step.into_int_value(),
             self.llvm.i32_type().const_zero(),
             "is_incrementing",
         );
-
-        // --check loop predicate--
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
-        // --incrementing loops--
-        builder.position_at_end(predicate_incrementing);
-        let value = builder.build_load(counter, "");
-        let inc_cmp = builder.build_int_compare(
-            inkwell::IntPredicate::SLE,
-            value.into_int_value(),
-            end.into_int_value(),
-            "condition",
-        );
-        builder.build_conditional_branch(inc_cmp, loop_body, afterloop);
-        // --decrementing loops--
-        builder.position_at_end(predicate_decrementing);
-        let value = builder.build_load(counter, "");
-        let dec_cmp = builder.build_int_compare(
-            inkwell::IntPredicate::SGE,
-            value.into_int_value(),
-            end.into_int_value(),
-            "condition",
-        );
-        builder.build_conditional_branch(dec_cmp, loop_body, afterloop);
 
-        // --body--
+        let end = exp_gen.generate_expression_value(end)?;
+        let generate_predicate =  |predicate| {
+            builder.position_at_end(
+                match predicate {
+                    inkwell::IntPredicate::SLE => predicate_incrementing,
+                    inkwell::IntPredicate::SGE => predicate_decrementing, 
+                    _ => unreachable!()
+                }
+            );
+            let end_value = match end {
+                super::expression_generator::ExpressionValue::LValue(ptr) => builder.build_load(ptr ,""),
+                super::expression_generator::ExpressionValue::RValue(val) => val,
+            };
+            let counter_value = builder.build_load(counter, "");
+            let cmp = builder.build_int_compare(
+                predicate,
+                counter_value.into_int_value(),
+                end_value.into_int_value(),
+                "condition",
+            );
+            builder.build_conditional_branch(cmp, loop_body, afterloop);
+        };
+        generate_predicate(inkwell::IntPredicate::SLE);
+        generate_predicate(inkwell::IntPredicate::SGE);
+        // // incrementing loop predicate
+        // builder.position_at_end(predicate_incrementing);
+        // let counter_value = builder.build_load(counter, "");
+        // let end_value = builder.build_load(end ,"");
+        // let inc_cmp = builder.build_int_compare(
+        //     inkwell::IntPredicate::SLE,
+        //     counter_value.into_int_value(),
+        //     end_value.into_int_value(),
+        //     "condition",
+        // );
+        // builder.build_conditional_branch(inc_cmp, loop_body, afterloop);
+
+        // // decrementing loop predicate
+        // builder.position_at_end(predicate_decrementing);
+        // let counter_value = builder.build_load(counter, "");
+        // let end_value = builder.build_load(end ,"");
+        // let dec_cmp = builder.build_int_compare(
+        //     inkwell::IntPredicate::SGE,
+        //     counter_value.into_int_value(),
+        //     end_value.into_int_value(),
+        //     "condition",
+        // );
+        // builder.build_conditional_branch(dec_cmp, loop_body, afterloop);
+
+        // loop body
         builder.position_at_end(loop_body);
-        self.generate_body(body)?;
+        let body_builder = StatementCodeGenerator { 
+            current_loop_continue: Some(increment), 
+            current_loop_exit: Some(afterloop), 
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self 
+        };        
+        body_builder.generate_body(body)?;
+        
         // --increment--
+        builder.build_unconditional_branch(increment);
+        builder.position_at_end(increment);
         let value = builder.build_load(counter, "");
-        let inc = builder.build_int_add(value.into_int_value(), by_step.into_int_value(), "increment");
+        let inc = builder.build_int_add(value.into_int_value(), by_step.into_int_value(), "next");
         builder.build_store(counter, inc);
-        //--check condition again--
-        // builder.build_phi(self.llvm.i32_type(), "phi");
+        
+        // check condition
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
-        // --continue--
+        // continue
         builder.position_at_end(afterloop);
         Ok(())
     }

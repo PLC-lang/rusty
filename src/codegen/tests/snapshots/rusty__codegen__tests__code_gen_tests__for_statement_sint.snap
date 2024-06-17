@@ -14,25 +14,28 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i8 3, i8* %x, align 1
   %1 = load i8, i8* %x, align 1
-  br i1 true, label %predicate_inc, label %predicate_dec
+  br i1 true, label %predicate_sle, label %predicate_sge
 
-predicate_inc:                                    ; preds = %loop, %entry
+predicate_sle:                                    ; preds = %increment, %entry
   %2 = load i8, i8* %x, align 1
   %condition = icmp sle i8 %2, 10
   br i1 %condition, label %loop, label %continue
 
-predicate_dec:                                    ; preds = %loop, %entry
+predicate_sge:                                    ; preds = %increment, %entry
   %3 = load i8, i8* %x, align 1
   %condition1 = icmp sge i8 %3, 10
   br i1 %condition1, label %loop, label %continue
 
-loop:                                             ; preds = %predicate_dec, %predicate_inc
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   %load_x = load i8, i8* %x, align 1
-  %4 = load i8, i8* %x, align 1
-  %increment = add i8 %4, 1
-  store i8 %increment, i8* %x, align 1
-  br i1 true, label %predicate_inc, label %predicate_dec
+  br label %increment
 
-continue:                                         ; preds = %predicate_dec, %predicate_inc
+increment:                                        ; preds = %loop
+  %4 = load i8, i8* %x, align 1
+  %next = add i8 %4, 1
+  store i8 %next, i8* %x, align 1
+  br i1 true, label %predicate_sle, label %predicate_sge
+
+continue:                                         ; preds = %predicate_sge, %predicate_sle
   ret void
 }
