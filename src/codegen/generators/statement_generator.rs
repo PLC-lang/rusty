@@ -14,7 +14,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    values::{BasicValueEnum, FunctionValue, PointerValue},
+    values::{FunctionValue, PointerValue},
 };
 use plc_ast::{
     ast::{
@@ -389,115 +389,67 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         body: &[AstNode],
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
-        self.generate_assignment_statement(counter, start)?;
-        let condition_check = context.append_basic_block(current_function, "condition_check");
-        let for_body = context.append_basic_block(current_function, "for_body");
-        let increment_block = context.append_basic_block(current_function, "increment");
-        let continue_block = context.append_basic_block(current_function, "continue");
-
-        //Generate an initial jump to the for condition
-        builder.build_unconditional_branch(condition_check);
-
-        //Check loop condition
-        builder.position_at_end(condition_check);
         let exp_gen = self.create_expr_generator();
-        let counter_statement = exp_gen.generate_expression(counter)?;
+        self.generate_assignment_statement(counter, start)?;
+        let predicate_incrementing = context.append_basic_block(current_function, "predicate_inc");
+        let predicate_decrementing = context.append_basic_block(current_function, "predicate_dec");
+        let loop_body = context.append_basic_block(current_function, "loop");
+        let afterloop = context.append_basic_block(current_function, "continue");
 
-        //.                                                           /            and_2                \
-        //.                  /             and 1               \
-        //.                   (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
-        let or_eval = self.generate_compare_expression(counter, end, start, &exp_gen)?;
+        let counter = exp_gen.generate_lvalue(counter)?;
+        let end = exp_gen.generate_expression(end)?;
+        let counter_value = builder.build_load(counter, "");
 
-        builder.build_conditional_branch(to_i1(or_eval.into_int_value(), builder), for_body, continue_block);
-
-        //Enter the for loop
-        builder.position_at_end(for_body);
-        let body_generator = StatementCodeGenerator {
-            current_loop_exit: Some(continue_block),
-            current_loop_continue: Some(increment_block),
-            load_prefix: self.load_prefix.clone(),
-            load_suffix: self.load_suffix.clone(),
-            ..*self
-        };
-        body_generator.generate_body(body)?;
-        builder.build_unconditional_branch(increment_block);
-
-        //Increment
-        builder.position_at_end(increment_block);
-        let expression_generator = self.create_expr_generator();
-        let step_by_value = by_step.as_ref().map_or_else(
-            || {
-                self.llvm.create_const_numeric(
-                    &counter_statement.get_type(),
-                    "1",
-                    SourceLocation::undefined(),
-                )
-            },
+        let by_step = by_step.as_ref().map_or_else(
+            || self.llvm.create_const_numeric(&counter_value.get_type(), "1", SourceLocation::undefined()),
             |step| {
                 self.register_debug_location(step);
-                expression_generator.generate_expression(step)
+                exp_gen.generate_expression(step)
             },
         )?;
-
-        let next = builder.build_int_add(
-            counter_statement.into_int_value(),
-            step_by_value.into_int_value(),
-            "tmpVar",
+        let is_incrementing = builder.build_int_compare(
+            inkwell::IntPredicate::SGT,
+            by_step.into_int_value(),
+            self.llvm.i32_type().const_zero(),
+            "is_incrementing",
         );
 
-        let ptr = expression_generator.generate_lvalue(counter)?;
-        builder.build_store(ptr, next);
+        // --check loop predicate--
+        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        // --incrementing loops--
+        builder.position_at_end(predicate_incrementing);
+        let value = builder.build_load(counter, "");
+        let inc_cmp = builder.build_int_compare(
+            inkwell::IntPredicate::SLE,
+            value.into_int_value(),
+            end.into_int_value(),
+            "condition",
+        );
+        builder.build_conditional_branch(inc_cmp, loop_body, afterloop);
+        // --decrementing loops--
+        builder.position_at_end(predicate_decrementing);
+        let value = builder.build_load(counter, "");
+        let dec_cmp = builder.build_int_compare(
+            inkwell::IntPredicate::SGE,
+            value.into_int_value(),
+            end.into_int_value(),
+            "condition",
+        );
+        builder.build_conditional_branch(dec_cmp, loop_body, afterloop);
 
-        //Loop back
-        builder.build_unconditional_branch(condition_check);
-
-        //Continue
-        builder.position_at_end(continue_block);
-
+        // --body--
+        builder.position_at_end(loop_body);
+        self.generate_body(body)?;
+        // --increment--
+        let value = builder.build_load(counter, "");
+        let inc = builder.build_int_add(value.into_int_value(), by_step.into_int_value(), "increment");
+        builder.build_store(counter, inc);
+        //--check condition again--
+        // builder.build_phi(self.llvm.i32_type(), "phi");
+        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        // --continue--
+        builder.position_at_end(afterloop);
         Ok(())
-    }
-
-    fn generate_compare_expression(
-        &'a self,
-        counter: &AstNode,
-        end: &AstNode,
-        start: &AstNode,
-        exp_gen: &'a ExpressionCodeGenerator,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let bool_id = self.annotations.get_bool_id();
-        let counter_end_ge = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::GreaterOrEqual,
-            end.clone(),
-            bool_id,
-        );
-        let counter_start_ge = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::GreaterOrEqual,
-            start.clone(),
-            bool_id,
-        );
-        let counter_end_le = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::LessOrEqual,
-            end.clone(),
-            bool_id,
-        );
-        let counter_start_le = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::LessOrEqual,
-            start.clone(),
-            bool_id,
-        );
-        let and_1 =
-            AstFactory::create_binary_expression(counter_end_le, Operator::And, counter_start_ge, bool_id);
-        let and_2 =
-            AstFactory::create_binary_expression(counter_end_ge, Operator::And, counter_start_le, bool_id);
-        let or = AstFactory::create_binary_expression(and_1, Operator::Or, and_2, bool_id);
-
-        self.register_debug_location(&or);
-        let or_eval = exp_gen.generate_expression(&or)?;
-        Ok(or_eval)
     }
 
     /// genertes a case statement
