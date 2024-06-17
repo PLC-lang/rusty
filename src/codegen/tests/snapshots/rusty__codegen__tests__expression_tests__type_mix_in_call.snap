@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @foo(i16 %0) section "fn-foo:i16[i16]" {
+define i16 @foo(i16 %0) section "fn-$RUSTY$foo:i16[i16]" {
 entry:
   %foo = alloca i16, align 2
   %in = alloca i16, align 2
@@ -15,7 +15,7 @@ entry:
   ret i16 %foo_ret
 }
 
-define i16 @baz() section "fn-baz:i16" {
+define i16 @baz() section "fn-$RUSTY$baz:i16" {
 entry:
   %baz = alloca i16, align 2
   store i16 0, i16* %baz, align 2

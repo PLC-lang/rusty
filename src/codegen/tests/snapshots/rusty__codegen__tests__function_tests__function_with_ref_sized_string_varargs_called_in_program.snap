@@ -7,14 +7,14 @@ source_filename = "main"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1i32"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"a\00"
 @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf08_literal_2 = private unnamed_addr constant [7 x i8] c"abcdef\00"
 
-declare i32 @foo(i32, i8**) section "fn-foo:i32"
+declare i32 @foo(i32, i8**) section "fn-$RUSTY$foo:i32"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %1 = alloca [3 x i8*], align 8

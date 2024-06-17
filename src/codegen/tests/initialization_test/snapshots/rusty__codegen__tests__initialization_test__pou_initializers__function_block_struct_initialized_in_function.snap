@@ -8,15 +8,15 @@ source_filename = "main"
 %fb = type {}
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r0"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r1r0"
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r0"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1r0"
 
-define void @fb(%fb* %0) section "fn-fb:v" {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v" {
 entry:
   ret void
 }
 
-define i32 @func(%fb* %0) section "fn-func:i32[r0]" {
+define i32 @func(%fb* %0) section "fn-$RUSTY$func:i32[r0]" {
 entry:
   %func = alloca i32, align 4
   %in = alloca %fb, align 8
@@ -31,7 +31,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %call = call i32 @func(%fb* %fb0)

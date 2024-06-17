@@ -8,17 +8,17 @@ source_filename = "main"
 %foo = type { i16, i16 }
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-__foo__init:r2i16i16"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1r2i16i16"
+@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2i16i16"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1r2i16i16"
 
-define void @foo(%foo* %0) section "fn-foo:v[i16][i16]" {
+define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[i16][i16]" {
 entry:
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %fb_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   call void @foo(%foo* %fb_inst)

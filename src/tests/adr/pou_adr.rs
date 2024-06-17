@@ -233,9 +233,9 @@ fn codegen_of_a_program_pou() {
 
     %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg zeroinitializer, section "var-main_prg_instance:r5i16pi16i16i16i16"
+    @main_prg_instance = global %main_prg zeroinitializer, section "var-$RUSTY$main_prg_instance:r5i16pi16i16i16i16"
 
-    define void @main_prg(%main_prg* %0) section "fn-main_prg:v[i16][pi16][i16]" {
+    define void @main_prg(%main_prg* %0) section "fn-$RUSTY$main_prg:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
@@ -271,9 +271,9 @@ fn calling_a_program() {
 
     %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg zeroinitializer, section "var-main_prg_instance:r5i16pi16i16i16i16"
+    @main_prg_instance = global %main_prg zeroinitializer, section "var-$RUSTY$main_prg_instance:r5i16pi16i16i16i16"
 
-    define i16 @foo() section "fn-foo:i16" {
+    define i16 @foo() section "fn-$RUSTY$foo:i16" {
     entry:
       %foo = alloca i16, align 2
       %x = alloca i16, align 2
@@ -290,7 +290,7 @@ fn calling_a_program() {
       ret i16 %foo_ret
     }
 
-    define void @main_prg(%main_prg* %0) section "fn-main_prg:v[i16][pi16][i16]" {
+    define void @main_prg(%main_prg* %0) section "fn-$RUSTY$main_prg:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
@@ -335,9 +335,9 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     %main_fb = type { i16, i16*, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-__main_fb__init:r5i16pi16i16i16i16"
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-$RUSTY$__main_fb__init:r5i16pi16i16i16i16"
 
-    define void @main_fb(%main_fb* %0) section "fn-main_fb:v[i16][pi16][i16]" {
+    define void @main_fb(%main_fb* %0) section "fn-$RUSTY$main_fb:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
@@ -375,10 +375,10 @@ fn calling_a_function_block() {
     %foo = type { i16, i16, %main_fb }
     %main_fb = type { i16, i16*, i16, i16 }
 
-    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }, section "var-foo_instance:r3i16i16r5i16pi16i16i16i16"
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-__main_fb__init:r5i16pi16i16i16i16"
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }, section "var-$RUSTY$foo_instance:r3i16i16r5i16pi16i16i16i16"
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }, section "var-$RUSTY$__main_fb__init:r5i16pi16i16i16i16"
 
-    define void @foo(%foo* %0) section "fn-foo:v" {
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
@@ -394,7 +394,7 @@ fn calling_a_function_block() {
       ret void
     }
 
-    define void @main_fb(%main_fb* %0) section "fn-main_fb:v[i16][pi16][i16]" {
+    define void @main_fb(%main_fb* %0) section "fn-$RUSTY$main_fb:v[i16][pi16][i16]" {
     entry:
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
@@ -431,7 +431,7 @@ fn function_get_a_method_with_by_ref_parameters() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-main_fun:i32[i16][pi8][pi64]" {
+    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-$RUSTY$main_fun:i32[i16][pi8][pi64]" {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
@@ -475,9 +475,9 @@ fn calling_a_function() {
 
     %prg = type { i16, i8 }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2i16i8"
+    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2i16i8"
 
-    define void @prg(%prg* %0) section "fn-prg:v" {
+    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -487,7 +487,7 @@ fn calling_a_function() {
       ret void
     }
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-main_fun:i32[i16][pi8][pi64]" {
+    define i32 @main_fun(i16 %0, i8* %1, i64* %2) section "fn-$RUSTY$main_fun:i32[i16][pi8][pi64]" {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
@@ -537,10 +537,10 @@ fn return_a_complex_type_from_function() {
 
     %prg = type { [81 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1s8u81"
+    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1s8u81"
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @foo([81 x i8]* %0) section "fn-foo:s8u81" {
+    define void @foo([81 x i8]* %0) section "fn-$RUSTY$foo:s8u81" {
     entry:
       %foo = alloca [81 x i8]*, align 8
       store [81 x i8]* %0, [81 x i8]** %foo, align 8
@@ -553,7 +553,7 @@ fn return_a_complex_type_from_function() {
       ret void
     }
 
-    define void @prg(%prg* %0) section "fn-prg:v" {
+    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
     entry:
       %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %1 = alloca [81 x i8], align 1
@@ -620,10 +620,10 @@ fn passing_aggregate_types_to_functions_by_value() {
     %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-__myStruct__init:r4i32i32i32s8u81"
-    @main_instance = global %main zeroinitializer, section "var-main_instance:r4s8u81s16u81ai32r4i32i32i32s8u81"
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r4i32i32i32s8u81"
+    @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4s8u81s16u81ai32r4i32i32i32s8u81"
 
-    define void @foo(i8* %0, i16* %1, i32* %2, %myStruct* %3) section "fn-foo:v[s8u81][s16u81][ai32][r4i32i32i32s8u81]" {
+    define void @foo(i8* %0, i16* %1, i32* %2, %myStruct* %3) section "fn-$RUSTY$foo:v[s8u81][s16u81][ai32][r4i32i32i32s8u81]" {
     entry:
       %s = alloca [81 x i8], align 1
       %bitcast = bitcast [81 x i8]* %s to i8*
@@ -648,7 +648,7 @@ fn passing_aggregate_types_to_functions_by_value() {
       ret void
     }
 
-    define void @main(%main* %0) section "fn-main:v" {
+    define void @main(%main* %0) section "fn-$RUSTY$main:v" {
     entry:
       %string1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %string2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -705,9 +705,9 @@ fn passing_by_ref_to_functions() {
 
     %main = type { [81 x i8], [81 x i8] }
 
-    @main_instance = global %main zeroinitializer, section "var-main_instance:r2s8u81s8u81"
+    @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2s8u81s8u81"
 
-    define i8 @StrEqual(i8* %0, i8* %1) section "fn-StrEqual:u8[ps8u81][ps8u81]" {
+    define i8 @StrEqual(i8* %0, i8* %1) section "fn-$RUSTY$StrEqual:u8[ps8u81][ps8u81]" {
     entry:
       %StrEqual = alloca i8, align 1
       %o1 = alloca i8*, align 8
@@ -719,7 +719,7 @@ fn passing_by_ref_to_functions() {
       ret i8 %StrEqual_ret
     }
 
-    define void @main(%main* %0) section "fn-main:v" {
+    define void @main(%main* %0) section "fn-$RUSTY$main:v" {
     entry:
       %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %str2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1

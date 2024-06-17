@@ -7,11 +7,11 @@ source_filename = "main"
 
 %prg = type { [81 x i8], [81 x i16] }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2s8u81s16u81"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u81s16u81"
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf16_literal_0 = private unnamed_addr constant [4 x i16] [i16 97, i16 98, i16 99, i16 0]
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

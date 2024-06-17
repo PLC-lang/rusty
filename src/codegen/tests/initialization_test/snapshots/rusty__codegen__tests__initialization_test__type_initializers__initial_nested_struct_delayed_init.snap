@@ -8,7 +8,7 @@ source_filename = "main"
 %MyStruct2 = type { %MyStruct, %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@a = global %MyStruct2 { %MyStruct { i32 5, i32 7 }, %MyStruct { i32 3, i32 2 } }, section "var-a:r2r2i32i32r2i32i32"
-@__MyStruct2__init = unnamed_addr constant %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 0, i32 7 } }, section "var-__MyStruct2__init:r2r2i32i32r2i32i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r2i32i32"
-@b = global %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 9, i32 0 } }, section "var-b:r2r2i32i32r2i32i32"
+@a = global %MyStruct2 { %MyStruct { i32 5, i32 7 }, %MyStruct { i32 3, i32 2 } }, section "var-$RUSTY$a:r2r2i32i32r2i32i32"
+@__MyStruct2__init = unnamed_addr constant %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 0, i32 7 } }, section "var-$RUSTY$__MyStruct2__init:r2r2i32i32r2i32i32"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i32"
+@b = global %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 9, i32 0 } }, section "var-$RUSTY$b:r2r2i32i32r2i32i32"

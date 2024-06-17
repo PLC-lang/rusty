@@ -9,11 +9,11 @@ source_filename = "main"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = global %Main zeroinitializer, section "var-Main_instance:r1r2r2i16i16r2i16i16"
-@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "var-__OuterStruct__init:r2r2i16i16r2i16i16"
-@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "var-__InnerStruct__init:r2i16i16"
+@Main_instance = global %Main zeroinitializer, section "var-$RUSTY$Main_instance:r1r2r2i16i16r2i16i16"
+@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "var-$RUSTY$__OuterStruct__init:r2r2i16i16r2i16i16"
+@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "var-$RUSTY$__InnerStruct__init:r2i16i16"
 
-define void @Main(%Main* %0) section "fn-Main:v" {
+define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
 entry:
   %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0

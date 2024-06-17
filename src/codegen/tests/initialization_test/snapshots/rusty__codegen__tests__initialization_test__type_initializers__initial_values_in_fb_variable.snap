@@ -8,19 +8,19 @@ source_filename = "main"
 %TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
 
-@__TON__init = unnamed_addr constant %TON zeroinitializer, section "var-__TON__init:r2i16i16"
-@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }, section "var-main_instance:r3i16r2i16i16r2i16i16"
+@__TON__init = unnamed_addr constant %TON zeroinitializer, section "var-$RUSTY$__TON__init:r2i16i16"
+@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }, section "var-$RUSTY$main_instance:r3i16r2i16i16r2i16i16"
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
-define void @TON(%TON* %0) section "fn-TON:v[i16][i16]" {
+define void @TON(%TON* %0) section "fn-$RUSTY$TON:v[i16][i16]" {
 entry:
   %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
   %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1

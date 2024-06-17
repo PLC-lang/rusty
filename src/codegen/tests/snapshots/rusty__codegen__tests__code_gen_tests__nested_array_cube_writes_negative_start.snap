@@ -7,9 +7,9 @@ source_filename = "main"
 
 %main = type { i16, i16, i16, [125 x i32] }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r4i16i16i16ai32"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4i16i16i16ai32"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1

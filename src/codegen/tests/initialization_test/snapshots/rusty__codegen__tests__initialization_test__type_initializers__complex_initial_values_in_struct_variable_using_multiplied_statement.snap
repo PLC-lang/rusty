@@ -8,6 +8,6 @@ source_filename = "main"
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
 %MyPoint = type { i32, i32 }
 
-@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }, section "var-a:r3r2i32i32ai16i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-__MyStruct__init:r3r2i32i32ai16i32"
-@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-__MyPoint__init:r2i32i32"
+@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }, section "var-$RUSTY$a:r3r2i32i32ai16i32"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r3r2i32i32ai16i32"
+@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-$RUSTY$__MyPoint__init:r2i32i32"

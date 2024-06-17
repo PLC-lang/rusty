@@ -7,9 +7,9 @@ source_filename = "external_file1.st"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "var-mainProg_instance:r0"
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
 
-define i16 @main() section "fn-main:i16" {
+define i16 @main() section "fn-$RUSTY$main:i16" {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -18,16 +18,16 @@ entry:
   ret i16 %main_ret
 }
 
-declare void @mainProg(%mainProg*) section "fn-mainProg:v"
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
 
 ; ModuleID = 'external_file2.st'
 source_filename = "external_file2.st"
 
 %mainProg = type {}
 
-@mainProg_instance = global %mainProg zeroinitializer, section "var-mainProg_instance:r0"
+@mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r0"
 
-define void @mainProg(%mainProg* %0) section "fn-mainProg:v" {
+define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
 entry:
   ret void
 }

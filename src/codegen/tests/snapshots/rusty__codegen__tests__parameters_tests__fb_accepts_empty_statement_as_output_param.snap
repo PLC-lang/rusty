@@ -8,17 +8,17 @@ source_filename = "main"
 %fb_t = type { i32, i32 }
 %main = type { %fb_t, i32 }
 
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-__fb_t__init:r2i32i32"
-@main_instance = global %main zeroinitializer, section "var-main_instance:r2r2i32i32i32"
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-$RUSTY$__fb_t__init:r2i32i32"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2r2i32i32i32"
 
-define void @fb_t(%fb_t* %0) section "fn-fb_t:v[i32][i32]" {
+define void @fb_t(%fb_t* %0) section "fn-$RUSTY$fb_t:v[i32][i32]" {
 entry:
   %out1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %out2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1

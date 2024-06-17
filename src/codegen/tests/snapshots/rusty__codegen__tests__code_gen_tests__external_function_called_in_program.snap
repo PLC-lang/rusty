@@ -7,11 +7,11 @@ source_filename = "main"
 
 %prg = type {}
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r0"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
 
-declare i32 @foo() section "fn-foo:i32"
+declare i32 @foo() section "fn-$RUSTY$foo:i32"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %call = call i32 @foo()
   ret void

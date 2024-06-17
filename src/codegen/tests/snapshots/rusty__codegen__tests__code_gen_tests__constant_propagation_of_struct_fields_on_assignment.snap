@@ -7,10 +7,10 @@ source_filename = "main"
 
 %STRUCT1 = type { i32 }
 
-@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }, section "var-MyStruct:r1i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-__STRUCT1__init:r1i32"
+@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }, section "var-$RUSTY$MyStruct:r1i32"
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-$RUSTY$__STRUCT1__init:r1i32"
 
-define i32 @main() section "fn-main:i32" {
+define i32 @main() section "fn-$RUSTY$main:i32" {
 entry:
   %main = alloca i32, align 4
   %local_value = alloca i32, align 4

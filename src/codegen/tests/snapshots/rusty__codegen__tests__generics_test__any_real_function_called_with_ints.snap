@@ -7,9 +7,9 @@ source_filename = "main"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
 
-define float @foo__REAL(float %0) section "fn-foo__REAL:f32[f32]" {
+define float @foo__REAL(float %0) section "fn-$RUSTY$foo__REAL:f32[f32]" {
 entry:
   %foo__REAL = alloca float, align 4
   %in1 = alloca float, align 4
@@ -19,7 +19,7 @@ entry:
   ret float %foo__REAL_ret
 }
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %res_sint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %res_int = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -56,4 +56,4 @@ entry:
   ret void
 }
 
-declare double @foo__LREAL(double) section "fn-foo__LREAL:f64[f64]"
+declare double @foo__LREAL(double) section "fn-$RUSTY$foo__LREAL:f64[f64]"

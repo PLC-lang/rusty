@@ -5,23 +5,23 @@ expression: res
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = global i32 2, section "var-x:e3i32"
-@__main_var1.x1 = unnamed_addr constant i32 1, section "var-x1:e3i32"
-@__main_var2.x7 = unnamed_addr constant i32 2, section "var-x7:e3i32"
-@__global_x.yellow = unnamed_addr constant i32 1, section "var-yellow:e3i32"
-@__main_y.redy = unnamed_addr constant i32 1, section "var-redy:e3i32"
-@__main_y.yellowy = unnamed_addr constant i32 2, section "var-yellowy:e3i32"
-@__main_y.greeny = unnamed_addr constant i32 3, section "var-greeny:e3i32"
-@__main_var1.x2 = unnamed_addr constant i32 2, section "var-x2:e3i32"
-@__main_var1.x3 = unnamed_addr constant i32 3, section "var-x3:e3i32"
-@__main_var2.x5 = unnamed_addr constant i32 0, section "var-x5:e3i32"
-@__main_var2.x6 = unnamed_addr constant i32 1, section "var-x6:e3i32"
-@__main_var3.x8 = unnamed_addr constant i32 0, section "var-x8:e2i32"
-@__main_var3.x9 = unnamed_addr constant i32 1, section "var-x9:e2i32"
-@__global_x.red = unnamed_addr constant i32 0, section "var-red:e3i32"
-@__global_x.green = unnamed_addr constant i32 2, section "var-green:e3i32"
+@x = global i32 2, section "var-$RUSTY$x:e3i32"
+@__main_var1.x1 = unnamed_addr constant i32 1, section "var-$RUSTY$x1:e3i32"
+@__main_var2.x7 = unnamed_addr constant i32 2, section "var-$RUSTY$x7:e3i32"
+@__global_x.yellow = unnamed_addr constant i32 1, section "var-$RUSTY$yellow:e3i32"
+@__main_y.redy = unnamed_addr constant i32 1, section "var-$RUSTY$redy:e3i32"
+@__main_y.yellowy = unnamed_addr constant i32 2, section "var-$RUSTY$yellowy:e3i32"
+@__main_y.greeny = unnamed_addr constant i32 3, section "var-$RUSTY$greeny:e3i32"
+@__main_var1.x2 = unnamed_addr constant i32 2, section "var-$RUSTY$x2:e3i32"
+@__main_var1.x3 = unnamed_addr constant i32 3, section "var-$RUSTY$x3:e3i32"
+@__main_var2.x5 = unnamed_addr constant i32 0, section "var-$RUSTY$x5:e3i32"
+@__main_var2.x6 = unnamed_addr constant i32 1, section "var-$RUSTY$x6:e3i32"
+@__main_var3.x8 = unnamed_addr constant i32 0, section "var-$RUSTY$x8:e2i32"
+@__main_var3.x9 = unnamed_addr constant i32 1, section "var-$RUSTY$x9:e2i32"
+@__global_x.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
+@__global_x.green = unnamed_addr constant i32 2, section "var-$RUSTY$green:e3i32"
 
-define i32 @main() section "fn-main:i32" {
+define i32 @main() section "fn-$RUSTY$main:i32" {
 entry:
   %main = alloca i32, align 4
   %y = alloca i32, align 4
