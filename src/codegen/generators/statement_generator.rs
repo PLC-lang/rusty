@@ -400,13 +400,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 exp_gen.generate_expression(step)
             },
         )?;
-        // let predicate_select = context.append_basic_block(current_function, "predicate_select");
         let predicate_incrementing = context.append_basic_block(current_function, "predicate_sle");
         let predicate_decrementing = context.append_basic_block(current_function, "predicate_sge");
         let loop_body = context.append_basic_block(current_function, "loop");
         let increment = context.append_basic_block(current_function, "increment");
         let afterloop = context.append_basic_block(current_function, "continue");
-        
+
         // XXX(mhasel): could the generated IR be improved by using phi instructions?
         // select loop predicate
         let is_incrementing = builder.build_int_compare(
@@ -417,19 +416,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
 
-        let end = exp_gen.generate_expression_value(end)?;
-        let generate_predicate =  |predicate| {
-            builder.position_at_end(
-                match predicate {
-                    inkwell::IntPredicate::SLE => predicate_incrementing,
-                    inkwell::IntPredicate::SGE => predicate_decrementing, 
-                    _ => unreachable!()
-                }
-            );
+        let generate_predicate = |predicate| {
+            builder.position_at_end(match predicate {
+                inkwell::IntPredicate::SLE => predicate_incrementing,
+                inkwell::IntPredicate::SGE => predicate_decrementing,
+                _ => unreachable!(),
+            });
+            let end = exp_gen.generate_expression_value(end).expect("");
+            // XXX: if the end condition is the result of a callstatement, should it be called each iteration or once before entering the loop?
+            // if the latter is the case, generate expression value before first unconditional jump and store in local alloca variable
             let end_value = match end {
-                super::expression_generator::ExpressionValue::LValue(ptr) => builder.build_load(ptr ,""),
+                super::expression_generator::ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
                 super::expression_generator::ExpressionValue::RValue(val) => val,
             };
+
             let counter_value = builder.build_load(counter, "");
             let cmp = builder.build_int_compare(
                 predicate,
@@ -441,48 +441,25 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         generate_predicate(inkwell::IntPredicate::SLE);
         generate_predicate(inkwell::IntPredicate::SGE);
-        // // incrementing loop predicate
-        // builder.position_at_end(predicate_incrementing);
-        // let counter_value = builder.build_load(counter, "");
-        // let end_value = builder.build_load(end ,"");
-        // let inc_cmp = builder.build_int_compare(
-        //     inkwell::IntPredicate::SLE,
-        //     counter_value.into_int_value(),
-        //     end_value.into_int_value(),
-        //     "condition",
-        // );
-        // builder.build_conditional_branch(inc_cmp, loop_body, afterloop);
-
-        // // decrementing loop predicate
-        // builder.position_at_end(predicate_decrementing);
-        // let counter_value = builder.build_load(counter, "");
-        // let end_value = builder.build_load(end ,"");
-        // let dec_cmp = builder.build_int_compare(
-        //     inkwell::IntPredicate::SGE,
-        //     counter_value.into_int_value(),
-        //     end_value.into_int_value(),
-        //     "condition",
-        // );
-        // builder.build_conditional_branch(dec_cmp, loop_body, afterloop);
 
         // loop body
         builder.position_at_end(loop_body);
-        let body_builder = StatementCodeGenerator { 
-            current_loop_continue: Some(increment), 
-            current_loop_exit: Some(afterloop), 
+        let body_builder = StatementCodeGenerator {
+            current_loop_continue: Some(increment),
+            current_loop_exit: Some(afterloop),
             load_prefix: self.load_prefix.clone(),
             load_suffix: self.load_suffix.clone(),
-            ..*self 
-        };        
+            ..*self
+        };
         body_builder.generate_body(body)?;
-        
+
         // --increment--
         builder.build_unconditional_branch(increment);
         builder.position_at_end(increment);
         let value = builder.build_load(counter, "");
         let inc = builder.build_int_add(value.into_int_value(), by_step.into_int_value(), "next");
         builder.build_store(counter, inc);
-        
+
         // check condition
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
         // continue

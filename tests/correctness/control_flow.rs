@@ -483,7 +483,6 @@ fn for_loop_and_increment_10_times_skipping_1() {
     assert_eq!(res, 1005);
 }
 
-
 #[test]
 fn for_loop_does_not_execute_if_condition_is_not_met() {
     let function = r#"
