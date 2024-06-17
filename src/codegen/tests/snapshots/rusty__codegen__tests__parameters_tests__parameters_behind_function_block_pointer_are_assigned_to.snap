@@ -8,10 +8,10 @@ source_filename = "main"
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }
 
-@main_instance = global %main zeroinitializer, section "var-main_instance:r2r2u8u8pr2u8u8"
-@__file_t__init = unnamed_addr constant %file_t zeroinitializer, section "var-__file_t__init:r2u8u8"
+@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2r2u8u8pr2u8u8"
+@__file_t__init = unnamed_addr constant %file_t zeroinitializer, section "var-$RUSTY$__file_t__init:r2u8u8"
 
-define void @main(%main* %0) section "fn-main:v" {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %file = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -23,7 +23,7 @@ entry:
   ret void
 }
 
-define void @file_t(%file_t* %0) section "fn-file_t:v[u8][u8]" {
+define void @file_t(%file_t* %0) section "fn-$RUSTY$file_t:v[u8][u8]" {
 entry:
   %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
   %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1

@@ -8,14 +8,14 @@ source_filename = "main"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = external global %myPrg, section "var-myPrg_instance:r0", !dbg !0
-@__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "var-__myFb__init:r0", !dbg !5
+@myPrg_instance = external global %myPrg, section "var-$RUSTY$myPrg_instance:r0", !dbg !0
+@__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "var-$RUSTY$__myFb__init:r0", !dbg !5
 
-declare i32 @myFunc() section "fn-myFunc:i32"
+declare i32 @myFunc() section "fn-$RUSTY$myFunc:i32"
 
-declare void @myPrg(%myPrg*) section "fn-myPrg:v"
+declare void @myPrg(%myPrg*) section "fn-$RUSTY$myPrg:v"
 
-declare void @myFb(%myFb*) section "fn-myFb:v"
+declare void @myFb(%myFb*) section "fn-$RUSTY$myFb:v"
 
 !llvm.module.flags = !{!8, !9}
 !llvm.dbg.cu = !{!10}

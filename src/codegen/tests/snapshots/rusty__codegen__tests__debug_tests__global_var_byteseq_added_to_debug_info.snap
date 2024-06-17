@@ -5,11 +5,11 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global i8 0, section "var-a:u8", !dbg !0
-@b = global i8 0, section "var-b:u8", !dbg !4
-@c = global i16 0, section "var-c:u16", !dbg !7
-@d = global i32 0, section "var-d:u32", !dbg !10
-@e = global i64 0, section "var-e:u64", !dbg !13
+@a = global i8 0, section "var-$RUSTY$a:u8", !dbg !0
+@b = global i8 0, section "var-$RUSTY$b:u8", !dbg !4
+@c = global i16 0, section "var-$RUSTY$c:u16", !dbg !7
+@d = global i32 0, section "var-$RUSTY$d:u32", !dbg !10
+@e = global i64 0, section "var-$RUSTY$e:u64", !dbg !13
 
 !llvm.module.flags = !{!16, !17}
 !llvm.dbg.cu = !{!18}

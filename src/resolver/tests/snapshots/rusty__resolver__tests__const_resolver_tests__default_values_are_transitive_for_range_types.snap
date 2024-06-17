@@ -5,8 +5,8 @@ expression: src
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global i16 7, section "var-a:i16"
-@b = global i16 7, section "var-b:i16"
-@aa = unnamed_addr constant i16 7, section "var-aa:i16"
-@bb = unnamed_addr constant i16 7, section "var-bb:i16"
-@cc = unnamed_addr constant i16 14, section "var-cc:i16"
+@a = global i16 7, section "var-$RUSTY$a:i16"
+@b = global i16 7, section "var-$RUSTY$b:i16"
+@aa = unnamed_addr constant i16 7, section "var-$RUSTY$aa:i16"
+@bb = unnamed_addr constant i16 7, section "var-$RUSTY$bb:i16"
+@cc = unnamed_addr constant i16 14, section "var-$RUSTY$cc:i16"

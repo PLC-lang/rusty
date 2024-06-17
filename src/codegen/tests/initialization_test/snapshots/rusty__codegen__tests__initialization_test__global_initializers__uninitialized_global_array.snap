@@ -5,4 +5,4 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [2 x i8] zeroinitializer, section "var-a:au8"
+@a = global [2 x i8] zeroinitializer, section "var-$RUSTY$a:au8"

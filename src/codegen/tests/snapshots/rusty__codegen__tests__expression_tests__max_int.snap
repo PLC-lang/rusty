@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @main() section "fn-main:i16" {
+define i16 @main() section "fn-$RUSTY$main:i16" {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -31,4 +31,4 @@ entry:
   ret i16 %main_ret
 }
 
-declare i16 @MAX__INT(i32, i16*) section "fn-MAX__INT:i16"
+declare i16 @MAX__INT(i32, i16*) section "fn-$RUSTY$MAX__INT:i16"

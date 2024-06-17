@@ -5,9 +5,9 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [11 x i32] zeroinitializer, section "var-a:ai32", !dbg !0
-@b = global [110 x i32] zeroinitializer, section "var-b:ai32", !dbg !7
-@c = global [11 x [10 x i32]] zeroinitializer, section "var-c:aai32", !dbg !12
+@a = global [11 x i32] zeroinitializer, section "var-$RUSTY$a:ai32", !dbg !0
+@b = global [110 x i32] zeroinitializer, section "var-$RUSTY$b:ai32", !dbg !7
+@c = global [11 x [10 x i32]] zeroinitializer, section "var-$RUSTY$c:aai32", !dbg !12
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}

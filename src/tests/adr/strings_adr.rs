@@ -18,8 +18,8 @@ fn declaring_a_string() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @myUtf8 = global [21 x i8] zeroinitializer, section "var-myUtf8:s8u21"
-    @myUtf16 = global [21 x i16] zeroinitializer, section "var-myUtf16:s16u21"
+    @myUtf8 = global [21 x i8] zeroinitializer, section "var-$RUSTY$myUtf8:s8u21"
+    @myUtf16 = global [21 x i16] zeroinitializer, section "var-$RUSTY$myUtf16:s16u21"
     "###);
 }
 
@@ -41,8 +41,8 @@ fn strings_are_terminated_with_0byte() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    @myUtf8 = global [6 x i8] c"Hello\00", section "var-myUtf8:s8u6"
-    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "var-myUtf16:s16u6"
+    @myUtf8 = global [6 x i8] c"Hello\00", section "var-$RUSTY$myUtf8:s8u6"
+    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "var-$RUSTY$myUtf16:s16u6"
     "###);
 }
 
@@ -68,9 +68,9 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
 
-    define void @prg(%prg* %0) section "fn-prg:v" {
+    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -109,11 +109,11 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
-    define void @prg(%prg* %0) section "fn-prg:v" {
+    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

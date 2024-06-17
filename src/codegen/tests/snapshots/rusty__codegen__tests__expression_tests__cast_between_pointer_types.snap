@@ -7,9 +7,9 @@ source_filename = "main"
 
 %baz = type { i8*, i16 }
 
-@baz_instance = global %baz zeroinitializer, section "var-baz_instance:r2pu8u16"
+@baz_instance = global %baz zeroinitializer, section "var-$RUSTY$baz_instance:r2pu8u16"
 
-define void @baz(%baz* %0) section "fn-baz:v" {
+define void @baz(%baz* %0) section "fn-$RUSTY$baz:v" {
 entry:
   %ptr_x = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
   %y = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1

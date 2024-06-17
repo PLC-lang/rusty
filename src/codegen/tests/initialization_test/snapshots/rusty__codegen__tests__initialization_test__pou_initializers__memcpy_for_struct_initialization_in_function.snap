@@ -7,9 +7,9 @@ source_filename = "main"
 
 %__func_a = type { i16 }
 
-@____func_a__init = unnamed_addr constant %__func_a zeroinitializer, section "var-____func_a__init:r1i16"
+@____func_a__init = unnamed_addr constant %__func_a zeroinitializer, section "var-$RUSTY$____func_a__init:r1i16"
 
-define i16 @func() section "fn-func:i16" {
+define i16 @func() section "fn-$RUSTY$func:i16" {
 entry:
   %func = alloca i16, align 2
   %a = alloca %__func_a, align 8

@@ -7,16 +7,16 @@ source_filename = "main"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1i32"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   call void @prg.foo(%prg* %0)
   ret void
 }
 
-define void @prg.foo(%prg* %0) section "fn-prg.foo:v" {
+define void @prg.foo(%prg* %0) section "fn-$RUSTY$prg.foo:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4

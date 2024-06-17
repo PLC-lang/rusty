@@ -7,12 +7,12 @@ source_filename = "main"
 
 %prg = type { i32 }
 
-@cA = unnamed_addr constant i16 1, section "var-cA:i16"
-@cB = unnamed_addr constant i16 2, section "var-cB:i16"
-@cC = unnamed_addr constant i16 3, section "var-cC:i16"
-@prg_instance = global %prg zeroinitializer, section "var-prg_instance:r1i32"
+@cA = unnamed_addr constant i16 1, section "var-$RUSTY$cA:i16"
+@cB = unnamed_addr constant i16 2, section "var-$RUSTY$cB:i16"
+@cC = unnamed_addr constant i16 3, section "var-$RUSTY$cC:i16"
+@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
 
-define void @prg(%prg* %0) section "fn-prg:v" {
+define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 6, i32* %z, align 4

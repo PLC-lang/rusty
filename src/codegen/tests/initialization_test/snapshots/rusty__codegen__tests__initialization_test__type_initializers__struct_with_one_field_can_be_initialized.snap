@@ -7,5 +7,5 @@ source_filename = "main"
 
 %MyPoint = type { i32 }
 
-@a = global %MyPoint { i32 7 }, section "var-a:r1i32"
-@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-__MyPoint__init:r1i32"
+@a = global %MyPoint { i32 7 }, section "var-$RUSTY$a:r1i32"
+@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-$RUSTY$__MyPoint__init:r1i32"

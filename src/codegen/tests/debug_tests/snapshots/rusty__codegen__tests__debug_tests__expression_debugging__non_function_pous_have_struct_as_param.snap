@@ -8,10 +8,10 @@ source_filename = "main"
 %myProg = type { i32 }
 %fb = type { i32 }
 
-@myProg_instance = global %myProg zeroinitializer, section "var-myProg_instance:r1i32", !dbg !0
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-__fb__init:r1i32", !dbg !7
+@myProg_instance = global %myProg zeroinitializer, section "var-$RUSTY$myProg_instance:r1i32", !dbg !0
+@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r1i32", !dbg !7
 
-define void @myProg(%myProg* %0) section "fn-myProg:v[i32]" !dbg !16 {
+define void @myProg(%myProg* %0) section "fn-$RUSTY$myProg:v[i32]" !dbg !16 {
 entry:
   call void @llvm.dbg.declare(metadata %myProg* %0, metadata !20, metadata !DIExpression()), !dbg !21
   %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0, !dbg !21
@@ -21,7 +21,7 @@ entry:
   ret void, !dbg !21
 }
 
-define void @fb(%fb* %0) section "fn-fb:v[i32]" !dbg !22 {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v[i32]" !dbg !22 {
 entry:
   call void @llvm.dbg.declare(metadata %fb* %0, metadata !23, metadata !DIExpression()), !dbg !24
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0, !dbg !24

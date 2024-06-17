@@ -7,7 +7,7 @@ source_filename = "main"
 
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
-define i8 @STRING_LESS(i8* %0, i8* %1) section "fn-STRING_LESS:u8[s8u1025][s8u1025]" {
+define i8 @STRING_LESS(i8* %0, i8* %1) section "fn-$RUSTY$STRING_LESS:u8[s8u1025][s8u1025]" {
 entry:
   %STRING_LESS = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
@@ -23,7 +23,7 @@ entry:
   ret i8 %STRING_LESS_ret
 }
 
-define i16 @baz() section "fn-baz:i16" {
+define i16 @baz() section "fn-$RUSTY$baz:i16" {
 entry:
   %baz = alloca i16, align 2
   %a = alloca [81 x i8], align 1
