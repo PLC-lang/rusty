@@ -7,7 +7,7 @@
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use type_hint_annotator::TypeHintAnnotator;
-use std::hash::Hash;
+use std::{hash::Hash};
 
 use plc_ast::{
     ast::{
@@ -539,7 +539,10 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
+            StatementAnnotation::Program { qualified_name } =>{
+                // only return the first segment (without a potential action part)
+                Some(&qualified_name[0..qualified_name.find(".").unwrap_or(qualified_name.len())])
+            } ,
             StatementAnnotation::Type { type_name } => Some(type_name),
             StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
         }
@@ -667,6 +670,9 @@ impl AnnotationMapImpl {
         if let Some(f) = self.get(from) {
             self.annotate(to, f.clone());
         }
+        if let Some(f) = self.get_hint(from) {
+            self.annotate_type_hint(to, f.clone())
+        }
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -682,6 +688,10 @@ impl AnnotationMapImpl {
         if self.get(s) != Some(&annotation) {
             self.type_hint_map.insert(s.get_id(), annotation);
         }
+    }
+
+    pub fn clear_type_hint(&mut self, s: &AstNode) {
+        self.type_hint_map.shift_remove(&s.get_id());
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate

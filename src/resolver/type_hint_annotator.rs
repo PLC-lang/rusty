@@ -1,4 +1,4 @@
-use plc_ast::visitor::{AstVisitor, Walker};
+use plc_ast::{ast::{AstStatement, ReferenceAccess, ReferenceExpr}, visitor::{AstVisitor, Walker}};
 
 use crate::index::Index;
 
@@ -46,4 +46,17 @@ impl AstVisitor for TypeHintAnnotator<'_> {
                 .annotate_type_hint(&stmt.right, StatementAnnotation::value(l_type.get_name().to_string()));
         }
     }
+
+    fn visit_reference_expr(&mut self, stmt: &plc_ast::ast::ReferenceExpr, node: &plc_ast::ast::AstNode) {
+        stmt.walk(self);
+
+        // a cast-statement on a literal should directly annotate the literal correctly (avoid casts)
+        if let ReferenceAccess::Cast(target) = &stmt.access {
+            if matches!(target.get_stmt(), AstStatement::Literal{..}) {
+                self.annotations.copy_annotation(node, &target);
+                self.annotations.clear_type_hint(&target);
+            }
+        }
+    }
+
 }

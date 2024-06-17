@@ -1,0 +1,8 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+assertion_line: 3258
+expression: annotations.get(a_eq_b).unwrap()
+---
+Value {
+    resulting_type: "BOOL",
+}

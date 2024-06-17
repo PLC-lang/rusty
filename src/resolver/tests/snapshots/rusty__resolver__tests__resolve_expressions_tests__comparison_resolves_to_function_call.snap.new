@@ -1,0 +1,10 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+assertion_line: 1391
+expression: "format!(\"{annotation:#?}\")"
+---
+Some(
+    Value {
+        resulting_type: "BOOL",
+    },
+)

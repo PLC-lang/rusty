@@ -1,14 +1,18 @@
 use plc_ast::{
-    ast::ReferenceAccess,
+    ast::{
+        flatten_expression_list, Assignment, AstNode, AstStatement, DataType, ReferenceAccess, TypeNature,
+    },
     literals::StringValue,
     visitor::{AstVisitor, Walker},
 };
+use plc_source::source_location::SourceLocation;
+use plc_util::convention::internal_type_name;
 
 use crate::{
     index::{Index, VariableIndexEntry},
     resolver::{register_string_type, AnnotationMap, AnnotationMapImpl, StatementAnnotation, StringLiterals},
     typesystem::{
-        get_bigger_type, DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
+        self, get_bigger_type, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
         LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE,
     },
 };
@@ -20,7 +24,7 @@ pub enum Scope {
     GlobalVariable,
     LocalVariable(String),
     Composite(Vec<Scope>),
-    StaticallyCallable,
+    Callable(Option<String>),
 }
 
 fn to_variable_annotation(
@@ -63,9 +67,7 @@ impl Scope {
                 index.find_type(identifier).map(|dt| dt.get_type_information()).map(StatementAnnotation::from)
             }
 
-            Scope::Program => {
-                index.find_pou(identifier).filter(|p| p.is_program()).map(StatementAnnotation::from)
-            }
+            Scope::Program => index.find_pou(identifier).map(StatementAnnotation::from),
 
             // lookup a global variable
             Scope::GlobalVariable => {
@@ -83,10 +85,10 @@ impl Scope {
             }
 
             // functions, programs, actions, methods
-            Scope::StaticallyCallable => {
-                index.find_pou_implementation(identifier).map(|i| match i.implementation_type {
-                    crate::index::ImplementationType::Program => {
-                        StatementAnnotation::Program { qualified_name: i.get_call_name().to_string() }
+            Scope::Callable(None) => {
+                index.find_pou_implementation(identifier).and_then(|i| match i.implementation_type {
+                    crate::index::ImplementationType::Program | crate::index::ImplementationType::Action => {
+                        Some(StatementAnnotation::Program { qualified_name: i.get_call_name().to_string() })
                     }
                     crate::index::ImplementationType::Function => {
                         let return_type = index
@@ -94,16 +96,33 @@ impl Scope {
                             .map(|dt| dt.get_name())
                             .unwrap_or_else(|| VOID_TYPE)
                             .to_string();
-                        StatementAnnotation::Function {
+                        Some(StatementAnnotation::Function {
                             return_type,
                             qualified_name: i.call_name.to_string(),
                             call_name: None,
-                        }
+                        })
                     }
-                    crate::index::ImplementationType::FunctionBlock => todo!(),
-                    crate::index::ImplementationType::Action => todo!(),
-                    crate::index::ImplementationType::Class => todo!(),
-                    crate::index::ImplementationType::Method => todo!(),
+                    crate::index::ImplementationType::FunctionBlock
+                    | crate::index::ImplementationType::Class => {
+                        Some(StatementAnnotation::data_type(i.get_type_name()))
+                    }
+                    // crate::index::ImplementationType::Method => todo!(),
+                    _ => None,
+                })
+            }
+
+            // functions, programs, actions, methods
+            Scope::Callable(Some(qualifier)) => {
+                //TODO improve!
+                let qualified_name = format!("{qualifier}.{identifier}");
+                index.find_pou_implementation(qualified_name.as_str()).and_then(|i| {
+                    match i.implementation_type {
+                        crate::index::ImplementationType::Action => Some(StatementAnnotation::Program {
+                            qualified_name: i.get_call_name().to_string(),
+                        }),
+                        crate::index::ImplementationType::Method => todo!(),
+                        _ => None,
+                    }
                 })
             }
         }
@@ -131,7 +150,7 @@ impl ScopeStack {
         ScopeStack {
             stack: vec![ScopingStrategy::Strict(Scope::Composite(vec![
                 Scope::GlobalVariable,
-                Scope::StaticallyCallable,
+                Scope::Callable(None),
             ]))],
         }
     }
@@ -207,7 +226,10 @@ impl AstVisitor for NameResolver<'_> {
         self.in_a_body = true;
         self.walk_with_scope(
             implementation,
-            ScopingStrategy::Hierarchical(Scope::LocalVariable(implementation.type_name.clone())),
+            ScopingStrategy::Hierarchical(Scope::Composite(vec![
+                Scope::LocalVariable(implementation.type_name.clone()),
+                Scope::Callable(Some(implementation.type_name.clone())),
+            ])),
         );
         self.in_a_body = false;
     }
@@ -230,7 +252,10 @@ impl AstVisitor for NameResolver<'_> {
             (ReferenceAccess::Member(member), base) => {
                 if let Some(base) = base {
                     // resolve member und the base's context
-                    self.scope.push(ScopingStrategy::Strict(Scope::LocalVariable(base.to_string())));
+                    self.scope.push(ScopingStrategy::Strict(Scope::Composite(vec![
+                        Scope::LocalVariable(base.to_string()),
+                        Scope::Callable(Some(base.to_string())),
+                    ])));
                 }
 
                 member.walk(self);
@@ -240,10 +265,20 @@ impl AstVisitor for NameResolver<'_> {
                     self.scope.pop();
                 }
             }
-            (ReferenceAccess::Index(idx), _) => {
+            (ReferenceAccess::Index(idx), Some(base)) => {
                 // make sure we resolve from the root-scope
                 self.walk_with_scope(idx, ScopingStrategy::Strict(self.root_scope.clone()));
-                self.annotations.copy_annotation(idx, node);
+
+                // the array-access turns this expression into the array's inner type
+                if let Some(inner_type_name) = self
+                    .index
+                    .find_effective_type_info(base.as_str())
+                    .and_then(|t| t.get_inner_array_type_name())
+                    .and_then(|it| self.index.find_effective_type_by_name(it).map(|it| it.get_name()))
+                //TODO why effective again?
+                {
+                    self.annotations.annotate(node, StatementAnnotation::value(inner_type_name))
+                }
             }
             (ReferenceAccess::Cast(target), Some(base)) => {
                 if let Some(true) =
@@ -255,7 +290,6 @@ impl AstVisitor for NameResolver<'_> {
                     );
                 } else {
                     target.walk(self);
-                    self.annotations.annotate(target, StatementAnnotation::data_type(base));
                 }
                 if self.annotations.has_type_annotation(target) {
                     self.annotations.annotate(node, StatementAnnotation::data_type(base));
@@ -263,13 +297,18 @@ impl AstVisitor for NameResolver<'_> {
             }
             (ReferenceAccess::Deref, Some(base)) => {
                 if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: false, .. }) =
-                    self.index.find_type(base).map(DataType::get_type_information)
+                    self.index.find_type(base).map(typesystem::DataType::get_type_information)
                 {
                     self.annotations.annotate(node, StatementAnnotation::data_type(&inner_type_name));
                 }
             }
             (ReferenceAccess::Address, Some(_base)) => {
-                todo!("Address of operator not implemented yet")
+                if let Some(inner_type) = base
+                    .map(|base| self.annotations.get_type_or_void(base, self.index).get_name().to_string())
+                {
+                    let ptr_type = add_pointer_type(&mut self.annotations.new_index, inner_type);
+                    self.annotations.annotate(node, StatementAnnotation::value(ptr_type))
+                }
             }
             _ => {}
         }
@@ -366,12 +405,150 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, node: &plc_ast::ast::AstNode) {
-        stmt.walk(self);
-
+        stmt.operator.walk(self);
         // annotate the whole statement with the resulting type
-        if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotations.get(&stmt.operator)
+        let call_target = self.annotations.get(&stmt.operator);
+        if let Some(StatementAnnotation::Function { return_type, .. }) = call_target {
+            self.annotations.annotate(node, StatementAnnotation::value(return_type));
+        }
+
+        //annotate the parameters with the right hints
+        // TODO: I need something that gets me the type_name of the resulting POU
+        if let Some(target_type_name) = self.annotations.get_call_name(&stmt.operator).map(str::to_string) {
+            let declared_parameters = self.index.get_declared_parameters(target_type_name.as_str());
+
+            for (idx, arg) in stmt
+                .parameters
+                .as_ref()
+                .map(|it| flatten_expression_list(it))
+                .unwrap_or_default()
+                .iter()
+                .enumerate()
+            {
+                if let AstStatement::Assignment(Assignment { left, right, .. }) = arg.get_stmt() {
+                    // left needs to be resolved in the context of the call operator
+                    self.walk_with_scope(
+                        left,
+                        ScopingStrategy::Strict(Scope::LocalVariable(target_type_name.to_string())),
+                    );
+                    // right needs to be resolved with normal scope
+                    right.walk(self);
+                } else {
+                    arg.walk(self);
+
+                    // hint it with the argument ast pos n
+                    // TODO: move to the hinter???
+                    if let Some(declared_parameter) = declared_parameters.get(idx) {
+                        self.annotations.annotate_type_hint(
+                            arg,
+                            StatementAnnotation::value(declared_parameter.get_type_name()),
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    fn visit_paren_expression(&mut self, inner: &plc_ast::ast::AstNode, node: &plc_ast::ast::AstNode) {
+        inner.walk(self);
+        self.annotations.copy_annotation(inner, node)
+    }
+
+    fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
+        self.visit_data_type(&user_type.data_type);
+
+        if let Some(type_name) = user_type.data_type.get_name() {
+            let mut initializer_annotator = InitializerAnnotator::new(
+                &self.index.get_intrinsic_type_by_name(type_name).get_type_information(),
+                &self.index,
+                &mut self.annotations,
+            );
+            user_type.initializer.as_ref().inspect(|it| it.walk(&mut initializer_annotator));
+        }
+    }
+
+    fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
+        data_type.walk(self);
+
+        // hint the range limits with the original type
+        // INT(0..100) --> 0 and 100 should be hinted with INT
+        if let DataType::SubRangeType {
+            bounds: Some(AstNode { stmt: AstStatement::RangeStatement(range), .. }),
+            name: Some(name),
+            ..
+        } = data_type
         {
-            self.annotations.annotate(node, StatementAnnotation::value(return_type.to_string()));
+            let type_name = self.index.get_intrinsic_type_by_name(name).get_name();
+            self.annotations.annotate_type_hint(&range.start, StatementAnnotation::value(type_name));
+            self.annotations.annotate_type_hint(&range.end, StatementAnnotation::value(type_name));
+        }
+    }
+}
+
+//TODO find better place
+
+/// adds a pointer to the given inner_type to the given index and return's its name
+fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
+    let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
+
+    if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
+        index.register_type(crate::typesystem::DataType {
+            name: new_type_name.clone(),
+            initial_value: None,
+            nature: TypeNature::Any,
+            information: crate::typesystem::DataTypeInformation::Pointer {
+                auto_deref: false,
+                inner_type_name,
+                name: new_type_name.clone(),
+            },
+            location: SourceLocation::internal(),
+        });
+    }
+    new_type_name
+}
+
+/// this anotator is used to create the type-annotations on initializers
+/// Note that it assumes that it only ever visits initializers!
+struct InitializerAnnotator<'i> {
+    expected_type: &'i DataTypeInformation,
+    index: &'i Index,
+    annotations: &'i mut AnnotationMapImpl,
+}
+
+impl<'i> InitializerAnnotator<'i> {
+    pub fn new(
+        expected_type: &'i DataTypeInformation,
+        index: &'i Index,
+        annotations: &'i mut AnnotationMapImpl,
+    ) -> Self {
+        Self { expected_type, index, annotations }
+    }
+}
+
+impl AstVisitor for InitializerAnnotator<'_> {
+
+    fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _node: &AstNode) {
+        match stmt {
+            plc_ast::literals::AstLiteral::Null => todo!(),
+            plc_ast::literals::AstLiteral::Integer(_) => todo!(),
+            plc_ast::literals::AstLiteral::Date(_) => todo!(),
+            plc_ast::literals::AstLiteral::DateAndTime(_) => todo!(),
+            plc_ast::literals::AstLiteral::TimeOfDay(_) => todo!(),
+            plc_ast::literals::AstLiteral::Time(_) => todo!(),
+            plc_ast::literals::AstLiteral::Real(_) => todo!(),
+            plc_ast::literals::AstLiteral::Bool(_) => todo!(),
+            plc_ast::literals::AstLiteral::String(_) => todo!(),
+            plc_ast::literals::AstLiteral::Array(members) => {
+                if let (DataTypeInformation::Array { inner_type_name, .. }, Some(inner_type)) =
+                    (self.expected_type, self.index.find_effective_type(inner_type_name))
+                {
+                    
+                    // for member in members.iter() {
+                    //     let mut annotator = InitializerAnnotator::new(inner_type, self.index, self.annotations);
+                    //     member.walk(&mut annotator);
+                    // }
+                }
+            },
         }
     }
 }

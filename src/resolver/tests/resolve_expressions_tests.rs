@@ -550,7 +550,7 @@ fn parenthesized_expression_assignment() {
     let AstStatement::Assignment(Assignment { right, .. }) = &one.stmt else { panic!() };
     assert!(&right.is_paren());
     assert_eq!(annotations.get_type(right, &index).unwrap().name, "DINT");
-    assert_eq!(annotations.get_type_hint(right, &index).unwrap().name, "DINT");
+    assert_eq!(annotations.get_type_hint(right, &index), None); // no hint, because it would not differ from type
 
     let two = &unit.implementations[0].statements[1];
     let AstStatement::Assignment(Assignment { right, .. }) = &two.stmt else { panic!() };
@@ -2274,9 +2274,9 @@ fn global_lint_enums_type_resolving() {
     assert_eq!(
         vec![
             (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
+            (Some("MyEnum"), None),
             (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
+            (Some("MyEnum"), None),
         ],
         initalizer_types
     );
