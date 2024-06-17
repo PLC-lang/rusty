@@ -173,7 +173,20 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="invalid-number-of-parameters"><a class="header" href="#invalid-number-of-parameters">Invalid number of parameters</a></h1>
+                        <h1 id="invalid-number-of-arguments"><a class="header" href="#invalid-number-of-arguments">Invalid number of arguments</a></h1>
+<p>An invalid number of arguments was passed to a POU. For example</p>
+<pre><code>FUNCTION foo
+    (* ... *)
+END_FUNCTION
+
+FUNCTION main : DINT
+    foo('bar'); // Error, foo isn't expecting any arguments
+END_FUNCTION
+</code></pre>
+<p>Note that for <code>FUNCTION</code>s the argument count must match with the parameter list and can be bigger if a variadic
+parameter is present. For stateful POUs variadic parameters are not supported, thus the argument count must be equal
+or less than the parameter list depending on whether optional arguments such as <code>VAR_INPUT</code> or <code>VAR_OUTPUT</code> were
+passed or not.</p>
 
                     </main>
 

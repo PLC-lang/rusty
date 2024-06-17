@@ -907,7 +907,7 @@
         .fold(qualified_name.to_string(), |accum, s| <span class="macro">format!</span>(<span class="string">"{accum}__{s}"</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
 </span>}
 
-<span class="doccomment">/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
+<span class="doccomment">/// This method returns the qualified name, but has the same signature as the generic resolver to be used in builtins
 </span><span class="kw">pub fn </span>no_generic_name_resolver(
     qualified_name: <span class="kw-2">&amp;</span>str,
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>[GenericBinding],

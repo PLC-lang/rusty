@@ -1555,6 +1555,47 @@
 <a href="#1553" id="1553">1553</a>
 <a href="#1554" id="1554">1554</a>
 <a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -2676,7 +2717,7 @@
 <span class="kw">fn </span>validate_call&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     operator: <span class="kw-2">&amp;</span>AstNode,
-    parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+    operator_arguments: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="comment">// visit called pou
@@ -2685,20 +2726,24 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = context.find_pou(operator) {
         <span class="comment">// additional validation for builtin calls if necessary
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, parameters, context.annotations, context.index)
+            validation(validator, operator, operator_arguments, context.annotations, context.index)
         }
 
-        <span class="kw">let </span>declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        <span class="kw">let </span>passed_parameters = parameters.map(flatten_expression_list).unwrap_or_default();
+        <span class="kw">let </span>arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
+        <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>are_implicit_parameters = <span class="bool-val">true</span>;
+        <span class="kw">if </span>builtins::get_builtin(pou.get_name()).is_none() {
+            validate_argument_count(context, validator, pou, <span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>operator.location);
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>arguments_are_implicit = <span class="bool-val">true</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
 
         <span class="comment">// validate parameters
-        </span><span class="kw">for </span>(i, param) <span class="kw">in </span>passed_parameters.iter().enumerate() {
-            <span class="kw">match </span>get_implicit_call_parameter(param, <span class="kw-2">&amp;</span>declared_parameters, i) {
+        </span><span class="kw">for </span>(i, param) <span class="kw">in </span>arguments.iter().enumerate() {
+            <span class="kw">match </span>get_implicit_call_parameter(param, <span class="kw-2">&amp;</span>parameters, i) {
                 <span class="prelude-val">Ok</span>((parameter_location_in_parent, right, is_implicit)) =&gt; {
-                    <span class="kw">let </span>left = declared_parameters.get(parameter_location_in_parent);
+                    <span class="kw">let </span>left = parameters.get(parameter_location_in_parent);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
                         validate_call_by_ref(validator, left, param);
                         <span class="comment">// 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
@@ -2712,11 +2757,11 @@
                         validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>param.get_location(), context);
                     }
 
-                    <span class="comment">// mixing implicit and explicit parameters is not allowed
-                    // allways compare to the first passed parameter
+                    <span class="comment">// mixing implicit and explicit arguments is not allowed
+                    // allways compare to the first argument
                     </span><span class="kw">if </span>i == <span class="number">0 </span>{
-                        are_implicit_parameters = is_implicit;
-                    } <span class="kw">else if </span>are_implicit_parameters != is_implicit {
+                        arguments_are_implicit = is_implicit;
+                    } <span class="kw">else if </span>arguments_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new(<span class="string">"Cannot mix implicit and explicit call parameters!"</span>)
                                 .with_error_code(<span class="string">"E031"</span>)
@@ -2747,7 +2792,7 @@
                 <span class="kw">return</span>;
             }
             <span class="kw">let </span>declared_in_out_params: Vec&lt;&amp;&amp;VariableIndexEntry&gt; =
-                declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+                parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
 
             <span class="comment">// if the called pou has declared inouts, we need to make sure that these were passed to the pou call
             </span><span class="kw">if </span>!declared_in_out_params.is_empty() {
@@ -2765,7 +2810,7 @@
         }
     } <span class="kw">else </span>{
         <span class="comment">// POU could not be found, we can still partially validate the passed parameters
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = parameters.as_ref() {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = operator_arguments.as_ref() {
             visit_statement(validator, s, context);
         }
     }
@@ -3027,6 +3072,43 @@
                 );
             })
         });
+}
+
+<span class="doccomment">/// Validates if a POU call has the correct number of arguments. Specifically, for functions,
+/// the argument count must be equal to the required count unless the interface is variadic,
+/// in which case the argument count may be greater than or equal to the required count. For stateful
+/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and
+/// VAR_OUTPUT arguments are optional.
+</span><span class="kw">fn </span>validate_argument_count&lt;T: AnnotationMap&gt;(
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+    arguments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
+    operator_location: <span class="kw-2">&amp;</span>SourceLocation,
+) {
+    <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
+    <span class="kw">let </span>has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
+
+    <span class="kw">let </span>argument_count_is_incorrect = <span class="kw">match </span>pou {
+        PouIndexEntry::Function { .. } =&gt; {
+            !((has_variadic_parameter &amp;&amp; arguments.len() &gt;= parameters.len())
+                || (arguments.len() == parameters.len()))
+        }
+
+        PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } =&gt; {
+            arguments.len() &gt; parameters.len() &amp;&amp; !has_variadic_parameter
+        }
+
+        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+    };
+
+    <span class="kw">if </span>argument_count_is_incorrect {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            parameters.len(),
+            arguments.len(),
+            operator_location,
+        ));
+    }
 }
 
 <span class="kw">mod </span>helper {
