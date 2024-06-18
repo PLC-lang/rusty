@@ -4,11 +4,14 @@ use super::{
     llvm::Llvm,
 };
 use crate::{
-    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
-    codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
+    codegen::{
+        debug::{Debug, DebugBuilderEnum},
+        llvm_typesystem::cast_if_needed,
+        LlvmTypedIndex,
+    },
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{self, DataTypeInformation},
+    typesystem::{self, get_bigger_type, DataTypeInformation},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -390,51 +393,65 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let exp_gen = self.create_expr_generator();
-        self.generate_assignment_statement(counter, start)?;
-        let counter = exp_gen.generate_lvalue(counter)?;
-        let counter_value = builder.build_load(counter, "");
-        let by_step = by_step.as_ref().map_or_else(
-            || self.llvm.create_const_numeric(&counter_value.get_type(), "1", SourceLocation::undefined()),
-            |step| {
-                self.register_debug_location(step);
-                exp_gen.generate_expression(step)
-            },
-        )?;
+
+        let end_ty = self.annotations.get_type_or_void(end, self.index);
+        let counter_ty = self.annotations.get_type_or_void(counter, self.index);
+        let ty = get_bigger_type(self.index.get_type_or_panic("DINT"), counter_ty, self.index);
+        let ll_ty = self.llvm_index.find_associated_type(ty.get_name()).unwrap();
+
+        let get_step = || {
+            by_step.as_ref().map_or_else(
+                || self.llvm.create_const_numeric(&ll_ty, "1", SourceLocation::undefined()),
+                |step| {
+                    self.register_debug_location(step);
+                    let step_ty = by_step
+                        .as_ref()
+                        .map(|it| self.annotations.get_type_or_void(it, self.index))
+                        .unwrap_or_else(|| ty);
+                    let step = exp_gen.generate_expression(step)?;
+                    Ok(cast_if_needed!(exp_gen, ty, step_ty, step, None))
+                },
+            )
+        };
+
         let predicate_incrementing = context.append_basic_block(current_function, "predicate_sle");
         let predicate_decrementing = context.append_basic_block(current_function, "predicate_sge");
         let loop_body = context.append_basic_block(current_function, "loop");
         let increment = context.append_basic_block(current_function, "increment");
         let afterloop = context.append_basic_block(current_function, "continue");
 
-        // XXX(mhasel): could the generated IR be improved by using phi instructions?
-        // select loop predicate
+        self.generate_assignment_statement(counter, start)?;
+        let counter = exp_gen.generate_lvalue(counter)?;
+
+        // generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
+        // XXX(mhasel): IR could possibly be improved by generating phi instructions.
+        //              Candidate for frontend optimization for builds without optimization when `STEP`
+        //              is a compile-time constant
         let is_incrementing = builder.build_int_compare(
             inkwell::IntPredicate::SGT,
-            by_step.into_int_value(),
-            self.llvm.i32_type().const_zero(),
+            get_step()?.into_int_value(),
+            self.llvm.create_const_numeric(&ll_ty, "0", SourceLocation::undefined())?.into_int_value(),
             "is_incrementing",
         );
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
-
+        // generate predicates for incrementing and decrementing counters
         let generate_predicate = |predicate| {
             builder.position_at_end(match predicate {
                 inkwell::IntPredicate::SLE => predicate_incrementing,
                 inkwell::IntPredicate::SGE => predicate_decrementing,
                 _ => unreachable!(),
             });
-            let end = exp_gen.generate_expression_value(end).expect("");
-            // XXX: if the end condition is the result of a callstatement, should it be called each iteration or once before entering the loop?
-            // if the latter is the case, generate expression value before first unconditional jump and store in local alloca variable
+
+            let end = exp_gen.generate_expression_value(end).unwrap();
             let end_value = match end {
                 super::expression_generator::ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
                 super::expression_generator::ExpressionValue::RValue(val) => val,
             };
-
             let counter_value = builder.build_load(counter, "");
             let cmp = builder.build_int_compare(
                 predicate,
-                counter_value.into_int_value(),
-                end_value.into_int_value(),
+                cast_if_needed!(exp_gen, ty, counter_ty, counter_value, None).into_int_value(),
+                cast_if_needed!(exp_gen, ty, end_ty, end_value, None).into_int_value(),
                 "condition",
             );
             builder.build_conditional_branch(cmp, loop_body, afterloop);
@@ -442,7 +459,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         generate_predicate(inkwell::IntPredicate::SLE);
         generate_predicate(inkwell::IntPredicate::SGE);
 
-        // loop body
+        // generate loop body
         builder.position_at_end(loop_body);
         let body_builder = StatementCodeGenerator {
             current_loop_continue: Some(increment),
@@ -453,12 +470,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         body_builder.generate_body(body)?;
 
-        // --increment--
+        // increment counter
         builder.build_unconditional_branch(increment);
         builder.position_at_end(increment);
-        let value = builder.build_load(counter, "");
-        let inc = builder.build_int_add(value.into_int_value(), by_step.into_int_value(), "next");
-        builder.build_store(counter, inc);
+        let counter_value = builder.build_load(counter, "");
+        let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
+            get_step()?.into_int_value(),
+            cast_if_needed!(exp_gen, ty, counter_ty, counter_value, None).into_int_value(),
+            "next",
+        ));
+        builder.build_store(counter, cast_if_needed!(exp_gen, counter_ty, ty, inc, None).into_int_value());
 
         // check condition
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);

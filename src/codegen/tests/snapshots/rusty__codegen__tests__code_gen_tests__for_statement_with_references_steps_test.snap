@@ -17,21 +17,20 @@ entry:
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
   %load_y = load i32, i32* %y, align 4
   store i32 %load_y, i32* %x, align 4
-  %1 = load i32, i32* %x, align 4
   %load_step = load i32, i32* %step, align 4
   %is_incrementing = icmp sgt i32 %load_step, 0
   br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
 predicate_sle:                                    ; preds = %increment, %entry
-  %2 = load i32, i32* %z, align 4
-  %3 = load i32, i32* %x, align 4
-  %condition = icmp sle i32 %3, %2
+  %1 = load i32, i32* %z, align 4
+  %2 = load i32, i32* %x, align 4
+  %condition = icmp sle i32 %2, %1
   br i1 %condition, label %loop, label %continue
 
 predicate_sge:                                    ; preds = %increment, %entry
-  %4 = load i32, i32* %z, align 4
-  %5 = load i32, i32* %x, align 4
-  %condition1 = icmp sge i32 %5, %4
+  %3 = load i32, i32* %z, align 4
+  %4 = load i32, i32* %x, align 4
+  %condition1 = icmp sge i32 %4, %3
   br i1 %condition1, label %loop, label %continue
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
@@ -39,8 +38,9 @@ loop:                                             ; preds = %predicate_sge, %pre
   br label %increment
 
 increment:                                        ; preds = %loop
-  %6 = load i32, i32* %x, align 4
-  %next = add i32 %6, %load_step
+  %5 = load i32, i32* %x, align 4
+  %load_step2 = load i32, i32* %step, align 4
+  %next = add i32 %load_step2, %5
   store i32 %next, i32* %x, align 4
   br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
