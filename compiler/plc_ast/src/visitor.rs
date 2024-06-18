@@ -424,8 +424,8 @@ impl Walker for ReferenceExpr {
 impl Walker for ReferenceAccess {
     fn walk<V>(&self, visitor: &mut V)
     where
-        V: AstVisitor {
-        
+        V: AstVisitor,
+    {
         match &self {
             ReferenceAccess::Member(t) | ReferenceAccess::Index(t) | ReferenceAccess::Cast(t) => {
                 visitor.visit(t)

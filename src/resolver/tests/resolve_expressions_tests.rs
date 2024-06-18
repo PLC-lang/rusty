@@ -462,7 +462,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             // c
             assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(DINT_TYPE));
             // (b + USINT#7)
-            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(DINT_TYPE));
+            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, /* Same */ None);
 
             let AstStatement::ParenExpression(left) = left.get_stmt() else { panic!() };
             if let AstNode {
@@ -2388,7 +2388,6 @@ fn struct_members_initializers_type_hint_test() {
 
     // WHEN this type is annotated
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-
     // THEN the members's initializers have correct type-hints
     if let DataType::StructType { variables, .. } = &unit.user_types[0].data_type {
         let hints: Vec<&str> = variables
@@ -2397,11 +2396,11 @@ fn struct_members_initializers_type_hint_test() {
                 annotations
                     .get_type_hint(v.initializer.as_ref().unwrap(), &index)
                     .map(crate::typesystem::DataType::get_name)
-                    .unwrap()
+                    .unwrap_or_default()
             })
             .collect();
 
-        assert_eq!(hints, vec!["INT", "SINT", "BOOL", "REAL", "LREAL"]);
+        assert_eq!(hints, vec!["INT", "SINT", "BOOL", /* same as real type*/ "", "LREAL"]);
     } else {
         unreachable!()
     }

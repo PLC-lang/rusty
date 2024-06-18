@@ -1085,13 +1085,7 @@ impl Operator {
     /// this means it can be applied bitwise to two operators
     /// (e.g. `flags AND 16#0F`)
     pub fn is_binary_operator(&self) -> bool {
-        matches!(
-            self,
-            Operator::And
-            | Operator::Or
-            | Operator::Xor
-            | Operator::Not
-        )
+        matches!(self, Operator::And | Operator::Or | Operator::Xor | Operator::Not)
     }
 }
 

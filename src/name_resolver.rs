@@ -2,7 +2,7 @@ use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, DataType, ReferenceAccess, TypeNature,
     },
-    literals::StringValue,
+    literals::{Array, AstLiteral, StringValue},
     visitor::{AstVisitor, Walker},
 };
 use plc_source::source_location::SourceLocation;
@@ -282,7 +282,7 @@ impl AstVisitor for NameResolver<'_> {
             }
             (ReferenceAccess::Cast(target), Some(base)) => {
                 if let Some(true) =
-                    self.annotations.get_type(stmt.base.as_ref().unwrap(), &self.index).map(|it| it.is_enum())
+                    self.annotations.get_type(stmt.base.as_ref().unwrap(), self.index).map(|it| it.is_enum())
                 {
                     self.walk_with_scope(
                         target,
@@ -299,7 +299,7 @@ impl AstVisitor for NameResolver<'_> {
                 if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: false, .. }) =
                     self.index.find_type(base).map(typesystem::DataType::get_type_information)
                 {
-                    self.annotations.annotate(node, StatementAnnotation::data_type(&inner_type_name));
+                    self.annotations.annotate(node, StatementAnnotation::data_type(inner_type_name));
                 }
             }
             (ReferenceAccess::Address, Some(_base)) => {
@@ -454,12 +454,27 @@ impl AstVisitor for NameResolver<'_> {
         self.annotations.copy_annotation(inner, node)
     }
 
+    fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
+        variable.walk(self);
+
+        if let (Some(initializer), Some(variable_type)) =
+            (&variable.initializer, variable.data_type_declaration.get_name())
+        {
+            let mut initializer_annotator = InitializerAnnotator::new(
+                &self.index.get_intrinsic_type_by_name(variable_type).get_type_information(),
+                self.index,
+                &mut self.annotations,
+            );
+            initializer.walk(&mut initializer_annotator);
+        }
+    }
+
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
         self.visit_data_type(&user_type.data_type);
 
         if let Some(type_name) = user_type.data_type.get_name() {
             let mut initializer_annotator = InitializerAnnotator::new(
-                &self.index.get_intrinsic_type_by_name(type_name).get_type_information(),
+                self.index.get_intrinsic_type_by_name(type_name).get_type_information(),
                 &self.index,
                 &mut self.annotations,
             );
@@ -486,7 +501,6 @@ impl AstVisitor for NameResolver<'_> {
 }
 
 //TODO find better place
-
 /// adds a pointer to the given inner_type to the given index and return's its name
 fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
     let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
@@ -526,29 +540,20 @@ impl<'i> InitializerAnnotator<'i> {
 }
 
 impl AstVisitor for InitializerAnnotator<'_> {
-
-    fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _node: &AstNode) {
-        match stmt {
-            plc_ast::literals::AstLiteral::Null => todo!(),
-            plc_ast::literals::AstLiteral::Integer(_) => todo!(),
-            plc_ast::literals::AstLiteral::Date(_) => todo!(),
-            plc_ast::literals::AstLiteral::DateAndTime(_) => todo!(),
-            plc_ast::literals::AstLiteral::TimeOfDay(_) => todo!(),
-            plc_ast::literals::AstLiteral::Time(_) => todo!(),
-            plc_ast::literals::AstLiteral::Real(_) => todo!(),
-            plc_ast::literals::AstLiteral::Bool(_) => todo!(),
-            plc_ast::literals::AstLiteral::String(_) => todo!(),
-            plc_ast::literals::AstLiteral::Array(members) => {
-                if let (DataTypeInformation::Array { inner_type_name, .. }, Some(inner_type)) =
-                    (self.expected_type, self.index.find_effective_type(inner_type_name))
-                {
-                    
-                    // for member in members.iter() {
-                    //     let mut annotator = InitializerAnnotator::new(inner_type, self.index, self.annotations);
-                    //     member.walk(&mut annotator);
-                    // }
+    fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
+        self.annotations.annotate_type_hint(node, StatementAnnotation::value(self.expected_type.get_name()));
+        if let (
+            AstLiteral::Array(Array { elements: Some(elements), .. }),
+            DataTypeInformation::Array { inner_type_name, .. },
+        ) = (stmt, self.expected_type)
+        {
+            // hint the elements of an array
+            if let Some(inner_type) = self.index.find_effective_type_info(inner_type_name) {
+                for member in flatten_expression_list(elements) {
+                    let mut annotator = InitializerAnnotator::new(inner_type, self.index, self.annotations);
+                    member.walk(&mut annotator);
                 }
-            },
+            }
         }
     }
 }

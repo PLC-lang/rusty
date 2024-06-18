@@ -39,10 +39,10 @@ pub mod hardware_binding;
 pub mod index;
 pub mod lexer;
 pub mod linker;
+pub mod name_resolver;
 pub mod output;
 pub mod parser;
 pub mod resolver;
-pub mod name_resolver;
 mod test_utils;
 
 pub mod typesystem;

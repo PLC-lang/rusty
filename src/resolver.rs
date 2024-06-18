@@ -6,8 +6,8 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use std::hash::Hash;
 use type_hint_annotator::TypeHintAnnotator;
-use std::{hash::Hash};
 
 use plc_ast::{
     ast::{
@@ -17,12 +17,12 @@ use plc_ast::{
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
-    provider::IdProvider, visitor::Walker,
+    provider::IdProvider,
+    visitor::Walker,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::{index::{FxIndexMap, FxIndexSet}, name_resolver::NameResolver};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -32,6 +32,10 @@ use crate::{
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
+};
+use crate::{
+    index::{FxIndexMap, FxIndexSet},
+    name_resolver::NameResolver,
 };
 
 pub mod const_evaluator;
@@ -497,8 +501,7 @@ pub trait AnnotationMap {
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
     fn get_type_hint_or_type<'i>(&self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
-        self.get_hint(s).or_else(|| self.get(s))
-            .and_then(|s| self.get_type_for_annotation(index, s))
+        self.get_hint(s).or_else(|| self.get(s)).and_then(|s| self.get_type_for_annotation(index, s))
     }
 
     fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode>;
@@ -519,7 +522,7 @@ pub trait AnnotationMap {
         self.get(s).and_then(|it| self.get_type_for_annotation(index, it))
     }
 
-    fn get_type_name<'i>(&'i self, s: &AstNode) -> Option<&str> {
+    fn get_type_name(&self, s: &AstNode) -> Option<&str> {
         self.get(s).and_then(|it| self.get_type_name_for_annotation(it))
     }
 
@@ -539,10 +542,10 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name } =>{
+            StatementAnnotation::Program { qualified_name } => {
                 // only return the first segment (without a potential action part)
-                Some(&qualified_name[0..qualified_name.find(".").unwrap_or(qualified_name.len())])
-            } ,
+                Some(&qualified_name[0..qualified_name.find('.').unwrap_or(qualified_name.len())])
+            }
             StatementAnnotation::Type { type_name } => Some(type_name),
             StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
         }
@@ -768,7 +771,6 @@ impl<'i> TypeAnnotator<'i> {
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-
         let mut resolver = NameResolver::new(index);
         unit.walk(&mut resolver);
 
@@ -776,8 +778,6 @@ impl<'i> TypeAnnotator<'i> {
         unit.walk(&mut type_hint_annotator);
 
         return (type_hint_annotator.annotations, FxIndexSet::default(), resolver.strings);
-
-
 
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
@@ -1815,7 +1815,8 @@ impl<'i> TypeAnnotator<'i> {
 
                     AstLiteral::String(StringValue { is_wide, value, .. }) => {
                         let string_type_name =
-                            register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len()).to_string();
+                            register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len())
+                                .to_string();
                         self.annotate(statement, StatementAnnotation::value(string_type_name));
 
                         //collect literals so we can generate global constants later
@@ -1904,7 +1905,6 @@ pub fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> &st
         });
     }
     index.find_type(new_type_name.as_str()).map(|d| d.get_name()).unwrap_or(VOID_TYPE)
-    
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name

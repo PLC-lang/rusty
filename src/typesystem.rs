@@ -150,7 +150,7 @@ impl DataType {
         (self.is_numerical() || self.is_bit()) && !self.is_bool()
     }
 
-    pub fn is_bool(&self) -> bool{
+    pub fn is_bool(&self) -> bool {
         self.information.is_bool()
     }
 
