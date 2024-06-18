@@ -11,24 +11,24 @@ entry:
   call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !9, metadata !DIExpression()), !dbg !11
   store i32 0, i32* %myFunc, align 4, !dbg !8
   store i32 1, i32* %myFunc, align 4, !dbg !12
-  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !13
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !12
 
 predicate_sle:                                    ; preds = %increment, %entry
-  %0 = load i32, i32* %myFunc, align 4, !dbg !13
-  %condition = icmp sle i32 %0, 20, !dbg !13
-  br i1 %condition, label %loop, label %continue, !dbg !13
+  %0 = load i32, i32* %myFunc, align 4, !dbg !12
+  %condition = icmp sle i32 %0, 20, !dbg !12
+  br i1 %condition, label %loop, label %continue, !dbg !12
 
 predicate_sge:                                    ; preds = %increment, %entry
-  %1 = load i32, i32* %myFunc, align 4, !dbg !13
-  %condition1 = icmp sge i32 %1, 20, !dbg !13
-  br i1 %condition1, label %loop, label %continue, !dbg !13
+  %1 = load i32, i32* %myFunc, align 4, !dbg !12
+  %condition1 = icmp sge i32 %1, 20, !dbg !12
+  br i1 %condition1, label %loop, label %continue, !dbg !12
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
-  store i32 1, i32* %myFunc, align 4, !dbg !14
-  br label %increment, !dbg !14
+  store i32 1, i32* %myFunc, align 4, !dbg !13
+  br label %increment, !dbg !13
 
 increment:                                        ; preds = %loop
-  %2 = load i32, i32* %myFunc, align 4, !dbg !14
+  %2 = load i32, i32* %myFunc, align 4, !dbg !13
   %next = add i32 2, %2, !dbg !13
   store i32 %next, i32* %myFunc, align 4, !dbg !13
   br i1 true, label %predicate_sle, label %predicate_sge, !dbg !13
@@ -59,5 +59,4 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 16, scope: !4)
-!13 = !DILocation(line: 3, column: 37, scope: !4)
-!14 = !DILocation(line: 4, column: 16, scope: !4)
+!13 = !DILocation(line: 4, column: 16, scope: !4)

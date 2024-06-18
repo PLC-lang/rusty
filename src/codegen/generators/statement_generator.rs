@@ -399,16 +399,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let ty = get_bigger_type(self.index.get_type_or_panic("DINT"), counter_ty, self.index);
         let ll_ty = self.llvm_index.find_associated_type(ty.get_name()).unwrap();
 
-        let get_step = || {
-            by_step.as_ref().map_or_else(
+        let step_ty = by_step.as_ref().map(|it| {
+            self.register_debug_location(it);
+            self.annotations.get_type_or_void(it, self.index)
+        });
+
+        let eval_step = || {
+            step_ty.map_or_else(
                 || self.llvm.create_const_numeric(&ll_ty, "1", SourceLocation::undefined()),
-                |step| {
-                    self.register_debug_location(step);
-                    let step_ty = by_step
-                        .as_ref()
-                        .map(|it| self.annotations.get_type_or_void(it, self.index))
-                        .unwrap_or_else(|| ty);
-                    let step = exp_gen.generate_expression(step)?;
+                |step_ty| {
+                    let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
                     Ok(cast_if_needed!(exp_gen, ty, step_ty, step, None))
                 },
             )
@@ -429,7 +429,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //              is a compile-time constant
         let is_incrementing = builder.build_int_compare(
             inkwell::IntPredicate::SGT,
-            get_step()?.into_int_value(),
+            eval_step()?.into_int_value(),
             self.llvm.create_const_numeric(&ll_ty, "0", SourceLocation::undefined())?.into_int_value(),
             "is_incrementing",
         );
@@ -475,7 +475,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(increment);
         let counter_value = builder.build_load(counter, "");
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
-            get_step()?.into_int_value(),
+            eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, ty, counter_ty, counter_value, None).into_int_value(),
             "next",
         ));
