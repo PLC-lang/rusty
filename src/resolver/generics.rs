@@ -440,7 +440,7 @@ pub fn generic_name_resolver(
         .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
-/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
+/// This method returns the qualified name, but has the same signature as the generic resolver to be used in builtins
 pub fn no_generic_name_resolver(
     qualified_name: &str,
     _: &[GenericBinding],

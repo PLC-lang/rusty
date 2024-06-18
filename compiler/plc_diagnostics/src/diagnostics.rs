@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+use crate::diagnostics::diagnostics_registry::DIAGNOSTICS;
 use plc_ast::ast::AstNode;
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
@@ -88,8 +89,10 @@ impl Diagnostic {
         self
     }
 
-    pub fn with_error_code(mut self, error_code: &'static str) -> Self {
-        self.error_code = error_code;
+    pub fn with_error_code(mut self, code: &'static str) -> Self {
+        debug_assert!(DIAGNOSTICS.get(code).is_some(), "Error {code} does not exist");
+
+        self.error_code = code;
         self
     }
 
@@ -199,12 +202,26 @@ impl Diagnostic {
             .with_error_code("E006")
     }
 
-    pub fn invalid_parameter_count(expected: usize, received: usize, location: SourceLocation) -> Diagnostic {
-        Diagnostic::new(
-            format!(
-                "Invalid parameter count. Received {received} parameters while {expected} parameters were expected.",
-            )).with_error_code("E032")
-            .with_location(location)
+    pub fn invalid_argument_count<T>(expected: usize, actual: usize, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        // Let's be extra fancy here 🕺
+        fn message(value: usize) -> String {
+            match value {
+                1 => format!("{value} argument"),
+                _ => format!("{value} arguments"),
+            }
+        }
+
+        Diagnostic::new(format!(
+            "this POU takes {expected} but {actual} {was_or_were} supplied",
+            expected = message(expected),
+            actual = message(actual),
+            was_or_were = if actual == 1 { "was" } else { "were" }
+        ))
+        .with_error_code("E032")
+        .with_location(location.into())
     }
 
     pub fn unknown_type(type_name: &str, location: SourceLocation) -> Diagnostic {
