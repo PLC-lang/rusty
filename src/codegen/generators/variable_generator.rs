@@ -5,15 +5,11 @@ use crate::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
-    ConfigFormat,
 };
 use indexmap::IndexSet;
-use inkwell::{module::Module, types::BasicTypeEnum, values::GlobalValue};
+use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use std::collections::HashMap;
-use std::fs::{read_to_string, write};
-use std::path::Path;
 
 use super::{
     data_type_generator::get_default_for,
@@ -24,40 +20,6 @@ use super::{
 use crate::codegen::debug::DebugBuilderEnum;
 use crate::index::FxIndexSet;
 
-pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
-    if !Path::new(location).is_file() {
-        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
-        // creating our file when we want to.
-        return Ok(HashMap::new());
-    }
-
-    let s =
-        read_to_string(location).map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
-    match format {
-        ConfigFormat::JSON => serde_json::from_str(&s)
-            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
-        ConfigFormat::TOML => {
-            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
-        }
-    }
-}
-
-pub fn write_got_layout(
-    got_entries: HashMap<String, u64>,
-    location: &str,
-    format: ConfigFormat,
-) -> Result<(), Diagnostic> {
-    let s = match format {
-        ConfigFormat::JSON => serde_json::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
-        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
-    };
-
-    write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))?;
-    Ok(())
-}
-
 pub struct VariableGenerator<'ctx, 'b> {
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
@@ -65,7 +27,6 @@ pub struct VariableGenerator<'ctx, 'b> {
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
     debug: &'b mut DebugBuilderEnum<'ctx>,
-    got_layout_file: Option<(String, ConfigFormat)>,
 }
 
 impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
@@ -76,9 +37,8 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         annotations: &'b AstAnnotations,
         types_index: &'b LlvmTypedIndex<'ctx>,
         debug: &'b mut DebugBuilderEnum<'ctx>,
-        got_layout_file: Option<(String, ConfigFormat)>,
     ) -> Self {
-        VariableGenerator { module, llvm, global_index, annotations, types_index, debug, got_layout_file }
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
     }
 
     pub fn generate_global_variables(
@@ -137,48 +97,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 &variable.data_type_name,
                 global_variable,
                 &variable.source_location,
-            );
-        }
-
-        if let Some((location, format)) = &self.got_layout_file {
-            let got_entries = read_got_layout(location.as_str(), *format)?;
-            let mut new_globals = Vec::new();
-            let mut new_got_entries = HashMap::new();
-            let mut new_got = HashMap::new();
-
-            for (name, _) in &globals {
-                if let Some(idx) = got_entries.get(&name.to_string()) {
-                    new_got_entries.insert(name.to_string(), *idx);
-                    index.associate_got_index(name, *idx);
-                    new_got.insert(*idx, name.to_string());
-                } else {
-                    new_globals.push(name.to_string());
-                }
-            }
-
-            // Put any globals that weren't there last time in any free space in the GOT.
-            let mut idx: u64 = 0;
-            for name in &new_globals {
-                while new_got.contains_key(&idx) {
-                    idx += 1;
-                }
-                new_got_entries.insert(name.to_string(), idx);
-                index.associate_got_index(name, idx);
-                new_got.insert(idx, name.to_string());
-            }
-
-            // Now we can write new_got_entries back out to a file.
-            write_got_layout(new_got_entries, location.as_str(), *format)?;
-
-            // Construct our GOT as a new global array. We initialise this array in the loader code.
-            let got_size = new_got.keys().max().map_or(0, |m| *m + 1);
-            let _got = self.llvm.create_global_variable(
-                self.module,
-                "__custom_got",
-                BasicTypeEnum::ArrayType(Llvm::get_array_type(
-                    BasicTypeEnum::PointerType(self.llvm.context.i8_type().ptr_type(0.into())),
-                    got_size.try_into().expect("the computed custom GOT size is too large"),
-                )),
             );
         }
 
