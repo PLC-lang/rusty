@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5370
+assertion_line: 5482
 expression: "generate_comparison_test(\"LT\")"
 ---
 Value {

@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5429
+assertion_line: 5541
 expression: annotations.get(stmt)
 ---
 Some(

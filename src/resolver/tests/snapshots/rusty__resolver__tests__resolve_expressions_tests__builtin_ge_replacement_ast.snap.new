@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5360
+assertion_line: 5472
 expression: "generate_comparison_test(\"GE\")"
 ---
 Value {

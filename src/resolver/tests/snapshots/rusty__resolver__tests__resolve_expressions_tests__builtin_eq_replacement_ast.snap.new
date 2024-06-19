@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5365
+assertion_line: 5477
 expression: "generate_comparison_test(\"EQ\")"
 ---
 Value {

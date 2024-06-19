@@ -1,17 +1,14 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
-    },
-    control_statements::AstControlStatement,
-    provider::IdProvider,
-    visitor::{AstVisitor, Walker},
+    }, control_statements::AstControlStatement, literals::{Array, AstLiteral}, provider::IdProvider, visitor::{AstVisitor, Walker}
 };
 use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{Index, PouIndexEntry},
-    name_resolver::NameResolver,
-    typesystem::BOOL_TYPE,
+    name_resolver::{LiteralsAnnotator, NameResolver},
+    typesystem::{DataTypeInformation, BOOL_TYPE},
 };
 
 use super::{AnnotationMap, AnnotationMapImpl, StatementAnnotation};
@@ -82,12 +79,10 @@ impl<'i> PostAnnotator<'i> {
             .annotations
             .get_type_hint(left, self.index)
             .unwrap_or_else(|| self.annotations.get_type_or_void(left, self.index));
-        if let Some(function_name) =
-            crate::typesystem::get_equals_function_name_for(
-                left_type.get_type_information().get_name(),
-                operator,
-            )
-        {
+        if let Some(function_name) = crate::typesystem::get_equals_function_name_for(
+            left_type.get_type_information().get_name(),
+            operator,
+        ) {
             let call = AstFactory::create_call_to(
                 function_name.to_string(),
                 vec![left.clone(), right.clone()],
@@ -96,7 +91,7 @@ impl<'i> PostAnnotator<'i> {
                 location,
             );
 
-            if let AstStatement::CallStatement(CallStatement { operator, ..}) = call.get_stmt() {
+            if let AstStatement::CallStatement(CallStatement { operator, .. }) = call.get_stmt() {
                 self.annotations.annotate(
                     &operator,
                     StatementAnnotation::Function {
@@ -105,7 +100,7 @@ impl<'i> PostAnnotator<'i> {
                         call_name: None,
                     },
                 );
-                self.annotations.copy_annotation(&operator, &call)
+                self.annotations.copy_annotation(&operator, &call);
             }
             self.annotations.annotate_type_hint(&call, StatementAnnotation::value(BOOL_TYPE));
             call
@@ -151,11 +146,13 @@ impl AstVisitor for PostAnnotator<'_> {
     }
 
     fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-        stmt.walk(self);
+        self.visit(&stmt.left);
+        // eagerly hint the right side, so future traversal can react appropriately
         if let Some(l_type) = self.annotations.get_type(&stmt.left, self.index) {
             self.annotations
                 .annotate_type_hint(&stmt.right, StatementAnnotation::value(l_type.get_name().to_string()));
         }
+        self.visit(&stmt.right);
     }
 
     fn visit_reference_expr(&mut self, stmt: &plc_ast::ast::ReferenceExpr, node: &plc_ast::ast::AstNode) {
@@ -185,6 +182,46 @@ impl AstVisitor for PostAnnotator<'_> {
                 for c in case.case_blocks.iter().flat_map(|cb| flatten_expression_list(&cb.condition)) {
                     self.annotations.annotate_type_hint(c, selector_type.clone());
                 }
+            }
+        }
+    }
+
+    fn visit_paren_expression(&mut self, inner: &AstNode, node: &AstNode) {
+        inner.walk(self);
+
+        if let Some(expected_type_name) =
+            self.annotations.get_type_hint_or_type(node, self.index).map(|t| t.get_name())
+        {
+            let expected_type = self
+                .index
+                .find_effective_type_by_name(expected_type_name)
+                .unwrap_or_else(|| self.index.get_void_type());
+
+            // a parenthesized expression that should be a struct -> struct-literal
+            if expected_type.is_struct() {
+                let mut literal_annotator = LiteralsAnnotator::new(
+                    expected_type.get_type_information(),
+                    self.index,
+                    &mut self.annotations,
+                );
+                literal_annotator.visit(node);
+            }
+        }
+    }
+
+    fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
+        stmt.walk(self);
+
+        if let AstLiteral::Array(Array{elements: Some(elements)}) = &stmt {
+            if let Some(DataTypeInformation::Array { name, inner_type_name, .. }) =
+                self.annotations.get_type_hint_or_type(node, self.index).map(|it| it.get_type_information())
+            {
+                for e in elements.get_as_list() {
+                    self.annotations.annotate_type_hint(e, StatementAnnotation::value(inner_type_name.clone()));
+                    self.visit(e);
+                }
+                self.annotations.annotate(node, StatementAnnotation::value(name));
+                self.annotations.clear_type_hint(node);
             }
         }
     }

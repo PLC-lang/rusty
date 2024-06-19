@@ -676,11 +676,13 @@ impl AnnotationMapImpl {
 
     /// copies the annotation from one statement to another
     pub fn copy_annotation(&mut self, from: &AstNode, to: &AstNode) {
-        if let Some(f) = self.get(from) {
-            self.annotate(to, f.clone());
+        let type_annotation = self.get(from).cloned();
+        let hint_annotation = self.get_hint(from).cloned();
+        if let Some(f) = type_annotation {
+            self.annotate(to, f);
         }
-        if let Some(f) = self.get_hint(from) {
-            self.annotate_type_hint(to, f.clone())
+        if let Some(f) = hint_annotation {
+            self.annotate_type_hint(to, f);
         }
     }
 

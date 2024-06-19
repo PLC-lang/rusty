@@ -425,11 +425,11 @@ fn equality_with_pointers_is_bool() {
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: addition, .. }), .. } = &statements[0]
     {
-        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, None /* same */);
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: addition, .. }), .. } = &statements[1]
     {
-        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, None /* same */);
     }
 }
 
@@ -2334,20 +2334,8 @@ fn enum_initialization_is_annotated_correctly() {
         "DINT",
         Some("MyEnum")
     );
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        variables[1].initializer.as_ref().unwrap(),
-        "MyEnum",
-        None
-    );
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        variables[2].initializer.as_ref().unwrap(),
-        "MyEnum",
-        None
-    );
+    assert_type_and_hint!(&annotations, &index, variables[1].initializer.as_ref().unwrap(), "MyEnum", None);
+    assert_type_and_hint!(&annotations, &index, variables[2].initializer.as_ref().unwrap(), "MyEnum", None);
 
     let statements = &unit.implementations[0].statements;
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[0] {
@@ -2403,6 +2391,130 @@ fn struct_members_initializers_type_hint_test() {
         assert_eq!(hints, vec!["INT", "SINT", "BOOL", /* same as real type*/ "", "LREAL"]);
     } else {
         unreachable!()
+    }
+}
+
+#[test]
+fn array_explicit_assignment_test() {
+    // GIVEN a struct-initialization with explicit assignments
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION main : DINT
+        VAR
+            x : INT_ARRAY;
+        END_VAR
+            x := [1, 2, 3];
+        END_FUNCTION
+
+        TYPE INT_ARRAY : ARRAY[0..2] OF INT; END_TYPE
+        ",
+        id_provider.clone(),
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // THEN the right side is annotated as an int array
+    let assignment = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = assignment else {
+        unreachable!()
+    };
+
+    assert_type_and_hint!(&annotations, &index, &right, "INT_ARRAY" /*array of int*/, None);
+
+    let AstStatement::Literal(AstLiteral::Array(inner)) = right.get_stmt() else { panic!() };
+    let elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
+    assert_eq!(3, elements.len());
+    for e in elements {
+        assert_type_and_hint!(&annotations, &index, e, "DINT", Some("INT"));
+    }
+}
+
+#[test]
+fn multi_dim_array_explicit_assignment_test() {
+    // GIVEN a struct-initialization with explicit assignments
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION main : DINT
+        VAR
+            x : INT_MATRIX;
+        END_VAR
+            x := [
+                1, 2, 3,
+                4, 5, 6,
+                7, 8, 9 ];
+        END_FUNCTION
+
+        TYPE INT_MATRIX : ARRAY[0..2, 0..2] OF INT; END_TYPE
+        ",
+        id_provider.clone(),
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // THEN the right side is annotated as an int array
+    let assignment = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = assignment else {
+        unreachable!()
+    };
+
+    assert_type_and_hint!(&annotations, &index, &right, "INT_MATRIX" /*array of int*/, None);
+
+    let AstStatement::Literal(AstLiteral::Array(inner)) = right.get_stmt() else { panic!() };
+    let elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
+    assert_eq!(9, elements.len());
+    for e in elements {
+        assert_type_and_hint!(&annotations, &index, e, "DINT", Some("INT"));
+    }
+}
+
+#[test]
+fn array_of_array_explicit_assignment_test() {
+    // GIVEN a struct-initialization with explicit assignments
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION main : DINT
+        VAR
+            x : INT_MATRIX;
+        END_VAR
+            x := [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9] ];
+        END_FUNCTION
+
+        TYPE INT_MATRIX : ARRAY[0..2] OF ARRAY[0..2] OF INT; END_TYPE
+        ",
+        id_provider.clone(),
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // THEN the right side is annotated as an int array
+    let assignment = &unit.implementations[0].statements[0];
+    let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = assignment else {
+        unreachable!()
+    };
+
+    assert_type_and_hint!(&annotations, &index, &right, "INT_MATRIX" /*array of int*/, None);
+
+    let AstStatement::Literal(AstLiteral::Array(inner)) = right.get_stmt() else { panic!() };
+    let elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
+    assert_eq!(3, elements.len());
+    for e in elements {
+        // the inner arrays should be annotated
+        assert_type_and_hint!(&annotations, &index, e, "__INT_MATRIX", None);
+
+        let AstStatement::Literal(AstLiteral::Array(inner)) = e.get_stmt() else { panic!() };
+
+        // the inner elements should be DINT/INTs
+        let inner_elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
+        assert_eq!(3, inner_elements.len());
+        for inner_e in inner_elements {
+            assert_type_and_hint!(&annotations, &index, inner_e, "DINT", Some("INT"));
+        }
     }
 }
 
@@ -2496,9 +2608,9 @@ fn program_members_initializers_type_hint_test() {
         .iter()
         .map(|v| {
             annotations
-                .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+                .get_type_hint_or_type(v.initializer.as_ref().unwrap(), &index)
                 .map(crate::typesystem::DataType::get_name)
-                .unwrap()
+                .unwrap_or_default()
         })
         .collect();
 
