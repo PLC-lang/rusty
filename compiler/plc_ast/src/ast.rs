@@ -851,6 +851,14 @@ impl AstNode {
         matches!(self.stmt, AstStatement::EmptyStatement(..))
     }
 
+    pub fn is_assignment(&self) -> bool {
+        matches!(self.stmt, AstStatement::Assignment(..))
+    }
+
+    pub fn is_output_assignment(&self) -> bool {
+        matches!(self.stmt, AstStatement::OutputAssignment(..))
+    }
+
     pub fn is_reference(&self) -> bool {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
     }

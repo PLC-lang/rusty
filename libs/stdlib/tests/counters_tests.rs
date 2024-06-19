@@ -28,11 +28,11 @@ fn ctu() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= INT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= INT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= INT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -70,11 +70,11 @@ fn ctu_int() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= INT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= INT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= INT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -112,11 +112,11 @@ fn ctu_dint() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= DINT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= DINT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= DINT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -154,11 +154,11 @@ fn ctu_udint() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= UDINT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= UDINT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= UDINT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -196,11 +196,11 @@ fn ctu_lint() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= LINT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= LINT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= LINT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -238,11 +238,11 @@ fn ctu_ulint() {
         END_VAR
             // count up until Q_res true and then reset CV_res
             IF Q_res THEN
-                ctu_inst(CU:= TRUE, R:= TRUE, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= TRUE, PV:= ULINT#3, Q => Q_res, CV => CV_res);
             ELSE
-                ctu_inst(CU:= TRUE, R:= FALSE, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= TRUE, R:= FALSE, PV:= ULINT#3, Q => Q_res, CV => CV_res);
                 // input CU evaluated by R_EDGE, this call will enable to count up again
-                ctu_inst(CU:= FALSE, R:= FALSE, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+                ctu_inst(CU:= FALSE, R:= FALSE, PV:= ULINT#3, Q => Q_res, CV => CV_res);
             END_IF
         END_PROGRAM
     "#;
@@ -290,12 +290,12 @@ fn ctd() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -333,12 +333,12 @@ fn ctd_int() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= INT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= INT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -376,12 +376,12 @@ fn ctd_dint() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= DINT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= DINT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= DINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= DINT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -419,12 +419,12 @@ fn ctd_udint() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= UDINT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= UDINT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= UDINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= UDINT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -462,12 +462,12 @@ fn ctd_lint() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= LINT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= LINT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= LINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= LINT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -505,12 +505,12 @@ fn ctd_ulint() {
         END_VAR
             // load PV value
             IF load THEN
-                ctd_inst(CD:= TRUE, LD:= load, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+                ctd_inst(CD:= TRUE, LD:= load, PV:= ULINT#3, Q => Q_res, CV => CV_res);
                 load := FALSE;
             END_IF
-            ctd_inst(CD:= TRUE, LD:= load, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= TRUE, LD:= load, PV:= ULINT#3, Q => Q_res, CV => CV_res);
             // input CD evaluated by R_EDGE, this call will enable to count down again
-            ctd_inst(CD:= FALSE, LD:= load, PV:= ULINT#3, Q:= Q_res, CV:= CV_res);
+            ctd_inst(CD:= FALSE, LD:= load, PV:= ULINT#3, Q => Q_res, CV => CV_res);
         END_PROGRAM
     "#;
 
@@ -561,31 +561,31 @@ fn ctud() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
@@ -636,31 +636,31 @@ fn ctud_int() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= INT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= INT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
@@ -711,31 +711,31 @@ fn ctud_dint() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= DINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= DINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
@@ -786,31 +786,31 @@ fn ctud_udint() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= UDINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= UDINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
@@ -861,31 +861,31 @@ fn ctud_lint() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= LINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= LINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
@@ -936,31 +936,31 @@ fn ctud_ulint() {
         END_VAR
             // 1st call, load PV value
             IF load THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= TRUE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
                 load := FALSE;
             END_IF
 
             // 2nd call, CU/CD both true, nothing should happen
             IF i = 1 THEN
-                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 3rd call, count down
             IF i = 2 THEN
                 // input CD evaluated by R_EDGE, this call will enable count down again
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
-                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
+                ctud_inst(CU:= FALSE, CD:= TRUE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 4th call, count up
             IF i = 3 THEN
                 // input CU evaluated by R_EDGE, third call enabled count up again
-                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= TRUE, CD:= FALSE, R:= FALSE, LD:= FALSE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
 
             // 5th call, reset
             IF i = 4 THEN
-                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= ULINT#1, QU:= QU_res, QD:= QD_res, CV:= CV_res);
+                ctud_inst(CU:= FALSE, CD:= FALSE, R:= TRUE, LD:= FALSE, PV:= ULINT#1, QU => QU_res, QD => QD_res, CV => CV_res);
             END_IF
             i := i + 1;
         END_PROGRAM
