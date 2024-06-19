@@ -11,7 +11,6 @@ use inkwell::{
 };
 use rustc_hash::FxHashSet;
 
-use plc_ast::ast::Assignment;
 use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
@@ -1205,7 +1204,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
-        let Some(data) = try_from!(param_context.assignment_statement, Assignment) else {
+        let Some(data) = try_from!(param_context.assignment, Assignment) else {
             // foo(x)
             return Ok(self.generate_nameless_parameter(param_context)?);
         };
