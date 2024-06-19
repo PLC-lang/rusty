@@ -11,6 +11,7 @@ use crate::{
     },
     literals::AstLiteral,
     provider::IdProvider,
+    try_from,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -96,16 +97,17 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
 
                     let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
-                        .map(|it| match &it.stmt {
-                            AstStatement::Assignment(Assignment { left, right }) => {
-                                //<element-name, initializer, location>
-                                (
-                                    extract_flat_ref_name(left.as_ref()),
-                                    Some(*right.clone()),
-                                    it.get_location(),
-                                )
-                            }
-                            _ => (extract_flat_ref_name(it), None, it.get_location()),
+                        .map(|it| {
+                            try_from!(it, Assignment).map_or_else(
+                                || (extract_flat_ref_name(it), None, it.get_location()),
+                                |Assignment { left, right }| {
+                                    (
+                                        extract_flat_ref_name(left.as_ref()),
+                                        Some(*right.clone()),
+                                        it.get_location(),
+                                    )
+                                },
+                            )
                         })
                         .map(|(element_name, initializer, location)| {
                             let enum_literal = initializer.unwrap_or_else(|| {

@@ -638,8 +638,12 @@ pub enum AstStatement {
 /// Will try to return a reference to the variants inner type, specified via the `t:ty` parameter.
 /// Converts the `try_from`-`Result` into an `Option`
 macro_rules! try_from {
+    () => { None };
     ($ex:expr, $t:ty) => {
         <&$t>::try_from($ex.get_stmt()).ok()
+    };
+    ($($ex:tt)*, $t:ty) => {
+        try_from!($($ex)*, $t).ok()
     };
 }
 
