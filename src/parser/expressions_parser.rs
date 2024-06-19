@@ -213,17 +213,25 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstNode {
     };
 
     match literal_parse_result {
-        Some(statement) => {
-            if lexer.token == KeywordAssignment {
+        Some(statement) => match lexer.token {
+            KeywordAssignment => {
                 lexer.advance();
                 AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else if lexer.token == KeywordOutputAssignment {
+            }
+            KeywordOutputAssignment => {
                 lexer.advance();
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else {
-                statement
             }
-        }
+            KeywordReferenceAssignment => {
+                lexer.advance();
+                AstFactory::create_reference_assignment(
+                    statement,
+                    parse_range_statement(lexer),
+                    lexer.next_id(),
+                )
+            }
+            _ => statement,
+        },
         None => {
             let statement = AstFactory::create_empty_statement(
                 lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),

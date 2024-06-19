@@ -616,6 +616,11 @@ pub enum AstStatement {
     Assignment(Assignment),
     // OutputAssignment
     OutputAssignment(Assignment),
+
+    // x REF= y
+    // XXX: Not a big fan of how Assignment, OutputAssignment and ReferenceAssignment are three different
+    //      enums instead of one with a type / kind field distinguishing them
+    ReferenceAssignment(Assignment),
     //Call Statement
     CallStatement(CallStatement),
     // Control Statements
@@ -660,6 +665,9 @@ impl Debug for AstNode {
             }
             AstStatement::OutputAssignment(Assignment { left, right }) => {
                 f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::ReferenceAssignment(Assignment { left, right }) => {
+                f.debug_struct("ReferenceAssignment").field("left", left).field("right", right).finish()
             }
             AstStatement::CallStatement(CallStatement { operator, parameters }) => f
                 .debug_struct("CallStatement")
@@ -1309,6 +1317,19 @@ impl AstFactory {
             id,
             location,
         )
+    }
+
+    // XXX: Deduplicate code here?
+    pub fn create_reference_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
+        let location = left.location.span(&right.location);
+        AstNode {
+            stmt: AstStatement::ReferenceAssignment(Assignment {
+                left: Box::new(left),
+                right: Box::new(right),
+            }),
+            id,
+            location,
+        }
     }
 
     pub fn create_member_reference(member: AstNode, base: Option<AstNode>, id: AstId) -> AstNode {
