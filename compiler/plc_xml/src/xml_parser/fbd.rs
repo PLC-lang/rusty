@@ -1,4 +1,7 @@
-use ast::ast::{AstFactory, AstNode, AstStatement};
+use ast::{
+    ast::{AstFactory, AstNode, CallStatement},
+    try_from,
+};
 
 use plc::index::FxIndexMap;
 use plc_source::source_location::SourceLocation;
@@ -54,11 +57,10 @@ impl<'xml> FunctionBlockDiagram<'xml> {
                 let (rhs, remove_id) = ast_association
                     .get(&ref_id)
                     .map(|stmt| {
-                        if matches!(stmt.get_stmt(), AstStatement::CallStatement(..)) {
-                            (stmt.clone(), Some(ref_id))
-                        } else {
-                            self.transform_node(ref_id, session, ast_association)
-                        }
+                        try_from!(stmt, CallStatement).map_or_else(
+                            || self.transform_node(ref_id, session, ast_association),
+                            |_| (stmt.clone(), Some(ref_id)),
+                        )
                     })
                     .expect("Expected AST statement, found None");
 
