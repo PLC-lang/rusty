@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+// TODO: Some of these tests are incorrect, because a `default()` call will override the values defined in the
+//       VAR block. Thus any tests relying on data initialized in the VAR block needs to be updated such that
+//       the initialization happens in the POU body. However, this won't be any issue once we convert to LIT.
+
 use crate::*;
 use pretty_assertions::assert_eq;
 
@@ -213,4 +217,126 @@ fn byteaccess_assignment_should_not_override_current_values() {
     ";
     let res: i32 = compile_and_run(prog, &mut crate::MainType::default);
     assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
+}
+
+#[test]
+fn bitaccess_in_output_assignments_with_simple_expression() {
+    let prog = "
+    FUNCTION_BLOCK foo
+        VAR_OUTPUT
+            OUT_FALSE : BOOL;
+            OUT_TRUE : BOOL;
+        END_VAR
+
+        OUT_TRUE := TRUE;
+        OUT_FALSE := FALSE;
+    END_FUNCTION_BLOCK
+
+    FUNCTION main : DINT
+        VAR
+            a : BYTE;
+        END_VAR
+
+        VAR_TEMP
+            foo_instance : foo;
+        END_VAR
+
+        a := 2#1010_1010;
+
+        // Invert these ~~bitc-~~bits
+        foo_instance(OUT_TRUE => a.0);
+        foo_instance(OUT_TRUE => a.2);
+        foo_instance(OUT_TRUE => a.4);
+        foo_instance(OUT_TRUE => a.6);
+
+        foo_instance(OUT_FALSE => a.1);
+        foo_instance(OUT_FALSE => a.3);
+        foo_instance(OUT_FALSE => a.5);
+        foo_instance(OUT_FALSE => a.7);
+
+        main := a;
+    END_FUNCTION";
+
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default());
+    assert_eq!(res, 0b0101_0101);
+}
+
+#[test]
+fn bitaccess_in_output_assignment_with_complexish_expression() {
+    let prog = "
+        TYPE foo_struct : STRUCT
+            bar : bar_struct;
+        END_STRUCT END_TYPE
+        
+        TYPE bar_struct : STRUCT
+            baz : DINT; // 0000_0000_0000_0000_0000_0000_0000_0000
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK QUUX
+            VAR_OUTPUT
+                Q : BOOL;
+            END_VAR
+
+            Q := TRUE;
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                foo : foo_struct;
+                f : QUUX;
+            END_VAR
+
+            foo.bar.baz := 0; // ...just to be sure
+
+
+            // foo.bar.baz:                     0000_0000_0000_0000_0000_0000_0000_0000
+            f(Q => foo.bar.baz.%W1.%B1.%X3); // 0000_1000_0000_0000_0000_0000_0000_0000
+            f(Q => foo.bar.baz.%W1.%B1.%X1); // 0000_1010_0000_0000_0000_0000_0000_0000
+            main := foo.bar.baz;
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default());
+    assert_eq!(res, 0b0000_1010_0000_0000_0000_0000_0000_0000);
+}
+
+#[test]
+fn bitaccess_in_output_assignment_with_complexish_expression_implicit() {
+    let prog = "
+        TYPE foo_struct : STRUCT
+            bar : bar_struct;
+        END_STRUCT END_TYPE
+        
+        TYPE bar_struct : STRUCT
+            baz : DINT; // 0000_0000_0000_0000_0000_0000_0000_0000
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK QUUX
+            VAR_INPUT
+                x : DINT;
+            END_VAR
+            VAR_OUTPUT
+                Q : BOOL;
+            END_VAR
+
+            Q := TRUE;
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                foo : foo_struct;
+                f : QUUX;
+            END_VAR
+
+            foo.bar.baz := 0; // ...just to be sure
+
+            // foo.bar.baz:                                0000_0000_0000_0000_0000_0000_0000_0000
+            f(x := 0, Q => foo.bar.baz.%W1.%B1.%X3);    // 0000_1000_0000_0000_0000_0000_0000_0000
+            f(0, foo.bar.baz.%W1.%B1.%X1);              // 0000_1010_0000_0000_0000_0000_0000_0000
+            main := foo.bar.baz;
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(prog, &mut crate::MainType::default());
+    assert_eq!(res, 0b0000_1010_0000_0000_0000_0000_0000_0000);
 }
