@@ -147,16 +147,16 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-$RUSTY$__FOO__init:r2u8u8"
 
-    define void @FOO(%FOO* %0) section "fn-FOO:v[u8][u8]" {
+    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8][u8]" {
     entry:
       %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
 
-    define i32 @main() section "fn-main:i32" {
+    define i32 @main() section "fn-$RUSTY$main:i32" {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -248,15 +248,15 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "var-$RUSTY$__FOO__init:r1u8"
 
-    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
+    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8]" {
     entry:
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-main:i32" {
+    define i32 @main() section "fn-$RUSTY$main:i32" {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -311,15 +311,15 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "var-$RUSTY$__FOO__init:r1u8"
 
-    define void @FOO(%FOO* %0) section "fn-FOO:v[u8]" {
+    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8]" {
     entry:
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-main:i32" {
+    define i32 @main() section "fn-$RUSTY$main:i32" {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -385,17 +385,17 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
-    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer
-    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer
-    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer
+    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer, section "var-$RUSTY$__QUUX__init:r1u8"
+    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer, section "var-$RUSTY$__foo_struct__init:r1r1u64"
+    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer, section "var-$RUSTY$__bar_struct__init:r1u64"
 
-    define void @QUUX(%QUUX* %0) section "fn-QUUX:v[u8]" {
+    define void @QUUX(%QUUX* %0) section "fn-$RUSTY$QUUX:v[u8]" {
     entry:
       %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-main:i32" {
+    define i32 @main() section "fn-$RUSTY$main:i32" {
     entry:
       %main = alloca i32, align 4
       %foo = alloca %foo_struct, align 8
