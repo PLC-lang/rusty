@@ -1,6 +1,7 @@
-use std::{borrow::Cow, collections::HashMap, str::FromStr};
+use std::{borrow::Cow, str::FromStr};
 
 use quick_xml::events::Event;
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -20,7 +21,7 @@ pub(crate) struct Control<'xml> {
 }
 
 impl<'xml> Control<'xml> {
-    pub fn new(mut hm: HashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
+    pub fn new(mut hm: FxHashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             name: hm.remove("label").map(Cow::from),

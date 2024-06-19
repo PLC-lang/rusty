@@ -1,6 +1,7 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use quick_xml::events::Event;
+use rustc_hash::FxHashMap;
 
 use crate::{
     error::Error,
@@ -19,7 +20,7 @@ pub(crate) struct Connector<'xml> {
 }
 
 impl<'xml> Connector<'xml> {
-    pub fn new(mut hm: HashMap<String, String>, kind: ConnectorKind) -> Result<Self, Error> {
+    pub fn new(mut hm: FxHashMap<String, String>, kind: ConnectorKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
             name: Cow::from(hm.get_or_err("name")?),

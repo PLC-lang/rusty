@@ -6,7 +6,7 @@ use crate::{
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
-use indexmap::IndexSet;
+
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -15,8 +15,10 @@ use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
+    section_names,
 };
 use crate::codegen::debug::DebugBuilderEnum;
+use crate::index::FxIndexSet;
 
 pub struct VariableGenerator<'ctx, 'b> {
     module: &'b Module<'ctx>,
@@ -41,7 +43,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
 
     pub fn generate_global_variables(
         &mut self,
-        dependencies: &IndexSet<Dependency>,
+        dependencies: &FxIndexSet<Dependency>,
         location: &'b str,
     ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
         let mut index = LlvmTypedIndex::default();
@@ -168,6 +170,17 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 }
             }
         }
+
+        let section = section_mangler::SectionMangler::variable(
+            global_variable.get_name(),
+            section_names::mangle_type(
+                self.global_index,
+                self.global_index.get_effective_type_by_name(global_variable.get_type_name())?,
+            )?,
+        )
+        .mangle();
+
+        global_ir_variable.set_section(Some(&section));
 
         Ok(global_ir_variable)
     }

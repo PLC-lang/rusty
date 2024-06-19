@@ -602,7 +602,6 @@ pub enum AstStatement {
     DefaultValue(DefaultValue),
     // Literals
     Literal(AstLiteral),
-    CastStatement(CastStatement),
     MultipliedStatement(MultipliedStatement),
     // Expressions
     ReferenceExpr(ReferenceExpr),
@@ -749,9 +748,6 @@ impl Debug for AstNode {
             }
             AstStatement::ContinueStatement(..) => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement(..) => f.debug_struct("ExitStatement").finish(),
-            AstStatement::CastStatement(CastStatement { target, type_name }) => {
-                f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
-            }
             AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
                 f.debug_struct("ReferenceExpr").field("kind", access).field("base", base).finish()
             }

@@ -35,7 +35,8 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
-use std::{collections::HashSet, vec};
+use rustc_hash::FxHashSet;
+use std::vec;
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 /// the generator for expressions
@@ -573,12 +574,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let output_value_type =
                         self.index.get_type_information_or_void(parameter.get_type_name());
 
-                    //Special string handling
-                    if (assigned_output_type.is_string() && output_value_type.is_string())
-                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                        || (assigned_output_type.is_array() && output_value_type.is_array())
-                    {
-                        self.generate_string_store(
+                    if assigned_output_type.is_aggregate() && output_value_type.is_aggregate() {
+                        self.build_memcpy(
                             assigned_output,
                             assigned_output_type,
                             expression.get_location(),
@@ -1750,7 +1747,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            AstStatement::CastStatement(data) => self.generate_expression_value(&data.target),
             _ => Err(cannot_generate_literal()),
         }
     }
@@ -1866,7 +1862,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
-            let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
+            let mut uninitialized_members: FxHashSet<&VariableIndexEntry> = FxHashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
                 if let AstStatement::Assignment(data) = assignment.get_stmt() {
@@ -2180,21 +2176,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let right_type =
             self.annotations.get_type_or_void(right_statement, self.index).get_type_information();
 
-        //Special string handling
-        if left_type.is_string() && right_type.is_string()
-        //string-literals are also generated as global constant variables so we can always assume that
-        //we have a pointer-value
-        {
+        // redirect aggregate types
+        if left_type.is_aggregate() && right_type.is_aggregate() {
             let right =
-                self.generate_expression_value(right_statement).map(|expr_value| match expr_value {
-                    ExpressionValue::LValue(ptr) => ptr,
-                    ExpressionValue::RValue(_) => unreachable!(
-                        "strings should be lvalues: {:?}, {:?}",
-                        right_statement.get_location(),
-                        right_statement
-                    ),
-                })?;
-            self.generate_string_store(
+                self.generate_expression_value(right_statement)?.get_basic_value_enum().into_pointer_value();
+            self.build_memcpy(
                 left,
                 left_type,
                 right_statement.get_location(),
@@ -2202,25 +2188,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 right_type,
                 right_statement.get_location(),
             )?;
-        } else if (left_type.is_struct() && right_type.is_struct())
-            || (left_type.is_array() && right_type.is_array())
-        {
-            //memcopy right_statement into left
-            let expression =
-                self.generate_expression_value(right_statement)?.get_basic_value_enum().into_pointer_value();
-
-            let size =
-                self.llvm_index.get_associated_type(right_type.get_name())?.size_of().ok_or_else(|| {
-                    Diagnostic::codegen_error(
-                        format!("Unknown size of type {}.", right_type.get_name()).as_str(),
-                        right_statement.get_location(),
-                    )
-                })?;
-
-            self.llvm
-                .builder
-                .build_memcpy(left, 1, expression, 1, size)
-                .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
         } else {
             let expression = self.generate_expression(right_statement)?;
             self.llvm.builder.build_store(left, expression);
@@ -2228,7 +2195,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
-    pub fn generate_string_store(
+    fn build_memcpy(
         &self,
         left: inkwell::values::PointerValue<'ink>,
         left_type: &DataTypeInformation,
@@ -2237,33 +2204,43 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right_type: &DataTypeInformation,
         right_location: SourceLocation,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let target_size = self.get_string_size(left_type, left_location.clone())?;
-        let value_size = self.get_string_size(right_type, right_location)?;
-        let size = std::cmp::min(target_size - 1, value_size);
-        let align_left = left_type.get_string_character_width(self.index).value();
-        let align_right = right_type.get_string_character_width(self.index).value();
-        //Multiply by the string alignment to copy enough for widestrings
-        //This is done at compile time to avoid generating an extra mul
-        let size = self.llvm.context.i32_type().const_int((size * align_left as i64) as u64, true);
+        let (size, alignment) = match (left_type, right_type) {
+            (
+                DataTypeInformation::String { size: lsize, .. },
+                DataTypeInformation::String { size: rsize, .. },
+            ) => {
+                let target_size = lsize
+                    .as_int_value(self.index)
+                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), left_location.clone()))?;
+                let value_size = rsize
+                    .as_int_value(self.index)
+                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), right_location))?;
+                let size = std::cmp::min(target_size - 1, value_size);
+                let alignment = left_type.get_string_character_width(self.index).value();
+                //Multiply by the string alignment to copy enough for widestrings
+                //This is done at compile time to avoid generating an extra mul
+                let size = self.llvm.context.i32_type().const_int((size * alignment as i64) as u64, true);
+                (size, alignment)
+            }
+            (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. })
+            | (DataTypeInformation::Struct { .. }, DataTypeInformation::Struct { .. }) => {
+                let size = self.llvm_index.get_associated_type(right_type.get_name())?.size_of().ok_or_else(
+                    || {
+                        Diagnostic::codegen_error(
+                            format!("Unknown size of type {}.", right_type.get_name()).as_str(),
+                            right_location,
+                        )
+                    },
+                )?;
+                (size, 1)
+            }
+            _ => unreachable!("memcpy is not used for non-aggregate types"),
+        };
+
         self.llvm
             .builder
-            .build_memcpy(left, align_left, right, align_right, size)
+            .build_memcpy(left, alignment, right, alignment, size)
             .map_err(|err| Diagnostic::codegen_error(err, left_location))
-    }
-
-    fn get_string_size(
-        &self,
-        datatype: &DataTypeInformation,
-        location: SourceLocation,
-    ) -> Result<i64, Diagnostic> {
-        if let DataTypeInformation::String { size, .. } = datatype {
-            size.as_int_value(self.index).map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
-        } else {
-            Err(Diagnostic::codegen_error(
-                format!("{} is not a String", datatype.get_name()).as_str(),
-                location,
-            ))
-        }
     }
 
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`

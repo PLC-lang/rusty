@@ -5,7 +5,7 @@ expression: codegen(src)
 ; ModuleID = 'main'
 source_filename = "main"
 
-define double @main() section "fn-main:f64" {
+define double @main() section "fn-$RUSTY$main:f64" {
 entry:
   %main = alloca double, align 8
   store double 0.000000e+00, double* %main, align 8
@@ -25,4 +25,4 @@ entry:
   ret double %main_ret
 }
 
-declare double @MAX__LREAL(i32, double*) section "fn-MAX__LREAL:f64"
+declare double @MAX__LREAL(i32, double*) section "fn-$RUSTY$MAX__LREAL:f64"

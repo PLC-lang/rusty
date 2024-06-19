@@ -1,6 +1,6 @@
 #![allow(clippy::new_without_default)]
 
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 #[derive(Clone)]
 pub struct Node {
@@ -12,7 +12,7 @@ pub struct Node {
     /// Design Note: We use a HashMap here to avoid duplicates but also update existing values in case of
     /// repeated function calls, e.g. `with_attribute("x", 1)` and `with_attribute("x", 2)` where the value of
     /// x has been updated from 1 to 2.
-    attributes: HashMap<&'static str, &'static str>,
+    attributes: FxHashMap<&'static str, &'static str>,
 
     /// Indicates if an element has a closed form, e.g. `<position x="1" y="2"/>`
     closed: bool,
@@ -27,7 +27,7 @@ pub trait IntoNode {
 
 impl Node {
     fn new(name: &'static str) -> Self {
-        Self { name, attributes: HashMap::new(), children: Vec::new(), closed: false, content: None }
+        Self { name, attributes: FxHashMap::default(), children: Vec::new(), closed: false, content: None }
     }
 
     fn attribute(mut self, key: &'static str, value: &'static str) -> Self {

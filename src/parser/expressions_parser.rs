@@ -387,8 +387,8 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
         pos = lexer.parse_progress;
         match (
             current,
-            // only test for the tokens without eating it (Amp must not be consumed if it is in the middle of the chain)
-            [KeywordDot, KeywordSquareParensOpen, OperatorDeref, OperatorAmp, TypeCastPrefix]
+            // only test for the tokens without eating it
+            [KeywordDot, KeywordSquareParensOpen, OperatorDeref, TypeCastPrefix]
                 .into_iter()
                 .find(|it| lexer.token == *it),
         ) {
@@ -455,16 +455,6 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
                 lexer.advance();
                 let new_location = base.get_location().span(&lexer.last_location());
                 current = Some(AstFactory::create_deref_reference(base, lexer.next_id(), new_location))
-            }
-            (None, Some(OperatorAmp)) => {
-                lexer.advance();
-                let op_location = lexer.last_location();
-                // the address-of-operator has different order compared ot other segments, we first see the operator, then
-                // we expect the expression. so writing &a.b.c is more of &(a.b.c) instead of (&a).b.c.
-                // So we expect NO base, and operator and we parse the base now
-                let base = parse_call_statement(lexer)?;
-                let new_location = op_location.span(&base.get_location());
-                current = Some(AstFactory::create_address_of_reference(base, lexer.next_id(), new_location))
             }
             (last_current, _) => {
                 current = last_current; // exit the loop

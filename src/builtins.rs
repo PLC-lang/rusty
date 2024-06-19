@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
@@ -16,6 +14,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+use rustc_hash::FxHashMap;
 
 use crate::{
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
@@ -32,7 +31,7 @@ use crate::{
 
 // Defines a set of functions that are always included in a compiled application
 lazy_static! {
-    static ref BUILTIN: HashMap<&'static str, BuiltIn> = HashMap::from([
+    static ref BUILTIN: FxHashMap<&'static str, BuiltIn> = FxHashMap::from_iter([
         (
             "ADR",
             BuiltIn {
@@ -93,14 +92,14 @@ lazy_static! {
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, 0, operator.get_location()));
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
                         return;
                     };
 
                     let params = flatten_expression_list(params);
 
                     if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_parameter_count(1, params.len(), operator.get_location()));
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
                     }
                 }),
                 generic_name_resolver: no_generic_name_resolver,
@@ -580,7 +579,7 @@ fn validate_builtin_symbol_parameter_count(
     operation: Operator,
 ) {
     let Some(params) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator.get_location()));
         return;
     };
 
@@ -589,7 +588,7 @@ fn validate_builtin_symbol_parameter_count(
         // non-extensible operators
         Operator::Minus | Operator::Division | Operator::NotEqual => {
             if count != 2 {
-                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(
                     2,
                     count,
                     operator.get_location(),
@@ -598,7 +597,7 @@ fn validate_builtin_symbol_parameter_count(
         }
         _ => {
             if count < 2 {
-                validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(
                     2,
                     count,
                     operator.get_location(),
@@ -747,7 +746,7 @@ fn validate_variable_length_array_bound_function(
     index: &Index,
 ) {
     let Some(parameters) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator.get_location()));
         // no params, nothing to validate
         return;
     };
@@ -755,7 +754,7 @@ fn validate_variable_length_array_bound_function(
     let params = ast::flatten_expression_list(parameters);
 
     if params.len() > 2 {
-        validator.push_diagnostic(Diagnostic::invalid_parameter_count(
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
             2,
             params.len(),
             operator.get_location(),
@@ -799,7 +798,7 @@ fn validate_variable_length_array_bound_function(
             };
         }
         (Some(_), None) => {
-            validator.push_diagnostic(Diagnostic::invalid_parameter_count(2, 1, operator.get_location()))
+            validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
         }
         _ => unreachable!(),
     }
@@ -847,20 +846,6 @@ fn generate_variable_length_array_bound_function<'ink>(
             let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
             llvm.i32_type().const_int(offset, false)
         }
-        AstStatement::CastStatement(data) => {
-            let ExpressionValue::RValue(value) = generator.generate_expression_value(&data.target)? else {
-                unreachable!()
-            };
-
-            if !value.is_int_value() {
-                return Err(Diagnostic::codegen_error(
-                    format!("Expected INT value, found {}", value.get_type()),
-                    location,
-                ));
-            };
-
-            value.into_int_value()
-        }
         // e.g. LOWER_BOUND(arr, idx + 3)
         _ => {
             let expression_value = generator.generate_expression(params[1])?;
@@ -893,7 +878,7 @@ fn generate_variable_length_array_bound_function<'ink>(
 }
 
 type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &FxHashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstNode],

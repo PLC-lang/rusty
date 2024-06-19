@@ -3,13 +3,13 @@ use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, Default)]
 pub struct GlobalContext {
     /// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
-    sources: HashMap<&'static str, SourceCode>,
+    sources: FxHashMap<&'static str, SourceCode>,
 
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
@@ -24,7 +24,7 @@ pub struct GlobalContext {
 
 impl GlobalContext {
     pub fn new() -> Self {
-        Self { sources: HashMap::new(), provider: IdProvider::default() }
+        Self { sources: FxHashMap::default(), provider: IdProvider::default() }
     }
 
     /// Inserts a single [`SourceCode`] to the internal source map

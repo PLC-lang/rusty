@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
 use crate::{
     builtins,
@@ -62,7 +61,7 @@ impl<'i> TypeAnnotator<'i> {
     /// then chooses the best fitting function signature and reannotates the function with the found information.
     pub(crate) fn update_generic_call_statement(
         &mut self,
-        generics_candidates: HashMap<String, Vec<String>>,
+        generics_candidates: FxHashMap<String, Vec<String>>,
         implementation_name: &str,
         operator: &AstNode,
         parameters: Option<&AstNode>,
@@ -128,7 +127,7 @@ impl<'i> TypeAnnotator<'i> {
         generic_function: &PouIndexEntry,
         return_type: &str,
         new_name: &str,
-        generics: &HashMap<String, GenericType>,
+        generics: &FxHashMap<String, GenericType>,
     ) {
         // the generic implementation
         if let Some(generic_implementation) = generic_function.find_implementation(self.index) {
@@ -191,7 +190,7 @@ impl<'i> TypeAnnotator<'i> {
     fn find_or_create_datatype(
         &mut self,
         member_name: &str,
-        generics: &HashMap<String, GenericType>,
+        generics: &FxHashMap<String, GenericType>,
     ) -> String {
         match self.index.find_effective_type_info(member_name) {
             Some(DataTypeInformation::Generic { generic_symbol, .. }) => {
@@ -233,7 +232,7 @@ impl<'i> TypeAnnotator<'i> {
         &mut self,
         s: &AstNode,
         function_name: &str,
-        generic_map: &HashMap<String, GenericType>,
+        generic_map: &FxHashMap<String, GenericType>,
     ) {
         /// An internal struct used to hold the type and nature of a generic parameter
         struct TypeAndNature<'a> {
@@ -322,7 +321,7 @@ impl<'i> TypeAnnotator<'i> {
         generics: &[GenericBinding],
         generic_qualified_name: &str,
         generic_return_type: &str,
-        generic_map: &HashMap<String, GenericType>,
+        generic_map: &FxHashMap<String, GenericType>,
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
         let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
@@ -356,9 +355,9 @@ impl<'i> TypeAnnotator<'i> {
     pub fn derive_generic_types(
         &self,
         generics: &[GenericBinding],
-        generics_candidates: HashMap<String, Vec<String>>,
-    ) -> HashMap<String, GenericType> {
-        let mut generic_map: HashMap<String, GenericType> = HashMap::new();
+        generics_candidates: FxHashMap<String, Vec<String>>,
+    ) -> FxHashMap<String, GenericType> {
+        let mut generic_map: FxHashMap<String, GenericType> = FxHashMap::default();
         for GenericBinding { name, nature } in generics {
             let smallest_possible_type =
                 self.index.find_effective_type_info(get_smallest_possible_type(nature));
@@ -425,13 +424,13 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &FxHashMap<String, GenericType>) -> String;
 
 /// Builds the correct generic name from the given information
 pub fn generic_name_resolver(
     qualified_name: &str,
     generics: &[GenericBinding],
-    generic_map: &HashMap<String, GenericType>,
+    generic_map: &FxHashMap<String, GenericType>,
 ) -> String {
     generics
         .iter()
@@ -441,13 +440,13 @@ pub fn generic_name_resolver(
         .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
-/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
+/// This method returns the qualified name, but has the same signature as the generic resolver to be used in builtins
 pub fn no_generic_name_resolver(
     qualified_name: &str,
     _: &[GenericBinding],
-    _: &HashMap<String, GenericType>,
+    _: &FxHashMap<String, GenericType>,
 ) -> String {
-    generic_name_resolver(qualified_name, &[], &HashMap::new())
+    generic_name_resolver(qualified_name, &[], &FxHashMap::default())
 }
 
 pub fn get_smallest_possible_type(nature: &TypeNature) -> &str {

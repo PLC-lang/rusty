@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::panic;
-use std::collections::HashSet;
 
 use crate::test_utils::tests::parse;
 use insta::assert_debug_snapshot;
@@ -12,6 +11,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
 };
 use pretty_assertions::*;
+use rustc_hash::FxHashSet;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
@@ -66,7 +66,7 @@ fn ids_are_assigned_to_parsed_literals() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     assert!(ids.insert(implementation.statements[0].get_id()));
     assert!(ids.insert(implementation.statements[1].get_id()));
     assert!(ids.insert(implementation.statements[2].get_id()));
@@ -87,7 +87,7 @@ fn ids_are_assigned_to_parsed_assignments() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
 
     if let AstStatement::Assignment(Assignment { left, right }) = &implementation.statements[0].get_stmt() {
         assert!(ids.insert(left.get_id()));
@@ -110,7 +110,7 @@ fn ids_are_assigned_to_callstatements() {
 
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     if let AstStatement::CallStatement(CallStatement { operator, .. }, ..) =
         &implementation.statements[0].get_stmt()
     {
@@ -188,7 +188,7 @@ fn ids_are_assigned_to_expressions() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
 
     if let AstNode {
         id, stmt: AstStatement::BinaryExpression(BinaryExpression { left, right, .. }), ..
@@ -304,7 +304,7 @@ fn ids_are_assigned_to_if_statements() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     match &implementation.statements[0] {
         AstNode {
             stmt:
@@ -335,7 +335,7 @@ fn ids_are_assigned_to_for_statements() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     match &implementation.statements[0] {
         AstNode {
             stmt:
@@ -374,7 +374,7 @@ fn ids_are_assigned_to_while_statements() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     match &implementation.statements[0] {
         AstNode {
             stmt:
@@ -406,7 +406,7 @@ fn ids_are_assigned_to_repeat_statements() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
 
     match &implementation.statements[0] {
         AstNode {
@@ -444,7 +444,7 @@ fn ids_are_assigned_to_case_statements() {
     ";
     let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
-    let mut ids = HashSet::new();
+    let mut ids = FxHashSet::default();
     match &implementation.statements[0] {
         AstNode {
             stmt:

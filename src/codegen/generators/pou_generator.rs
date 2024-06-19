@@ -17,18 +17,17 @@ use crate::{
     resolver::{AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
 };
-use std::collections::HashMap;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use crate::index::{ArgumentType, ImplementationIndexEntry, VariableIndexEntry};
+use crate::index::{ArgumentType, FxIndexMap, FxIndexSet, ImplementationIndexEntry, VariableIndexEntry};
 
 use crate::index::Index;
 use index::VariableType;
-use indexmap::{IndexMap, IndexSet};
+
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -42,6 +41,7 @@ use inkwell::{
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 use section_mangler::{FunctionArgument, SectionMangler};
 
 pub struct PouGenerator<'ink, 'cg> {
@@ -56,7 +56,7 @@ pub struct PouGenerator<'ink, 'cg> {
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
-    dependencies: &IndexSet<Dependency>,
+    dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
@@ -73,7 +73,7 @@ pub fn generate_implementation_stubs<'ink>(
                 None
             }
         })
-        .collect::<IndexMap<_, _>>();
+        .collect::<FxIndexMap<_, _>>();
     for (name, implementation) in implementations {
         if !implementation.is_generic() {
             let curr_f =
@@ -92,7 +92,7 @@ pub fn generate_implementation_stubs<'ink>(
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: &Llvm<'ink>,
-    dependencies: &IndexSet<Dependency>,
+    dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
@@ -153,17 +153,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
-    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> String {
+    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
         let ctx = SectionMangler::function(implementation.get_call_name());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 
-        let ctx = params.into_iter().fold(ctx, |ctx, param| {
-            // FIXME: Can we unwrap here?
+        let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, Diagnostic> {
             let ty = section_names::mangle_type(
                 self.index,
-                self.index.get_effective_type_by_name(&param.data_type_name).unwrap(),
-            );
+                self.index.get_effective_type_by_name(&param.data_type_name)?,
+            )?;
             let parameter = match param.argument_type {
                 // TODO: We need to handle the `VariableType` enum as well - this describes the mode of
                 // argument passing, e.g. inout
@@ -171,15 +170,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 index::ArgumentType::ByRef(_) => FunctionArgument::ByRef(ty),
             };
 
-            ctx.with_parameter(parameter)
-        });
+            Ok(ctx.with_parameter(parameter))
+        })?;
 
         let return_ty = self
             .index
             .find_return_type(implementation.get_type_name())
             .map(|ty| section_names::mangle_type(self.index, ty));
 
-        ctx.with_return_type(return_ty).mangle()
+        let ctx = match return_ty {
+            Some(rty) => ctx.with_return_type(rty?),
+            None => ctx,
+        };
+
+        Ok(ctx.mangle())
     }
 
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
@@ -281,7 +285,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
 
-        let section_name = self.mangle_function(implementation);
+        let section_name = self.mangle_function(implementation)?;
         curr_f.set_section(Some(&section_name));
 
         let pou_name = implementation.get_call_name();
@@ -372,7 +376,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let block = context.append_basic_block(current_function, "entry");
 
         //Create all labels this function will have
-        let mut blocks = HashMap::new();
+        let mut blocks = FxHashMap::default();
         if let Some(labels) = self.index.get_labels(&implementation.name) {
             for name in labels.keys() {
                 blocks.insert(name.to_string(), self.llvm.context.append_basic_block(current_function, name));

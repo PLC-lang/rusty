@@ -96,46 +96,4 @@ expression: statement
             ),
         },
     },
-    BinaryExpression {
-        operator: Equal,
-        left: ReferenceExpr {
-            kind: Address,
-            base: Some(
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "y",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "x",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-            ),
-        },
-        right: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "z",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "y",
-                        },
-                    ),
-                    base: None,
-                },
-            ),
-        },
-    },
 ]

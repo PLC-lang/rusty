@@ -8,6 +8,7 @@
 - [Writing ST Programs]()
   - [Libraries](libraries.md)
     - [External Functions](libraries/external_functions.md)
+    - [API guidelines](./libraries/api_lib_guide.md)
   - [Using in external programs]()
 
 - [POUs](./pous.md)
