@@ -2,16 +2,14 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
-error[E032]: Invalid parameter count. Received 0 parameters while 1 parameters were expected.
+error[E032]: this POU takes 1 argument but 0 arguments were supplied
   ┌─ <internal>:7:13
   │
 7 │             REF();
-  │             ^^^ Invalid parameter count. Received 0 parameters while 1 parameters were expected.
+  │             ^^^ this POU takes 1 argument but 0 arguments were supplied
 
-error[E032]: Invalid parameter count. Received 4 parameters while 1 parameters were expected.
+error[E032]: this POU takes 1 argument but 4 arguments were supplied
   ┌─ <internal>:8:13
   │
 8 │             REF(x, 1, 2, 'abc');
-  │             ^^^ Invalid parameter count. Received 4 parameters while 1 parameters were expected.
-
-
+  │             ^^^ this POU takes 1 argument but 4 arguments were supplied

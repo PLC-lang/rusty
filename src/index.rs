@@ -1205,6 +1205,10 @@ impl Index {
             .collect::<Vec<_>>()
     }
 
+    pub fn has_variadic_parameter(&self, pou_name: &str) -> bool {
+        self.get_pou_members(pou_name).iter().any(|member| member.is_parameter() && member.is_variadic())
+    }
+
     /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
     /// the call to it

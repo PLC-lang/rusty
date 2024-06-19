@@ -1,4 +1,4 @@
-name: Build
+name: Build Linux
 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
@@ -62,56 +62,6 @@ jobs:
         with:
           name: stdlib
           path: output
-
-  test-windows:
-    name: Test Windows
-    runs-on: windows-2022
-    env:
-      toolchain-version: 1.77.0
-      llvm-version: 14.0.6
-    steps:
-
-      - uses: actions/checkout@v3
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.toolchain-version }}
-
-      - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-          directory: "./llvm"
-
-      - name: Cargo test (Unit)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --lib -- --nocapture
-
-      - name: Cargo test (Correctness)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: correctness -- --nocapture --test-threads=1
-
-      - name: Cargo test (Integration)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: integration -- --nocapture --test-threads=1
-
-      - name: Release Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
-
-      - uses: actions/upload-artifact@master
-        with:
-          name: plc.exe
-          path: target/release/plc.exe
 
   style:
     name: Check Style
