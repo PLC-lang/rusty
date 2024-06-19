@@ -40,37 +40,6 @@ pub enum AstLiteral {
     Array(Array),
 }
 
-// macro_rules! impl_try_from {
-//     (for $($id:ident),+) => {
-//         $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $id {
-//             type Error = ();
-
-//             fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
-//                 let crate::ast::AstStatement::Literal(AstLiteral::$id(inner)) = value.get_stmt() else {
-//                     return Err(())
-//                 };
-//                 Ok(inner)
-//             }
-//         })*
-//     };
-//     (for $($id:ident, $p:path),+) => {
-//         $(impl<'ast> TryFrom<&'ast AstNode> for &'ast $id {
-//             type Error = ();
-
-//             fn try_from(value: &'ast AstNode) -> Result<Self, Self::Error> {
-//                 let crate::ast::AstStatement::Literal($p(inner)) = value.get_stmt() else {
-//                     return Err(())
-//                 };
-//                 Ok(inner)
-//             }
-//         })*
-//     };
-// }
-
-// impl_try_from!(for Date, DateAndTime, TimeOfDay, Time, Array);
-// // XXX: String::try_from(..) is ambiguous between `AstLiteral::Real` and `AstStatement::Identifier`
-// impl_try_from!(for i128, AstLiteral::Integer, String, AstLiteral::Real, bool, AstLiteral::Bool, StringValue, AstLiteral::String);
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Date {
     year: i32,
