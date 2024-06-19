@@ -799,82 +799,17 @@
 <a href="#797" id="797">797</a>
 <a href="#798" id="798">798</a>
 <a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
 };
 <span class="kw">use crate</span>::{
-    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
+    codegen::debug::Debug,
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{<span class="self">self</span>, DataTypeInformation},
+    typesystem::DataTypeInformation,
 };
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1110,7 +1045,7 @@
         </span><span class="self">self</span>.register_debug_location(left_statement);
         <span class="comment">//TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         </span><span class="kw">if </span>left_statement.has_direct_access() {
-            <span class="kw">return </span><span class="self">self</span>.generate_direct_access_assignment(left_statement, right_statement);
+            <span class="kw">return </span><span class="self">self</span>.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
         <span class="comment">//TODO: Also hacky but for now we cannot generate assignments for hardware access
         </span><span class="kw">if </span><span class="macro">matches!</span>(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
@@ -1145,96 +1080,32 @@
         <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span><span class="self">self</span>.function_context.function, line, column);
     }
 
-    <span class="kw">fn </span>generate_direct_access_assignment(
+    <span class="kw">fn </span>generate_assignment_statement_direct_access(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         left_statement: <span class="kw-2">&amp;</span>AstNode,
         right_statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="comment">//TODO : Validation
-        </span><span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
+        <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
 
-        <span class="comment">// given a complex direct-access assignemnt: a.b.c.%W3,%X1
-        // we want to deconstruct the targe-part (a.b.c) and the direct-access sequence (%W3.%X1)
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>((target, access_sequence)) = collect_base_and_direct_access_for_assignment(left_statement)
-        <span class="kw">else </span>{
+        <span class="comment">// Left pointer
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>((base, <span class="kw">_</span>)) = collect_base_and_direct_access_for_assignment(left_statement) <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">"Invalid direct-access expression: {left_statement:#?}"</span>)
         };
+        <span class="kw">let </span>left_expr_value = exp_gen.generate_expression_value(base)<span class="question-mark">?</span>;
+        <span class="kw">let </span>left_value = left_expr_value.as_r_value(<span class="self">self</span>.llvm, <span class="prelude-val">None</span>).into_int_value();
+        <span class="kw">let </span>left_pointer = left_expr_value.get_basic_value_enum().into_pointer_value();
 
-        <span class="kw">let </span>left_type = exp_gen.get_type_hint_for(target)<span class="question-mark">?</span>;
-        <span class="kw">let </span>right_type = exp_gen.get_type_hint_for(right_statement)<span class="question-mark">?</span>;
+        <span class="comment">// Generate an expression for the right size
+        </span><span class="kw">let </span>right_type = exp_gen.get_type_hint_for(right_statement)<span class="question-mark">?</span>;
+        <span class="kw">let </span>right_expr = exp_gen.generate_expression(right_statement)<span class="question-mark">?</span>;
 
-        <span class="comment">//special case if we deal with a single bit, then we need to switch to a faked u1 type
-        </span><span class="kw">let </span>right_type =
-            <span class="kw">if let </span>DataTypeInformation::Integer { semantic_size: <span class="prelude-val">Some</span>(typesystem::U1_SIZE), .. } =
-                <span class="kw-2">*</span>right_type.get_type_information()
-            {
-                <span class="self">self</span>.index.get_type_or_panic(typesystem::U1_TYPE)
-            } <span class="kw">else </span>{
-                right_type
-            };
-
-        <span class="comment">//Left pointer
-        </span><span class="kw">let </span>left_expression_value = exp_gen.generate_expression_value(target)<span class="question-mark">?</span>;
-        <span class="kw">let </span>left_value = left_expression_value.as_r_value(<span class="self">self</span>.llvm, <span class="prelude-val">None</span>).into_int_value();
-        <span class="kw">let </span>left = left_expression_value.get_basic_value_enum().into_pointer_value();
-        <span class="comment">//Build index
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((element, direct_access)) = access_sequence.split_first() {
-            <span class="kw">let </span><span class="kw-2">mut </span>rhs = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
-                exp_gen.generate_direct_access_index(
-                    <span class="kw-2">&amp;</span>data.access,
-                    <span class="kw-2">&amp;</span>data.index,
-                    right_type.get_type_information(),
-                    left_type,
-                )
-            } <span class="kw">else </span>{
-                <span class="comment">//TODO: using the global context we could get a slice here
-                </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
-                    .with_error_code(<span class="string">"E055"</span>)
-                    .with_location(element.get_location()))
-            }<span class="question-mark">?</span>;
-            <span class="kw">for </span>element <span class="kw">in </span>direct_access {
-                <span class="kw">let </span>rhs_next = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
-                    exp_gen.generate_direct_access_index(
-                        <span class="kw-2">&amp;</span>data.access,
-                        <span class="kw-2">&amp;</span>data.index,
-                        right_type.get_type_information(),
-                        left_type,
-                    )
-                } <span class="kw">else </span>{
-                    <span class="comment">//TODO: using the global context we could get a slice here
-                    </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
-                        .with_error_code(<span class="string">"E055"</span>)
-                        .with_location(element.get_location()))
-                }<span class="question-mark">?</span>;
-                rhs = <span class="self">self</span>.llvm.builder.build_int_add(rhs, rhs_next, <span class="string">""</span>);
-            }
-            <span class="comment">//Build mask for the index
-            //Get the target bit type as all ones
-            </span><span class="kw">let </span>rhs_type = <span class="self">self</span>.llvm_index.get_associated_type(right_type.get_name())<span class="question-mark">?</span>.into_int_type();
-            <span class="kw">let </span>ones = rhs_type.const_all_ones();
-            <span class="comment">//Extend the mask to the target type
-            </span><span class="kw">let </span>extended_mask = <span class="self">self</span>.llvm.builder.build_int_z_extend(ones, left_value.get_type(), <span class="string">"ext"</span>);
-            <span class="comment">//Position the ones in their correct locations
-            </span><span class="kw">let </span>shifted_mask = <span class="self">self</span>.llvm.builder.build_left_shift(extended_mask, rhs, <span class="string">"shift"</span>);
-            <span class="comment">//Invert the mask
-            </span><span class="kw">let </span>mask = <span class="self">self</span>.llvm.builder.build_not(shifted_mask, <span class="string">"invert"</span>);
-            <span class="comment">//And the result with the mask to erase the set bits at the target location
-            </span><span class="kw">let </span>and_value = <span class="self">self</span>.llvm.builder.build_and(left_value, mask, <span class="string">"erase"</span>);
-
-            <span class="comment">//Generate an expression for the right size
-            </span><span class="kw">let </span>right = exp_gen.generate_expression(right_statement)<span class="question-mark">?</span>;
-            <span class="comment">//Cast the right side to the left side type
-            </span><span class="kw">let </span>lhs = <span class="macro">cast_if_needed!</span>(<span class="self">self</span>, left_type, right_type, right, <span class="prelude-val">None</span>).into_int_value();
-            <span class="comment">//Shift left by the direct access
-            </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_left_shift(lhs, rhs, <span class="string">"value"</span>);
-
-            <span class="comment">//OR the result and store it in the left side
-            </span><span class="kw">let </span>or_value = <span class="self">self</span>.llvm.builder.build_or(and_value, value, <span class="string">"or"</span>);
-            <span class="self">self</span>.llvm.builder.build_store(left, or_value);
-        } <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>();
-        }
-        <span class="prelude-val">Ok</span>(())
+        exp_gen.generate_assignment_with_direct_access(
+            left_statement,
+            left_value,
+            left_pointer,
+            right_type,
+            right_expr,
+        )
     }
 
     <span class="doccomment">/// generates a for-loop statement
@@ -1708,9 +1579,8 @@
     }
 }
 
-<span class="doccomment">/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
-/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
-/// of direct-access commands (vec![%W3, %X2])
+<span class="doccomment">/// Deconstructs assignments such as `a.b.c.%W3.%X2 := 2` into a base statement and its direct-access sequences.
+/// For the given example this function would return `(Node(a.b.c), vec![Node(%W3), Node(%X2)])`
 </span><span class="kw">fn </span>collect_base_and_direct_access_for_assignment(
     left_statement: <span class="kw-2">&amp;</span>AstNode,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>AstNode, Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;)&gt; {
