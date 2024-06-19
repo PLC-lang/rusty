@@ -1206,7 +1206,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let Some(data) = try_from!(param_context.assignment, Assignment) else {
             // foo(x)
-            return Ok(self.generate_nameless_parameter(param_context)?);
+            return self.generate_nameless_parameter(param_context);
         };
 
         // explicit call parameter: foo(param := value)
