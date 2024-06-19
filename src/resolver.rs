@@ -7,7 +7,7 @@
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
-use type_hint_annotator::TypeHintAnnotator;
+use post_annotator::PostAnnotator;
 
 use plc_ast::{
     ast::{
@@ -40,7 +40,7 @@ use crate::{
 
 pub mod const_evaluator;
 pub mod generics;
-pub mod type_hint_annotator;
+pub mod post_annotator;
 
 #[cfg(test)]
 mod tests;
@@ -439,6 +439,12 @@ impl StatementAnnotation {
         }
     }
 
+    pub fn make_const(&mut self) {
+        if let StatementAnnotation::Variable { constant, .. } = self {
+            *constant = true;
+        }
+    }
+
     pub fn data_type(type_name: &str) -> Self {
         StatementAnnotation::Type { type_name: type_name.into() }
     }
@@ -707,6 +713,14 @@ impl AnnotationMapImpl {
     pub fn add_generic_nature(&mut self, s: &AstNode, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
+    
+    /// marks the annotation of the given node as constant, if an annotation exists and it
+    /// can be marked
+    pub(crate) fn make_constant(&mut self, s: &AstNode) {
+        if let Some(a) = self.type_map.get_mut(&s.get_id()) {
+            a.make_const();
+        }
+    }
 }
 
 impl AnnotationMap for AnnotationMapImpl {
@@ -774,10 +788,10 @@ impl<'i> TypeAnnotator<'i> {
         let mut resolver = NameResolver::new(index);
         unit.walk(&mut resolver);
 
-        let mut type_hint_annotator = TypeHintAnnotator::new(index, resolver.annotations);
-        unit.walk(&mut type_hint_annotator);
+        let mut post_annotator = PostAnnotator::new(index, resolver.annotations, id_provider.clone());
+        unit.walk(&mut post_annotator);
 
-        return (type_hint_annotator.annotations, FxIndexSet::default(), resolver.strings);
+        return (post_annotator.annotations, FxIndexSet::default(), resolver.strings);
 
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {

@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, DataType, ReferenceAccess, TypeNature,
@@ -12,8 +13,9 @@ use crate::{
     index::{Index, VariableIndexEntry},
     resolver::{register_string_type, AnnotationMap, AnnotationMapImpl, StatementAnnotation, StringLiterals},
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
-        LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE,
+        self, get_bigger_type, get_type_name_for_direct_access, DataTypeInformation, BOOL_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
+        VOID_TYPE,
     },
 };
 
@@ -246,24 +248,41 @@ impl AstVisitor for NameResolver<'_> {
         };
 
         //TODO think about cow<string> here
-        let context = base.and_then(|b| self.annotations.get_type_name(b)).map(str::to_string);
+        let base_annotation = base.and_then(|b| self.annotations.get(b));
+
+        let is_constant = base_annotation.map(|a| a.is_const()).unwrap_or(false);
+        let context = base_annotation
+            .and_then(|a| self.annotations.get_type_name_for_annotation(a))
+            .map(str::to_string);
 
         match (&stmt.access, context.as_ref()) {
             (ReferenceAccess::Member(member), base) => {
-                if let Some(base) = base {
-                    // resolve member und the base's context
-                    self.scope.push(ScopingStrategy::Strict(Scope::Composite(vec![
-                        Scope::LocalVariable(base.to_string()),
-                        Scope::Callable(Some(base.to_string())),
-                    ])));
+                match member.get_stmt() {
+                    AstStatement::Literal(AstLiteral::Integer(_)) => {
+                        // BIT-Access
+                        self.annotations.annotate(&member, StatementAnnotation::value(BOOL_TYPE.to_string()))
+                    }
+                    AstStatement::DirectAccess(da) => self.annotations.annotate(
+                        &member,
+                        StatementAnnotation::value(get_type_name_for_direct_access(&da.access).to_string()),
+                    ),
+                    _ => {
+                        if let Some(base) = base {
+                            // resolve member und the base's context
+                            self.walk_with_scope(
+                                member,
+                                ScopingStrategy::Strict(Scope::Composite(vec![
+                                    Scope::LocalVariable(base.to_string()),
+                                    Scope::Callable(Some(base.to_string())),
+                                ])),
+                            );
+                        } else {
+                            member.walk(self);
+                        }
+                    }
                 }
 
-                member.walk(self);
                 self.annotations.copy_annotation(member, node);
-
-                if base.is_some() {
-                    self.scope.pop();
-                }
             }
             (ReferenceAccess::Index(idx), Some(base)) => {
                 // make sure we resolve from the root-scope
@@ -299,7 +318,10 @@ impl AstVisitor for NameResolver<'_> {
                 if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: false, .. }) =
                     self.index.find_type(base).map(typesystem::DataType::get_type_information)
                 {
-                    self.annotations.annotate(node, StatementAnnotation::data_type(inner_type_name));
+                    self.index.find_effective_type_by_name(inner_type_name).inspect(|effective_inner_type| {
+                        self.annotations
+                            .annotate(node, StatementAnnotation::data_type(effective_inner_type.get_name()))
+                    });
                 }
             }
             (ReferenceAccess::Address, Some(_base)) => {
@@ -311,6 +333,11 @@ impl AstVisitor for NameResolver<'_> {
                 }
             }
             _ => {}
+        }
+
+        // if the parent reference is constant, we are also constant
+        if is_constant {
+            self.annotations.make_constant(node)
         }
     }
 
@@ -405,7 +432,8 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, node: &plc_ast::ast::AstNode) {
-        stmt.operator.walk(self);
+        // prioritize functions here
+        self.walk_with_scope(&stmt.operator, ScopingStrategy::Hierarchical(Scope::Callable(None)));
         // annotate the whole statement with the resulting type
         let call_target = self.annotations.get(&stmt.operator);
         if let Some(StatementAnnotation::Function { return_type, .. }) = call_target {
@@ -461,7 +489,7 @@ impl AstVisitor for NameResolver<'_> {
             (&variable.initializer, variable.data_type_declaration.get_name())
         {
             let mut initializer_annotator = InitializerAnnotator::new(
-                &self.index.get_intrinsic_type_by_name(variable_type).get_type_information(),
+                &self.index.get_effective_type_or_void_by_name(variable_type).get_type_information(),
                 self.index,
                 &mut self.annotations,
             );
@@ -541,7 +569,10 @@ impl<'i> InitializerAnnotator<'i> {
 
 impl AstVisitor for InitializerAnnotator<'_> {
     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
+        // annotate the initializer with the expected type
         self.annotations.annotate_type_hint(node, StatementAnnotation::value(self.expected_type.get_name()));
+
+        // for array initializers we also want to initialize the single array elements [a,b,c]
         if let (
             AstLiteral::Array(Array { elements: Some(elements), .. }),
             DataTypeInformation::Array { inner_type_name, .. },
@@ -549,11 +580,37 @@ impl AstVisitor for InitializerAnnotator<'_> {
         {
             // hint the elements of an array
             if let Some(inner_type) = self.index.find_effective_type_info(inner_type_name) {
-                for member in flatten_expression_list(elements) {
-                    let mut annotator = InitializerAnnotator::new(inner_type, self.index, self.annotations);
-                    member.walk(&mut annotator);
+                let mut annotator = InitializerAnnotator::new(inner_type, self.index, self.annotations);
+                for member in elements.get_as_list() {
+                    annotator.visit(member);
                 }
             }
+        }
+    }
+
+    fn visit_paren_expression(&mut self, inner: &AstNode, node: &AstNode) {
+        inner.walk(self);
+        // maybe a struct?
+        if let DataTypeInformation::Struct { name, .. } = self.expected_type {
+            //annotate the paren-expression and the inner one
+            self.annotations.annotate_type_hint(node, StatementAnnotation::value(name));
+            self.annotations.copy_annotation(node, inner);
+        }
+    }
+
+    fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.walk(self);
+        if let Some(annotation) = stmt.left.get_flat_reference_name().and_then(|ref_name| {
+            Scope::LocalVariable(self.expected_type.get_name().to_string()).lookup(ref_name, self.index)
+        }) {
+            // visit the rightside with new expected type
+            if let Some(sub_type) = self.annotations.get_type_for_annotation(self.index, &annotation) {
+                let mut sub_visitor =
+                    InitializerAnnotator::new(sub_type.get_type_information(), self.index, self.annotations);
+                sub_visitor.visit(&stmt.right);
+            }
+
+            self.annotations.annotate(&stmt.left, annotation);
         }
     }
 }

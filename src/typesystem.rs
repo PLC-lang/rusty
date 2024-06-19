@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, PouType, TypeNature},
+    ast::{AstNode, DirectAccessType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -1430,5 +1430,17 @@ pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Op
         AstLiteral::Time { .. } => Some(TIME_TYPE),
         AstLiteral::TimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
         _ => None,
+    }
+}
+
+/// Returns the resulting type name for the given direct access type. (e.g .%B -> "BYTE")
+pub fn get_type_name_for_direct_access(da: &DirectAccessType) -> &str {
+    match da {
+        DirectAccessType::Bit => BOOL_TYPE,
+        DirectAccessType::Byte => BYTE_TYPE,
+        DirectAccessType::Word => WORD_TYPE,
+        DirectAccessType::DWord => DWORD_TYPE,
+        DirectAccessType::LWord => LWORD_TYPE,
+        DirectAccessType::Template => VOID_TYPE,
     }
 }

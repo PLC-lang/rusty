@@ -2339,14 +2339,14 @@ fn enum_initialization_is_annotated_correctly() {
         &index,
         variables[1].initializer.as_ref().unwrap(),
         "MyEnum",
-        Some("MyEnum")
+        None
     );
     assert_type_and_hint!(
         &annotations,
         &index,
         variables[2].initializer.as_ref().unwrap(),
         "MyEnum",
-        Some("MyEnum")
+        None
     );
 
     let statements = &unit.implementations[0].statements;
@@ -3610,6 +3610,7 @@ fn resolve_recursive_function_call() {
         unreachable!();
     };
 
+    // THEN foo should resolve to the function, not the return variable
     assert_eq!(
         Some(&StatementAnnotation::Function {
             return_type: "DINT".into(),
