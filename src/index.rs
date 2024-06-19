@@ -845,7 +845,7 @@ pub struct Index {
     implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
-    type_index: TypeIndex,
+    pub type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
 
@@ -1126,10 +1126,20 @@ impl Index {
         self.find_variable(q.as_deref(), &segments[..])
     }
 
+    // TODO: `node` could be a trait, "NodeName"?
+    pub fn find_variable_ast(&self, context: Option<&str>, node: &AstNode) -> Option<&VariableIndexEntry> {
+        if let Some(name) = node.get_flat_reference_name() {
+            return self.find_variable(context, &[name]);
+        }
+
+        None
+    }
+
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;
         }
+
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
             Some(context) => self

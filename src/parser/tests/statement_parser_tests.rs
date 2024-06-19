@@ -262,3 +262,124 @@ fn empty_parameter_assignments_in_call_statement() {
     let ast_string = format!("{:#?}", &result);
     insta::assert_snapshot!(ast_string);
 }
+
+#[test]
+fn ref_assignment() {
+    let result = &parse("PROGRAM main x REF= y END_PROGRAM").0.implementations[0];
+    insta::assert_debug_snapshot!(result.statements, @r###"
+    [
+        ReferenceAssignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ]
+    "###)
+}
+
+#[test]
+fn reference_to_declaration() {
+    let (result, diagnostics) = parse(
+        r"
+        FUNCTION foo
+            VAR
+                bar : DINT;
+                baz : REFERENCE TO DINT;
+                qux : DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty());
+    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "bar",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+            Variable {
+                name: "baz",
+                data_type: DataTypeDefinition {
+                    data_type: PointerType {
+                        name: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                        auto_deref: true,
+                        is_reference_to: true,
+                    },
+                },
+            },
+            Variable {
+                name: "qux",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "###);
+}
+
+#[test]
+fn aliasing_dint_variable() {
+    let (result, diagnostics) = parse(
+        "
+        FUNCTION main
+            VAR
+                a AT b : DINT; // equivalent to `a : REFERENCE TO DINT REF= b`
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics, vec![]);
+    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "a",
+                data_type: DataTypeDefinition {
+                    data_type: PointerType {
+                        name: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                        auto_deref: true,
+                        is_reference_to: true,
+                    },
+                },
+                initializer: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "###);
+}

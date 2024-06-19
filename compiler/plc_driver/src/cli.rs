@@ -23,6 +23,14 @@ pub struct CompileParameters {
     pub output: Option<String>,
 
     #[clap(
+        long = "ast",
+        group = "format",
+        global = true,
+        help = "Emit AST (Abstract Syntax Tree) as output"
+    )]
+    pub output_ast: bool,
+
+    #[clap(
         long = "ir",
         group = "format",
         global = true,
@@ -637,6 +645,16 @@ mod cli_tests {
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert!(parameters.output_ir);
+        assert!(!parameters.output_ast);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ast")).unwrap();
+        assert!(!parameters.output_ir);
+        assert!(parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -645,6 +663,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -653,6 +672,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -661,6 +681,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(parameters.output_pic_obj);
@@ -669,6 +690,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -677,6 +699,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -685,6 +708,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);

@@ -487,6 +487,9 @@ pub enum DataType {
     PointerType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
+        auto_deref: bool,
+        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+        is_reference_to: bool,
     },
     StringType {
         name: Option<String>,
@@ -596,11 +599,14 @@ pub struct AstNode {
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
-    // a placeholder that indicates a default value of a datatype
+
+    // A placeholder which indicates a default value of a datatype
     DefaultValue(DefaultValue),
+
     // Literals
     Literal(AstLiteral),
     MultipliedStatement(MultipliedStatement),
+
     // Expressions
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
@@ -612,15 +618,17 @@ pub enum AstStatement {
     ParenExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
-    // Assignment
+
+    // TODO: Merge these variants with a `kind` field?
+    // Assignments
     Assignment(Assignment),
-    // OutputAssignment
     OutputAssignment(Assignment),
-    //Call Statement
+    RefAssignment(Assignment),
+
     CallStatement(CallStatement),
+
     // Control Statements
     ControlStatement(AstControlStatement),
-
     CaseCondition(Box<AstNode>),
     ExitStatement(()),
     ContinueStatement(()),
@@ -660,6 +668,9 @@ impl Debug for AstNode {
             }
             AstStatement::OutputAssignment(Assignment { left, right }) => {
                 f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::RefAssignment(Assignment { left, right }) => {
+                f.debug_struct("ReferenceAssignment").field("left", left).field("right", right).finish()
             }
             AstStatement::CallStatement(CallStatement { operator, parameters }) => f
                 .debug_struct("CallStatement")
@@ -1284,8 +1295,11 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstNode {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
+    pub fn create_identifier<T>(name: &str, location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
     }
 
     pub fn create_unary_expression(
@@ -1314,6 +1328,19 @@ impl AstFactory {
         let location = left.location.span(&right.location);
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+            id,
+            location,
+        )
+    }
+
+    // TODO: Merge `create_assignment`, `create_output_assignment` and `create_ref_assignment`
+    //       once the the Assignment AstStatements have been merged and a `kind` field is available
+    //       I.e. something like `AstStatement::Assignment { data, kind: AssignmentKind { Normal, Output, Reference } }
+    //       and then fn create_assignment(kind: AssignmentKind, ...)
+    pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
+        let location = left.location.span(&right.location);
+        AstNode::new(
+            AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
         )
@@ -1417,18 +1444,21 @@ impl AstFactory {
         }
     }
 
-    pub fn create_call_statement(
+    pub fn create_call_statement<T>(
         operator: AstNode,
         parameters: Option<AstNode>,
         id: usize,
-        location: SourceLocation,
-    ) -> AstNode {
+        location: T,
+    ) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
         AstNode {
             stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
-            location,
+            location: location.into(),
             id,
         }
     }

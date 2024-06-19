@@ -184,3 +184,127 @@ fn floating_point_type_casting() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn ref_assignment() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a REF= b;
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca i32*, align 8
+      %b = alloca i32, align 4
+      store i32* null, i32** %a, align 8
+      store i32 0, i32* %b, align 4
+      store i32* %b, i32** %a, align 8
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn reference_to_assignment() {
+    let auto_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REFERENCE TO DINT;
+            END_VAR
+            a := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    let manual_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REF_TO DINT;
+            END_VAR
+            a^ := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    // We want to assert that `a := 5` and `a^ := 5` yield identical IR
+    assert_eq!(auto_deref, manual_deref);
+
+    insta::assert_snapshot!(auto_deref, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca i32*, align 8
+      store i32* null, i32** %a, align 8
+      %deref = load i32*, i32** %a, align 8
+      store i32 5, i32* %deref, align 4
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn reference_to_string_assignment() {
+    let auto_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REFERENCE TO STRING;
+            END_VAR
+
+            a := 'hello';
+        END_FUNCTION
+        "#,
+    );
+
+    let manual_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REF_TO STRING;
+            END_VAR
+
+            a^ := 'hello';
+        END_FUNCTION
+        "#,
+    );
+
+    // We want to assert that `a := 'hello'` and `a^ := 'hello'` yield identical IR
+    assert_eq!(auto_deref, manual_deref);
+
+    insta::assert_snapshot!(auto_deref, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca [81 x i8]*, align 8
+      store [81 x i8]* null, [81 x i8]** %a, align 8
+      %deref = load [81 x i8]*, [81 x i8]** %a, align 8
+      %0 = bitcast [81 x i8]* %deref to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %0, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "###);
+}

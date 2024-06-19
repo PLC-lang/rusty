@@ -393,6 +393,8 @@ pub enum StatementAnnotation {
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
+        /// denotes whether this variable is declared as `REFERENCE TO` (e.g. `foo : REFERENCE TO DINT`)
+        is_reference_to: bool,
     },
     /// a reference to a function
     Function {
@@ -431,6 +433,14 @@ impl StatementAnnotation {
             StatementAnnotation::Variable { constant, .. } => *constant,
             _ => false,
         }
+    }
+
+    pub fn is_auto_deref(&self) -> bool {
+        matches!(self, StatementAnnotation::Variable { is_auto_deref: true, .. })
+    }
+
+    pub fn is_reference_to(&self) -> bool {
+        matches!(self, StatementAnnotation::Variable { is_reference_to: true, .. })
     }
 
     pub fn data_type(type_name: &str) -> Self {
@@ -701,7 +711,7 @@ impl AnnotationMap for AnnotationMapImpl {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct StringLiterals {
     pub utf08: FxHashSet<String>,
     pub utf16: FxHashSet<String>,
@@ -1021,6 +1031,36 @@ impl<'i> TypeAnnotator<'i> {
             self.type_hint_for_variable_initializer(expr, ty, ctx);
             self.inherit_annotations(initializer, expr);
             return;
+        }
+
+        if ty.get_type_information().is_reference_to() {
+            let mut id_provider = ctx.id_provider.clone();
+            let location = &initializer.location;
+
+            let operator = AstFactory::create_member_reference(
+                AstFactory::create_identifier("REF", location, id_provider.next_id()),
+                None,
+                id_provider.next_id(),
+            );
+            let parameter = initializer;
+            self.visit_statement(ctx, &operator);
+            self.visit_statement(ctx, parameter);
+            let call = AstFactory::create_call_statement(
+                operator,
+                Some(parameter.clone()),
+                id_provider.next_id(),
+                location,
+            );
+
+            // annotator.visit_statement(&ctx, &new_statement);
+            // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+            // annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+            // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
+            //
+            // let annotation_fn = get_builtin("REF").unwrap().get_annotation().unwrap();
+            self.visit_statement(ctx, &call);
+            dbg!(&self.annotation_map.get(&call));
+            self.annotate(initializer, StatementAnnotation::ReplacementAst { statement: call });
         }
 
         self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));
@@ -1419,7 +1459,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::RangeStatement(data, ..) => {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatement::Assignment(data, ..) => {
+            AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
                 self.visit_statement(&ctx.enter_control(), &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
@@ -1628,7 +1668,7 @@ impl<'i> TypeAnnotator<'i> {
         else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
-        if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
+        if let DataTypeInformation::Pointer { inner_type_name, is_reference_to, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
                 members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
@@ -1664,6 +1704,7 @@ impl<'i> TypeAnnotator<'i> {
                 constant: false,
                 argument_type,
                 is_auto_deref: false,
+                is_reference_to: *is_reference_to,
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -1749,7 +1790,12 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str) {
-        if !matches!(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
+        if !matches!(
+            p.get_stmt(),
+            AstStatement::Assignment(..)
+                | AstStatement::OutputAssignment(..)
+                | AstStatement::RefAssignment(..)
+        ) {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map
@@ -1869,10 +1915,11 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
             name: new_type_name.clone(),
             initial_value: None,
             nature: TypeNature::Any,
-            information: crate::typesystem::DataTypeInformation::Pointer {
+            information: DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name,
                 name: new_type_name.clone(),
+                is_reference_to: false,
             },
             location: SourceLocation::internal(),
         });
@@ -1932,6 +1979,7 @@ fn to_variable_annotation(
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         is_auto_deref,
+        is_reference_to: v_type.get_type_information().is_reference_to(),
     }
 }
 

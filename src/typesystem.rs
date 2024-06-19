@@ -96,7 +96,7 @@ mod tests;
 #[derive(Debug, Clone)]
 pub struct DataType {
     pub name: String,
-    /// the initial value defined on the TYPE-declration
+    /// the initial value defined on the TYPE-declaration
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
     pub nature: TypeNature,
@@ -391,6 +391,8 @@ pub enum DataTypeInformation {
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: bool,
+        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+        is_reference_to: bool,
     },
     Integer {
         name: TypeId,
@@ -557,6 +559,11 @@ impl DataTypeInformation {
             DataTypeInformation::Generic { .. } => true,
             _ => false,
         }
+    }
+
+    /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    pub fn is_reference_to(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
     }
 
     pub fn is_aggregate(&self) -> bool {

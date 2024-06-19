@@ -1,15 +1,15 @@
 use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::typesystem::DataTypeInformation;
-use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
-
 use super::{
     array::validate_array_assignment,
-    statement::{validate_enum_variant_assignment, visit_statement},
+    statement::{validate_enum_variant_assignment, validate_pointer_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
+use crate::index::VariableIndexEntry;
+use crate::typesystem::DataTypeInformation;
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
@@ -143,6 +143,8 @@ fn validate_variable<T: AnnotationMap>(
     validate_array_ranges(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
+        validate_reference_to_declaration(validator, context, variable, v_entry);
+
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
@@ -198,13 +200,80 @@ fn validate_variable<T: AnnotationMap>(
         {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
+                    "Invalid constant {}, FUNCTION_BLOCK- and CLASS-instances cannot be declared constant",
                     v_entry.get_name()
                 ))
                 .with_error_code("E035")
                 .with_location(&variable.location),
             );
         }
+    }
+}
+
+/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared (or initialized).
+fn validate_reference_to_declaration<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    _variable: &Variable,
+    variable_entry: &VariableIndexEntry,
+) {
+    let Some(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) else {
+        return;
+    };
+
+    if !variable_ty.get_type_information().is_reference_to() {
+        return;
+    }
+
+    let Some(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() else {
+        unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
+    };
+
+    // Assert that the referenced type is no variable reference
+    let qualifier = context.qualifier.unwrap_or_default();
+    let inner_ty_is_local_var = context.index.find_member(qualifier, inner_ty_name).is_some();
+    let inner_ty_is_global_var = context.index.find_global_variable(inner_ty_name).is_some();
+
+    if inner_ty_is_local_var || inner_ty_is_global_var {
+        validator.push_diagnostic(
+            Diagnostic::new("REFERENCE TO variables can not reference other variables")
+                .with_location(&variable_ty.location)
+                .with_error_code("E099"),
+        );
+    }
+
+    if let Some(ref initializer) = _variable.initializer {
+        let type_lhs = context.index.find_type(inner_ty_name).unwrap();
+        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
+        let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+        let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+
+        if !type_rhs.is_pointer() {
+            todo!("How does this happen? Is it something like `foo : REFERENCE TO DINT := bar` where `bar` is missing a `REF(...)`?");
+        }
+
+        validate_pointer_assignment(
+            context,
+            validator,
+            type_lhs,
+            type_rhs,
+            type_info_lhs,
+            type_info_rhs,
+            &initializer.location,
+        );
+        // dbg!(&type_info_lhs, type_info_rhs);
+        // if type_info_lhs != type_info_rhs {
+        //     validator.push_diagnostic(
+        //         Diagnostic::new(format!(
+        //             "Types differ, expected {} but got {}",
+        //             get_datatype_name_or_slice(&validator.context, type_lhs),
+        //             get_datatype_name_or_slice(&validator.context, type_rhs)
+        //         ))
+        //         .with_location(&_variable.location)
+        //         .with_secondary_location(&initializer.location)
+        //         .with_error_code("E099"),
+        //     );
+        // }
     }
 }
 
