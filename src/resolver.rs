@@ -5,9 +5,9 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
+use post_annotator::PostAnnotator;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
-use post_annotator::PostAnnotator;
 
 use plc_ast::{
     ast::{
@@ -230,6 +230,10 @@ impl TypeAnnotator<'_> {
         self.annotate(statement, StatementAnnotation::ReplacementAst { statement: call_statement });
         self.update_expected_types(self.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
     }
+
+    // IF EQ(a,b,c) THEN
+
+    // ENDIF
 
     /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
     /// given type (of left). The given operator has to be a comparison-operator
@@ -715,7 +719,7 @@ impl AnnotationMapImpl {
     pub fn add_generic_nature(&mut self, s: &AstNode, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
-    
+
     /// marks the annotation of the given node as constant, if an annotation exists and it
     /// can be marked
     pub(crate) fn make_constant(&mut self, s: &AstNode) {
@@ -723,12 +727,18 @@ impl AnnotationMapImpl {
             a.make_const();
         }
     }
+
+    pub(crate) fn  take(&mut self, s: &AstNode)-> Option<StatementAnnotation> {
+        self.type_map.swap_remove(&s.get_id())
+    }
 }
 
 impl AnnotationMap for AnnotationMapImpl {
     fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_map.get(&s.get_id())
     }
+
+    
 
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_hint_map.get(&s.get_id())
@@ -787,7 +797,7 @@ impl<'i> TypeAnnotator<'i> {
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        let mut resolver = NameResolver::new(index);
+        let mut resolver = NameResolver::new(index, id_provider.clone());
         unit.walk(&mut resolver);
 
         let mut post_annotator = PostAnnotator::new(index, resolver.annotations, id_provider.clone());

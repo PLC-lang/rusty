@@ -1,22 +1,23 @@
-use log::LevelFilter;
 use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstNode, AstStatement, DataType, Operator, ReferenceAccess,
         TypeNature,
     },
     literals::{Array, AstLiteral, StringValue},
+    provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
 use crate::{
+    builtins,
     index::{Index, VariableIndexEntry},
     resolver::{register_string_type, AnnotationMap, AnnotationMapImpl, StatementAnnotation, StringLiterals},
     typesystem::{
-        self, get_bigger_type, get_signed_type, get_type_name_for_direct_access, DataTypeInformation,
-        BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
-        TIME_TYPE, VOID_TYPE,
+        self, get_bigger_type, get_type_name_for_direct_access, DataTypeInformation, BOOL_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
+        VOID_TYPE,
     },
 };
 
@@ -199,11 +200,12 @@ pub struct NameResolver<'i> {
     scope: ScopeStack,
 
     root_scope: Scope,
+    id_provider: IdProvider,
     in_a_body: bool,
 }
 
 impl<'i> NameResolver<'i> {
-    pub fn new(index: &'i Index) -> NameResolver<'i> {
+    pub fn new(index: &'i Index, id_provider: IdProvider) -> NameResolver<'i> {
         Self {
             index,
             annotations: AnnotationMapImpl::new(),
@@ -211,6 +213,7 @@ impl<'i> NameResolver<'i> {
             root_scope: Scope::GlobalVariable,
             strings: StringLiterals::default(),
             in_a_body: false,
+            id_provider,
         }
     }
 
@@ -221,6 +224,19 @@ impl<'i> NameResolver<'i> {
         self.scope.push(scope);
         t.walk(self);
         self.scope.pop();
+    }
+
+    fn get_possible_replacement(
+        &mut self,
+        operator: &AstNode,
+        parameters: Option<&AstNode>,
+    ) -> Option<AstNode> {
+        let builtin = operator.get_flat_reference_name().and_then(|rn| builtins::get_builtin(rn));
+
+        builtin.map(|b| b.get_replacement()).and_then(|r| {
+            let parameters = parameters.map(|it| it.get_as_list()).unwrap_or_default();
+            r.and_then(|f| f(parameters.as_slice(), &mut self.id_provider))
+        })
     }
 }
 
@@ -398,7 +414,6 @@ impl AstVisitor for NameResolver<'_> {
             .unwrap_or_else(|| self.index.get_void_type());
 
         // TODO intrinsic
-
         let right_type = self
             .annotations
             .get_type_hint_or_type(&stmt.right, self.index)
@@ -438,6 +453,16 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, node: &plc_ast::ast::AstNode) {
+        //lets see if this is builtin-function that needs to be replaced
+        if let Some(replacement) =
+            self.get_possible_replacement(&stmt.operator, stmt.parameters.as_deref())
+        {
+            // this callstatement wants to be replaced with the given ast.
+            self.visit(&replacement);
+            self.annotations.annotate(&node, StatementAnnotation::ReplacementAst { statement: replacement });
+            return;
+        }
+
         // prioritize functions here
         self.walk_with_scope(&stmt.operator, ScopingStrategy::Hierarchical(Scope::Callable(None)));
         // annotate the whole statement with the resulting type
@@ -447,9 +472,11 @@ impl AstVisitor for NameResolver<'_> {
         }
 
         //annotate the parameters with the right hints
-        // TODO: I need something that gets me the type_name of the resulting POU
-        if let Some(target_type_name) = self.annotations.get_call_name(&stmt.operator).map(str::to_string) {
-            let declared_parameters = self.index.get_declared_parameters(target_type_name.as_str());
+        // TODO: I need something that gets me the type_name of the resulting POU (actions cause a problem)
+        if let Some(target_type_name) = self.annotations.get_call_name(&stmt.operator).and_then(|call_name| {
+            self.index.find_pou_implementation(call_name).map(|imp| imp.get_type_name())
+        }) {
+            let declared_parameters = self.index.get_declared_parameters(target_type_name);
 
             for (idx, arg) in stmt
                 .parameters
@@ -486,7 +513,6 @@ impl AstVisitor for NameResolver<'_> {
     fn visit_paren_expression(&mut self, inner: &plc_ast::ast::AstNode, node: &plc_ast::ast::AstNode) {
         inner.walk(self);
         self.annotations.copy_annotation(inner, node);
-        
     }
 
     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {

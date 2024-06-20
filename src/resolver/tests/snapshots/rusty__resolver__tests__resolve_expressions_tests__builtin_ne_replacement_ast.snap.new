@@ -1,8 +1,0 @@
----
-source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5492
-expression: "generate_comparison_test(\"NE\")"
----
-Value {
-    resulting_type: "BOOL",
-}

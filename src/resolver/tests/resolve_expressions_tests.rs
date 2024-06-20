@@ -3123,7 +3123,7 @@ fn nested_bitwise_access_resolves_correctly() {
     let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = assignment else {
         unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL")); //strange
+    assert_type_and_hint!(&annotations, &index, right, "BOOL", None);
 
     let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
         right.as_ref()

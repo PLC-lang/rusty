@@ -1,7 +1,11 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
-    }, control_statements::AstControlStatement, literals::{Array, AstLiteral}, provider::IdProvider, visitor::{AstVisitor, Walker}
+    },
+    control_statements::AstControlStatement,
+    literals::{Array, AstLiteral},
+    provider::IdProvider,
+    visitor::{AstVisitor, Walker},
 };
 use plc_source::source_location::SourceLocation;
 
@@ -111,6 +115,8 @@ impl<'i> PostAnnotator<'i> {
 }
 
 impl AstVisitor for PostAnnotator<'_> {
+
+
     fn visit_binary_expression(
         &mut self,
         stmt: &plc_ast::ast::BinaryExpression,
@@ -209,15 +215,29 @@ impl AstVisitor for PostAnnotator<'_> {
         }
     }
 
+    fn visit_call_statement(&mut self, stmt: &CallStatement, node: &AstNode) {
+        // this is a bold optimization to only look for replacement ASTs in calls!!! :-/
+        if let Some(StatementAnnotation::ReplacementAst { statement: replacement}) = self.annotations.take(node) {
+            replacement.walk(self);
+            //re-attached replacement ast
+            self.annotations.annotate(node, StatementAnnotation::ReplacementAst { statement: replacement });
+        }else{
+            stmt.walk(self);
+
+            xxxx // Why is this worse!!`!`!`
+        }
+    }
+
     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
         stmt.walk(self);
 
-        if let AstLiteral::Array(Array{elements: Some(elements)}) = &stmt {
+        if let AstLiteral::Array(Array { elements: Some(elements) }) = &stmt {
             if let Some(DataTypeInformation::Array { name, inner_type_name, .. }) =
                 self.annotations.get_type_hint_or_type(node, self.index).map(|it| it.get_type_information())
             {
                 for e in elements.get_as_list() {
-                    self.annotations.annotate_type_hint(e, StatementAnnotation::value(inner_type_name.clone()));
+                    self.annotations
+                        .annotate_type_hint(e, StatementAnnotation::value(inner_type_name.clone()));
                     self.visit(e);
                 }
                 self.annotations.annotate(node, StatementAnnotation::value(name));

@@ -42,6 +42,7 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
+                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -67,6 +68,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: None,
                 annotation: Some(|annotator, _, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
                     let Some(params) = parameters else { return; };
@@ -128,6 +130,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation : None,
+                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -185,6 +188,7 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
+                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -228,6 +232,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
@@ -248,6 +253,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
+                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
@@ -287,6 +293,7 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
+                replacement: None,
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -310,6 +317,7 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
+                replacement: None,
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -332,6 +340,7 @@ lazy_static! {
                     END_VAR
                     END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Plus, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -357,6 +366,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Multiplication, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -383,6 +393,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Minus, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -408,6 +419,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Division, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -433,6 +445,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::Greater, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -457,7 +470,8 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::GreaterOrEqual, id_provider)),
+annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
@@ -481,7 +495,8 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                replacement: Some(|nodes, id_provider|  generate_comparison_function(nodes, Operator::Equal, id_provider)),
+annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
@@ -505,6 +520,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::LessOrEqual, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -529,6 +545,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::Less, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -554,6 +571,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
+                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::NotEqual, id_provider)),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -605,6 +623,99 @@ fn validate_builtin_symbol_parameter_count(
             }
         }
     }
+}
+
+fn generate_comparison_function(
+    parameters: &[&AstNode],
+    operator: Operator,
+    id_provider: &mut IdProvider,
+) -> Option<AstNode> {
+    let params_flattened = parameters;
+
+    // TODO: this must be handled by the validator! (what if we connected invalid types)
+    // if params_flattened.iter().any(|it| {
+    //     !annotation_map
+    //         .get_type_or_void(it, index)
+    //         .has_nature(TypeNature::Elementary, index)
+    // }) {
+    //     // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
+    //     // annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+    //     todo!("find out what to do if you connect a String to EQ");
+    // }
+
+    let comparisons = params_flattened
+        .windows(2)
+        .map(|window| {
+            AstFactory::create_binary_expression(
+                window[0].clone(),
+                operator,
+                window[1].clone(),
+                id_provider.next_id(),
+            )
+        })
+        .collect::<Vec<_>>();
+    let Some(new_statement) = comparisons.first() else {
+        // no windows => less than 2 parameters, caught during validation
+
+        //TODO: could we generate an empty-statemen instead and use standard validation for it?
+        return None;
+    };
+
+    //TODO is this actually a fold?
+    let mut new_statement = new_statement.clone();
+    comparisons.into_iter().skip(1).for_each(|right| {
+        new_statement = AstFactory::create_binary_expression(
+            new_statement.clone(),
+            Operator::And,
+            right,
+            id_provider.next_id(),
+        )
+    });
+    Some(new_statement)
+}
+
+fn generate_arithmetic_function(parameters: &[&AstNode], operator: Operator, id_provider: &mut IdProvider) -> Option<AstNode>{
+
+    let params_flattened = parameters;
+    // if params_flattened.iter().any(|it| {
+    //     !annotator
+    //         .annotation_map
+    //         .get_type_or_void(it, annotator.index)
+    //         .has_nature(TypeNature::Num, annotator.index)
+    // }) {
+    //     // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
+    //     annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+    //     return;
+    // }
+
+    // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
+    // mutable and immutable borrow of TypeAnnotator
+    // let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
+    //     let mut bigger = annotator
+    //         .annotation_map
+    //         .get_type_or_void(params_flattened.first().expect("must have this parameter"), annotator.index);
+
+    //     for param in params_flattened.iter().skip(1) {
+    //         let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
+    //         bigger = get_bigger_type(bigger, right_type, annotator.index);
+    //     }
+
+    //     bigger.get_name().to_owned()
+    // };
+
+    // let bigger_type = find_biggest_param_type_name(annotator);
+
+    // create nested AstStatement::BinaryExpression for each parameter, such that
+    // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
+    let left = (*params_flattened.first().expect("Must exist")).clone();
+    let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+        AstFactory::create_binary_expression(left, operator, (*right).clone(), id_provider.next_id())
+    });
+    Some(new_statement)
+    // annotator.visit_statement(&ctx, &new_statement);
+    // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+    // annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
 }
 
 // creates nested BinaryExpressions for each parameter, such that
@@ -886,9 +997,12 @@ type CodegenFunction = for<'ink, 'b> fn(
 ) -> Result<ExpressionValue<'ink>, Diagnostic>;
 type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
+type ReplacementFunction = fn(&[&AstNode], &mut IdProvider) -> Option<AstNode>;
+
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
+    replacement: Option<ReplacementFunction>,
     validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,
     code: CodegenFunction,
@@ -913,6 +1027,10 @@ impl BuiltIn {
 
     pub(crate) fn get_validation(&self) -> Option<ValidationFunction> {
         self.validation
+    }
+
+    pub(crate) fn get_replacement(&self) -> Option<ReplacementFunction> {
+        self.replacement
     }
 }
 

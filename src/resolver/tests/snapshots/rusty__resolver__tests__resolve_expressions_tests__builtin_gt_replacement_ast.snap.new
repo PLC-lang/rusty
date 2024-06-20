@@ -1,8 +1,0 @@
----
-source: src/resolver/tests/resolve_expressions_tests.rs
-assertion_line: 5468
-expression: "generate_comparison_test(\"GT\")"
----
-Value {
-    resulting_type: "BOOL",
-}
