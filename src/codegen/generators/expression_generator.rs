@@ -2,10 +2,10 @@
 
 use inkwell::{
     builder::Builder,
-    types::{BasicType, BasicTypeEnum},
+    types::{BasicType, BasicTypeEnum, FunctionType},
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
-        StructValue, VectorValue,
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, CallableValue,
+        FloatValue, IntValue, PointerValue, StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -328,10 +328,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Option<CallSiteValue<'ink>>, Diagnostic> {
         // We will generate a GEP, which has as its base address the magic constant which
         // will eventually be replaced by the location of the GOT.
-        let base =
-            self.llvm.context.i64_type().const_int(0xdeadbeef00000000, false).const_to_pointer(
-                llvm_type.ptr_type(AddressSpace::default()).ptr_type(AddressSpace::default()),
-            );
+        let base = self.llvm.context.i64_type().const_int(0xdeadbeef00000000, false).const_to_pointer(
+            function_type.ptr_type(AddressSpace::default()).ptr_type(AddressSpace::default()),
+        );
 
         self.llvm_index
             .find_got_index(qualified_name)

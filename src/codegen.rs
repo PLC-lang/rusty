@@ -2,9 +2,9 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    fs,
     ops::Deref,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 /// module to generate llvm intermediate representation for a CompilationUnit
@@ -31,6 +31,8 @@ use inkwell::{
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
     types::BasicType,
+    values::BasicValue,
+    AddressSpace,
 };
 use inkwell::{
     module::Module,
@@ -87,40 +89,6 @@ pub struct GeneratedModule<'ink> {
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
 
-pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
-    if !Path::new(location).is_file() {
-        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
-        // creating our file when we want to.
-        return Ok(HashMap::new());
-    }
-
-    let s =
-        fs::read_to_string(location).map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
-    match format {
-        ConfigFormat::JSON => serde_json::from_str(&s)
-            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
-        ConfigFormat::TOML => {
-            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
-        }
-    }
-}
-
-pub fn write_got_layout(
-    got_entries: HashMap<String, u64>,
-    location: &str,
-    format: ConfigFormat,
-) -> Result<(), Diagnostic> {
-    let s = match format {
-        ConfigFormat::JSON => serde_json::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
-        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
-    };
-
-    fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))?;
-    Ok(())
-}
-
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     pub fn new(
@@ -144,6 +112,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
+        got_layout: &Mutex<Option<HashMap<String, u64>>>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -157,14 +126,8 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator = VariableGenerator::new(
-            &self.module,
-            &llvm,
-            global_index,
-            annotations,
-            &index,
-            &mut self.debug,
-        );
+        let mut variable_generator =
+            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
         //Generate global variables
         let llvm_gv_index =
@@ -173,30 +136,37 @@ impl<'ink> CodeGen<'ink> {
 
         // Build our GOT layout here. We need to find all the names for globals, programs, and
         // functions and assign them indices in the GOT, taking into account prior indices.
-        let program_globals = global_index
-            .get_program_instances()
-            .into_iter()
-            .fold(Vec::new(), |mut acc, p| {
-                acc.push(p.get_name());
-                acc.push(p.get_qualified_name());
+        let program_globals =
+            global_index.get_program_instances().into_iter().fold(Vec::new(), |mut acc, p| {
+                acc.push(p.get_name().to_owned());
+                acc.push(p.get_qualified_name().to_owned());
+                acc.push(format!("{}_instance", p.get_name()));
                 acc
             });
-        let functions = global_index.get_pous().values()
-            .filter_map(|p| match p {
-                PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: false, .. }
-                | PouIndexEntry::FunctionBlock { name, linkage: LinkageType::Internal, .. } => Some(name.as_ref()),
-                _ => None,
-            });
-        let all_names =  global_index
+
+        let functions = global_index.get_pous().values().filter_map(|p| match p {
+            PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: false, .. }
+            | PouIndexEntry::FunctionBlock { name, linkage: LinkageType::Internal, .. } => {
+                Some(String::from(name))
+            }
+            _ => None,
+        });
+        let all_names = global_index
             .get_globals()
             .values()
-            .map(|g| g.get_qualified_name())
+            .map(VariableIndexEntry::get_qualified_name)
+            .map(String::from)
             .chain(program_globals)
             .chain(functions)
-            .map(|n| n.to_lowercase());
+            .map(|s| s.to_lowercase())
+            .map(|s| (crate::index::get_initializer_name(&s), s))
+            .fold(Vec::new(), |mut acc, (s, s1)| {
+                acc.push(s);
+                acc.push(s1);
+                acc
+            });
 
-        if let Some((location, format)) = &self.got_layout_file {
-            let got_entries = read_got_layout(location.as_str(), *format)?;
+        if let Some(got_entries) = &mut *got_layout.lock().unwrap() {
             let mut new_symbols = Vec::new();
             let mut new_got_entries = HashMap::new();
             let mut new_got = HashMap::new();
@@ -222,19 +192,26 @@ impl<'ink> CodeGen<'ink> {
                 new_got.insert(idx, name.to_string());
             }
 
-            // Now we can write new_got_entries back out to a file.
-            write_got_layout(new_got_entries, location.as_str(), *format)?;
-
             // Construct our GOT as a new global array. We initialise this array in the loader code.
-            let got_size = new_got.keys().max().map_or(0, |m| *m + 1);
-            let _got = llvm.create_global_variable(
-                &self.module,
-                "__custom_got",
-                BasicTypeEnum::ArrayType(Llvm::get_array_type(
-                    BasicTypeEnum::PointerType(llvm.context.i8_type().ptr_type(0.into())),
-                    got_size.try_into().expect("the computed custom GOT size is too large"),
-                )),
-            );
+            let got_size: u32 = new_got
+                .keys()
+                .max()
+                .map_or(0, |m| *m + 1)
+                .try_into()
+                .expect("the computed custom GOT size is too large");
+
+            let ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
+            let empty_got = ptr_ty
+                .const_array(vec![ptr_ty.const_null(); got_size as usize].as_slice())
+                .as_basic_value_enum();
+            let custom_got_ty =
+                BasicTypeEnum::ArrayType(Llvm::get_array_type(BasicTypeEnum::PointerType(ptr_ty), got_size));
+
+            let custom_got = llvm.create_global_variable(&self.module, "__custom_got", custom_got_ty);
+            custom_got.set_linkage(inkwell::module::Linkage::WeakODR);
+            custom_got.set_initial_value(Some(empty_got), custom_got_ty);
+
+            *got_entries = new_got_entries;
         }
 
         //Generate opaque functions for implementations and associate them with their types
@@ -305,11 +282,11 @@ impl<'ink> CodeGen<'ink> {
         unit: &CompilationUnit,
         annotations: &AstAnnotations,
         global_index: &Index,
-        llvm_index: &LlvmTypedIndex,
+        llvm_index: LlvmTypedIndex,
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
+        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

@@ -328,7 +328,9 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::try_parse_from(args).and_then(|result| {
+        CompileParameters::try_parse_from(args).and_then(|mut result| {
+            result.got_layout_file = Some(String::from("tmp.json"));
+
             if result.sysroot.len() > result.target.len() {
                 let mut cmd = CompileParameters::command();
                 Err(cmd.error(
