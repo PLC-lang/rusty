@@ -268,7 +268,7 @@ fn reference_assignment_is_parsed() {
     let result = &parse("PROGRAM main x REF= y END_PROGRAM").0.implementations[0];
     insta::assert_debug_snapshot!(result.statements, @r###"
     [
-        ReferenceAssignment {
+        Assignment {
             left: ReferenceExpr {
                 kind: Member(
                     Identifier {
@@ -277,13 +277,20 @@ fn reference_assignment_is_parsed() {
                 ),
                 base: None,
             },
-            right: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "y",
+            right: CallStatement {
+                operator: Identifier {
+                    name: "ADR",
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
                     },
                 ),
-                base: None,
             },
         },
     ]

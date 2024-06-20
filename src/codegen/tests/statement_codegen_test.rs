@@ -209,9 +209,9 @@ fn reference_assignment() {
       %b = alloca i32, align 4
       store i32* null, i32** %a, align 8
       store i32 0, i32* %b, align 4
-      %load_b = load i32, i32* %b, align 4
-      %0 = inttoptr i32 %load_b to i32*
-      store i32* %0, i32** %a, align 8
+      %0 = ptrtoint i32* %b to i64
+      %1 = inttoptr i64 %0 to i32*
+      store i32* %1, i32** %a, align 8
       ret void
     }
     "###);

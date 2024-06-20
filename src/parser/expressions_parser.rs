@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::builtins::get_builtin;
 use crate::{
     expect_token,
     lexer::Token::*,
@@ -223,12 +224,22 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstNode {
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             }
             KeywordReferenceAssignment => {
+                debug_assert!(
+                    get_builtin("ADR").is_some(),
+                    "The ADR builtin must exist for the following REF= syntactic sugar"
+                );
+
                 lexer.advance();
-                AstFactory::create_reference_assignment(
-                    statement,
-                    parse_range_statement(lexer),
+                let right = parse_range_statement(lexer);
+                let operator =
+                    AstFactory::create_identifier("ADR", &SourceLocation::undefined(), lexer.next_id());
+                let call = AstFactory::create_call_statement(
+                    operator,
+                    Some(right),
                     lexer.next_id(),
-                )
+                    SourceLocation::undefined(),
+                );
+                AstFactory::create_assignment(statement, call, lexer.next_id())
             }
             _ => statement,
         },

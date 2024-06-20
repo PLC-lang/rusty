@@ -556,7 +556,7 @@ impl Walker for AstNode {
             AstStatement::VlaRangeStatement => visitor.visit_vla_range_statement(node),
             AstStatement::Assignment(stmt) => visitor.visit_assignment(stmt, node),
             AstStatement::OutputAssignment(stmt) => visitor.visit_output_assignment(stmt, node),
-            AstStatement::ReferenceAssignment(stmt) => todo!(),
+            AstStatement::ReferenceAssignment(_) => todo!(),
             AstStatement::CallStatement(stmt) => visitor.visit_call_statement(stmt, node),
             AstStatement::ControlStatement(stmt) => visitor.visit_control_statement(stmt, node),
             AstStatement::CaseCondition(stmt) => visitor.visit_case_condition(stmt, node),
