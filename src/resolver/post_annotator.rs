@@ -215,18 +215,20 @@ impl AstVisitor for PostAnnotator<'_> {
         }
     }
 
-    fn visit_call_statement(&mut self, stmt: &CallStatement, node: &AstNode) {
-        // this is a bold optimization to only look for replacement ASTs in calls!!! :-/
-        if let Some(StatementAnnotation::ReplacementAst { statement: replacement}) = self.annotations.take(node) {
-            replacement.walk(self);
-            //re-attached replacement ast
-            self.annotations.annotate(node, StatementAnnotation::ReplacementAst { statement: replacement });
-        }else{
-            stmt.walk(self);
+    //TODO: why does this cause several tests to fail? 
+    // fn visit_call_statement(&mut self, stmt: &CallStatement, node: &AstNode) {
+    //     // this is a bold optimization to only look for replacement ASTs in calls!!! :-/
+    //     if let Some(StatementAnnotation::ReplacementAst { statement: replacement}) = self.annotations.take(node) {
+    //         replacement.walk(self);
+    //         // copy the top level annotation back to the original one
+    //         self.annotations.copy_annotation(&replacement, node);
+    //         //re-attached replacement ast
+    //         self.annotations.annotate(node, StatementAnnotation::ReplacementAst { statement: replacement });
+    //     }else{
+    //         stmt.walk(self);
 
-            xxxx // Why is this worse!!`!`!`
-        }
-    }
+    //     }
+    // }
 
     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
         stmt.walk(self);

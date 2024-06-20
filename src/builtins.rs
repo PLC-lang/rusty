@@ -21,13 +21,18 @@ use crate::{
     index::Index,
     lexer, parser,
     resolver::{
-        self,
-        generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
-        AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
+        self, generics::{generic_name_resolver, no_generic_name_resolver, GenericType}, AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext
     },
     typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
     validation::{Validator, Validators},
 };
+
+// macro that turns the given AstNode into a slice-of nodes, used for parameter list
+macro_rules! param_list {
+    ($node:expr) => {
+        $node.map(|p| p.get_as_list()).unwrap_or_default().as_slice()
+    };
+}
 
 // Defines a set of functions that are always included in a compiled application
 lazy_static! {
@@ -42,7 +47,6 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -68,29 +72,16 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: None,
-                annotation: Some(|annotator, _, operator, parameters, _| {
-                    // invalid amount of parameters is checked during validation
-                    let Some(params) = parameters else { return; };
-                    // Get the input and annotate it with a pointer type
-                    let input = flatten_expression_list(params);
-                    let Some(input) = input.first()  else { return; };
-                    let input_type = annotator.annotation_map
-                        .get_type_or_void(input, annotator.index)
-                        .get_type_information()
-                        .get_name()
-                        .to_owned();
+                annotation: Some(|annotator, stmt, _, parameters, _| {
+                    if let Some(passed_type) = parameters.and_then(|it| annotator.get_type_name(it)).map(|it| it.to_string()){
+                        //TODO can we return &str instead of String?
+                        let ptr_type = resolver::add_pointer_type(
+                            &mut annotator.new_index,
+                            passed_type
+                        );
 
-                    let ptr_type = resolver::add_pointer_type(
-                        &mut annotator.annotation_map.new_index,
-                        input_type
-                    );
-
-                    annotator.annotate(
-                        operator, resolver::StatementAnnotation::Function {
-                            return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
-                        }
-                    );
+                        annotator.annotate(stmt, StatementAnnotation::value(ptr_type.as_str()));
+                    }
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     let Some(params) = parameters else {
@@ -130,7 +121,6 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation : None,
-                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -188,7 +178,6 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
-                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -232,7 +221,6 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
-                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
@@ -253,7 +241,6 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
-                replacement: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
@@ -293,9 +280,9 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                replacement: None,
                 annotation: Some(|annotator, _, _, parameters, _| {
-                    annotate_variable_length_array_bound_function(annotator, parameters);
+                    // annotate_variable_length_array_bound_function(annotator, parameters);
+                    todo!()
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -317,9 +304,9 @@ lazy_static! {
                     dim : T;
                 END_VAR
                 END_FUNCTION",
-                replacement: None,
                 annotation: Some(|annotator, _, _, parameters, _| {
-                    annotate_variable_length_array_bound_function(annotator, parameters);
+                    // annotate_variable_length_array_bound_function(annotator, parameters);
+                    todo!()
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_variable_length_array_bound_function(validator, operator, parameters, annotations, index)
@@ -340,13 +327,10 @@ lazy_static! {
                     END_VAR
                     END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Plus, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
+                annotation: Some(|annotator, statement, operator, parameters, id_provider| {
+                    annotator.annotate(statement,
+                        StatementAnnotation::ReplacementAst { statement: generate_arithmetic_function(param_list!(parameters),
+                            Operator::Plus, id_provider) });
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
@@ -366,13 +350,10 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Multiplication, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
+                annotation: Some(|annotator, statement, operator, parameters, id_provider| {
+                    annotator.annotate(statement,
+                        StatementAnnotation::ReplacementAst { statement: generate_arithmetic_function(param_list!(parameters),
+                            Operator::Multiplication, id_provider) });
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
@@ -393,12 +374,10 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Minus, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
+                annotation: Some(|annotator, statement, operator, parameters, id_provider| {
+                    annotator.annotate(statement,
+                        StatementAnnotation::ReplacementAst { statement: generate_arithmetic_function(param_list!(parameters),
+                            Operator::Minus, id_provider) });
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
@@ -419,12 +398,10 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_arithmetic_function(parameters, Operator::Division, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
+                annotation: Some(|annotator, statement, operator, parameters, id_provider| {
+                    annotator.annotate(statement,
+                        StatementAnnotation::ReplacementAst { statement: generate_arithmetic_function(param_list!(parameters),
+                            Operator::Division, id_provider) });
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
@@ -445,13 +422,8 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::Greater, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider| 
+                    annotate_comparison_function(annotator, statement, Operator::Greater, param_list!(parameters), id_provider)),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Greater)
                 }),
@@ -470,13 +442,8 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::GreaterOrEqual, id_provider)),
-annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider|   
+                    annotate_comparison_function(annotator, statement, Operator::GreaterOrEqual, param_list!(parameters), id_provider)),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::GreaterOrEqual)
                 }),
@@ -495,13 +462,8 @@ annotation: Some(|annotator, statement, operator, parameters, ctx| {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|nodes, id_provider|  generate_comparison_function(nodes, Operator::Equal, id_provider)),
-annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider|   
+                    annotate_comparison_function(annotator, statement, Operator::Equal, param_list!(parameters), id_provider)),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Equal)
                 }),
@@ -520,13 +482,8 @@ annotation: Some(|annotator, statement, operator, parameters, ctx| {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::LessOrEqual, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider|   
+                    annotate_comparison_function(annotator, statement, Operator::LessOrEqual, param_list!(parameters), id_provider)),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::LessOrEqual)
                 }),
@@ -545,13 +502,8 @@ annotation: Some(|annotator, statement, operator, parameters, ctx| {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::Less, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider|   
+                    annotate_comparison_function(annotator, statement, Operator::Less, param_list!(parameters), id_provider)),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Less)
                 }),
@@ -571,13 +523,8 @@ annotation: Some(|annotator, statement, operator, parameters, ctx| {
                 END_VAR
                 END_FUNCTION
                 ",
-                replacement: Some(|parameters, id_provider| generate_comparison_function(parameters, Operator::NotEqual, id_provider)),
-                annotation: Some(|annotator, statement, operator, parameters, ctx| {
-                    let Some(params) = parameters else {
-                        return;
-                    };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual);
-                }),
+                annotation: Some(|annotator, statement, operator, parameters, id_provider|   
+                    annotate_comparison_function(annotator, statement, Operator::NotEqual, param_list!(parameters), id_provider)),
                 validation: Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::NotEqual)
                 }),
@@ -674,8 +621,11 @@ fn generate_comparison_function(
     Some(new_statement)
 }
 
-fn generate_arithmetic_function(parameters: &[&AstNode], operator: Operator, id_provider: &mut IdProvider) -> Option<AstNode>{
-
+fn generate_arithmetic_function(
+    parameters: &[&AstNode],
+    operator: Operator,
+    id_provider: &mut IdProvider,
+) -> AstNode {
     let params_flattened = parameters;
     // if params_flattened.iter().any(|it| {
     //     !annotator
@@ -711,7 +661,7 @@ fn generate_arithmetic_function(parameters: &[&AstNode], operator: Operator, id_
     let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operator, (*right).clone(), id_provider.next_id())
     });
-    Some(new_statement)
+    new_statement
     // annotator.visit_statement(&ctx, &new_statement);
     // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
     // annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
@@ -721,55 +671,45 @@ fn generate_arithmetic_function(parameters: &[&AstNode], operator: Operator, id_
 // creates nested BinaryExpressions for each parameter, such that
 // GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
 fn annotate_comparison_function(
-    annotator: &mut TypeAnnotator,
+    annotator: &mut AnnotationMapImpl,
     statement: &AstNode,
-    operator: &AstNode,
-    parameters: &AstNode,
-    ctx: VisitorContext,
-    operation: Operator,
+    operator: Operator,
+    parameters: &[&AstNode],
+    id_provider: &mut IdProvider,
 ) {
-    let mut ctx = ctx;
-    let params_flattened = flatten_expression_list(parameters);
-    if params_flattened.iter().any(|it| {
-        !annotator
-            .annotation_map
-            .get_type_or_void(it, annotator.index)
-            .has_nature(TypeNature::Elementary, annotator.index)
-    }) {
-        // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
-        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
-        return;
-    }
 
-    let comparisons = params_flattened
+    let comparisons = parameters
         .windows(2)
         .map(|window| {
             AstFactory::create_binary_expression(
                 window[0].clone(),
-                operation,
+                operator,
                 window[1].clone(),
-                ctx.id_provider.next_id(),
+                id_provider.next_id(),
             )
         })
         .collect::<Vec<_>>();
-    let Some(new_statement) = comparisons.first() else {
-        // no windows => less than 2 parameters, caught during validation
-        return;
-    };
-    let mut new_statement = new_statement.clone();
-    comparisons.into_iter().skip(1).for_each(|right| {
-        new_statement = AstFactory::create_binary_expression(
-            new_statement.clone(),
-            Operator::And,
-            right,
-            ctx.id_provider.next_id(),
-        )
-    });
+    // let Some(new_statement) = comparisons.first() else {
+    //     // no windows => less than 2 parameters, caught during validation
 
-    annotator.visit_statement(&ctx, &new_statement);
-    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), &new_statement);
-    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
-    annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
+    //     //TODO: could we generate an empty-statemen instead and use standard validation for it?
+    //     return None;
+    // };
+
+
+
+    if let Some((first, comparisons)) = comparisons.split_first() {
+        let new_statement = comparisons.iter().fold((*first).clone(), |a, b| {
+            let new_statement = AstFactory::create_binary_expression(
+                a.clone(),
+                Operator::And,
+                (*b).clone(),
+                id_provider.next_id(),
+            );
+            new_statement
+        });
+        annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    }
 }
 
 fn annotate_arithmetic_function(
@@ -988,7 +928,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     Ok(ExpressionValue::RValue(bound))
 }
 
-type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
+type AnnotationFunction = fn(&mut AnnotationMapImpl, &AstNode, &AstNode, Option<&AstNode>, &mut IdProvider);
 type GenericNameResolver = fn(&str, &[GenericBinding], &FxHashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
@@ -1002,7 +942,6 @@ type ReplacementFunction = fn(&[&AstNode], &mut IdProvider) -> Option<AstNode>;
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
-    replacement: Option<ReplacementFunction>,
     validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,
     code: CodegenFunction,
@@ -1027,10 +966,6 @@ impl BuiltIn {
 
     pub(crate) fn get_validation(&self) -> Option<ValidationFunction> {
         self.validation
-    }
-
-    pub(crate) fn get_replacement(&self) -> Option<ReplacementFunction> {
-        self.replacement
     }
 }
 

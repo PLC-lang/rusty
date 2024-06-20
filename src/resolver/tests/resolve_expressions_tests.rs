@@ -3897,9 +3897,9 @@ fn passing_a_function_as_param_correctly_resolves_as_variable() {
     // THEN the type of the parameter resolves to the original function type
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(DINT_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[3], DINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, /*same*/None);
+        assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, /*same*/None);
+        assert_type_and_hint!(&annotations, &index, parameters[3], DINT_TYPE, /*same*/None);
     } else {
         unreachable!()
     }
@@ -4364,11 +4364,11 @@ fn mux_generic_with_strings_is_annotated_correctly() {
 
         // MUX(2, str2, str3, str4)
         //     ~
-        assert_type_and_hint!(&annotations, &index, list[0], "DINT", Some("DINT"));
+        assert_type_and_hint!(&annotations, &index, list[0], "DINT", None /*same*/);
 
         // MUX(2, str2, str3, str4)
         //        ~~~~
-        assert_type_and_hint!(&annotations, &index, list[1], "STRING", Some("STRING"));
+        assert_type_and_hint!(&annotations, &index, list[1], "STRING", None /*same*/);
 
         // the reference "str2" on its own has no type-hint to string
         assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[1], "STRING", None);

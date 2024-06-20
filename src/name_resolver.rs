@@ -13,7 +13,10 @@ use plc_util::convention::internal_type_name;
 use crate::{
     builtins,
     index::{Index, VariableIndexEntry},
-    resolver::{register_string_type, AnnotationMap, AnnotationMapImpl, StatementAnnotation, StringLiterals},
+    resolver::{
+        register_string_type, AnnotationMap, AnnotationMapImpl, AstAnnotations, StatementAnnotation,
+        StringLiterals,
+    },
     typesystem::{
         self, get_bigger_type, get_type_name_for_direct_access, DataTypeInformation, BOOL_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
@@ -21,10 +24,10 @@ use crate::{
     },
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Scope {
     Type,
-    Program,
+    POU,
     GlobalVariable,
     LocalVariable(String),
     Composite(Vec<Scope>),
@@ -71,7 +74,7 @@ impl Scope {
                 index.find_type(identifier).map(|dt| dt.get_type_information()).map(StatementAnnotation::from)
             }
 
-            Scope::Program => index.find_pou(identifier).map(StatementAnnotation::from),
+            Scope::POU => index.find_pou(identifier).map(StatementAnnotation::from),
 
             // lookup a global variable
             Scope::GlobalVariable => {
@@ -133,6 +136,7 @@ impl Scope {
     }
 }
 
+#[derive(Debug)]
 pub enum ScopingStrategy {
     /// Indicates that this scope inherits symbols from
     /// it's parent scope (as reflected by the order of the ScopeStack)
@@ -145,6 +149,7 @@ pub enum ScopingStrategy {
     Strict(Scope),
 }
 
+#[derive(Debug)]
 pub struct ScopeStack {
     stack: Vec<ScopingStrategy>,
 }
@@ -155,6 +160,7 @@ impl ScopeStack {
             stack: vec![ScopingStrategy::Strict(Scope::Composite(vec![
                 Scope::GlobalVariable,
                 Scope::Callable(None),
+                Scope::POU,
             ]))],
         }
     }
@@ -179,6 +185,10 @@ impl ScopeStack {
         self.push(scope);
         f();
         self.pop();
+    }
+
+    pub fn print_dump(&self) {
+        println!("{:#?}", self);  
     }
 }
 
@@ -226,17 +236,25 @@ impl<'i> NameResolver<'i> {
         self.scope.pop();
     }
 
-    fn get_possible_replacement(
+    /// tries to apply a possible replacement for the given operator
+    /// returns true if a replacement was applied
+    fn apply_possible_replacement(
         &mut self,
         operator: &AstNode,
         parameters: Option<&AstNode>,
-    ) -> Option<AstNode> {
+        full_statement: &AstNode,
+    ) -> bool {
         let builtin = operator.get_flat_reference_name().and_then(|rn| builtins::get_builtin(rn));
-
-        builtin.map(|b| b.get_replacement()).and_then(|r| {
-            let parameters = parameters.map(|it| it.get_as_list()).unwrap_or_default();
-            r.and_then(|f| f(parameters.as_slice(), &mut self.id_provider))
-        })
+        let did_apply = builtin.map(|b| b.get_annotation()).and_then(|r| {
+            r.map(|f| {
+                f(&mut self.annotations, full_statement, operator, parameters, &mut self.id_provider);
+                matches!(
+                    self.annotations.get(full_statement),
+                    Some(StatementAnnotation::ReplacementAst { .. })
+                )
+            })
+        });
+        did_apply.unwrap_or(false)
     }
 }
 
@@ -453,15 +471,7 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, node: &plc_ast::ast::AstNode) {
-        //lets see if this is builtin-function that needs to be replaced
-        if let Some(replacement) =
-            self.get_possible_replacement(&stmt.operator, stmt.parameters.as_deref())
-        {
-            // this callstatement wants to be replaced with the given ast.
-            self.visit(&replacement);
-            self.annotations.annotate(&node, StatementAnnotation::ReplacementAst { statement: replacement });
-            return;
-        }
+        
 
         // prioritize functions here
         self.walk_with_scope(&stmt.operator, ScopingStrategy::Hierarchical(Scope::Callable(None)));
@@ -506,6 +516,19 @@ impl AstVisitor for NameResolver<'_> {
                         );
                     }
                 }
+            }
+        }
+
+        //lets see if this is builtin-function that needs to be replaced
+        if self.apply_possible_replacement(&stmt.operator, stmt.parameters.as_deref(), node) {
+            if let Some(StatementAnnotation::ReplacementAst { statement: replacement }) =
+                self.annotations.take(node)
+            {
+                //visit the new ast
+                self.visit(&replacement);
+                //re-attach the annotation
+                self.annotations
+                    .annotate(&node, StatementAnnotation::ReplacementAst { statement: replacement });
             }
         }
     }

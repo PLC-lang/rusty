@@ -1760,7 +1760,7 @@ impl<'i> TypeAnnotator<'i> {
 
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            annotation(self, statement, operator, parameters_stmt, ctx.to_owned());
+            // annotation(self, statement, operator, parameters_stmt, ctx.to_owned());
         } else {
             //This is skipped for builtins that provide their own annotation-logic
             self.annotate_call_statement(operator, parameters_stmt, &ctx);
