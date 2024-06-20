@@ -959,7 +959,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
@@ -1001,7 +1001,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
@@ -1037,7 +1037,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
@@ -1064,7 +1064,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
@@ -1134,7 +1134,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain constants expressions used in the string-len
 

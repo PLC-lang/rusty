@@ -26,9 +26,9 @@ use self::{
 };
 
 pub mod const_expressions;
+pub mod indexer;
 mod instance_iterator;
 pub mod symbol;
-pub mod visitor;
 
 #[cfg(test)]
 mod tests;
@@ -97,7 +97,7 @@ pub struct HardwareBinding {
 }
 
 impl HardwareBinding {
-    fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
+    pub fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
         if let AstStatement::HardwareAccess(data) = it.get_stmt() {
             Some(HardwareBinding {
                 access: data.access,
