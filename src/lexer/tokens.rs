@@ -255,6 +255,10 @@ pub enum Token {
     #[token("REFTO", ignore(case))]
     KeywordRef,
 
+    // https://content.helpme-codesys.com/en/CODESYS%20Development%20System/_cds_datatype_reference.html
+    #[token("REFERENCE TO", ignore(case))]
+    KeywordReferenceTo,
+
     #[token("ARRAY", ignore(case))]
     KeywordArray,
 

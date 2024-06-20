@@ -572,6 +572,7 @@ fn visit_variable_length_array(
                             referenced_type: dummy_array_name,
                             location: SourceLocation::undefined(),
                         }),
+                        auto_deref: false,
                     },
                     location: SourceLocation::undefined(),
                     scope: None,

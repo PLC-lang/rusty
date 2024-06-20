@@ -214,3 +214,68 @@ fn reference_assignment() {
     }
     "###);
 }
+
+#[test]
+fn reference_to_variable_declaration() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                foo : REF_TO DINT;
+                bar : REFERENCE TO DINT;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    // We expect the same codegen output for both foo and bar
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %foo = alloca i32*, align 8
+      %bar = alloca i32*, align 8
+      store i32* null, i32** %foo, align 8
+      store i32* null, i32** %bar, align 8
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn reference_to_variable_assignment() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                foo : REF_TO DINT;
+                bar : REFERENCE TO DINT;
+            END_VAR
+
+            foo^ := 5;  // Explicit deref operator
+            bar  := 10; // Implicit deref operator
+        END_FUNCTION
+        "#,
+    );
+
+    // We expect the same codegen output for both foo and bar
+    // (even though invalid because both foo and bar point to no valid address)
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %foo = alloca i32*, align 8
+      %bar = alloca i32*, align 8
+      store i32* null, i32** %foo, align 8
+      store i32* null, i32** %bar, align 8
+      %deref = load i32*, i32** %foo, align 8
+      store i32 5, i32* %deref, align 4
+      store i32* inttoptr (i32 10 to i32*), i32** %bar, align 8
+      ret void
+    }
+    "###);
+}

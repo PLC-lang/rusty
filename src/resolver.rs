@@ -1865,11 +1865,11 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
     let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
-        index.register_type(crate::typesystem::DataType {
+        index.register_type(typesystem::DataType {
             name: new_type_name.clone(),
             initial_value: None,
             nature: TypeNature::Any,
-            information: crate::typesystem::DataTypeInformation::Pointer {
+            information: DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name,
                 name: new_type_name.clone(),

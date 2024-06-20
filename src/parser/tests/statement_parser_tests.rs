@@ -296,3 +296,101 @@ fn reference_assignment_is_parsed() {
     ]
     "###)
 }
+
+#[test]
+fn reference_to_is_parsed() {
+    let result = &parse(
+        r"
+    PROGRAM main
+        VAR
+            foo : SINT;
+            bar : REFERENCE TO INT;
+            baz : DINT;
+        END_VAR
+    END_PROGRAM
+    ",
+    );
+
+    insta::assert_debug_snapshot!(&result.0.units[0].variable_blocks[0].variables, @r###"
+    [
+        Variable {
+            name: "foo",
+            data_type: DataTypeReference {
+                referenced_type: "SINT",
+            },
+        },
+        Variable {
+            name: "bar",
+            data_type: DataTypeDefinition {
+                data_type: PointerType {
+                    name: None,
+                    referenced_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                    auto_deref: true,
+                },
+            },
+        },
+        Variable {
+            name: "baz",
+            data_type: DataTypeReference {
+                referenced_type: "DINT",
+            },
+        },
+    ]
+    "###)
+}
+
+#[test]
+fn reference_to_multi_is_parsed() {
+    let result = &parse(
+        r"
+    PROGRAM main
+        VAR
+            foo, bar, baz : REFERENCE TO DINT;
+        END_VAR
+    END_PROGRAM
+    ",
+    );
+
+    insta::assert_debug_snapshot!(&result.0.units[0].variable_blocks[0].variables, @r###"
+    [
+        Variable {
+            name: "foo",
+            data_type: DataTypeDefinition {
+                data_type: PointerType {
+                    name: None,
+                    referenced_type: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                    auto_deref: true,
+                },
+            },
+        },
+        Variable {
+            name: "bar",
+            data_type: DataTypeDefinition {
+                data_type: PointerType {
+                    name: None,
+                    referenced_type: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                    auto_deref: true,
+                },
+            },
+        },
+        Variable {
+            name: "baz",
+            data_type: DataTypeDefinition {
+                data_type: PointerType {
+                    name: None,
+                    referenced_type: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                    auto_deref: true,
+                },
+            },
+        },
+    ]
+    "###)
+}

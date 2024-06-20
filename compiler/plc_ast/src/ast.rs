@@ -423,6 +423,17 @@ impl Debug for DataTypeDeclaration {
 }
 
 impl DataTypeDeclaration {
+    pub fn temp(&mut self) {
+        match self {
+            Self::DataTypeDefinition { data_type, .. } => match data_type {
+                DataType::PointerType { ref mut auto_deref, .. } => {
+                    *auto_deref = true;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
     pub fn get_name(&self) -> Option<&str> {
         match self {
             DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
@@ -487,6 +498,8 @@ pub enum DataType {
     PointerType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
+        auto_deref: bool,
+        // TODO: auto_deref here probably?
     },
     StringType {
         name: Option<String>,
