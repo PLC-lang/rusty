@@ -122,10 +122,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment(data, ..) => {
                 self.generate_assignment_statement(&data.left, &data.right)?;
             }
-            AstStatement::ReferenceAssignment(data, ..) => {
-                self.generate_reference_assignment_statement(&data.left, &data.right)?;
-            }
-
             AstStatement::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }
@@ -273,25 +269,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
         exp_gen.generate_store(left, left_type, right_statement)?;
-        Ok(())
-    }
-
-    // XXX: Replace Result with CodegenResult<T>?
-    pub fn generate_reference_assignment_statement(
-        &self,
-        left: &AstNode,
-        right: &AstNode,
-    ) -> Result<(), Diagnostic> {
-        let exp_gen = self.create_expr_generator();
-
-        let left_type = exp_gen.get_type_hint_info_for(left)?;
-        let left_pvalue: PointerValue = exp_gen.generate_expression_value(left).and_then(|it| {
-            it.get_basic_value_enum()
-                .try_into()
-                .map_err(|err| Diagnostic::codegen_error(format!("{err:?}").as_str(), left.get_location()))
-        })?;
-
-        exp_gen.generate_store(left_pvalue, left_type, right)?;
         Ok(())
     }
 

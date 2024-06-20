@@ -279,7 +279,7 @@ fn reference_assignment_is_parsed() {
             },
             right: CallStatement {
                 operator: Identifier {
-                    name: "ADR",
+                    name: "REF",
                 },
                 parameters: Some(
                     ReferenceExpr {

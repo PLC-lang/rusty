@@ -904,8 +904,7 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatement::ReferenceAssignment(Assignment { left, right }, ..)
-            | AstStatement::Assignment(Assignment { left, right }, ..) => {
+            AstStatement::Assignment(Assignment { left, right }, ..) => {
                 // struct initialization (left := right)
                 // find out left's type and update a type hint for right
                 if let (
@@ -1420,7 +1419,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::RangeStatement(data, ..) => {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatement::ReferenceAssignment(data, ..) | AstStatement::Assignment(data, ..) => {
+            AstStatement::Assignment(data, ..) => {
                 self.visit_statement(&ctx.enter_control(), &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
