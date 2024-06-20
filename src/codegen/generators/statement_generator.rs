@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    expression_generator::{to_i1, ExpressionCodeGenerator},
+    expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     llvm::Llvm,
 };
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
     },
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{get_bigger_type, DataTypeInformation},
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -332,8 +332,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let end_ty = self.annotations.get_type_or_void(end, self.index);
         let counter_ty = self.annotations.get_type_or_void(counter, self.index);
-        let ty = get_bigger_type(self.index.get_type_or_panic("DINT"), counter_ty, self.index);
-        let ll_ty = self.llvm_index.find_associated_type(ty.get_name()).unwrap();
+        let cast_target_ty = get_bigger_type(self.index.get_type_or_panic(DINT_TYPE), counter_ty, self.index);
+        let cast_target_llty = self.llvm_index.find_associated_type(cast_target_ty.get_name()).unwrap();
 
         let step_ty = by_step.as_ref().map(|it| {
             self.register_debug_location(it);
@@ -342,10 +342,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let eval_step = || {
             step_ty.map_or_else(
-                || self.llvm.create_const_numeric(&ll_ty, "1", SourceLocation::undefined()),
+                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::undefined()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
-                    Ok(cast_if_needed!(exp_gen, ty, step_ty, step, None))
+                    Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
                 },
             )
         };
@@ -366,7 +366,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let is_incrementing = builder.build_int_compare(
             inkwell::IntPredicate::SGT,
             eval_step()?.into_int_value(),
-            self.llvm.create_const_numeric(&ll_ty, "0", SourceLocation::undefined())?.into_int_value(),
+            self.llvm
+                .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
+                .into_int_value(),
             "is_incrementing",
         );
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
@@ -380,14 +382,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             let end = exp_gen.generate_expression_value(end).unwrap();
             let end_value = match end {
-                super::expression_generator::ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
-                super::expression_generator::ExpressionValue::RValue(val) => val,
+                ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
+                ExpressionValue::RValue(val) => val,
             };
             let counter_value = builder.build_load(counter, "");
             let cmp = builder.build_int_compare(
                 predicate,
-                cast_if_needed!(exp_gen, ty, counter_ty, counter_value, None).into_int_value(),
-                cast_if_needed!(exp_gen, ty, end_ty, end_value, None).into_int_value(),
+                cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
+                cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None).into_int_value(),
                 "condition",
             );
             builder.build_conditional_branch(cmp, loop_body, afterloop);
@@ -412,10 +414,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let counter_value = builder.build_load(counter, "");
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
-            cast_if_needed!(exp_gen, ty, counter_ty, counter_value, None).into_int_value(),
+            cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
             "next",
         ));
-        builder.build_store(counter, cast_if_needed!(exp_gen, counter_ty, ty, inc, None).into_int_value());
+        builder.build_store(
+            counter,
+            cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None).into_int_value(),
+        );
 
         // check condition
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
