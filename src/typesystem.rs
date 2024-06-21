@@ -147,7 +147,7 @@ impl DataType {
 
     // returns true if this type can be used to perform arithmetic operations (+,-,*...)
     pub fn is_arithmetic(&self) -> bool {
-        (self.is_numerical() || self.is_bit()) && !self.is_bool()
+        (self.is_numerical() || self.is_bit()) && !self.is_bool() && !self.is_pointer()
     }
 
     pub fn is_bool(&self) -> bool {

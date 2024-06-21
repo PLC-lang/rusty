@@ -80,7 +80,13 @@ lazy_static! {
                             passed_type
                         );
 
+                        annotator.clear_type_hint(stmt);
                         annotator.annotate(stmt, StatementAnnotation::value(ptr_type.as_str()));
+
+                        // clear the hint of the parameters, its wrong (it was hinted to the generic type U)
+                        for param in flatten_expression_list(parameters.unwrap()) {
+                            annotator.clear_type_hint(param);
+                        }
                     }
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {

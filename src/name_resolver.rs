@@ -188,7 +188,7 @@ impl ScopeStack {
     }
 
     pub fn print_dump(&self) {
-        println!("{:#?}", self);  
+        println!("{:#?}", self);
     }
 }
 
@@ -461,6 +461,15 @@ impl AstVisitor for NameResolver<'_> {
             Some(get_bigger_type(left_type, right_type, &self.index).get_name().to_string())
         } else if stmt.operator.is_comparison_operator() {
             Some(BOOL_TYPE.to_string())
+        } else if left_type.is_pointer() {
+            //make sure we treat the other also as string
+            self.annotations.annotate_type_hint(&stmt.right, StatementAnnotation::value(left_type.get_name()));
+            Some(left_type.get_name().to_string())
+        }
+         else if right_type.is_pointer() {
+            // make sure we treat the other also as string
+            self.annotations.annotate_type_hint(&stmt.left, StatementAnnotation::value(left_type.get_name()));
+            Some(right_type.get_name().to_string()) 
         } else {
             None
         };
@@ -471,8 +480,6 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, node: &plc_ast::ast::AstNode) {
-        
-
         // prioritize functions here
         self.walk_with_scope(&stmt.operator, ScopingStrategy::Hierarchical(Scope::Callable(None)));
         // annotate the whole statement with the resulting type
@@ -569,8 +576,10 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
-        self.visit_data_type(&user_type.data_type);
+        // first try  normal walk ...
+        user_type.walk(self);
 
+        // ... then try to annotate the initializer with the known type-information
         if let Some(type_name) = user_type.data_type.get_name() {
             let mut initializer_annotator = LiteralsAnnotator::new(
                 self.index.get_intrinsic_type_by_name(type_name).get_type_information(),
@@ -596,6 +605,12 @@ impl AstVisitor for NameResolver<'_> {
             self.annotations.annotate_type_hint(&range.start, StatementAnnotation::value(type_name));
             self.annotations.annotate_type_hint(&range.end, StatementAnnotation::value(type_name));
         }
+    }
+
+    fn visit_hardware_access(&mut self, stmt: &plc_ast::ast::HardwareAccess, _node: &AstNode) {
+        stmt.walk(self);
+        self.annotations
+            .annotate(_node, StatementAnnotation::value(get_type_name_for_direct_access(&stmt.access)));
     }
 }
 
@@ -640,15 +655,14 @@ impl<'i> LiteralsAnnotator<'i> {
 
 impl AstVisitor for LiteralsAnnotator<'_> {
     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &AstNode) {
-        // annotate the initializer with the expected type
-        self.annotations.annotate_type_hint(node, StatementAnnotation::value(self.expected_type.get_name()));
-
         // for array initializers we also want to initialize the single array elements [a,b,c]
         if let (
             AstLiteral::Array(Array { elements: Some(elements), .. }),
             DataTypeInformation::Array { inner_type_name, .. },
         ) = (stmt, self.expected_type)
         {
+            // annotate the type of the array
+            self.annotations.annotate(node, StatementAnnotation::value(self.expected_type.get_name()));
             // hint the elements of an array
             if let Some(inner_type) = self.index.find_effective_type_info(inner_type_name) {
                 let mut annotator = LiteralsAnnotator::new(inner_type, self.index, self.annotations);
@@ -656,24 +670,32 @@ impl AstVisitor for LiteralsAnnotator<'_> {
                     annotator.visit(member);
                 }
             }
+        } else {
+            // annotate the initializer with the expected type
+            self.annotations
+                .annotate_type_hint(node, StatementAnnotation::value(self.expected_type.get_name()));
         }
     }
 
     /// could be a struct-literal
     fn visit_paren_expression(&mut self, inner: &AstNode, node: &AstNode) {
-        inner.walk(self);
         // maybe a struct?
         if let DataTypeInformation::Struct { name, .. } = self.expected_type {
             //annotate the paren-expression and the inner one
             self.annotations.annotate_type_hint(node, StatementAnnotation::value(name));
             self.annotations.copy_annotation(node, inner);
+
+            // visit the child expressions, they are probably assignments
+            for i in inner.get_as_list() {
+                self.visit(i);
+            }
         }
     }
 
     /// could be an assignment in a struct-literal
     fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
-        stmt.walk(self);
-        if let Some(annotation) = stmt.left.get_flat_reference_name().and_then(|ref_name| {
+        let reference_name = stmt.left.get_flat_reference_name();
+        if let Some(annotation) = reference_name.and_then(|ref_name| {
             Scope::LocalVariable(self.expected_type.get_name().to_string()).lookup(ref_name, self.index)
         }) {
             // visit the rightside with new expected type

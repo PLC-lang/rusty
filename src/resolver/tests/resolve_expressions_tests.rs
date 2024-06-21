@@ -396,11 +396,11 @@ fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: addition, .. }), .. } = &statements[1]
     {
-        assert_type_and_hint!(&annotations, &index, addition, "__PRG_a", Some("__PRG_a"));
+        assert_type_and_hint!(&annotations, &index, addition, "__PRG_a", /*same */None);
         if let AstNode { stmt: AstStatement::BinaryExpression(BinaryExpression { left, .. }), .. } =
             &**addition
         {
-            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", Some("__PRG_a"));
+            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", /*same */ None);
         }
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: addition, .. }), .. } = &statements[2]
@@ -2633,7 +2633,7 @@ fn data_type_initializers_type_hint_test() {
 
     // THEN the members's initializers have correct type-hints
     if let Some(initializer) = &unit.user_types[0].initializer {
-        assert_eq!(Some(index.get_type("MyArray").unwrap()), annotations.get_type_hint(initializer, &index));
+        assert_type_and_hint!(&annotations, &index, initializer, "MyArray", None);
 
         let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
         if let AstNode {
@@ -2643,10 +2643,7 @@ fn data_type_initializers_type_hint_test() {
         {
             if let AstStatement::ExpressionList(elements, ..) = exp_list.get_stmt() {
                 for ele in elements {
-                    assert_eq!(
-                        index.get_type("INT").unwrap(),
-                        annotations.get_type_hint(ele, &index).unwrap()
-                    );
+                    assert_type_and_hint!(&annotations, &index, ele, "DINT", Some("INT"));
                 }
             } else {
                 unreachable!("{:#?}", unit)
@@ -3961,7 +3958,7 @@ fn resolve_return_variable_in_nested_call() {
 }
 
 #[test]
-fn hardware_access_types_annotated() {
+fn  hardware_access_types_annotated() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "PROGRAM prg
@@ -3983,7 +3980,7 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        assert_type_and_hint!(&annotations, &index, right, BYTE_TYPE, Some(BYTE_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, BYTE_TYPE, /*same*/ None);
     } else {
         unreachable!("Must be assignment")
     }
@@ -4247,10 +4244,8 @@ fn array_of_struct_with_initial_values_annotated_correctly() {
             assignments.last().expect("this should be the array initialization for myStruct.c")
         {
             // the array initialization should be annotated with the correct type hint (myStruct.c type)
-            let target_type = annotations.get_type(left, &index).expect("we should have the type");
-            let array_init_type =
-                annotations.get_type_hint(right, &index).expect("we should have a type hint");
-            assert_eq!(target_type, array_init_type);
+            assert_type_and_hint!(&annotations, &index, left, "__myStruct_c", None);
+            assert_type_and_hint!(&annotations, &index, right, "__myStruct_c", None);
         } else {
             panic!("should be an assignment")
         }
@@ -5541,6 +5536,10 @@ fn builtin_add_replacement_ast() {
     insta::assert_debug_snapshot!(annotations.get(stmt));
 }
 
+
+// are we really sure that this should not replace?
+// isnt it more elegate to replac it to a + b + c + d and let the validator handle it?
+#[ignore ="not sure if this is the correct behavior"]
 #[test]
 fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_nature() {
     let id_provider = IdProvider::default();

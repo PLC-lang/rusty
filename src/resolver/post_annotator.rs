@@ -1,6 +1,6 @@
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
+        flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess, TypeNature,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral},
@@ -10,8 +10,8 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::{Index, PouIndexEntry},
-    name_resolver::{LiteralsAnnotator, NameResolver},
+    index::Index,
+    name_resolver::LiteralsAnnotator,
     typesystem::{DataTypeInformation, BOOL_TYPE},
 };
 
@@ -115,8 +115,6 @@ impl<'i> PostAnnotator<'i> {
 }
 
 impl AstVisitor for PostAnnotator<'_> {
-
-
     fn visit_binary_expression(
         &mut self,
         stmt: &plc_ast::ast::BinaryExpression,
@@ -215,7 +213,7 @@ impl AstVisitor for PostAnnotator<'_> {
         }
     }
 
-    //TODO: why does this cause several tests to fail? 
+    //TODO: why does this cause several tests to fail?
     // fn visit_call_statement(&mut self, stmt: &CallStatement, node: &AstNode) {
     //     // this is a bold optimization to only look for replacement ASTs in calls!!! :-/
     //     if let Some(StatementAnnotation::ReplacementAst { statement: replacement}) = self.annotations.take(node) {
@@ -246,5 +244,21 @@ impl AstVisitor for PostAnnotator<'_> {
                 self.annotations.clear_type_hint(node);
             }
         }
+
+        // upscale a literal if it looks streight forward
+        let real_type = self.annotations.get_type(node, self.index)
+            .and_then(|dt| self.index.find_effective_type(dt));
+            
+        let hint_type = self.annotations.get_type_hint(node, self.index)
+            .and_then(|dt| self.index.find_effective_type(dt));
+
+        if let Some((real_type, hint_type)) = real_type.zip(hint_type) {
+            //updscale INT to REAL if necessary
+            if hint_type.has_nature(TypeNature::Real, self.index) 
+                && real_type.has_nature(TypeNature::Int, self.index) {
+                    sjkldsjklfsjklsfd
+                }
+        }
+
     }
 }
