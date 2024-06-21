@@ -228,4 +228,11 @@ mod tests {
     fn parse_function_invalid_no_arguments() {
         let _ = SectionMangler::from("$RUSTY$fn-no_arguments:u16u8");
     }
+
+    #[test]
+    fn parse_qualified_var_name() {
+        let mangled = SectionMangler::from("$RUSTY$var-Color.red:e4i32");
+
+        assert_eq!(mangled.name(), "Color.red");
+    }
 }
