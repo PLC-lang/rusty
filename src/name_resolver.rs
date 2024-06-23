@@ -70,9 +70,10 @@ impl Scope {
     fn lookup(&self, identifier: &str, index: &Index) -> Option<StatementAnnotation> {
         match self {
             // lookup a type
-            Scope::Type => {
-                index.find_type(identifier).map(|dt| dt.get_type_information()).map(StatementAnnotation::from)
-            }
+            Scope::Type => index
+                .find_effective_type_by_name(identifier)
+                .map(|dt| dt.get_type_information())
+                .map(StatementAnnotation::from),
 
             Scope::POU => index.find_pou(identifier).map(StatementAnnotation::from),
 
@@ -100,6 +101,7 @@ impl Scope {
                     crate::index::ImplementationType::Function => {
                         let return_type = index
                             .find_return_type(i.get_type_name())
+                            .and_then(|dt| index.find_effective_type(dt))
                             .map(|dt| dt.get_name())
                             .unwrap_or_else(|| VOID_TYPE)
                             .to_string();
@@ -444,7 +446,7 @@ impl AstVisitor for NameResolver<'_> {
         {
             let bigger_type = if left_type.is_bool() && right_type.is_bool() {
                 left_type
-                //TODO Reuired???
+                //TODO Required???
             } else {
                 let ty = if left_type.is_bit() && right_type.is_bit() {
                     right_type
@@ -463,13 +465,13 @@ impl AstVisitor for NameResolver<'_> {
             Some(BOOL_TYPE.to_string())
         } else if left_type.is_pointer() {
             //make sure we treat the other also as string
-            self.annotations.annotate_type_hint(&stmt.right, StatementAnnotation::value(left_type.get_name()));
+            self.annotations
+                .annotate_type_hint(&stmt.right, StatementAnnotation::value(left_type.get_name()));
             Some(left_type.get_name().to_string())
-        }
-         else if right_type.is_pointer() {
+        } else if right_type.is_pointer() {
             // make sure we treat the other also as string
             self.annotations.annotate_type_hint(&stmt.left, StatementAnnotation::value(left_type.get_name()));
-            Some(right_type.get_name().to_string()) 
+            Some(right_type.get_name().to_string())
         } else {
             None
         };
@@ -503,24 +505,28 @@ impl AstVisitor for NameResolver<'_> {
                 .iter()
                 .enumerate()
             {
-                if let AstStatement::Assignment(Assignment { left, right, .. }) = arg.get_stmt() {
-                    // left needs to be resolved in the context of the call operator
-                    self.walk_with_scope(
-                        left,
-                        ScopingStrategy::Strict(Scope::LocalVariable(target_type_name.to_string())),
-                    );
-                    // right needs to be resolved with normal scope
-                    right.walk(self);
-                } else {
-                    arg.walk(self);
-
-                    // hint it with the argument ast pos n
-                    // TODO: move to the hinter???
-                    if let Some(declared_parameter) = declared_parameters.get(idx) {
-                        self.annotations.annotate_type_hint(
-                            arg,
-                            StatementAnnotation::value(declared_parameter.get_type_name()),
+                match arg.get_stmt() {
+                    AstStatement::Assignment(Assignment { left, right, .. })
+                    | AstStatement::OutputAssignment(Assignment { left, right, .. }) => {
+                        // left needs to be resolved in the context of the call operator
+                        self.walk_with_scope(
+                            left,
+                            ScopingStrategy::Strict(Scope::LocalVariable(target_type_name.to_string())),
                         );
+                        // right needs to be resolved with normal scope
+                        right.walk(self);
+                    }
+                    _ => {
+                        arg.walk(self);
+
+                        // hint it with the argument ast pos n
+                        // TODO: move to the hinter???
+                        if let Some(declared_parameter) = declared_parameters.get(idx) {
+                            self.annotations.annotate_type_hint(
+                                arg,
+                                StatementAnnotation::value(declared_parameter.get_type_name()),
+                            );
+                        }
                     }
                 }
             }

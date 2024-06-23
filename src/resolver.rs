@@ -699,7 +699,7 @@ impl AnnotationMapImpl {
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         log::trace!("Annotation (type-hint): {annotation:?} @ {s:?}");
         //only hint if the type is not already the same
-        if self.get(s) != Some(&annotation) {
+        if self.get_type_name(s) != self.get_type_name_for_annotation(&annotation) {
             self.type_hint_map.insert(s.get_id(), annotation);
         }
     }

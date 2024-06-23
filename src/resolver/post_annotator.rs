@@ -1,6 +1,7 @@
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess, TypeNature,
+        flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
+        TypeNature,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral},
@@ -12,7 +13,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::Index,
     name_resolver::LiteralsAnnotator,
-    typesystem::{DataTypeInformation, BOOL_TYPE},
+    typesystem::{get_bigger_type, DataType, DataTypeInformation, BOOL_TYPE, VOID_TYPE},
 };
 
 use super::{AnnotationMap, AnnotationMapImpl, StatementAnnotation};
@@ -120,7 +121,6 @@ impl AstVisitor for PostAnnotator<'_> {
         stmt: &plc_ast::ast::BinaryExpression,
         node: &plc_ast::ast::AstNode,
     ) {
-        stmt.walk(self);
 
         let l_type = self.annotations.get_type_or_void(&stmt.left, self.index);
         let r_type = self.annotations.get_type_or_void(&stmt.right, self.index);
@@ -131,10 +131,16 @@ impl AstVisitor for PostAnnotator<'_> {
         let (r_arithmetic, r_numerical, r_pointer) =
             (r_type.is_arithmetic(), r_type.is_numerical(), r_type.is_pointer());
 
-        if stmt.operator.is_arithmetic_operator() && stmt_type.is_arithmetic() && l_arithmetic && r_arithmetic
+        // TODO: make this 1 if
+        if stmt.operator.is_arithmetic_operator() && (stmt_type.is_arithmetic()) && l_arithmetic && r_arithmetic
         {
-            // hint left and right with the resulting type
+            // upscale left & right to the same type
             let type_name = stmt_type.get_name().to_string();
+            self.annotations.annotate_type_hint(&stmt.left, StatementAnnotation::value(type_name.clone()));
+            self.annotations.annotate_type_hint(&stmt.right, StatementAnnotation::value(type_name));
+        } else if stmt.operator.is_comparison_operator() && l_arithmetic && r_arithmetic {
+            // upscale left and right ot the same type
+            let type_name = get_bigger_type(l_type, r_type, self.index).get_name().to_string();
             self.annotations.annotate_type_hint(&stmt.left, StatementAnnotation::value(type_name.clone()));
             self.annotations.annotate_type_hint(&stmt.right, StatementAnnotation::value(type_name));
         }
@@ -147,6 +153,8 @@ impl AstVisitor for PostAnnotator<'_> {
             // replace the comparison operation with a call
             self.replace_compare_statement_with_custom_call(&stmt.left, &stmt.operator, &stmt.right, node);
         }
+
+        stmt.walk(self);
     }
 
     fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
@@ -246,19 +254,39 @@ impl AstVisitor for PostAnnotator<'_> {
         }
 
         // upscale a literal if it looks streight forward
-        let real_type = self.annotations.get_type(node, self.index)
-            .and_then(|dt| self.index.find_effective_type(dt));
-            
-        let hint_type = self.annotations.get_type_hint(node, self.index)
-            .and_then(|dt| self.index.find_effective_type(dt));
+        let num_type =
+            self.annotations.get_type(node, self.index);
+        let hint_type = self.annotations.get_type_hint(node, self.index);
 
-        if let Some((real_type, hint_type)) = real_type.zip(hint_type) {
-            //updscale INT to REAL if necessary
-            if hint_type.has_nature(TypeNature::Real, self.index) 
-                && real_type.has_nature(TypeNature::Int, self.index) {
-                    sjkldsjklfsjklsfd
-                }
+        let num_name = num_type.map(|t| t.get_name());
+        let hint_name = hint_type.map(|t| t.get_name());
+        if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
+            if num_type.is_numerical() && hint_type.is_real() {
+                // promote the hint to the type-annotation
+                self.annotations.annotate(node, StatementAnnotation::value(hint_type.get_name()));
+                self.annotations.clear_type_hint(node)
+            }
         }
 
+        // if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
+        //     if num_type.is_numerical() && hint_type.is_numerical() && hint_type.is_compatible_with_type(num_type) {
+        //         // promote the hint to the type-annotation
+        //         self.annotations.annotate(node, StatementAnnotation::value(hint_type.get_name()));
+        //         self.annotations.clear_type_hint(node)
+        //     }
+        // }
+
+        // let hint_name = self.annotations.get_type_hint(node, self.index).map(|t| t.get_name());
+        // let hint_num_type = hint_name
+        //     .and_then(|type_name| self.index.find_type(type_name))
+        //     .map(|it| it.is_numerical() || it.is_compatible_with_type(other))
+        //     .unwrap_or(false);
+
+        // if real_num_type && hint_num_type {
+        //     if let Some(type_name) = hint_name {
+        //         self.annotations.annotate_type_hint(node, StatementAnnotation::value(type_name));
+        //         self.annotations.clear_type_hint(node);
+        //     }
+        // }
     }
 }
