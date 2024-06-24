@@ -1923,6 +1923,7 @@ fn to_variable_annotation(
             // real auto-deref pointer
             (inner_type_name.clone(), AUTO_DEREF)
         }
+        // TODO: Autoderef here
         _ => (v_type.get_name().to_string(), NO_DEREF),
     };
 

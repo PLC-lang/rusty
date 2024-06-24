@@ -252,6 +252,9 @@ pub enum Token {
     #[token("REFTO", ignore(case))]
     KeywordRef,
 
+    #[token("REFERENCE TO", ignore(case))]
+    KeywordReferenceTo,
+
     #[token("ARRAY", ignore(case))]
     KeywordArray,
 

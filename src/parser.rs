@@ -705,7 +705,7 @@ fn parse_pointer_definition(
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
+                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref: false },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
@@ -1108,7 +1108,11 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     // create variables with the same data type for each of the names
     let mut variables = vec![];
-    if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+
+    if lexer.try_consume(&KeywordReferenceTo) {
+        let (mut data_type, initializer) =
+            parse_pointer_definition(lexer, None, lexer.last_range.start).unwrap();
+        data_type.temp();
         for (name, range) in var_names {
             variables.push(Variable {
                 name,
@@ -1117,6 +1121,19 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 initializer: initializer.clone(),
                 address: address.clone(),
             });
+        }
+        lexer.advance();
+    } else {
+        if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+            for (name, range) in var_names {
+                variables.push(Variable {
+                    name,
+                    data_type_declaration: data_type.clone(),
+                    location: lexer.source_range_factory.create_range(range),
+                    initializer: initializer.clone(),
+                    address: address.clone(),
+                });
+            }
         }
     }
     variables

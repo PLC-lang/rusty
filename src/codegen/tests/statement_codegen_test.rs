@@ -184,3 +184,37 @@ fn floating_point_type_casting() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn reference_assignment() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REFERENCE TO DINT;
+                b : REF_TO DINT;
+            END_VAR
+            a := 5;
+            b^ := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca i32*, align 8
+      %b = alloca i32*, align 8
+      store i32* null, i32** %a, align 8
+      store i32* null, i32** %b, align 8
+      %deref = load i32*, i32** %a, align 8
+      store i32 5, i32* %deref, align 4
+      %deref1 = load i32*, i32** %b, align 8
+      store i32 5, i32* %deref1, align 4
+      ret void
+    }
+    "###);
+}

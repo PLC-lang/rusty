@@ -400,12 +400,12 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
-        DataType::PointerType { name: Some(name), referenced_type, .. } => {
+        DataType::PointerType { name: Some(name), referenced_type, auto_deref } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
-                auto_deref: false,
+                auto_deref: *auto_deref,
             };
 
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -413,6 +413,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 name,
                 scope.clone(),
             );
+            // TODO: Here
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,
@@ -572,6 +573,7 @@ fn visit_variable_length_array(
                             referenced_type: dummy_array_name,
                             location: SourceLocation::undefined(),
                         }),
+                        auto_deref: false,
                     },
                     location: SourceLocation::undefined(),
                     scope: None,

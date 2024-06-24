@@ -262,3 +262,51 @@ fn empty_parameter_assignments_in_call_statement() {
     let ast_string = format!("{:#?}", &result);
     insta::assert_snapshot!(ast_string);
 }
+
+#[test]
+fn reference_to_variable() {
+    let (result, diagnostics) = parse(
+        r"
+        FUNCTION foo
+            VAR
+                bar : DINT;
+                baz : REFERENCE TO DINT;
+                qux : DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty());
+    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "bar",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+            Variable {
+                name: "baz",
+                data_type: DataTypeDefinition {
+                    data_type: PointerType {
+                        name: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                        auto_deref: true,
+                    },
+                },
+            },
+            Variable {
+                name: "qux",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "###);
+}
