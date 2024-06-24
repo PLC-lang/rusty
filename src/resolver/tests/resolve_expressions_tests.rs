@@ -4299,7 +4299,7 @@ fn parameter_down_cast_test() {
         assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
         assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
         assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
-        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, Some(LINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, None /* same*/ );
         // ok!
     }
 
@@ -4319,7 +4319,7 @@ fn parameter_down_cast_test() {
         assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
         assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
         assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
-        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, Some(LINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, None /* same */);
         // ok!
     }
 }
@@ -4720,7 +4720,7 @@ fn writing_value_read_from_vla_to_vla() {
         }) = right.as_ref().get_stmt()
         {
             // entire statement resolves to INT
-            assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("INT"));
+            assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", None /*same*/);
 
             // reference is annotated with type and hint
             assert_type_and_hint!(

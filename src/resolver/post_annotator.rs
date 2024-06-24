@@ -1,7 +1,6 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
-        TypeNature,
     },
     control_statements::AstControlStatement,
     literals::{Array, AstLiteral},
@@ -13,7 +12,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::Index,
     name_resolver::LiteralsAnnotator,
-    typesystem::{get_bigger_type, DataType, DataTypeInformation, BOOL_TYPE, VOID_TYPE},
+    typesystem::{get_bigger_type, DataTypeInformation, InternalType, StructSource, BOOL_TYPE, VOID_TYPE},
 };
 
 use super::{AnnotationMap, AnnotationMapImpl, StatementAnnotation};
@@ -113,6 +112,36 @@ impl<'i> PostAnnotator<'i> {
             AstFactory::create_empty_statement(location.clone(), self.id_provider.next_id())
         }
     }
+
+    /// if the given node is a vla, this function returns an necessary hint-annotation for the node
+    fn get_vla_hint_if_necessary(&mut self, node: &AstNode) -> Option<StatementAnnotation> {
+        if let Some(StatementAnnotation::Variable { resulting_type, qualified_name, argument_type, .. }) =
+            self.annotations.get(node)
+        {
+            if let Some(DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+                members,
+                ..
+            }) = self.index.find_effective_type_info(resulting_type)
+            {
+                if let Some(DataTypeInformation::Pointer { inner_type_name, .. }) =
+                    self.index.find_effective_type_info(
+                        members.get(0).map(|it| it.get_type_name()).unwrap_or(VOID_TYPE),
+                    )
+                {
+                    let hint_annotation = StatementAnnotation::Variable {
+                        resulting_type: inner_type_name.to_owned(),
+                        qualified_name: qualified_name.to_string(),
+                        constant: false,
+                        argument_type: argument_type.clone(),
+                        is_auto_deref: false,
+                    };
+                    return Some(hint_annotation);
+                }
+            }
+        }
+        None
+    }
 }
 
 impl AstVisitor for PostAnnotator<'_> {
@@ -121,7 +150,6 @@ impl AstVisitor for PostAnnotator<'_> {
         stmt: &plc_ast::ast::BinaryExpression,
         node: &plc_ast::ast::AstNode,
     ) {
-
         let l_type = self.annotations.get_type_or_void(&stmt.left, self.index);
         let r_type = self.annotations.get_type_or_void(&stmt.right, self.index);
         let stmt_type = self.annotations.get_type_or_void(node, self.index);
@@ -132,7 +160,10 @@ impl AstVisitor for PostAnnotator<'_> {
             (r_type.is_arithmetic(), r_type.is_numerical(), r_type.is_pointer());
 
         // TODO: make this 1 if
-        if stmt.operator.is_arithmetic_operator() && (stmt_type.is_arithmetic()) && l_arithmetic && r_arithmetic
+        if stmt.operator.is_arithmetic_operator()
+            && (stmt_type.is_arithmetic())
+            && l_arithmetic
+            && r_arithmetic
         {
             // upscale left & right to the same type
             let type_name = stmt_type.get_name().to_string();
@@ -176,6 +207,11 @@ impl AstVisitor for PostAnnotator<'_> {
                 self.annotations.copy_annotation(node, target);
                 self.annotations.clear_type_hint(&target);
             }
+        }
+
+        // if this was a vla, we update a typehint
+        if let Some(vla_annotation) = self.get_vla_hint_if_necessary(node) {
+            self.annotations.annotate_type_hint(node, vla_annotation)
         }
     }
 
@@ -254,8 +290,7 @@ impl AstVisitor for PostAnnotator<'_> {
         }
 
         // upscale a literal if it looks streight forward
-        let num_type =
-            self.annotations.get_type(node, self.index);
+        let num_type = self.annotations.get_type(node, self.index);
         let hint_type = self.annotations.get_type_hint(node, self.index);
 
         let num_name = num_type.map(|t| t.get_name());
