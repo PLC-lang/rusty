@@ -1,6 +1,6 @@
 use crate::{
     parser::tests::{empty_stmt, ref_to},
-    test_utils::tests::parse,
+    test_utils::tests::{parse, parse_and_preprocess},
     typesystem::DINT_TYPE,
 };
 use insta::assert_snapshot;
@@ -261,6 +261,40 @@ fn empty_parameter_assignments_in_call_statement() {
 
     let ast_string = format!("{:#?}", &result);
     insta::assert_snapshot!(ast_string);
+}
+
+#[test]
+fn reference_assignment_is_parsed() {
+    let result = &parse("PROGRAM main x REF= y END_PROGRAM").0.implementations[0];
+    insta::assert_debug_snapshot!(result.statements, @r###"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: Identifier {
+                    name: "REF",
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    ]
+    "###)
 }
 
 #[test]

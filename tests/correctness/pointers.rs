@@ -244,6 +244,24 @@ fn value_behind_function_block_pointer_is_assigned_to_correctly() {
 }
 
 #[test]
+fn reference_assignment() {
+    let function = r"
+        FUNCTION main : DINT
+            VAR
+                a : REF_TO DINT;
+                b : DINT := 5;
+            END_VAR
+
+            a REF= b;
+            main := a^;
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());
+    assert_eq!(5, res);
+}
+
+#[test]
 fn reference_to_assignment() {
     let function = r"
         FUNCTION main : DINT
@@ -251,7 +269,7 @@ fn reference_to_assignment() {
                 a : REFERENCE TO DINT;
                 b : DINT := 5;
             END_VAR
-            a := REF(b);
+            a REF= b;
             main := a;
         END_FUNCTION
     ";

@@ -159,6 +159,9 @@ pub enum Token {
     #[token("=>")]
     KeywordOutputAssignment,
 
+    #[token("REF=")]
+    KeywordReferenceAssignment,
+
     #[token("(")]
     KeywordParensOpen,
 

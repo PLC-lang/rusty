@@ -122,7 +122,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment(data, ..) => {
                 self.generate_assignment_statement(&data.left, &data.right)?;
             }
-
             AstStatement::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }

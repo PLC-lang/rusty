@@ -609,11 +609,14 @@ pub struct AstNode {
 #[derive(Debug, Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
-    // a placeholder that indicates a default value of a datatype
+
+    // A placeholder which indicates a default value of a datatype
     DefaultValue(DefaultValue),
+
     // Literals
     Literal(AstLiteral),
     MultipliedStatement(MultipliedStatement),
+
     // Expressions
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
@@ -625,15 +628,15 @@ pub enum AstStatement {
     ParenExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
-    // Assignment
+
+    // Assignments
     Assignment(Assignment),
-    // OutputAssignment
     OutputAssignment(Assignment),
-    //Call Statement
+
     CallStatement(CallStatement),
+
     // Control Statements
     ControlStatement(AstControlStatement),
-
     CaseCondition(Box<AstNode>),
     ExitStatement(()),
     ContinueStatement(()),

@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::builtins::get_builtin;
 use crate::{
     expect_token,
     lexer::Token::*,
@@ -213,17 +214,35 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstNode {
     };
 
     match literal_parse_result {
-        Some(statement) => {
-            if lexer.token == KeywordAssignment {
+        Some(statement) => match lexer.token {
+            KeywordAssignment => {
                 lexer.advance();
                 AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else if lexer.token == KeywordOutputAssignment {
+            }
+            KeywordOutputAssignment => {
                 lexer.advance();
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else {
-                statement
             }
-        }
+            // TODO: This is a good candidate for lowering (if we ever implement it)
+            KeywordReferenceAssignment => {
+                debug_assert!(
+                    get_builtin("REF").is_some(),
+                    "The REF builtin must exist for the REF= syntactic sugar"
+                );
+
+                lexer.advance();
+                let fn_arg = parse_range_statement(lexer);
+                let fn_loc = fn_arg.location.clone();
+                let fn_name = AstFactory::create_identifier("REF", &fn_loc, lexer.next_id());
+
+                AstFactory::create_assignment(
+                    statement,
+                    AstFactory::create_call_statement(fn_name, Some(fn_arg), lexer.next_id(), fn_loc),
+                    lexer.next_id(),
+                )
+            }
+            _ => statement,
+        },
         None => {
             let statement = AstFactory::create_empty_statement(
                 lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
