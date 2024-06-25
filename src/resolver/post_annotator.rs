@@ -12,7 +12,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::Index,
     name_resolver::LiteralsAnnotator,
-    typesystem::{get_bigger_type, DataTypeInformation, InternalType, StructSource, BOOL_TYPE, VOID_TYPE},
+    typesystem::{get_bigger_type, DataType, DataTypeInformation, InternalType, StructSource, BOOL_TYPE, VOID_TYPE},
 };
 
 use super::{AnnotationMap, AnnotationMapImpl, StatementAnnotation};
@@ -293,8 +293,6 @@ impl AstVisitor for PostAnnotator<'_> {
         let num_type = self.annotations.get_type(node, self.index);
         let hint_type = self.annotations.get_type_hint(node, self.index);
 
-        let num_name = num_type.map(|t| t.get_name());
-        let hint_name = hint_type.map(|t| t.get_name());
         if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
             if num_type.is_numerical() && hint_type.is_real() {
                 // promote the hint to the type-annotation
@@ -302,26 +300,19 @@ impl AstVisitor for PostAnnotator<'_> {
                 self.annotations.clear_type_hint(node)
             }
         }
-
-        // if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
-        //     if num_type.is_numerical() && hint_type.is_numerical() && hint_type.is_compatible_with_type(num_type) {
-        //         // promote the hint to the type-annotation
-        //         self.annotations.annotate(node, StatementAnnotation::value(hint_type.get_name()));
-        //         self.annotations.clear_type_hint(node)
-        //     }
-        // }
-
-        // let hint_name = self.annotations.get_type_hint(node, self.index).map(|t| t.get_name());
-        // let hint_num_type = hint_name
-        //     .and_then(|type_name| self.index.find_type(type_name))
-        //     .map(|it| it.is_numerical() || it.is_compatible_with_type(other))
-        //     .unwrap_or(false);
-
-        // if real_num_type && hint_num_type {
-        //     if let Some(type_name) = hint_name {
-        //         self.annotations.annotate_type_hint(node, StatementAnnotation::value(type_name));
-        //         self.annotations.clear_type_hint(node);
-        //     }
-        // }
     }
+
+    fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
+        stmt.walk(self);
+
+        // re-check the parameteres for any unresolved generics
+        let parameteres = stmt.parameters.as_ref().map(|it| it.get_as_list()).unwrap_or_default();
+        for p in parameteres {
+            if let Some(DataTypeInformation::Generic { generic_symbol, ..}) = self.annotations.get_type_hint(p, self.index).map(DataType::get_type_information){
+                //TODO: generics
+            }
+        }
+    }
+
+    
 }

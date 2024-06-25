@@ -300,6 +300,10 @@ impl VariableIndexEntry {
         let name = qualified_name(context, &self.name);
         self.qualified_name.eq_ignore_ascii_case(&name)
     }
+    
+    pub(crate) fn is_void(&self) -> bool {
+        self.get_type_name() == VOID_TYPE
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]

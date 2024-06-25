@@ -162,7 +162,7 @@ pub struct TypeAnnotator<'i> {
 impl TypeAnnotator<'_> {
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         match &annotation {
-            StatementAnnotation::Function { return_type, qualified_name, call_name } => {
+            StatementAnnotation::Function { return_type, qualified_name, call_name, .. } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
                 self.dependencies.insert(Dependency::Call(name.to_string()));
                 self.dependencies.extend(self.get_datatype_dependencies(name, FxIndexSet::default()));
@@ -428,6 +428,15 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
+    /// a yet unresolved type variadic type
+    UnresolvedVariadic {
+        container: String,
+    },
+    /// a yet unresolved generic type
+    UnresolvedGeneric {
+        container: String,
+        generic_name: String,
+    },
 }
 
 impl StatementAnnotation {
@@ -463,7 +472,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
             PouIndexEntry::FunctionBlock { name, .. } => {
                 StatementAnnotation::Type { type_name: name.to_string() }
             }
-            PouIndexEntry::Function { name, return_type, .. } => StatementAnnotation::Function {
+            PouIndexEntry::Function { name, return_type, is_variadic, .. } => StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
                 call_name: None,
@@ -557,7 +566,10 @@ pub trait AnnotationMap {
                 Some(&qualified_name[0..qualified_name.find('.').unwrap_or(qualified_name.len())])
             }
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
+            StatementAnnotation::Function { .. }
+            | StatementAnnotation::Label { .. }
+            | StatementAnnotation::UnresolvedVariadic { .. }
+            | StatementAnnotation::UnresolvedGeneric { .. } => None,
         }
     }
 
@@ -727,7 +739,7 @@ impl AnnotationMapImpl {
         }
     }
 
-    pub(crate) fn  take(&mut self, s: &AstNode)-> Option<StatementAnnotation> {
+    pub(crate) fn take(&mut self, s: &AstNode) -> Option<StatementAnnotation> {
         self.type_map.swap_remove(&s.get_id())
     }
 }
@@ -736,8 +748,6 @@ impl AnnotationMap for AnnotationMapImpl {
     fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_map.get(&s.get_id())
     }
-
-    
 
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.type_hint_map.get(&s.get_id())
@@ -1957,11 +1967,13 @@ fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnota
         PouIndexEntry::Program { name, .. } => {
             Some(StatementAnnotation::Program { qualified_name: name.into() })
         }
-        PouIndexEntry::Function { name, return_type, .. } => Some(StatementAnnotation::Function {
-            return_type: return_type.into(),
-            qualified_name: name.into(),
-            call_name: None,
-        }),
+        PouIndexEntry::Function { name, return_type, is_variadic, .. } => {
+            Some(StatementAnnotation::Function {
+                return_type: return_type.into(),
+                qualified_name: name.into(),
+                call_name: None,
+            })
+        }
         PouIndexEntry::FunctionBlock { name, .. } => {
             Some(StatementAnnotation::Type { type_name: name.into() })
         }

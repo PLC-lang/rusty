@@ -1140,7 +1140,7 @@ fn pou_expressions_resolve_types() {
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into(),
-            call_name: None,
+            call_name: None, 
         }),
         annotations.get(&statements[1])
     );
@@ -1301,7 +1301,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
             return_type: "INT".into(),
-            call_name: None,
+            call_name: None, 
         }),
         foo_annotation
     );
@@ -1360,7 +1360,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
         Some(&StatementAnnotation::Function {
             return_type: "INT".into(),
             qualified_name: "foo".into(),
-            call_name: None
+            call_name: None, 
         }),
         annotations.get(operator)
     );
@@ -1623,7 +1623,7 @@ fn function_parameter_assignments_resolve_types() {
                 qualified_name: "foo".into(),
                 // return_type: "MyType".into(), // why was this alias not resolved?
                 return_type: "INT".into(), // why was this alias not resolved?
-                call_name: None,
+                call_name: None, 
             })
         );
 
@@ -1831,6 +1831,7 @@ fn method_references_are_resolved() {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
                 call_name: None,
+                
             }),
             annotations.get(operator)
         );
@@ -3721,7 +3722,8 @@ fn resolve_recursive_function_call() {
         Some(&StatementAnnotation::Function {
             return_type: "DINT".into(),
             qualified_name: "foo".into(),
-            call_name: None
+            call_name: None,
+            
         }),
         type_map.get(&data.operator.get_id())
     );
@@ -3850,12 +3852,12 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[0], REAL_TYPE, Some(LREAL_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[1], LREAL_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[1], LREAL_TYPE, None /*same */);
         assert_type_and_hint!(&annotations, &index, parameters[2], BOOL_TYPE, None);
         assert_type_and_hint!(&annotations, &index, parameters[3], USINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[4], INT_TYPE, Some(DINT_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[5], DINT_TYPE, Some(DINT_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[6], LINT_TYPE, Some(LINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[5], DINT_TYPE, None /*same */);
+        assert_type_and_hint!(&annotations, &index, parameters[6], LINT_TYPE, None /*same */);
         assert_type_and_hint!(&annotations, &index, parameters[7], "__STRING_5", None);
     } else {
         unreachable!();
@@ -5075,6 +5077,7 @@ fn override_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
                 call_name: None,
+                
             }),
             annotations.get(operator)
         );
@@ -5086,6 +5089,7 @@ fn override_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
                 call_name: None,
+                
             }),
             annotations.get(operator)
         );
@@ -5134,6 +5138,7 @@ fn override_in_grandparent_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
                 call_name: None,
+                
             }),
             annotations.get(operator)
         );
@@ -5145,6 +5150,7 @@ fn override_in_grandparent_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
                 call_name: None,
+                
             }),
             annotations.get(operator)
         );

@@ -1,7 +1,6 @@
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstNode, AstStatement, DataType, Operator, ReferenceAccess,
-        TypeNature,
+        flatten_expression_list, Assignment, AstNode, AstStatement, Operator, ReferenceAccess, TypeNature,
     },
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
@@ -18,9 +17,9 @@ use crate::{
         StringLiterals,
     },
     typesystem::{
-        self, get_bigger_type, get_type_name_for_direct_access, DataTypeInformation, BOOL_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        VOID_TYPE,
+        self, get_bigger_type, get_type_name_for_direct_access, DataType, DataTypeInformation, BOOL_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE, VOID_TYPE,
     },
 };
 
@@ -257,6 +256,32 @@ impl<'i> NameResolver<'i> {
             })
         });
         did_apply.unwrap_or(false)
+    }
+
+    fn apply_integral_promotion<'a>(&self, data_type: &DataType) -> Option<String> {
+        // intrinsic type promotion for variadics in order to be compatible with the C standard.
+        // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+        // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+        // for more about default argument promotion.
+
+        // varargs without a type declaration will be annotated "VOID", so in order to check if a
+        // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+        // types, we promote if the type is smaller than double/i32 (except for booleans).
+        match &data_type.get_type_information() {
+            DataTypeInformation::Float { .. } => Some(
+                get_bigger_type(data_type, self.index.get_type_or_panic(LREAL_TYPE), self.index)
+                    .get_type_information()
+                    .get_name()
+                    .to_string(),
+            ),
+            DataTypeInformation::Integer { .. } if !&data_type.information.is_bool() => Some(
+                get_bigger_type(data_type, self.index.get_type_or_panic(DINT_TYPE), self.index)
+                    .get_type_information()
+                    .get_name()
+                    .to_string(),
+            ),
+            _ => None,
+        }
     }
 }
 
@@ -495,16 +520,16 @@ impl AstVisitor for NameResolver<'_> {
         if let Some(target_type_name) = self.annotations.get_call_name(&stmt.operator).and_then(|call_name| {
             self.index.find_pou_implementation(call_name).map(|imp| imp.get_type_name())
         }) {
+            // build an ordered vec of parameter types, fill the end with the variadic-type if its there
             let declared_parameters = self.index.get_declared_parameters(target_type_name);
+            let variadic = self.index.get_variadic_member(target_type_name);
+            let parameters =
+                stmt.parameters.as_ref().map(|it| flatten_expression_list(it)).unwrap_or_default();
 
-            for (idx, arg) in stmt
-                .parameters
-                .as_ref()
-                .map(|it| flatten_expression_list(it))
-                .unwrap_or_default()
-                .iter()
-                .enumerate()
-            {
+            let declared_parameters: Vec<_> =
+                declared_parameters.iter().chain(variadic.iter().cycle()).take(parameters.len()).collect();
+
+            for (idx, arg) in parameters.iter().enumerate() {
                 match arg.get_stmt() {
                     AstStatement::Assignment(Assignment { left, right, .. })
                     | AstStatement::OutputAssignment(Assignment { left, right, .. }) => {
@@ -520,12 +545,18 @@ impl AstVisitor for NameResolver<'_> {
                         arg.walk(self);
 
                         // hint it with the argument ast pos n
-                        // TODO: move to the hinter???
-                        if let Some(declared_parameter) = declared_parameters.get(idx) {
-                            self.annotations.annotate_type_hint(
-                                arg,
-                                StatementAnnotation::value(declared_parameter.get_type_name()),
-                            );
+                        match (declared_parameters.get(idx), self.annotations.get_type(&arg, self.index)) {
+                            (Some(p), Some(t)) if p.is_variadic() && p.is_void() => {
+                                if let Some(type_name) = self.apply_integral_promotion(t) {
+                                    self.annotations
+                                        .annotate_type_hint(arg, StatementAnnotation::value(type_name));
+                                }
+                            }
+                            (Some(p), _) => {
+                                self.annotations
+                                    .annotate_type_hint(arg, StatementAnnotation::value(p.get_type_name()));
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -543,6 +574,7 @@ impl AstVisitor for NameResolver<'_> {
                 self.annotations
                     .annotate(&node, StatementAnnotation::ReplacementAst { statement: replacement });
             }
+        } else {
         }
     }
 
@@ -601,7 +633,7 @@ impl AstVisitor for NameResolver<'_> {
 
         // hint the range limits with the original type
         // INT(0..100) --> 0 and 100 should be hinted with INT
-        if let DataType::SubRangeType {
+        if let plc_ast::ast::DataType::SubRangeType {
             bounds: Some(AstNode { stmt: AstStatement::RangeStatement(range), .. }),
             name: Some(name),
             ..
