@@ -1419,7 +1419,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::RangeStatement(data, ..) => {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatement::Assignment(data, ..) => {
+            AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
                 self.visit_statement(&ctx.enter_control(), &data.right);
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
@@ -1749,7 +1749,12 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str) {
-        if !matches!(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
+        if !matches!(
+            p.get_stmt(),
+            AstStatement::Assignment(..)
+                | AstStatement::OutputAssignment(..)
+                | AstStatement::RefAssignment(..)
+        ) {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map
