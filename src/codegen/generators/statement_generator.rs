@@ -233,10 +233,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
     }
 
-    // Rules:
-    // lhs of REF= must be reference declared with `REFERENCE TO` (i.e. a "reference to type")
-    // rhs of REF= must be lvalue
-
     /// Generates IR for a `REF=` assignment, which is syntactic sugar for a `REF(...)` call on the
     /// right side of an assignment. Specifically `foo REF= bar` and `foo := REF(bar)` are the same.
     ///

@@ -1217,3 +1217,42 @@ fn void_assignment_validation() {
 
     "###)
 }
+
+// TODO: Think of an edge-case here, some variable that has the auto-deref trait on which
+#[test]
+fn ref_assignment() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                foo             : DINT;
+                refToFoo        : REF_TO DINT;
+                referenceToFoo  : REFERENCE TO DINT;
+            END_VAR
+
+            // Valid
+            referenceToFoo REF= foo;
+
+            // Invalid
+            foo REF= foo;
+            refToFoo REF= foo;
+            referenceToFoo REF= referenceToFoo;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Invalid assignment, lhs must be declared with REFERENCE TO
+       ┌─ <internal>:13:13
+       │
+    13 │             foo REF= foo;
+       │             ^^^^^^^^^^^^ Invalid assignment, lhs must be declared with REFERENCE TO
+
+    error[E001]: Invalid assignment, lhs must be declared with REFERENCE TO
+       ┌─ <internal>:14:13
+       │
+    14 │             refToFoo REF= foo;
+       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, lhs must be declared with REFERENCE TO
+
+    "###)
+}

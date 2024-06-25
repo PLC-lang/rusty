@@ -1,6 +1,7 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
+use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
@@ -85,14 +86,20 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+        }
+        AstStatement::RefAssignment(data) => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
+
+            validate_ref_assignment(validator, context, data, &statement.location);
         }
         AstStatement::CallStatement(data) => {
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
@@ -759,6 +766,39 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
             .with_error_code("E031")
             .with_location(arg.get_location()),
         ),
+    }
+}
+
+// For `foo REF= bar` to be valid we need to check if
+// - the left-hand side is a reference declared with the `REFERENCE TO` keyword and
+// - the right-hand side is a lvalue
+fn validate_ref_assignment<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    assignment: &Assignment,
+    location: &SourceLocation,
+) {
+    // TODO: Validate if variable with `REFERENCE TO` is initialized in a VAR block
+    // TODO: Hmm, I feel like the `is_auto_deref` check alone isn't sufficient? For example
+    //       VAR_IN_OUT is also flagged as auto-deref afaik?
+    // Assert that the lhs is a variable declared with `REFERENCE TO`
+    let Some(StatementAnnotation::Variable { is_auto_deref, .. }) = context.annotations.get(&assignment.left)
+    else {
+        todo!("should exist? {:#?}", context.annotations.get(&assignment.left));
+    };
+
+    if !is_auto_deref {
+        validator.push_diagnostic(
+            Diagnostic::new(format!("Invalid assignment, lhs must be declared with REFERENCE TO"))
+                .with_location(location),
+        );
+    }
+
+    // Assert that the rhs is a variable (lvalue) and of the same type the rhs is pointing to
+    if !assignment.right.is_reference() {
+        validator.push_diagnostic(
+            Diagnostic::new(format!("Invalid assignment, rhs must be a reference")).with_location(location),
+        );
     }
 }
 
