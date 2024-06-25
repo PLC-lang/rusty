@@ -632,6 +632,7 @@ pub enum AstStatement {
     // Assignments
     Assignment(Assignment),
     OutputAssignment(Assignment),
+    RefAssignment(Assignment),
 
     CallStatement(CallStatement),
 
@@ -676,6 +677,9 @@ impl Debug for AstNode {
             }
             AstStatement::OutputAssignment(Assignment { left, right }) => {
                 f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::RefAssignment(Assignment { left, right }) => {
+                f.debug_struct("ReferenceAssignment").field("left", left).field("right", right).finish()
             }
             AstStatement::CallStatement(CallStatement { operator, parameters }) => f
                 .debug_struct("CallStatement")
@@ -1330,6 +1334,16 @@ impl AstFactory {
         let location = left.location.span(&right.location);
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+            id,
+            location,
+        )
+    }
+
+    // TODO: Merge this with create(_output)_assignment
+    pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
+        let location = left.location.span(&right.location);
+        AstNode::new(
+            AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
         )

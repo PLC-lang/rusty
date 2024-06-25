@@ -223,23 +223,9 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstNode {
                 lexer.advance();
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             }
-            // TODO: This is a good candidate for lowering (if we ever implement it)
             KeywordReferenceAssignment => {
-                debug_assert!(
-                    get_builtin("REF").is_some(),
-                    "The REF builtin must exist for the REF= syntactic sugar"
-                );
-
                 lexer.advance();
-                let fn_arg = parse_range_statement(lexer);
-                let fn_loc = fn_arg.location.clone();
-                let fn_name = AstFactory::create_identifier("REF", &fn_loc, lexer.next_id());
-
-                AstFactory::create_assignment(
-                    statement,
-                    AstFactory::create_call_statement(fn_name, Some(fn_arg), lexer.next_id(), fn_loc),
-                    lexer.next_id(),
-                )
+                AstFactory::create_ref_assignment(statement, parse_range_statement(lexer), lexer.next_id())
             }
             _ => statement,
         },
