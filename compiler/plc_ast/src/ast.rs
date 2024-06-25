@@ -629,6 +629,7 @@ pub enum AstStatement {
     RangeStatement(RangeStatement),
     VlaRangeStatement,
 
+    // TODO: Merge these variants with a `kind` field?
     // Assignments
     Assignment(Assignment),
     OutputAssignment(Assignment),
@@ -1339,7 +1340,10 @@ impl AstFactory {
         )
     }
 
-    // TODO: Merge this with create(_output)_assignment
+    // TODO: Merge `create_assignment`, `create_output_assignment` and `create_ref_assignment`
+    //       once the the Assignment AstStatements have been merged and a `kind` field is available
+    //       I.e. something like `AstStatement::Assignment { data, kind: AssignmentKind { Normal, Output, Reference } }
+    //       and then fn create_assignment(kind: AssignmentKind, ...)
     pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
         AstNode::new(
