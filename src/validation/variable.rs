@@ -1,4 +1,4 @@
-use plc_ast::ast::{ArgumentProperty, AstNode, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
@@ -144,7 +144,7 @@ fn validate_variable<T: AnnotationMap>(
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         if let Some(initializer) = &variable.initializer {
-            validate_reference_to_initialization(validator, context, v_entry, &initializer);
+            validate_reference_to_declaration(validator, context, variable, v_entry);
 
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the

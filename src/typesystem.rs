@@ -563,8 +563,7 @@ impl DataTypeInformation {
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
-
-            matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
+        matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
     }
 
     pub fn is_aggregate(&self) -> bool {

@@ -779,12 +779,8 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment_location: &SourceLocation,
 ) {
     // TODO: Improve error messages?
-    // TODO: Validate if variable with `REFERENCE TO` is initialized in a VAR block
-    // TODO: Hmm, I feel like the `is_auto_deref` check alone isn't sufficient? For example
-    //       VAR_IN_OUT is also flagged as auto-deref afaik?
-
     // Assert that the lhs is a variable declared with `REFERENCE TO`
-    if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_auto_deref) {
+    if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_reference_to) {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a variable declared with `REFERENCE TO`")
                 .with_location(&assignment.left.location)
@@ -793,7 +789,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // Assert that the rhs is NOT a variable declared with `REFERENCE TO`
-    if context.annotations.get(&assignment.right).is_some_and(StatementAnnotation::is_auto_deref) {
+    if context.annotations.get(&assignment.right).is_some_and(StatementAnnotation::is_reference_to) {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, variable must not be declared with `REFERENCE TO`")
                 .with_location(&assignment.right.location)
@@ -816,7 +812,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
 
     if type_lhs != type_rhs {
         validator.push_diagnostic(
-            Diagnostic::new("Invalid assignment, types differ")
+            Diagnostic::new(format!("Invalid assignment, types differ got {type_lhs:?} and {type_rhs:?}"))
                 .with_location(assignment_location)
                 .with_error_code("E098"),
         );

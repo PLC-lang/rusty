@@ -1225,12 +1225,14 @@ fn ref_assignment() {
         "
         FUNCTION main
             VAR
-                foo             : DINT;
-                refToFoo        : REF_TO DINT;
-                referenceToFoo  : REFERENCE TO DINT;
+                foo                         : DINT;
+                refToFoo                    : REF_TO DINT;
+                referenceToFoo              : REFERENCE TO DINT;
+
+                // Invalid
+                referenceToFooInitialized  : REFERENCE TO DINT := 5;
             END_VAR
 
-            // Valid
             referenceToFoo REF= foo;
 
             // Invalid
@@ -1243,34 +1245,40 @@ fn ref_assignment() {
     );
 
     assert_snapshot!(diagnostics, @r###"
+    error[E098]: REFERENCE TO variables can not be initialized in their declaration
+      ┌─ <internal>:9:67
+      │
+    9 │                 referenceToFooInitialized  : REFERENCE TO DINT := 5;
+      │                                                                   ^ REFERENCE TO variables can not be initialized in their declaration
+
     error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
-       ┌─ <internal>:13:13
+       ┌─ <internal>:15:13
        │
-    13 │             foo REF= foo;
+    15 │             foo REF= foo;
        │             ^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
 
     error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
-       ┌─ <internal>:14:13
+       ┌─ <internal>:16:13
        │
-    14 │             refToFoo REF= foo;
+    16 │             refToFoo REF= foo;
        │             ^^^^^^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
 
     error[E098]: Invalid assignment, types differ
-       ┌─ <internal>:14:13
+       ┌─ <internal>:16:13
        │
-    14 │             refToFoo REF= foo;
+    16 │             refToFoo REF= foo;
        │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ
 
     error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:15:33
+       ┌─ <internal>:17:33
        │
-    15 │             referenceToFoo REF= 0;
+    17 │             referenceToFoo REF= 0;
        │                                 ^ Invalid assignment, expected a reference
 
     error[E098]: Invalid assignment, variable must not be declared with `REFERENCE TO`
-       ┌─ <internal>:16:33
+       ┌─ <internal>:18:33
        │
-    16 │             referenceToFoo REF= referenceToFoo;
+    18 │             referenceToFoo REF= referenceToFoo;
        │                                 ^^^^^^^^^^^^^^ Invalid assignment, variable must not be declared with `REFERENCE TO`
 
     "###);
