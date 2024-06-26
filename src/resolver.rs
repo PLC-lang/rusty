@@ -393,6 +393,7 @@ pub enum StatementAnnotation {
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
+        // TODO: Maybe is_reference_to
     },
     /// a reference to a function
     Function {
@@ -1881,10 +1882,11 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
             name: new_type_name.clone(),
             initial_value: None,
             nature: TypeNature::Any,
-            information: crate::typesystem::DataTypeInformation::Pointer {
+            information: DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name,
                 name: new_type_name.clone(),
+                is_reference_to: false,
             },
             location: SourceLocation::internal(),
         });

@@ -323,6 +323,7 @@ fn reference_to_variable() {
                             referenced_type: "DINT",
                         },
                         auto_deref: true,
+                        is_reference_to: true,
                     },
                 },
             },

@@ -1,8 +1,5 @@
-use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_ast::ast::{ArgumentProperty, AstNode, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
-
-use crate::typesystem::DataTypeInformation;
-use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
     array::validate_array_assignment,
@@ -10,6 +7,9 @@ use super::{
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
+use crate::index::VariableIndexEntry;
+use crate::typesystem::DataTypeInformation;
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
@@ -144,6 +144,8 @@ fn validate_variable<T: AnnotationMap>(
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         if let Some(initializer) = &variable.initializer {
+            validate_reference_to_initialization(validator, context, v_entry, &initializer);
+
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
@@ -205,6 +207,23 @@ fn validate_variable<T: AnnotationMap>(
                 .with_location(&variable.location),
             );
         }
+    }
+}
+
+/// Returns a diagnostic if a `REFERENCE TO` variable was initialized in its declaration
+fn validate_reference_to_initialization<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    v_entry: &VariableIndexEntry,
+    initializer: &&AstNode,
+) {
+    let variable_type = context.index.find_effective_type_by_name(v_entry.get_type_name());
+    if variable_type.is_some_and(|ty| ty.get_type_information().is_reference_to()) {
+        validator.push_diagnostic(
+            Diagnostic::new("REFERENCE TO variables can not be initialized in their declaration")
+                .with_location(&initializer.location)
+                .with_error_code("E098"),
+        );
     }
 }
 

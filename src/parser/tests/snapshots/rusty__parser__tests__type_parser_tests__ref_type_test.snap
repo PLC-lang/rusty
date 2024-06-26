@@ -11,6 +11,7 @@ UserTypeDeclaration {
             referenced_type: "INT",
         },
         auto_deref: false,
+        is_reference_to: false,
     },
     initializer: None,
     scope: None,

@@ -425,10 +425,12 @@ impl Debug for DataTypeDeclaration {
 impl DataTypeDeclaration {
     pub fn temp(&mut self) {
         if let Self::DataTypeDefinition {
-            data_type: DataType::PointerType { ref mut auto_deref, .. }, ..
+            data_type: DataType::PointerType { ref mut auto_deref, ref mut is_reference_to, .. },
+            ..
         } = self
         {
             *auto_deref = true;
+            *is_reference_to = true;
         }
     }
 
@@ -497,6 +499,8 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
         auto_deref: bool,
+        /// Indicates if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+        is_reference_to: bool,
     },
     StringType {
         name: Option<String>,

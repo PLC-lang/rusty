@@ -705,7 +705,12 @@ fn parse_pointer_definition(
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref: false },
+                data_type: DataType::PointerType {
+                    name,
+                    referenced_type: Box::new(decl),
+                    auto_deref: false,
+                    is_reference_to: false,
+                },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },

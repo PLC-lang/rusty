@@ -3385,6 +3385,7 @@ fn address_of_is_annotated_correctly() {
     if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
         assert_eq!(
             Some(&DataTypeInformation::Pointer {
+            is_reference_to: false,
                 auto_deref: false,
                 inner_type_name: "INT".to_string(),
                 name: "__POINTER_TO_INT".to_string(),
