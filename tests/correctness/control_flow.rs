@@ -564,6 +564,29 @@ fn for_loop_step_and_counter_change_sign_in_loop_body() {
 }
 
 #[test]
+fn for_loop_statement_with_binary_expressions() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        step: DINT := 1;
+        x, y, iteration : DINT;
+        z : DINT := 25;
+    END_VAR
+        // 1 TO 23 BY 3
+        FOR x := y + 1 TO z - 2 BY step * 3 DO
+            // x: 1, 4, 7, 10, 13, 16, 19, 22
+            iteration := iteration + 1;
+        END_FOR
+        
+        main := iteration;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 8);
+}
+
+#[test]
 fn while_loop_no_entry() {
     let function = r#"
     FUNCTION main : DINT
