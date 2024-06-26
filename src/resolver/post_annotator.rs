@@ -294,7 +294,14 @@ impl AstVisitor for PostAnnotator<'_> {
         let hint_type = self.annotations.get_type_hint(node, self.index);
 
         if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
-            if num_type.is_numerical() && hint_type.is_real() {
+            if num_type != hint_type 
+                && (num_type.is_numerical() || num_type.is_bool())
+                && num_type.is_compatible_with_type(hint_type) {
+
+                    //TODO: make a clean decision whether literals should be
+                    // hinted or not
+
+
                 // promote the hint to the type-annotation
                 self.annotations.annotate(node, StatementAnnotation::value(hint_type.get_name()));
                 self.annotations.clear_type_hint(node)

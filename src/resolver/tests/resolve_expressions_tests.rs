@@ -1140,7 +1140,7 @@ fn pou_expressions_resolve_types() {
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into(),
-            call_name: None, 
+            call_name: None,
         }),
         annotations.get(&statements[1])
     );
@@ -1301,7 +1301,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
             return_type: "INT".into(),
-            call_name: None, 
+            call_name: None,
         }),
         foo_annotation
     );
@@ -1360,7 +1360,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
         Some(&StatementAnnotation::Function {
             return_type: "INT".into(),
             qualified_name: "foo".into(),
-            call_name: None, 
+            call_name: None,
         }),
         annotations.get(operator)
     );
@@ -1623,7 +1623,7 @@ fn function_parameter_assignments_resolve_types() {
                 qualified_name: "foo".into(),
                 // return_type: "MyType".into(), // why was this alias not resolved?
                 return_type: "INT".into(), // why was this alias not resolved?
-                call_name: None, 
+                call_name: None,
             })
         );
 
@@ -1831,7 +1831,6 @@ fn method_references_are_resolved() {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
                 call_name: None,
-                
             }),
             annotations.get(operator)
         );
@@ -2385,17 +2384,28 @@ fn struct_members_initializers_type_hint_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     // THEN the members's initializers have correct type-hints
     if let DataType::StructType { variables, .. } = &unit.user_types[0].data_type {
-        let hints: Vec<&str> = variables
-            .iter()
-            .map(|v| {
-                annotations
-                    .get_type_hint(v.initializer.as_ref().unwrap(), &index)
-                    .map(crate::typesystem::DataType::get_name)
-                    .unwrap_or_default()
-            })
-            .collect();
-
-        assert_eq!(hints, vec!["INT", "SINT", "BOOL", /* same as real type*/ "", "LREAL"]);
+        // this orignal check contradicts with the test: resolver::tests::resolve_expressions_tests::binary_expressions_resolves_types_of_literals_with_float_comparisons
+        // let hints: Vec<&str> = variables
+        //     .iter()
+        //     .map(|v| {
+        //         annotations
+        //             .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+        //             .map(crate::typesystem::DataType::get_name)
+        //             .unwrap_or_default()
+        //     })
+        //     .collect();
+        // assert_eq!(hints, vec!["INT", "SINT", "BOOL", /* same as real type*/ "", "LREAL"]);
+        assert_type_and_hint!(&annotations, &index, &variables[0].initializer.as_ref().unwrap(), "INT", None);
+        assert_type_and_hint!(&annotations, &index, variables[1].initializer.as_ref().unwrap(), "SINT", None);
+        assert_type_and_hint!(&annotations, &index, variables[2].initializer.as_ref().unwrap(), "BOOL", None);
+        assert_type_and_hint!(&annotations, &index, variables[3].initializer.as_ref().unwrap(), "REAL", None);
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            variables[4].initializer.as_ref().unwrap(),
+            "LREAL",
+            None
+        );
     } else {
         unreachable!()
     }
@@ -3723,7 +3733,6 @@ fn resolve_recursive_function_call() {
             return_type: "DINT".into(),
             qualified_name: "foo".into(),
             call_name: None,
-            
         }),
         type_map.get(&data.operator.get_id())
     );
@@ -4301,7 +4310,7 @@ fn parameter_down_cast_test() {
         assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
         assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
         assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
-        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, None /* same*/ );
+        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, None /* same*/);
         // ok!
     }
 
@@ -5077,7 +5086,6 @@ fn override_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
                 call_name: None,
-                
             }),
             annotations.get(operator)
         );
@@ -5089,7 +5097,6 @@ fn override_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
                 call_name: None,
-                
             }),
             annotations.get(operator)
         );
@@ -5138,7 +5145,6 @@ fn override_in_grandparent_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
                 call_name: None,
-                
             }),
             annotations.get(operator)
         );
@@ -5150,7 +5156,6 @@ fn override_in_grandparent_is_resolved() {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
                 call_name: None,
-                
             }),
             annotations.get(operator)
         );

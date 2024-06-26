@@ -128,7 +128,20 @@ impl Scope {
                         crate::index::ImplementationType::Action => Some(StatementAnnotation::Program {
                             qualified_name: i.get_call_name().to_string(),
                         }),
-                        crate::index::ImplementationType::Method => todo!(),
+                        crate::index::ImplementationType::Method => {
+                            let return_type = index
+                                .find_return_type(i.get_type_name())
+                                .and_then(|dt| index.find_effective_type(dt))
+                                .map(|dt| dt.get_name())
+                                .unwrap_or_else(|| VOID_TYPE)
+                                .to_string();
+
+                            Some(StatementAnnotation::Function {
+                                return_type,
+                                qualified_name: i.call_name.to_string(),
+                                call_name: None,
+                            })
+                        }
                         _ => None,
                     }
                 })
@@ -283,7 +296,21 @@ impl<'i> NameResolver<'i> {
             _ => None,
         }
     }
-}
+    
+    fn prepare_qualifier_list(&self, base: &str) -> Vec<String> {
+        let mut qualifiers = Vec::new();
+        let mut base = Some(base.to_string());
+        
+        while let Some(b) = base.take() {
+            if let Some(crate::index::PouIndexEntry::Class {super_class: Some(super_class), .. }) = self.index.find_pou(b.as_str()) {
+                base = Some(super_class.clone());
+            }
+            qualifiers.push(b);
+        }        
+        qualifiers
+                            }
+    }
+
 
 impl AstVisitor for NameResolver<'_> {
     fn visit_implementation(&mut self, implementation: &plc_ast::ast::Implementation) {
@@ -335,13 +362,18 @@ impl AstVisitor for NameResolver<'_> {
                     }
                     _ => {
                         if let Some(base) = base {
+
+                            // if we are in a class, we need to resolve the member in the context of the class
+                            // and its base classes
+                            let qualifier_list = self.prepare_qualifier_list(base)
+                                    .iter().map(|it| Scope::Composite(vec![
+                                        Scope::LocalVariable(it.to_string()),
+                                        Scope::Callable(Some(it.to_string())),
+                                    ])).collect::<Vec<_>>();
                             // resolve member und the base's context
                             self.walk_with_scope(
                                 member,
-                                ScopingStrategy::Strict(Scope::Composite(vec![
-                                    Scope::LocalVariable(base.to_string()),
-                                    Scope::Callable(Some(base.to_string())),
-                                ])),
+                                ScopingStrategy::Strict(Scope::Composite(qualifier_list)),
                             );
                         } else {
                             member.walk(self);

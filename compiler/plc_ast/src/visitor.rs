@@ -610,8 +610,8 @@ impl Walker for UserTypeDeclaration {
     where
         V: AstVisitor,
     {
+        self.initializer.walk(visitor);
         visitor.visit_data_type(&self.data_type);
-        visit_all_nodes!(visitor, &self.initializer);
     }
 }
 
@@ -632,8 +632,8 @@ impl Walker for Variable {
         V: AstVisitor,
     {
         visit_all_nodes!(visitor, &self.address);
-        visitor.visit_data_type_declaration(&self.data_type_declaration);
         visit_all_nodes!(visitor, &self.initializer);
+        visitor.visit_data_type_declaration(&self.data_type_declaration);
     }
 }
 
