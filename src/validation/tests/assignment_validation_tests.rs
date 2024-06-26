@@ -1236,23 +1236,42 @@ fn ref_assignment() {
             // Invalid
             foo REF= foo;
             refToFoo REF= foo;
+            referenceToFoo REF= 0;
             referenceToFoo REF= referenceToFoo;
         END_FUNCTION
         ",
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Invalid assignment, lhs must be declared with REFERENCE TO
+    error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
        ┌─ <internal>:13:13
        │
     13 │             foo REF= foo;
-       │             ^^^^^^^^^^^^ Invalid assignment, lhs must be declared with REFERENCE TO
+       │             ^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
 
-    error[E001]: Invalid assignment, lhs must be declared with REFERENCE TO
+    error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
        ┌─ <internal>:14:13
        │
     14 │             refToFoo REF= foo;
-       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, lhs must be declared with REFERENCE TO
+       │             ^^^^^^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
 
-    "###)
+    error[E098]: Invalid assignment, types differ
+       ┌─ <internal>:14:13
+       │
+    14 │             refToFoo REF= foo;
+       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:15:33
+       │
+    15 │             referenceToFoo REF= 0;
+       │                                 ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, variable must not be declared with `REFERENCE TO`
+       ┌─ <internal>:16:33
+       │
+    16 │             referenceToFoo REF= referenceToFoo;
+       │                                 ^^^^^^^^^^^^^^ Invalid assignment, variable must not be declared with `REFERENCE TO`
+
+    "###);
 }

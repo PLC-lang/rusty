@@ -433,6 +433,13 @@ impl StatementAnnotation {
         }
     }
 
+    pub fn is_auto_deref(&self) -> bool {
+        match self {
+            StatementAnnotation::Variable { is_auto_deref, .. } => *is_auto_deref,
+            _ => false,
+        }
+    }
+
     pub fn data_type(type_name: &str) -> Self {
         StatementAnnotation::Type { type_name: type_name.into() }
     }

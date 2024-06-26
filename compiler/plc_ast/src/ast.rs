@@ -424,14 +424,11 @@ impl Debug for DataTypeDeclaration {
 
 impl DataTypeDeclaration {
     pub fn temp(&mut self) {
-        match self {
-            Self::DataTypeDefinition { data_type, .. } => match data_type {
-                DataType::PointerType { ref mut auto_deref, .. } => {
-                    *auto_deref = true;
-                }
-                _ => {}
-            },
-            _ => {}
+        if let Self::DataTypeDefinition {
+            data_type: DataType::PointerType { ref mut auto_deref, .. }, ..
+        } = self
+        {
+            *auto_deref = true;
         }
     }
 

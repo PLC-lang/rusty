@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::builtins::get_builtin;
 use crate::{
     expect_token,
     lexer::Token::*,

@@ -1123,17 +1123,15 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             });
         }
         lexer.advance();
-    } else {
-        if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
-            for (name, range) in var_names {
-                variables.push(Variable {
-                    name,
-                    data_type_declaration: data_type.clone(),
-                    location: lexer.source_range_factory.create_range(range),
-                    initializer: initializer.clone(),
-                    address: address.clone(),
-                });
-            }
+    } else if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+        for (name, range) in var_names {
+            variables.push(Variable {
+                name,
+                data_type_declaration: data_type.clone(),
+                location: lexer.source_range_factory.create_range(range),
+                initializer: initializer.clone(),
+                address: address.clone(),
+            });
         }
     }
     variables
