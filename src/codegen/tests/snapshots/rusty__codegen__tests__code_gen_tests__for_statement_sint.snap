@@ -13,64 +13,32 @@ define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i8 3, i8* %x, align 1
-  br label %condition_check
+  br i1 true, label %predicate_sle, label %predicate_sge
 
-condition_check:                                  ; preds = %increment, %entry
+predicate_sle:                                    ; preds = %increment, %entry
+  %1 = load i8, i8* %x, align 1
+  %2 = sext i8 %1 to i32
+  %condition = icmp sle i32 %2, 10
+  br i1 %condition, label %loop, label %continue
+
+predicate_sge:                                    ; preds = %increment, %entry
+  %3 = load i8, i8* %x, align 1
+  %4 = sext i8 %3 to i32
+  %condition1 = icmp sge i32 %4, 10
+  br i1 %condition1, label %loop, label %continue
+
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   %load_x = load i8, i8* %x, align 1
-  %load_x1 = load i8, i8* %x, align 1
-  %tmpVar = icmp sle i8 %load_x1, 10
-  %1 = zext i1 %tmpVar to i8
-  %2 = icmp ne i8 %1, 0
-  br i1 %2, label %3, label %6
-
-for_body:                                         ; preds = %13
-  %load_x8 = load i8, i8* %x, align 1
   br label %increment
 
-increment:                                        ; preds = %for_body
-  %tmpVar9 = add i8 %load_x, 1
-  store i8 %tmpVar9, i8* %x, align 1
-  br label %condition_check
+increment:                                        ; preds = %loop
+  %5 = load i8, i8* %x, align 1
+  %6 = sext i8 %5 to i32
+  %next = add i32 1, %6
+  %7 = trunc i32 %next to i8
+  store i8 %7, i8* %x, align 1
+  br i1 true, label %predicate_sle, label %predicate_sge
 
-continue:                                         ; preds = %13
+continue:                                         ; preds = %predicate_sge, %predicate_sle
   ret void
-
-3:                                                ; preds = %condition_check
-  %load_x2 = load i8, i8* %x, align 1
-  %tmpVar3 = icmp sge i8 %load_x2, 3
-  %4 = zext i1 %tmpVar3 to i8
-  %5 = icmp ne i8 %4, 0
-  br label %6
-
-6:                                                ; preds = %3, %condition_check
-  %7 = phi i1 [ %2, %condition_check ], [ %5, %3 ]
-  %8 = zext i1 %7 to i8
-  %9 = icmp ne i8 %8, 0
-  br i1 %9, label %13, label %10
-
-10:                                               ; preds = %6
-  %load_x4 = load i8, i8* %x, align 1
-  %tmpVar5 = icmp sge i8 %load_x4, 10
-  %11 = zext i1 %tmpVar5 to i8
-  %12 = icmp ne i8 %11, 0
-  br i1 %12, label %17, label %20
-
-13:                                               ; preds = %20, %6
-  %14 = phi i1 [ %9, %6 ], [ %23, %20 ]
-  %15 = zext i1 %14 to i8
-  %16 = icmp ne i8 %15, 0
-  br i1 %16, label %for_body, label %continue
-
-17:                                               ; preds = %10
-  %load_x6 = load i8, i8* %x, align 1
-  %tmpVar7 = icmp sle i8 %load_x6, 3
-  %18 = zext i1 %tmpVar7 to i8
-  %19 = icmp ne i8 %18, 0
-  br label %20
-
-20:                                               ; preds = %17, %10
-  %21 = phi i1 [ %12, %10 ], [ %19, %17 ]
-  %22 = zext i1 %21 to i8
-  %23 = icmp ne i8 %22, 0
-  br label %13
 }
