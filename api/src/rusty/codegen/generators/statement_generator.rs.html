@@ -792,30 +792,26 @@
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
 <a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
-    expression_generator::{to_i1, ExpressionCodeGenerator},
+    expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     llvm::Llvm,
 };
 <span class="kw">use crate</span>::{
-    codegen::debug::Debug,
-    codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
+    codegen::{
+        debug::{Debug, DebugBuilderEnum},
+        llvm_typesystem::cast_if_needed,
+        LlvmTypedIndex,
+    },
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::DataTypeInformation,
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE},
 };
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    values::{BasicValueEnum, FunctionValue, PointerValue},
+    values::{FunctionValue, PointerValue},
 };
 <span class="kw">use </span>plc_ast::{
     ast::{
@@ -1126,115 +1122,105 @@
         body: <span class="kw-2">&amp;</span>[AstNode],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
-        <span class="self">self</span>.generate_assignment_statement(counter, start)<span class="question-mark">?</span>;
-        <span class="kw">let </span>condition_check = context.append_basic_block(current_function, <span class="string">"condition_check"</span>);
-        <span class="kw">let </span>for_body = context.append_basic_block(current_function, <span class="string">"for_body"</span>);
-        <span class="kw">let </span>increment_block = context.append_basic_block(current_function, <span class="string">"increment"</span>);
-        <span class="kw">let </span>continue_block = context.append_basic_block(current_function, <span class="string">"continue"</span>);
-
-        <span class="comment">//Generate an initial jump to the for condition
-        </span>builder.build_unconditional_branch(condition_check);
-
-        <span class="comment">//Check loop condition
-        </span>builder.position_at_end(condition_check);
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
-        <span class="kw">let </span>counter_statement = exp_gen.generate_expression(counter)<span class="question-mark">?</span>;
 
-        <span class="comment">//.                                                           /            and_2                \
-        //.                  /             and 1               \
-        //.                   (counter_end_le &amp;&amp; counter_start_ge) || (counter_end_ge &amp;&amp; counter_start_le)
-        </span><span class="kw">let </span>or_eval = <span class="self">self</span>.generate_compare_expression(counter, end, start, <span class="kw-2">&amp;</span>exp_gen)<span class="question-mark">?</span>;
+        <span class="kw">let </span>end_ty = <span class="self">self</span>.annotations.get_type_or_void(end, <span class="self">self</span>.index);
+        <span class="kw">let </span>counter_ty = <span class="self">self</span>.annotations.get_type_or_void(counter, <span class="self">self</span>.index);
+        <span class="kw">let </span>cast_target_ty = get_bigger_type(<span class="self">self</span>.index.get_type_or_panic(DINT_TYPE), counter_ty, <span class="self">self</span>.index);
+        <span class="kw">let </span>cast_target_llty = <span class="self">self</span>.llvm_index.find_associated_type(cast_target_ty.get_name()).unwrap();
 
-        builder.build_conditional_branch(to_i1(or_eval.into_int_value(), builder), for_body, continue_block);
+        <span class="kw">let </span>step_ty = by_step.as_ref().map(|it| {
+            <span class="self">self</span>.register_debug_location(it);
+            <span class="self">self</span>.annotations.get_type_or_void(it, <span class="self">self</span>.index)
+        });
 
-        <span class="comment">//Enter the for loop
-        </span>builder.position_at_end(for_body);
-        <span class="kw">let </span>body_generator = StatementCodeGenerator {
-            current_loop_exit: <span class="prelude-val">Some</span>(continue_block),
-            current_loop_continue: <span class="prelude-val">Some</span>(increment_block),
+        <span class="kw">let </span>eval_step = || {
+            step_ty.map_or_else(
+                || <span class="self">self</span>.llvm.create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"1"</span>, SourceLocation::undefined()),
+                |step_ty| {
+                    <span class="kw">let </span>step = exp_gen.generate_expression(by_step.as_ref().unwrap())<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, step_ty, step, <span class="prelude-val">None</span>))
+                },
+            )
+        };
+
+        <span class="kw">let </span>predicate_incrementing = context.append_basic_block(current_function, <span class="string">"predicate_sle"</span>);
+        <span class="kw">let </span>predicate_decrementing = context.append_basic_block(current_function, <span class="string">"predicate_sge"</span>);
+        <span class="kw">let </span>loop_body = context.append_basic_block(current_function, <span class="string">"loop"</span>);
+        <span class="kw">let </span>increment = context.append_basic_block(current_function, <span class="string">"increment"</span>);
+        <span class="kw">let </span>afterloop = context.append_basic_block(current_function, <span class="string">"continue"</span>);
+
+        <span class="self">self</span>.generate_assignment_statement(counter, start)<span class="question-mark">?</span>;
+        <span class="kw">let </span>counter = exp_gen.generate_lvalue(counter)<span class="question-mark">?</span>;
+
+        <span class="comment">// generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
+        // XXX(mhasel): IR could possibly be improved by generating phi instructions.
+        //              Candidate for frontend optimization for builds without optimization when `STEP`
+        //              is a compile-time constant
+        </span><span class="kw">let </span>is_incrementing = builder.build_int_compare(
+            inkwell::IntPredicate::SGT,
+            eval_step()<span class="question-mark">?</span>.into_int_value(),
+            <span class="self">self</span>.llvm
+                .create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"0"</span>, SourceLocation::undefined())<span class="question-mark">?
+                </span>.into_int_value(),
+            <span class="string">"is_incrementing"</span>,
+        );
+        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        <span class="comment">// generate predicates for incrementing and decrementing counters
+        </span><span class="kw">let </span>generate_predicate = |predicate| {
+            builder.position_at_end(<span class="kw">match </span>predicate {
+                inkwell::IntPredicate::SLE =&gt; predicate_incrementing,
+                inkwell::IntPredicate::SGE =&gt; predicate_decrementing,
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+            });
+
+            <span class="kw">let </span>end = exp_gen.generate_expression_value(end).unwrap();
+            <span class="kw">let </span>end_value = <span class="kw">match </span>end {
+                ExpressionValue::LValue(ptr) =&gt; builder.build_load(ptr, <span class="string">""</span>),
+                ExpressionValue::RValue(val) =&gt; val,
+            };
+            <span class="kw">let </span>counter_value = builder.build_load(counter, <span class="string">""</span>);
+            <span class="kw">let </span>cmp = builder.build_int_compare(
+                predicate,
+                <span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, counter_ty, counter_value, <span class="prelude-val">None</span>).into_int_value(),
+                <span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, end_ty, end_value, <span class="prelude-val">None</span>).into_int_value(),
+                <span class="string">"condition"</span>,
+            );
+            builder.build_conditional_branch(cmp, loop_body, afterloop);
+        };
+        generate_predicate(inkwell::IntPredicate::SLE);
+        generate_predicate(inkwell::IntPredicate::SGE);
+
+        <span class="comment">// generate loop body
+        </span>builder.position_at_end(loop_body);
+        <span class="kw">let </span>body_builder = StatementCodeGenerator {
+            current_loop_continue: <span class="prelude-val">Some</span>(increment),
+            current_loop_exit: <span class="prelude-val">Some</span>(afterloop),
             load_prefix: <span class="self">self</span>.load_prefix.clone(),
             load_suffix: <span class="self">self</span>.load_suffix.clone(),
             ..<span class="kw-2">*</span><span class="self">self
         </span>};
-        body_generator.generate_body(body)<span class="question-mark">?</span>;
-        builder.build_unconditional_branch(increment_block);
+        body_builder.generate_body(body)<span class="question-mark">?</span>;
 
-        <span class="comment">//Increment
-        </span>builder.position_at_end(increment_block);
-        <span class="kw">let </span>expression_generator = <span class="self">self</span>.create_expr_generator();
-        <span class="kw">let </span>step_by_value = by_step.as_ref().map_or_else(
-            || {
-                <span class="self">self</span>.llvm.create_const_numeric(
-                    <span class="kw-2">&amp;</span>counter_statement.get_type(),
-                    <span class="string">"1"</span>,
-                    SourceLocation::undefined(),
-                )
-            },
-            |step| {
-                <span class="self">self</span>.register_debug_location(step);
-                expression_generator.generate_expression(step)
-            },
-        )<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>next = builder.build_int_add(
-            counter_statement.into_int_value(),
-            step_by_value.into_int_value(),
-            <span class="string">"tmpVar"</span>,
+        <span class="comment">// increment counter
+        </span>builder.build_unconditional_branch(increment);
+        builder.position_at_end(increment);
+        <span class="kw">let </span>counter_value = builder.build_load(counter, <span class="string">""</span>);
+        <span class="kw">let </span>inc = inkwell::values::BasicValue::as_basic_value_enum(<span class="kw-2">&amp;</span>builder.build_int_add(
+            eval_step()<span class="question-mark">?</span>.into_int_value(),
+            <span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, counter_ty, counter_value, <span class="prelude-val">None</span>).into_int_value(),
+            <span class="string">"next"</span>,
+        ));
+        builder.build_store(
+            counter,
+            <span class="macro">cast_if_needed!</span>(exp_gen, counter_ty, cast_target_ty, inc, <span class="prelude-val">None</span>).into_int_value(),
         );
 
-        <span class="kw">let </span>ptr = expression_generator.generate_lvalue(counter)<span class="question-mark">?</span>;
-        builder.build_store(ptr, next);
-
-        <span class="comment">//Loop back
-        </span>builder.build_unconditional_branch(condition_check);
-
-        <span class="comment">//Continue
-        </span>builder.position_at_end(continue_block);
-
+        <span class="comment">// check condition
+        </span>builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        <span class="comment">// continue
+        </span>builder.position_at_end(afterloop);
         <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn </span>generate_compare_expression(
-        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
-        counter: <span class="kw-2">&amp;</span>AstNode,
-        end: <span class="kw-2">&amp;</span>AstNode,
-        start: <span class="kw-2">&amp;</span>AstNode,
-        exp_gen: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ExpressionCodeGenerator,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>bool_id = <span class="self">self</span>.annotations.get_bool_id();
-        <span class="kw">let </span>counter_end_ge = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::GreaterOrEqual,
-            end.clone(),
-            bool_id,
-        );
-        <span class="kw">let </span>counter_start_ge = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::GreaterOrEqual,
-            start.clone(),
-            bool_id,
-        );
-        <span class="kw">let </span>counter_end_le = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::LessOrEqual,
-            end.clone(),
-            bool_id,
-        );
-        <span class="kw">let </span>counter_start_le = AstFactory::create_binary_expression(
-            counter.clone(),
-            Operator::LessOrEqual,
-            start.clone(),
-            bool_id,
-        );
-        <span class="kw">let </span>and_1 =
-            AstFactory::create_binary_expression(counter_end_le, Operator::And, counter_start_ge, bool_id);
-        <span class="kw">let </span>and_2 =
-            AstFactory::create_binary_expression(counter_end_ge, Operator::And, counter_start_le, bool_id);
-        <span class="kw">let </span>or = AstFactory::create_binary_expression(and_1, Operator::Or, and_2, bool_id);
-
-        <span class="self">self</span>.register_debug_location(<span class="kw-2">&amp;</span>or);
-        <span class="kw">let </span>or_eval = exp_gen.generate_expression(<span class="kw-2">&amp;</span>or)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(or_eval)
     }
 
     <span class="doccomment">/// genertes a case statement
