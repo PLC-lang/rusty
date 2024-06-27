@@ -807,14 +807,18 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // Lastly, assert the type the lhs references matches with the rhs
-    let type_lhs = context.annotations.get_type(&assignment.left, context.index);
-    let type_rhs = context.annotations.get_type(&assignment.right, context.index);
+    let type_lhs = context.annotations.get_type(&assignment.left, context.index).unwrap();
+    let type_rhs = context.annotations.get_type(&assignment.right, context.index).unwrap();
 
     if type_lhs != type_rhs {
         validator.push_diagnostic(
-            Diagnostic::new(format!("Invalid assignment, types differ got {type_lhs:?} and {type_rhs:?}"))
-                .with_location(assignment_location)
-                .with_error_code("E098"),
+            Diagnostic::new(format!(
+                "Invalid assignment, types differ got {} and {}",
+                get_datatype_name_or_slice(&validator.context, type_lhs),
+                get_datatype_name_or_slice(&validator.context, type_rhs),
+            ))
+            .with_location(assignment_location)
+            .with_error_code("E098"),
         );
     }
 }

@@ -143,9 +143,9 @@ fn validate_variable<T: AnnotationMap>(
     validate_array_ranges(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
-        if let Some(initializer) = &variable.initializer {
-            validate_reference_to_declaration(validator, context, variable, v_entry);
+        validate_reference_to_declaration(validator, context, variable, v_entry);
 
+        if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
@@ -210,20 +210,53 @@ fn validate_variable<T: AnnotationMap>(
     }
 }
 
+// TODO: Make sure this check happens for REFERENCE TO only
 /// Returns a diagnostic if a `REFERENCE TO` variable was initialized in its declaration
-fn validate_reference_to_initialization<T: AnnotationMap>(
+fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    v_entry: &VariableIndexEntry,
-    initializer: &&AstNode,
+    variable: &Variable,
+    variable_entry: &VariableIndexEntry,
 ) {
-    let variable_type = context.index.find_effective_type_by_name(v_entry.get_type_name());
-    if variable_type.is_some_and(|ty| ty.get_type_information().is_reference_to()) {
-        validator.push_diagnostic(
-            Diagnostic::new("REFERENCE TO variables can not be initialized in their declaration")
-                .with_location(&initializer.location)
-                .with_error_code("E098"),
-        );
+    let Some(variable_type) = context.index.find_effective_type_by_name(variable_entry.get_type_name())
+    else {
+        return;
+    };
+
+    if variable_type.get_type_information().is_reference_to() {
+        let DataTypeInformation::Pointer { inner_type_name, .. } = variable_type.get_type_information()
+        else {
+            unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
+        };
+
+        // Check if there is an initalizer
+        if let Some(ref initializer) = variable.initializer {
+            if variable_type.get_type_information().is_reference_to() {
+                validator.push_diagnostic(
+                    Diagnostic::new("REFERENCE TO variables can not be initialized in their declaration")
+                        .with_location(&initializer.location)
+                        .with_error_code("E098"),
+                );
+            }
+        }
+
+        // Reference
+        if context.index.find_member(context.qualifier.unwrap_or_default(), &inner_type_name).is_some() {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid type, reference")
+                    .with_location(&variable_type.location)
+                    .with_error_code("E098"),
+            );
+        }
+
+        let inner_type = context.index.find_effective_type_by_name(&inner_type_name);
+        if inner_type.is_some_and(|ty| ty.is_array() || ty.is_pointer() || ty.is_bit()) {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid type: array, pointer or bit ")
+                    .with_location(&variable.location)
+                    .with_error_code("E098"),
+            );
+        }
     }
 }
 
