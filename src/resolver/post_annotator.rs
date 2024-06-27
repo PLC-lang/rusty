@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use plc_ast::{
     ast::{
         flatten_expression_list, AstFactory, AstNode, AstStatement, CallStatement, Operator, ReferenceAccess,
@@ -10,9 +12,11 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
+    index::{Index, PouIndexEntry},
     name_resolver::LiteralsAnnotator,
-    typesystem::{get_bigger_type, DataType, DataTypeInformation, InternalType, StructSource, BOOL_TYPE, VOID_TYPE},
+    typesystem::{
+        get_bigger_type, DataType, DataTypeInformation, InternalType, StructSource, BOOL_TYPE, VOID_TYPE,
+    },
 };
 
 use super::{AnnotationMap, AnnotationMapImpl, StatementAnnotation};
@@ -294,13 +298,12 @@ impl AstVisitor for PostAnnotator<'_> {
         let hint_type = self.annotations.get_type_hint(node, self.index);
 
         if let Some((num_type, hint_type)) = num_type.zip(hint_type) {
-            if num_type != hint_type 
+            if num_type != hint_type
                 && (num_type.is_numerical() || num_type.is_bool())
-                && num_type.is_compatible_with_type(hint_type) {
-
-                    //TODO: make a clean decision whether literals should be
-                    // hinted or not
-
+                && num_type.is_compatible_with_type(hint_type)
+            {
+                //TODO: make a clean decision whether literals should be
+                // hinted or not
 
                 // promote the hint to the type-annotation
                 self.annotations.annotate(node, StatementAnnotation::value(hint_type.get_name()));
@@ -312,14 +315,32 @@ impl AstVisitor for PostAnnotator<'_> {
     fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
         stmt.walk(self);
 
-        // re-check the parameteres for any unresolved generics
-        let parameteres = stmt.parameters.as_ref().map(|it| it.get_as_list()).unwrap_or_default();
-        for p in parameteres {
-            if let Some(DataTypeInformation::Generic { generic_symbol, ..}) = self.annotations.get_type_hint(p, self.index).map(DataType::get_type_information){
-                //TODO: generics
+        let mut cleard_nodes = Vec::new();
+        {
+            if let Some(PouIndexEntry::Function { generics, .. }) =
+                self.annotations.get_call_name(&stmt.operator).and_then(|n| self.index.find_pou(n))
+            {
+                let mut resolved_generics: HashMap<&str, Option<&str>> =
+                    generics.iter().map(|generic| (generic.name.as_str(), None)).collect();
+
+                // re-check the parameteres for any unresolved generics
+                let parameteres = stmt.parameters.as_ref().map(|it| it.get_as_list()).unwrap_or_default();
+                for p in parameteres {
+                    if let (Some(DataTypeInformation::Generic { generic_symbol, .. }), Some(found_type)) = (
+                        self.annotations.get_type_hint(p, self.index).map(DataType::get_type_information),
+                        self.annotations.get_type(p, self.index),
+                    ) {
+                        if let Some(None) = resolved_generics.get_mut(generic_symbol.as_str()) {
+                            resolved_generics.insert(generic_symbol.as_str(), Some(found_type.get_name()));
+                            cleard_nodes.push(p);
+                        }
+                    }
+                }
+                dbg!(resolved_generics);
             }
         }
+        for ele in cleard_nodes {
+            self.annotations.clear_type_hint(ele);
+        }
     }
-
-    
 }

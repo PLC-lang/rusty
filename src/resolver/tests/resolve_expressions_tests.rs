@@ -369,7 +369,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
     }
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right: seven, .. }), .. } = &statements[1] {
-        assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, Some(BYTE_TYPE));
+        assert_type_and_hint!(&annotations, &index, seven, BYTE_TYPE, None);
     } else {
         unreachable!()
     }
@@ -789,7 +789,7 @@ fn global_initializers_resolves_types() {
         unit.global_vars[0].variables.iter().map(|it| it.initializer.as_ref().unwrap()).collect();
 
     let expected_types =
-        vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT"];
+        vec!["BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT", "ULINT"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
 
@@ -1633,7 +1633,7 @@ fn function_parameter_assignments_resolve_types() {
                 &expressions[0]
             {
                 assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "INT");
-                assert_eq!(annotations.get_type_or_void(right, &index).get_name(), "DINT");
+                assert_eq!(annotations.get_type_or_void(right, &index).get_name(), "INT");
             } else {
                 panic!("assignment expected")
             }
@@ -1732,7 +1732,7 @@ fn type_initial_values_are_resolved() {
 
     if let DataType::StructType { variables, .. } = data_type {
         assert_eq!(
-            Some(&StatementAnnotation::value("DINT")),
+            Some(&StatementAnnotation::value("INT")),
             annotations.get(variables[0].initializer.as_ref().unwrap())
         );
         assert_eq!(
@@ -2215,7 +2215,7 @@ fn global_enums_type_resolving() {
         })
         .collect::<Vec<Option<&str>>>();
 
-    assert_eq!(vec![Some("DINT"), Some("__global_x"), Some("__global_x")], initializer_types);
+    assert_eq!(vec![Some("__global_x"), Some("__global_x"), Some("__global_x")], initializer_types);
 }
 
 #[test]
@@ -2244,10 +2244,10 @@ fn global_enums_type_resolving2() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
+            (Some("MyEnum"), None),
+            (Some("DINT"), Some("MyEnum")), // 0+1
+            (Some("MyEnum"), None),
+            (Some("DINT"), Some("MyEnum")), //7+1
         ],
         initalizer_types
     );
@@ -2279,9 +2279,9 @@ fn global_lint_enums_type_resolving() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
             (Some("MyEnum"), None),
-            (Some("DINT"), Some("MyEnum")),
+            (Some("MyEnum"), None),
+            (Some("MyEnum"), None),
             (Some("MyEnum"), None),
         ],
         initalizer_types
@@ -2300,7 +2300,7 @@ fn enum_element_initialization_is_annotated_correctly() {
         if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
             flatten_expression_list(elements)[2]
         {
-            assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyEnum"));
+            assert_type_and_hint!(&annotations, &index, right, "MyEnum", None);
         } else {
             unreachable!()
         }
@@ -2333,13 +2333,7 @@ fn enum_initialization_is_annotated_correctly() {
 
     let variables = &unit.units[0].variable_blocks[0].variables;
 
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        variables[0].initializer.as_ref().unwrap(),
-        "DINT",
-        Some("MyEnum")
-    );
+    assert_type_and_hint!(&annotations, &index, variables[0].initializer.as_ref().unwrap(), "MyEnum", None);
     assert_type_and_hint!(&annotations, &index, variables[1].initializer.as_ref().unwrap(), "MyEnum", None);
     assert_type_and_hint!(&annotations, &index, variables[2].initializer.as_ref().unwrap(), "MyEnum", None);
 
@@ -2443,7 +2437,7 @@ fn array_explicit_assignment_test() {
     let elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
     assert_eq!(3, elements.len());
     for e in elements {
-        assert_type_and_hint!(&annotations, &index, e, "DINT", Some("INT"));
+        assert_type_and_hint!(&annotations, &index, e, "INT", None);
     }
 }
 
@@ -2482,7 +2476,7 @@ fn multi_dim_array_explicit_assignment_test() {
     let elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
     assert_eq!(9, elements.len());
     for e in elements {
-        assert_type_and_hint!(&annotations, &index, e, "DINT", Some("INT"));
+        assert_type_and_hint!(&annotations, &index, e, "INT", None);
     }
 }
 
@@ -2530,7 +2524,7 @@ fn array_of_array_explicit_assignment_test() {
         let inner_elements = inner.elements().map(|it| it.get_as_list()).unwrap_or_default();
         assert_eq!(3, inner_elements.len());
         for inner_e in inner_elements {
-            assert_type_and_hint!(&annotations, &index, inner_e, "DINT", Some("INT"));
+            assert_type_and_hint!(&annotations, &index, inner_e, "INT", None);
         }
     }
 }
@@ -2660,7 +2654,7 @@ fn data_type_initializers_type_hint_test() {
         {
             if let AstStatement::ExpressionList(elements, ..) = exp_list.get_stmt() {
                 for ele in elements {
-                    assert_type_and_hint!(&annotations, &index, ele, "DINT", Some("INT"));
+                    assert_type_and_hint!(&annotations, &index, ele, "INT", None);
                 }
             } else {
                 unreachable!("{:#?}", unit)
@@ -2704,7 +2698,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             if let AstStatement::MultipliedStatement(MultipliedStatement { element: literal_seven, .. }) =
                 multiplied_statement.get_stmt()
             {
-                assert_type_and_hint!(&annotations, &index, literal_seven, "DINT", Some("BYTE"));
+                assert_type_and_hint!(&annotations, &index, literal_seven, "BYTE", None);
             }
         } else {
             unreachable!()
@@ -2729,7 +2723,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             if let AstStatement::MultipliedStatement(MultipliedStatement { element: literal_seven, .. }) =
                 multiplied_statement.get_stmt()
             {
-                assert_type_and_hint!(&annotations, &index, literal_seven, "DINT", Some("BYTE"));
+                assert_type_and_hint!(&annotations, &index, literal_seven, "BYTE", None);
             }
         } else {
             unreachable!()
@@ -2810,18 +2804,18 @@ fn range_type_min_max_type_hint_test() {
         //lets see if start and end got their type-annotations
         assert_eq!(
             annotations.get_type(start.as_ref(), &index),
-            index.find_effective_type_by_name(DINT_TYPE)
+            index.find_effective_type_by_name(SINT_TYPE)
         );
-        assert_eq!(annotations.get_type(end.as_ref(), &index), index.find_effective_type_by_name(DINT_TYPE));
+        assert_eq!(annotations.get_type(end.as_ref(), &index), index.find_effective_type_by_name(SINT_TYPE));
 
         //lets see if start and end got their type-HINT-annotations
         assert_eq!(
             annotations.get_type_hint(start.as_ref(), &index),
-            index.find_effective_type_by_name(SINT_TYPE)
+            None
         );
         assert_eq!(
             annotations.get_type_hint(end.as_ref(), &index),
-            index.find_effective_type_by_name(SINT_TYPE)
+            None
         );
     }
 }
@@ -2935,10 +2929,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                         annotations.get_type(left.as_ref(), &index),
                         index.find_effective_type_by_name("BYTE")
                     );
-                    assert_eq!(
-                        annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type_by_name("BYTE")
-                    );
+                    assert_eq!(annotations.get_type_hint(right.as_ref(), &index), None);
                 } else {
                     unreachable!()
                 }
@@ -2951,10 +2942,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                         annotations.get_type(left.as_ref(), &index),
                         index.find_effective_type_by_name("SINT")
                     );
-                    assert_eq!(
-                        annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type_by_name("SINT")
-                    );
+                    assert_eq!(annotations.get_type_hint(right.as_ref(), &index), None);
                 } else {
                     unreachable!()
                 }
@@ -3183,7 +3171,7 @@ fn literals_passed_to_function_get_annotated() {
 
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[0], DINT_TYPE, Some(BYTE_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[0], BYTE_TYPE, None);
         assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_3", Some("STRING"));
     } else {
         unreachable!();
@@ -3252,13 +3240,13 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
 
     //WHEN we assign to this variable (x := 7)
 
-    // THEN we want the hint for '7' to be MyInt, not INT
+    // THEN we want '7' to be MyInt, literals can be generated directly right, no cast required
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } = stmt {
         assert_type_and_hint!(&annotations, &index, left, "MyInt", None);
-        assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyInt"));
+        assert_type_and_hint!(&annotations, &index, right, "MyInt", None);
     } else {
         unreachable!();
     }

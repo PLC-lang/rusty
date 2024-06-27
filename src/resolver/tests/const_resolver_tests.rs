@@ -983,7 +983,7 @@ fn array_literals_type_resolving() {
     {
         if let AstStatement::ExpressionList(expressions) = elements.as_ref().get_stmt() {
             for ele in expressions.iter() {
-                assert_eq!(annotations.get_type_hint(ele, &index), index.find_effective_type_by_name("BYTE"));
+                assert_eq!(annotations.get_type(ele, &index), index.find_effective_type_by_name("BYTE"));
             }
         } else {
             unreachable!();
@@ -993,7 +993,7 @@ fn array_literals_type_resolving() {
     }
 
     assert_eq!(
-        annotations.get_type_hint(index.get_const_expressions().get_constant_statement(&i).unwrap(), &index),
+        annotations.get_type(index.get_const_expressions().get_constant_statement(&i).unwrap(), &index),
         index.find_effective_type_by_name(a.get_type_name())
     );
 }
