@@ -11,67 +11,31 @@ entry:
   call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !9, metadata !DIExpression()), !dbg !11
   store i32 0, i32* %myFunc, align 4, !dbg !8
   store i32 1, i32* %myFunc, align 4, !dbg !12
-  br label %condition_check, !dbg !12
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !12
 
-condition_check:                                  ; preds = %increment, %entry
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !12
-  %load_myFunc1 = load i32, i32* %myFunc, align 4, !dbg !12
-  %tmpVar = icmp sle i32 %load_myFunc1, 20, !dbg !12
-  %0 = zext i1 %tmpVar to i8, !dbg !12
-  %1 = icmp ne i8 %0, 0, !dbg !12
-  br i1 %1, label %2, label %5, !dbg !12
+predicate_sle:                                    ; preds = %increment, %entry
+  %0 = load i32, i32* %myFunc, align 4, !dbg !12
+  %condition = icmp sle i32 %0, 20, !dbg !12
+  br i1 %condition, label %loop, label %continue, !dbg !12
 
-for_body:                                         ; preds = %12
+predicate_sge:                                    ; preds = %increment, %entry
+  %1 = load i32, i32* %myFunc, align 4, !dbg !12
+  %condition1 = icmp sge i32 %1, 20, !dbg !12
+  br i1 %condition1, label %loop, label %continue, !dbg !12
+
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   store i32 1, i32* %myFunc, align 4, !dbg !13
   br label %increment, !dbg !13
 
-increment:                                        ; preds = %for_body
-  %tmpVar8 = add i32 %load_myFunc, 2, !dbg !14
-  store i32 %tmpVar8, i32* %myFunc, align 4, !dbg !14
-  br label %condition_check, !dbg !14
+increment:                                        ; preds = %loop
+  %2 = load i32, i32* %myFunc, align 4, !dbg !13
+  %next = add i32 2, %2, !dbg !13
+  store i32 %next, i32* %myFunc, align 4, !dbg !13
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !13
 
-continue:                                         ; preds = %12
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !14
-  ret i32 %myFunc_ret, !dbg !14
-
-2:                                                ; preds = %condition_check
-  %load_myFunc2 = load i32, i32* %myFunc, align 4, !dbg !12
-  %tmpVar3 = icmp sge i32 %load_myFunc2, 1, !dbg !12
-  %3 = zext i1 %tmpVar3 to i8, !dbg !12
-  %4 = icmp ne i8 %3, 0, !dbg !12
-  br label %5, !dbg !12
-
-5:                                                ; preds = %2, %condition_check
-  %6 = phi i1 [ %1, %condition_check ], [ %4, %2 ], !dbg !12
-  %7 = zext i1 %6 to i8, !dbg !12
-  %8 = icmp ne i8 %7, 0, !dbg !12
-  br i1 %8, label %12, label %9, !dbg !12
-
-9:                                                ; preds = %5
-  %load_myFunc4 = load i32, i32* %myFunc, align 4, !dbg !12
-  %tmpVar5 = icmp sge i32 %load_myFunc4, 20, !dbg !12
-  %10 = zext i1 %tmpVar5 to i8, !dbg !12
-  %11 = icmp ne i8 %10, 0, !dbg !12
-  br i1 %11, label %16, label %19, !dbg !12
-
-12:                                               ; preds = %19, %5
-  %13 = phi i1 [ %8, %5 ], [ %22, %19 ], !dbg !12
-  %14 = zext i1 %13 to i8, !dbg !12
-  %15 = icmp ne i8 %14, 0, !dbg !12
-  br i1 %15, label %for_body, label %continue, !dbg !12
-
-16:                                               ; preds = %9
-  %load_myFunc6 = load i32, i32* %myFunc, align 4, !dbg !12
-  %tmpVar7 = icmp sle i32 %load_myFunc6, 1, !dbg !12
-  %17 = zext i1 %tmpVar7 to i8, !dbg !12
-  %18 = icmp ne i8 %17, 0, !dbg !12
-  br label %19, !dbg !12
-
-19:                                               ; preds = %16, %9
-  %20 = phi i1 [ %11, %9 ], [ %18, %16 ], !dbg !12
-  %21 = zext i1 %20 to i8, !dbg !12
-  %22 = icmp ne i8 %21, 0, !dbg !12
-  br label %12, !dbg !12
+continue:                                         ; preds = %predicate_sge, %predicate_sle
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
+  ret i32 %myFunc_ret, !dbg !13
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -96,4 +60,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 16, scope: !4)
 !13 = !DILocation(line: 4, column: 16, scope: !4)
-!14 = !DILocation(line: 3, column: 37, scope: !4)
