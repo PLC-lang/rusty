@@ -17,69 +17,33 @@ entry:
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
   %load_y = load i32, i32* %y, align 4
   store i32 %load_y, i32* %x, align 4
-  br label %condition_check
+  %load_step = load i32, i32* %step, align 4
+  %is_incrementing = icmp sgt i32 %load_step, 0
+  br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
-condition_check:                                  ; preds = %increment, %entry
+predicate_sle:                                    ; preds = %increment, %entry
+  %1 = load i32, i32* %z, align 4
+  %2 = load i32, i32* %x, align 4
+  %condition = icmp sle i32 %2, %1
+  br i1 %condition, label %loop, label %continue
+
+predicate_sge:                                    ; preds = %increment, %entry
+  %3 = load i32, i32* %z, align 4
+  %4 = load i32, i32* %x, align 4
+  %condition1 = icmp sge i32 %4, %3
+  br i1 %condition1, label %loop, label %continue
+
+loop:                                             ; preds = %predicate_sge, %predicate_sle
   %load_x = load i32, i32* %x, align 4
-  %load_x1 = load i32, i32* %x, align 4
-  %load_z = load i32, i32* %z, align 4
-  %tmpVar = icmp sle i32 %load_x1, %load_z
-  %1 = zext i1 %tmpVar to i8
-  %2 = icmp ne i8 %1, 0
-  br i1 %2, label %3, label %6
-
-for_body:                                         ; preds = %13
-  %load_x11 = load i32, i32* %x, align 4
   br label %increment
 
-increment:                                        ; preds = %for_body
-  %load_step = load i32, i32* %step, align 4
-  %tmpVar12 = add i32 %load_x, %load_step
-  store i32 %tmpVar12, i32* %x, align 4
-  br label %condition_check
+increment:                                        ; preds = %loop
+  %5 = load i32, i32* %x, align 4
+  %load_step2 = load i32, i32* %step, align 4
+  %next = add i32 %load_step2, %5
+  store i32 %next, i32* %x, align 4
+  br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
-continue:                                         ; preds = %13
+continue:                                         ; preds = %predicate_sge, %predicate_sle
   ret void
-
-3:                                                ; preds = %condition_check
-  %load_x2 = load i32, i32* %x, align 4
-  %load_y3 = load i32, i32* %y, align 4
-  %tmpVar4 = icmp sge i32 %load_x2, %load_y3
-  %4 = zext i1 %tmpVar4 to i8
-  %5 = icmp ne i8 %4, 0
-  br label %6
-
-6:                                                ; preds = %3, %condition_check
-  %7 = phi i1 [ %2, %condition_check ], [ %5, %3 ]
-  %8 = zext i1 %7 to i8
-  %9 = icmp ne i8 %8, 0
-  br i1 %9, label %13, label %10
-
-10:                                               ; preds = %6
-  %load_x5 = load i32, i32* %x, align 4
-  %load_z6 = load i32, i32* %z, align 4
-  %tmpVar7 = icmp sge i32 %load_x5, %load_z6
-  %11 = zext i1 %tmpVar7 to i8
-  %12 = icmp ne i8 %11, 0
-  br i1 %12, label %17, label %20
-
-13:                                               ; preds = %20, %6
-  %14 = phi i1 [ %9, %6 ], [ %23, %20 ]
-  %15 = zext i1 %14 to i8
-  %16 = icmp ne i8 %15, 0
-  br i1 %16, label %for_body, label %continue
-
-17:                                               ; preds = %10
-  %load_x8 = load i32, i32* %x, align 4
-  %load_y9 = load i32, i32* %y, align 4
-  %tmpVar10 = icmp sle i32 %load_x8, %load_y9
-  %18 = zext i1 %tmpVar10 to i8
-  %19 = icmp ne i8 %18, 0
-  br label %20
-
-20:                                               ; preds = %17, %10
-  %21 = phi i1 [ %12, %10 ], [ %19, %17 ]
-  %22 = zext i1 %21 to i8
-  %23 = icmp ne i8 %22, 0
-  br label %13
 }

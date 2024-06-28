@@ -484,6 +484,109 @@ fn for_loop_and_increment_10_times_skipping_1() {
 }
 
 #[test]
+fn for_loop_does_not_execute_if_condition_is_not_met() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i, end, step, res: DINT;
+    END_VAR
+        end := -1;
+        step := -1;
+        res := 100;
+
+        FOR i := end TO 0 BY step DO
+            res := i;
+        END_FOR
+
+        main := res;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 100);
+}
+
+#[test]
+fn for_loop_step_changes_sign_in_loop_body() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i, step, temp, iteration: DINT;
+    END_VAR
+        step := 1;
+        iteration := 0;
+
+        FOR i := 5 TO 10 BY step DO
+            temp := (step + 1) * -1 ;
+            IF i + temp > 0 THEN
+                step := temp;
+            ELSE
+                step := step + 3;
+            END_IF;
+
+            // i:     5, 3,  4, 2,  3, 1, 2,  6, 1, 5, 12
+            // step: -2, 1, -2, 1, -2, 1, 4, -5, 4, 7
+            iteration := iteration + 1;
+        END_FOR
+        
+        main := iteration;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 10);
+}
+
+#[test]
+fn for_loop_step_and_counter_change_sign_in_loop_body() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i, step, temp, iteration: DINT;
+    END_VAR
+        step := 1;
+        iteration := 0;
+
+        FOR i := 3 TO 10 BY step DO
+            step := (step + 1) * -2;
+
+            // i:     3, -1,   5, -9, 17
+            // step: -4,  5, -14, 26
+            iteration := iteration + 1;
+        END_FOR
+        
+        main := iteration;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 4);
+}
+
+#[test]
+fn for_loop_statement_with_binary_expressions() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        step: DINT := 1;
+        x, y, iteration : DINT;
+        z : DINT := 25;
+    END_VAR
+        // 1 TO 23 BY 3
+        FOR x := y + 1 TO z - 2 BY step * 3 DO
+            // x: 1, 4, 7, 10, 13, 16, 19, 22
+            iteration := iteration + 1;
+        END_FOR
+        
+        main := iteration;
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut crate::MainType::default());
+    assert_eq!(res, 8);
+}
+
+#[test]
 fn while_loop_no_entry() {
     let function = r#"
     FUNCTION main : DINT
