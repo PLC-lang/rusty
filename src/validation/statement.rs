@@ -778,23 +778,23 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
-    // Assert that the lhs is a variable declared with `REFERENCE TO`
-    if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_reference_to) {
-        validator.push_diagnostic(
-            Diagnostic::new("Invalid assignment, expected a variable declared with `REFERENCE TO`")
-                .with_location(&assignment.left.location)
-                .with_error_code("E098"),
-        );
-    }
+    // // Assert that the lhs is a variable declared with `REFERENCE TO`
+    // if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_reference_to) {
+    //     validator.push_diagnostic(
+    //         Diagnostic::new("Invalid assignment, expected a variable declared with `REFERENCE TO`")
+    //             .with_location(&assignment.left.location)
+    //             .with_error_code("E098"),
+    //     );
+    // }
 
-    // Assert that the rhs is NOT a variable declared with `REFERENCE TO`
-    if context.annotations.get(&assignment.right).is_some_and(StatementAnnotation::is_reference_to) {
-        validator.push_diagnostic(
-            Diagnostic::new("Invalid assignment, variable must not be declared with `REFERENCE TO`")
-                .with_location(&assignment.right.location)
-                .with_error_code("E098"),
-        );
-    }
+    // // Assert that the rhs is NOT a variable declared with `REFERENCE TO`
+    // if context.annotations.get(&assignment.right).is_some_and(StatementAnnotation::is_reference_to) {
+    //     validator.push_diagnostic(
+    //         Diagnostic::new("Invalid assignment, variable must not be declared with `REFERENCE TO`")
+    //             .with_location(&assignment.right.location)
+    //             .with_error_code("E098"),
+    //     );
+    // }
 
     // Assert that the rhs is a variable that can be referenced
     if !assignment.right.is_reference() {
@@ -813,8 +813,8 @@ fn validate_ref_assignment<T: AnnotationMap>(
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Invalid assignment, types differ (got {} and {})",
-                get_datatype_name_or_slice(&validator.context, type_lhs),
-                get_datatype_name_or_slice(&validator.context, type_rhs),
+                get_datatype_name_or_slice(validator.context, type_lhs),
+                get_datatype_name_or_slice(validator.context, type_rhs),
             ))
             .with_location(assignment_location)
             .with_error_code("E098"),

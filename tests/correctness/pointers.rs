@@ -277,3 +277,73 @@ fn reference_to_assignment() {
     let res: i32 = compile_and_run(function, &mut MainType::default());
     assert_eq!(5, res);
 }
+
+#[test]
+#[ignore = "Currently does not work, track in an issue"]
+fn reference_to_variable_referencing_other_reference_to_variable() {
+    let function = r"
+        FUNCTION main : DINT
+            VAR
+                foo : REFERENCE TO DINT;
+                bar : REFERENCE TO DINT;
+                qux : DINT;
+            END_VAR
+            
+            foo REF= bar;
+            bar REF= qux;
+            qux := 5;
+
+            main := foo; // foo -> bar -> qux
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(function, &mut MainType::default());
+    assert_eq!(5, res);
+}
+
+#[test]
+fn reference_to_variable_referencing_itself() {
+    let function = r"
+        FUNCTION main : DINT
+            VAR
+                foo : REFERENCE TO DINT;
+                bar : REFERENCE TO DINT;
+                qux : DINT;
+            END_VAR
+            
+            foo REF= bar;
+            bar REF= qux;
+
+            bar REF= bar; 
+            qux := 5;
+
+            main := bar; // bar (-> bar) -> qux
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(function, &mut MainType::default());
+    assert_eq!(5, res);
+}
+
+#[test]
+fn reference_to_variable_referencing_struct() {
+    let function = r"
+        TYPE Transaction : STRUCT
+            id      : DINT;
+            amount  : DINT;
+            message : STRING;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+            VAR
+                txn     : Transaction := (id := 1, amount := 5, message := 'whats up');
+                refTxn  : REFERENCE TO Transaction;
+            END_VAR
+
+            main := refTxn.amount;
+        END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(function, &mut MainType::default());
+    assert_eq!(5, res);
+}

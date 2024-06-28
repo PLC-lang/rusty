@@ -1223,6 +1223,15 @@ fn void_assignment_validation() {
 fn ref_assignment() {
     let diagnostics = parse_and_validate_buffered(
         "
+        TYPE 
+            AliasedDINT : DINT;
+            AliasedArray : ARRAY[1..5] OF DINT;
+        END_TYPE
+
+        VAR_GLOBAL
+            fooGlobal : DINT;
+        END_VAR
+
         FUNCTION main
             VAR
                 foo                         : DINT;
@@ -1231,6 +1240,9 @@ fn ref_assignment() {
 
                 // Invalid
                 referenceToFooInitializedVariable   : REFERENCE TO foo;
+                referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
+                referenceToFooAliasedDINTType       : REFERENCE TO AliasedDINT;
+                referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
             END_VAR
@@ -1247,53 +1259,52 @@ fn ref_assignment() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E098]: Invalid type, reference
-      ┌─ <internal>:9:55
-      │
-    9 │                 referenceToFooInitializedVariable   : REFERENCE TO foo;
-      │                                                       ^^^^^^^^^^^^^^^^ Invalid type, reference
-
-    error[E098]: REFERENCE TO variables can not be initialized in their declaration
-       ┌─ <internal>:10:76
+    error[E099]: Invalid type, reference
+       ┌─ <internal>:18:55
        │
-    10 │                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
-       │                                                                            ^ REFERENCE TO variables can not be initialized in their declaration
+    18 │                 referenceToFooInitializedVariable   : REFERENCE TO foo;
+       │                                                       ^^^^^^^^^^^^^^^^ Invalid type, reference
 
-    error[E098]: Invalid type: array, pointer or bit 
-       ┌─ <internal>:11:17
+    error[E099]: Invalid type, reference
+       ┌─ <internal>:19:55
        │
-    11 │                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
+    19 │                 referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
+       │                                                       ^^^^^^^^^^^^^^^^^^^^^^ Invalid type, reference
+
+    error[E099]: Invalid type: array, pointer or bit 
+       ┌─ <internal>:21:17
+       │
+     4 │             AliasedArray : ARRAY[1..5] OF DINT;
+       │             ------------ see also
+       ·
+    21 │                 referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
        │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid type: array, pointer or bit 
 
-    error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
-       ┌─ <internal>:17:13
+    error[E099]: REFERENCE TO variables can not be initialized in their declaration
+       ┌─ <internal>:22:76
        │
-    17 │             foo REF= foo;
-       │             ^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
+    22 │                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
+       │                                                                            ^ REFERENCE TO variables can not be initialized in their declaration
 
-    error[E098]: Invalid assignment, expected a variable declared with `REFERENCE TO`
-       ┌─ <internal>:18:13
+    error[E099]: Invalid type: array, pointer or bit 
+       ┌─ <internal>:23:17
        │
-    18 │             refToFoo REF= foo;
-       │             ^^^^^^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
+    23 │                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
+       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        -------------------------------- see also
+       │                 │                                      
+       │                 Invalid type: array, pointer or bit 
 
     error[E098]: Invalid assignment, types differ (got REF_TO DINT and DINT)
-       ┌─ <internal>:18:13
+       ┌─ <internal>:30:13
        │
-    18 │             refToFoo REF= foo;
+    30 │             refToFoo REF= foo;
        │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ (got REF_TO DINT and DINT)
 
     error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:19:33
+       ┌─ <internal>:31:33
        │
-    19 │             referenceToFoo REF= 0;
+    31 │             referenceToFoo REF= 0;
        │                                 ^ Invalid assignment, expected a reference
-
-    error[E098]: Invalid assignment, variable must not be declared with `REFERENCE TO`
-       ┌─ <internal>:20:33
-       │
-    20 │             referenceToFoo REF= referenceToFoo;
-       │                                 ^^^^^^^^^^^^^^ Invalid assignment, variable must not be declared with `REFERENCE TO`
 
     "###);
 }

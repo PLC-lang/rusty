@@ -236,7 +236,11 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
             }
 
             // Assert that the referenced type is no variable reference
-            if context.index.find_member(context.qualifier.unwrap_or_default(), &inner_type_name).is_some() {
+            let qualifier = context.qualifier.unwrap_or_default();
+            let var_local = context.index.find_member(qualifier, inner_type_name).is_some();
+            let var_global = context.index.find_global_variable(inner_type_name).is_some();
+
+            if var_local || var_global {
                 validator.push_diagnostic(
                     Diagnostic::new("Invalid type, reference")
                         .with_location(&variable_type.location)
@@ -245,13 +249,16 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
             }
 
             // Lastly assert that the referenced type is no array, pointer or bit
-            let inner_type = context.index.find_effective_type_by_name(&inner_type_name);
-            if inner_type.is_some_and(|ty| ty.is_array() || ty.is_pointer() || ty.is_bit()) {
-                validator.push_diagnostic(
-                    Diagnostic::new("Invalid type: array, pointer or bit ")
-                        .with_location(&variable.location)
-                        .with_error_code("E099"),
-                );
+            let inner_type = context.index.find_effective_type_by_name(inner_type_name);
+            if let Some(ty) = inner_type {
+                if ty.is_array() || ty.is_pointer() || ty.is_bit() {
+                    validator.push_diagnostic(
+                        Diagnostic::new("Invalid type: array, pointer or bit ")
+                            .with_location(&variable.location)
+                            .with_secondary_location(&ty.location)
+                            .with_error_code("E099"),
+                    );
+                }
             }
         }
     }
