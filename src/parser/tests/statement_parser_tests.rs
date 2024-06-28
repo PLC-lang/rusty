@@ -264,7 +264,7 @@ fn empty_parameter_assignments_in_call_statement() {
 }
 
 #[test]
-fn reference_assignment_is_parsed() {
+fn ref_assignment() {
     let result = &parse("PROGRAM main x REF= y END_PROGRAM").0.implementations[0];
     insta::assert_debug_snapshot!(result.statements, @r###"
     [
@@ -291,7 +291,7 @@ fn reference_assignment_is_parsed() {
 }
 
 #[test]
-fn reference_to_variable() {
+fn reference_to_declaration() {
     let (result, diagnostics) = parse(
         r"
         FUNCTION foo

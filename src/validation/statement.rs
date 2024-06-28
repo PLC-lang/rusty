@@ -769,16 +769,15 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-// For `foo REF= bar` to be valid we need to check if
-// - the left-hand side is a reference declared with the `REFERENCE TO` keyword and
-// - the right-hand side is a lvalue
+// TODO: Improve error messages?
+/// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
+/// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 fn validate_ref_assignment<T: AnnotationMap>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
-    // TODO: Improve error messages?
     // Assert that the lhs is a variable declared with `REFERENCE TO`
     if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_reference_to) {
         validator.push_diagnostic(
@@ -813,7 +812,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     if type_lhs != type_rhs {
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Invalid assignment, types differ got {} and {}",
+                "Invalid assignment, types differ (got {} and {})",
                 get_datatype_name_or_slice(&validator.context, type_lhs),
                 get_datatype_name_or_slice(&validator.context, type_rhs),
             ))

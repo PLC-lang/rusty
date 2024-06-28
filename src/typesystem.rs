@@ -391,7 +391,7 @@ pub enum DataTypeInformation {
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: bool,
-        /// Indicates if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
         is_reference_to: bool,
     },
     Integer {

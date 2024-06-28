@@ -415,7 +415,6 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 name,
                 scope.clone(),
             );
-            // TODO: Here
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,

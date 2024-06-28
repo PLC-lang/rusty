@@ -1277,11 +1277,11 @@ fn ref_assignment() {
     18 │             refToFoo REF= foo;
        │             ^^^^^^^^ Invalid assignment, expected a variable declared with `REFERENCE TO`
 
-    error[E098]: Invalid assignment, types differ got REF_TO DINT and DINT
+    error[E098]: Invalid assignment, types differ (got REF_TO DINT and DINT)
        ┌─ <internal>:18:13
        │
     18 │             refToFoo REF= foo;
-       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ got REF_TO DINT and DINT
+       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ (got REF_TO DINT and DINT)
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:19:33

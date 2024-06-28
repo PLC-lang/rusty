@@ -200,6 +200,7 @@ lazy_static! {
         E096,   Warning,    include_str!("./error_codes/E096.md"),  // Integer Condition
         E097,   Error,      include_str!("./error_codes/E097.md"),  // Invalid Array Range
         E098,   Error,      include_str!("./error_codes/E098.md"),  // Invalid `REF=` assignment
+        E099,   Error,      include_str!("./error_codes/E099.md"),  // Invalid `REFERENCE TO` declaration
     );
 }
 

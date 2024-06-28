@@ -159,7 +159,7 @@ pub enum Token {
     #[token("=>")]
     KeywordOutputAssignment,
 
-    #[token("REF=")]
+    #[token("REF=", ignore(case))]
     KeywordReferenceAssignment,
 
     #[token("(")]
