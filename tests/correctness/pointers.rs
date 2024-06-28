@@ -279,7 +279,6 @@ fn reference_to_assignment() {
 }
 
 #[test]
-#[ignore = "Currently does not work, track in an issue"]
 fn reference_to_variable_referencing_other_reference_to_variable() {
     let function = r"
         FUNCTION main : DINT
@@ -289,8 +288,8 @@ fn reference_to_variable_referencing_other_reference_to_variable() {
                 qux : DINT;
             END_VAR
             
-            foo REF= bar;
             bar REF= qux;
+            foo REF= bar;
             qux := 5;
 
             main := foo; // foo -> bar -> qux
@@ -340,6 +339,7 @@ fn reference_to_variable_referencing_struct() {
                 refTxn  : REFERENCE TO Transaction;
             END_VAR
 
+            refTxn REF= txn;
             main := refTxn.amount;
         END_FUNCTION
     ";
