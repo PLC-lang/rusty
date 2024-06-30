@@ -32,9 +32,9 @@ fn binary_expressions_resolves_types() {
     })) = statements[0].get_stmt()
     {
         assert_type_and_hint!(&annotations, &index, counter, "INT", None);
-        assert_type_and_hint!(&annotations, &index, start, "DINT", Some("INT"));
-        assert_type_and_hint!(&annotations, &index, end, "DINT", Some("INT"));
-        assert_type_and_hint!(&annotations, &index, by_step, "DINT", Some("INT"));
+        assert_type_and_hint!(&annotations, &index, start, "DINT", None);
+        assert_type_and_hint!(&annotations, &index, end, "DINT", None);
+        assert_type_and_hint!(&annotations, &index, by_step, "DINT", None);
     } else {
         panic!("no for loop statement");
     }

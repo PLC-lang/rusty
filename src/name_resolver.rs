@@ -13,8 +13,8 @@ use crate::{
     builtins,
     index::{Index, VariableIndexEntry},
     resolver::{
-        register_string_type, AnnotationMap, AnnotationMapImpl, AstAnnotations, StatementAnnotation,
-        StringLiterals,
+        get_string_literal_name, register_string_type, AnnotationMap, AnnotationMapImpl, AstAnnotations,
+        StatementAnnotation, StringLiterals,
     },
     typesystem::{
         self, get_bigger_type, get_type_name_for_direct_access, DataType, DataTypeInformation, BOOL_TYPE,
@@ -217,15 +217,28 @@ impl ScopeStack {
 }
 
 pub struct NameResolver<'i> {
+    /// the index to resolve names against
     index: &'i Index,
+
+    /// the annotation map filled by this resolver
     pub annotations: AnnotationMapImpl,
+
+    /// the string-literals found
     pub strings: StringLiterals,
 
+    /// the scope that should be used for the next identifier
     scope: ScopeStack,
 
+    /// the scope that has to be applied for context-free statements
     root_scope: Scope,
+
+    /// the id-provider to generate new ids if statements need to be inserted/replaced
     id_provider: IdProvider,
+
+    /// flag to indicate if we are currently in a body (TODO: find better solution)
     in_a_body: bool,
+
+    literal_hint: Option<&'i DataType>,
 }
 
 impl<'i> NameResolver<'i> {
@@ -238,6 +251,7 @@ impl<'i> NameResolver<'i> {
             strings: StringLiterals::default(),
             in_a_body: false,
             id_provider,
+            literal_hint: None,
         }
     }
 
@@ -248,6 +262,15 @@ impl<'i> NameResolver<'i> {
         self.scope.push(scope);
         t.walk(self);
         self.scope.pop();
+    }
+
+    fn walk_with_literal_hint<T>(&mut self, t: &T, hint: &'i DataType)
+    where
+        T: Walker,
+    {
+        let old = self.literal_hint.replace(hint);
+        t.walk(self);
+        self.literal_hint = old;
     }
 
     /// tries to apply a possible replacement for the given operator
@@ -296,21 +319,43 @@ impl<'i> NameResolver<'i> {
             _ => None,
         }
     }
-    
+
     fn prepare_qualifier_list(&self, base: &str) -> Vec<String> {
         let mut qualifiers = Vec::new();
         let mut base = Some(base.to_string());
-        
+
         while let Some(b) = base.take() {
-            if let Some(crate::index::PouIndexEntry::Class {super_class: Some(super_class), .. }) = self.index.find_pou(b.as_str()) {
+            if let Some(crate::index::PouIndexEntry::Class { super_class: Some(super_class), .. }) =
+                self.index.find_pou(b.as_str())
+            {
                 base = Some(super_class.clone());
             }
             qualifiers.push(b);
-        }        
+        }
         qualifiers
-                            }
     }
 
+    fn visit_scalar_literal(&self, stmt: &AstLiteral) -> Option<&DataType> {
+        if let AstLiteral::String(StringValue { is_wide, value, .. }) = stmt {
+            let string_literal_name = get_string_literal_name(*is_wide, value.len());
+            self.index.find_type(string_literal_name.as_str())
+        } else {
+            let type_name = match stmt {
+                plc_ast::literals::AstLiteral::Null => Some(VOID_TYPE),
+                plc_ast::literals::AstLiteral::Integer(v) if *v > i32::MAX as i128 => Some(LINT_TYPE),
+                plc_ast::literals::AstLiteral::Integer(_) => Some(DINT_TYPE),
+                plc_ast::literals::AstLiteral::Date(_) => Some(DATE_TYPE),
+                plc_ast::literals::AstLiteral::DateAndTime(_) => Some(DATE_AND_TIME_TYPE),
+                plc_ast::literals::AstLiteral::TimeOfDay(_) => Some(TIME_OF_DAY_TYPE),
+                plc_ast::literals::AstLiteral::Time(_) => Some(TIME_TYPE),
+                plc_ast::literals::AstLiteral::Real(_) => Some(REAL_TYPE),
+                plc_ast::literals::AstLiteral::Bool(_) => Some(BOOL_TYPE),
+                _ => None,
+            };
+            type_name.and_then(|t| self.index.find_type(t))
+        }
+    }
+}
 
 impl AstVisitor for NameResolver<'_> {
     fn visit_implementation(&mut self, implementation: &plc_ast::ast::Implementation) {
@@ -362,14 +407,18 @@ impl AstVisitor for NameResolver<'_> {
                     }
                     _ => {
                         if let Some(base) = base {
-
                             // if we are in a class, we need to resolve the member in the context of the class
                             // and its base classes
-                            let qualifier_list = self.prepare_qualifier_list(base)
-                                    .iter().map(|it| Scope::Composite(vec![
+                            let qualifier_list = self
+                                .prepare_qualifier_list(base)
+                                .iter()
+                                .map(|it| {
+                                    Scope::Composite(vec![
                                         Scope::LocalVariable(it.to_string()),
                                         Scope::Callable(Some(it.to_string())),
-                                    ])).collect::<Vec<_>>();
+                                    ])
+                                })
+                                .collect::<Vec<_>>();
                             // resolve member und the base's context
                             self.walk_with_scope(
                                 member,
@@ -447,33 +496,43 @@ impl AstVisitor for NameResolver<'_> {
     }
 
     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, node: &plc_ast::ast::AstNode) {
-        let type_name = match stmt {
-            plc_ast::literals::AstLiteral::Null => Some(VOID_TYPE),
-            plc_ast::literals::AstLiteral::Integer(v) if *v > i32::MAX as i128 => Some(LINT_TYPE),
-            plc_ast::literals::AstLiteral::Integer(_) => Some(DINT_TYPE),
-            plc_ast::literals::AstLiteral::Date(_) => Some(DATE_TYPE),
-            plc_ast::literals::AstLiteral::DateAndTime(_) => Some(DATE_AND_TIME_TYPE),
-            plc_ast::literals::AstLiteral::TimeOfDay(_) => Some(TIME_OF_DAY_TYPE),
-            plc_ast::literals::AstLiteral::Time(_) => Some(TIME_TYPE),
-            plc_ast::literals::AstLiteral::Real(_) => Some(REAL_TYPE),
-            plc_ast::literals::AstLiteral::Bool(_) => Some(BOOL_TYPE),
-            plc_ast::literals::AstLiteral::String(StringValue { is_wide, value, .. }) => {
-                //collect literals so we can generate global constants later
-                match (self.in_a_body, *is_wide) {
-                    (true, true) => self.strings.utf16.insert(value.to_string()),
-                    (true, false) => self.strings.utf08.insert(value.to_string()),
-                    _ => false,
-                };
-                Some(register_string_type(&mut self.annotations.new_index, *is_wide, value.len()))
-            }
-            plc_ast::literals::AstLiteral::Array(a) => {
-                a.elements.walk(self);
-                Some(VOID_TYPE)
-            }
-        };
+        // for array initializers we also want to initialize the single array elements [a,b,c]
 
-        if let Some(type_name) = type_name.map(|t| t.to_string()) {
+        if let AstLiteral::String(StringValue { is_wide, value, .. }) = stmt {
+            //collect literals so we can generate global constants later
+            match (self.in_a_body, *is_wide) {
+                (true, true) => self.strings.utf16.insert(value.to_string()),
+                (true, false) => self.strings.utf08.insert(value.to_string()),
+                _ => false,
+            };
+            let type_name = register_string_type(&mut self.annotations.new_index, *is_wide, value.len());
             self.annotations.annotate(node, StatementAnnotation::value(type_name));
+        } else if let (
+            AstLiteral::Array(Array { elements: Some(elements), .. }),
+            Some(DataType { information: DataTypeInformation::Array { inner_type_name, .. }, .. }),
+        ) = (stmt, &self.literal_hint)
+        {
+            // array-literal and we also expect an array type
+            let expected_type = self.literal_hint.unwrap();
+            // array literal, we also expect an array
+            self.annotations.annotate(node, StatementAnnotation::value(expected_type.get_name()));
+            // hint the elements of an array
+            if let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) {
+                self.walk_with_literal_hint(elements, inner_type)
+            }
+        } else {
+            if let Some(literal_type) = self.visit_scalar_literal(stmt) {
+                if let Some(expected_type) = self
+                    .literal_hint
+                    .filter(|literal_hint| literal_type.is_compatible_with_type(literal_hint))
+                {
+                    // the hint is compatible with the actual type, make the hint the actual type right away to avoid casts
+                    self.annotations.annotate(node, StatementAnnotation::value(expected_type.get_name()));
+                } else {
+                    // annotate the literal with its type
+                    self.annotations.annotate(node, StatementAnnotation::value(literal_type.get_name()));
+                }
+            }
         }
     }
 
@@ -682,6 +741,16 @@ impl AstVisitor for NameResolver<'_> {
         self.annotations
             .annotate(_node, StatementAnnotation::value(get_type_name_for_direct_access(&stmt.access)));
     }
+
+    fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        self.visit(&stmt.left);
+
+        if let Some(left_type) =
+            self.annotations.get_type_name(&stmt.left).and_then(|it| self.index.find_effective_type_by_name(it))
+        {
+            self.walk_with_literal_hint(&stmt.right, left_type);
+        }
+    }
 }
 
 //TODO find better place
@@ -747,12 +816,32 @@ impl AstVisitor for LiteralsAnnotator<'_> {
         }
     }
 
+    fn visit_expression_list(&mut self, stmt: &Vec<AstNode>, node: &AstNode) {
+        // TODO same as above
+        if let DataTypeInformation::Array { inner_type_name, .. } = self.expected_type {
+            // annotate the type of the array
+            self.annotations.annotate(node, StatementAnnotation::value(self.expected_type.get_name()));
+            // hint the elements of an array
+            if let Some(inner_type) = self.index.find_effective_type_info(inner_type_name) {
+                let mut annotator = LiteralsAnnotator::new(inner_type, self.index, self.annotations);
+                stmt.walk(&mut annotator);
+
+                // hint the stuff that was not annotated with the type directly
+                for element in stmt {
+                    self.annotations.annotate_type_hint(element, StatementAnnotation::value(inner_type_name));
+                }
+            }
+        } else {
+            stmt.walk(self);
+        }
+    }
+
     /// could be a struct-literal
     fn visit_paren_expression(&mut self, inner: &AstNode, node: &AstNode) {
         // maybe a struct?
         if let DataTypeInformation::Struct { name, .. } = self.expected_type {
             //annotate the paren-expression and the inner one
-            self.annotations.annotate_type_hint(node, StatementAnnotation::value(name));
+            self.annotations.annotate(node, StatementAnnotation::value(name));
             self.annotations.copy_annotation(node, inner);
 
             // visit the child expressions, they are probably assignments
@@ -762,20 +851,23 @@ impl AstVisitor for LiteralsAnnotator<'_> {
         }
     }
 
-    /// could be an assignment in a struct-literal
-    fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
-        let reference_name = stmt.left.get_flat_reference_name();
-        if let Some(annotation) = reference_name.and_then(|ref_name| {
-            Scope::LocalVariable(self.expected_type.get_name().to_string()).lookup(ref_name, self.index)
-        }) {
-            // visit the rightside with new expected type
-            if let Some(sub_type) = self.annotations.get_type_for_annotation(self.index, &annotation) {
-                let mut sub_visitor =
-                    LiteralsAnnotator::new(sub_type.get_type_information(), self.index, self.annotations);
-                sub_visitor.visit(&stmt.right);
-            }
+    // /// could be an assignment in a struct-literal
+    // fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+    //     self.visit(&stmt.left);
 
-            self.annotations.annotate(&stmt.left, annotation);
-        }
-    }
+    //     if let Some(left_type) = self.annotations.get_type(&stmt.left, self.index) {
+    //     // let reference_name = stmt.left.get_flat_reference_name();
+    //     // if let Some(annotation) = reference_name.and_then(|ref_name| {
+    //     //     Scope::LocalVariable(self.expected_type.get_name().to_string()).lookup(ref_name, self.index)
+    //     // }) {
+    //         // visit the rightside with new expected type
+    //         // if let Some(sub_type) = self.annotations.get_type_for_annotation(self.index, &annotation) {
+    //             let mut sub_visitor =
+    //                 LiteralsAnnotator::new(sub_type.get_type_information(), self.index, self.annotations);
+    //             sub_visitor.visit(&stmt.right);
+    //         // }
+
+    //         self.annotations.annotate(&stmt.left, annotation);
+    //     }
+    // }
 }

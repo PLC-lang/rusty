@@ -3,6 +3,7 @@ use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
 
+use crate::assert_type_and_hint;
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
 
@@ -1029,7 +1030,7 @@ fn nested_array_literals_type_resolving() {
     //check the initializer's type
     let initializer = index.get_const_expressions().get_constant_statement(&i).unwrap();
     assert_eq!(
-        annotations.get_type_hint(initializer, &index),
+        annotations.get_type(initializer, &index),
         index.find_effective_type_by_name(a.get_type_name())
     );
 
@@ -1046,7 +1047,7 @@ fn nested_array_literals_type_resolving() {
 
             // check if the array's elements have the array's inner type
             for ele in AstNode::get_as_list(e) {
-                let element_hint = annotations.get_type_hint(ele, &index).unwrap();
+                let element_hint = annotations.get_type(ele, &index).unwrap();
                 assert_eq!(Some(element_hint), index.find_effective_type_by_name(inner_type_name))
             }
         } else {
@@ -1089,7 +1090,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     let initializer = index.get_const_expressions().get_constant_statement(&i).unwrap();
 
     assert_eq!(
-        annotations.get_type_hint(initializer, &index),
+        annotations.get_type(initializer, &index),
         index.find_effective_type_by_name(a.get_type_name())
     );
 
@@ -1104,14 +1105,14 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
         {
             //check the type of the expression-list has the same type as the variable itself
             assert_eq!(
-                annotations.get_type_hint(outer_expression_list, &index),
+                annotations.get_type(outer_expression_list, &index),
                 index.find_effective_type_by_name(a.get_type_name())
             );
 
             // check if the array's elements have the array's inner type
             for inner_array in AstNode::get_as_list(outer_expression_list) {
                 // [2(2)]
-                let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
+                let element_hint = annotations.get_type(inner_array, &index).unwrap();
                 assert_eq!(Some(element_hint), index.find_effective_type_by_name(array_of_byte));
 
                 //check if the inner array statement's also got the type-annotations
@@ -1126,7 +1127,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
                             //check if the inner thing really got the BYTE hint
                             // multiplied-element = 2
                             assert_eq!(
-                                annotations.get_type_hint(data.element.as_ref(), &index),
+                                annotations.get_type(data.element.as_ref(), &index),
                                 index.find_effective_type_by_name("BYTE")
                             );
                         } else {
@@ -1217,7 +1218,8 @@ fn contants_in_case_statements_resolved() {
 }
 
 #[test]
-fn default_values_are_transitive_for_range_types() {
+fn 
+default_values_are_transitive_for_range_types() {
     // GIVEN a range type that inherits the default value from its referenced type
     let src = codegen(
         "

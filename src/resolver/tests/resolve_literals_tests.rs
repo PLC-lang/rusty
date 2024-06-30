@@ -1,4 +1,4 @@
-use plc_ast::literals::AstLiteral;
+use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::{
     ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
     provider::IdProvider,
@@ -461,8 +461,16 @@ fn array_initialization_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
-    let t = annotations.get_type_hint(a_init, &index).unwrap();
-    assert_eq!(index.find_global_variable("a").unwrap().get_type_name(), t.get_name())
+    let t = annotations.get_type(a_init, &index).unwrap();
+    assert_eq!(index.find_global_variable("a").unwrap().get_type_name(), t.get_name());
+
+    if let AstStatement::Literal(AstLiteral::Array(Array{elements: Some(elements), .. })) = a_init.get_stmt() {
+        for e in elements.get_as_list() {
+            assert_type_and_hint!(&annotations, &index, e, "BYTE", None);
+        }
+    } else {
+        unreachable!();
+    }
 }
 
 #[test]
@@ -486,14 +494,8 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [INT]
     if let AstStatement::ExpressionList(expressions, ..) = a_init.get_stmt() {
-        for exp in expressions {
-            if let Some(data_type) = annotations.get_type_hint(exp, &index) {
-                let type_info = data_type.get_type_information();
-                assert!(matches!(type_info, DataTypeInformation::Integer { .. }))
-            } else {
-                unreachable!();
-            }
-        }
+        assert_type_and_hint!(&annotations, &index, &expressions[0], "DINT", Some("INT"));
+        assert_type_and_hint!(&annotations, &index, &expressions[1], "INT", None);
     } else {
         unreachable!();
     }
@@ -502,21 +504,65 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     let b_init = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [STRING]
     if let AstStatement::ExpressionList(expressions, ..) = b_init.get_stmt() {
-        for exp in expressions {
-            let data_type = annotations.get_type_hint(exp, &index).unwrap();
-            let type_info = data_type.get_type_information();
-            assert_eq!(
-                type_info,
-                &DataTypeInformation::String {
-                    encoding: StringEncoding::Utf8,
-                    size: TypeSize::from_literal(4),
-                }
-            )
-        }
+        assert_type_and_hint!(&annotations, &index, &expressions[0], "__STRING_3", Some("__global_b_"));
+        assert_type_and_hint!(&annotations, &index, &expressions[1], "__STRING_1", Some("__global_b_"));
     } else {
         unreachable!();
     }
 }
+
+
+
+#[test]
+fn struct_initializers_are_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE STRUCT1 : STRUCT
+            x    : SINT;
+            s2   :  STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+            y  : INT;
+            z  : SINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR
+                var_init1 : STRUCT1 :=
+                    (x := 0, s2 := (y := 0));
+            END_VAR
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let var = unit.units[0].variable_blocks[0].variables[0].initializer.clone().unwrap();
+
+    // (x := 0, s2 := (y := 0))
+    assert_type_and_hint!(&annotations, &index, &var, "STRUCT1", None);
+    let AstStatement::ParenExpression(expr) = var.get_stmt() else { panic!() };   
+
+    let elements = expr.get_as_list();
+    // x := 0
+    let AstStatement::Assignment(assignment) = &elements[0].stmt else { panic!() };
+    assert_eq!(annotations.get(&assignment.left), Some(&StatementAnnotation::Variable { 
+        resulting_type: "SINT".to_string(), 
+        qualified_name: "STRUCT1.x".to_string(), 
+        constant: false, argument_type: ArgumentType::ByVal(crate::index::VariableType::Input), is_auto_deref: false }));
+    assert_type_and_hint!(&annotations, &index, &assignment.right, "SINT", None);
+
+    let AstStatement::Assignment(assignment) = &elements[1].stmt else { panic!() };
+    assert_eq!(annotations.get(&assignment.left), Some(&StatementAnnotation::Variable { 
+        resulting_type: "STRUCT2".to_string(), 
+        qualified_name: "STRUCT1.s2".to_string(), 
+        constant: false, argument_type: ArgumentType::ByVal(crate::index::VariableType::Input), is_auto_deref: false }));
+    assert_type_and_hint!(&annotations, &index, &assignment.right, "STRUCT2", None);
+}
+
+
 
 #[test]
 fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs() {
@@ -554,7 +600,7 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
 
     // x := 0
     let x = &elements[0];
-    assert_eq!(&annotations.get_type_hint(x, &index).unwrap().name, "STRUCT1");
+    assert_type_and_hint!(&annotations, &index, x, "STRUCT1", None);
 
     // arr := [(y := 0), (z := 0)]
     let AstStatement::Assignment(assignment) = &elements[1].stmt else { panic!() };
@@ -565,9 +611,9 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
 
     // y := 0
     let AstStatement::ParenExpression(y) = &elements[0].stmt else { panic!() };
-    assert_eq!(&annotations.get_type_hint(y, &index).unwrap().name, "STRUCT2");
+    assert_type_and_hint!(&annotations, &index, y, "STRUCT2", None);
 
     // z := 0
     let AstStatement::ParenExpression(z) = &elements[1].stmt else { panic!() };
-    assert_eq!(&annotations.get_type_hint(z, &index).unwrap().name, "STRUCT2");
+    assert_type_and_hint!(&annotations, &index, z, "STRUCT2", None);
 }

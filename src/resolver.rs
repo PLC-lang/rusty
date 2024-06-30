@@ -1922,10 +1922,14 @@ fn get_direct_access_type(access: &DirectAccessType) -> &'static str {
     }
 }
 
-/// adds a string-type to the given index and returns it's name
-pub fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> &str {
+pub fn get_string_literal_name(is_wide: bool, len: usize) -> String {
     let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
-    let new_type_name = internal_type_name(prefix, len.to_string().as_str());
+    internal_type_name(prefix, len.to_string().as_str())
+}
+
+/// adds a string-type to the given index and returns it's name
+pub fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
+    let new_type_name = get_string_literal_name(is_wide, len);
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
@@ -1939,7 +1943,7 @@ pub fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> &st
             location: SourceLocation::internal(),
         });
     }
-    index.find_type(new_type_name.as_str()).map(|d| d.get_name()).unwrap_or(VOID_TYPE)
+    index.find_type(new_type_name.as_str()).map(|d| d.get_name().to_string()).unwrap_or(VOID_TYPE.to_string())
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name

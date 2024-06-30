@@ -703,6 +703,20 @@ where
     }
 }
 
+impl<T> Walker for Vec<T>
+where
+    T: Walker,
+{
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        for node in self {
+            node.walk(visitor);
+        }
+    }
+}
+
 impl<T> Walker for Box<T>
 where
     T: Walker,
