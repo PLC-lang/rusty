@@ -1218,9 +1218,8 @@ fn void_assignment_validation() {
     "###)
 }
 
-// TODO: Think of an edge-case here, some variable that has the auto-deref trait on which
 #[test]
-fn ref_assignment() {
+fn reference_to_variables_and_ref_assignments() {
     let diagnostics = parse_and_validate_buffered(
         "
         TYPE 
@@ -1259,46 +1258,46 @@ fn ref_assignment() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E099]: Invalid type, reference
+    error[E099]: REFERENCE TO variables can not reference other variables
        ┌─ <internal>:18:55
        │
     18 │                 referenceToFooInitializedVariable   : REFERENCE TO foo;
-       │                                                       ^^^^^^^^^^^^^^^^ Invalid type, reference
+       │                                                       ^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E099]: Invalid type, reference
+    error[E099]: REFERENCE TO variables can not reference other variables
        ┌─ <internal>:19:55
        │
     19 │                 referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
-       │                                                       ^^^^^^^^^^^^^^^^^^^^^^ Invalid type, reference
+       │                                                       ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E099]: Invalid type: array, pointer or bit 
+    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
        ┌─ <internal>:21:17
        │
      4 │             AliasedArray : ARRAY[1..5] OF DINT;
        │             ------------ see also
        ·
     21 │                 referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
-       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid type: array, pointer or bit 
+       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference arrays, pointers or bits
 
-    error[E099]: REFERENCE TO variables can not be initialized in their declaration
+    error[E099]: Initializations of REFERENCE TO variables are disallowed
        ┌─ <internal>:22:76
        │
     22 │                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
-       │                                                                            ^ REFERENCE TO variables can not be initialized in their declaration
+       │                                                                            ^ Initializations of REFERENCE TO variables are disallowed
 
-    error[E099]: Invalid type: array, pointer or bit 
+    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
        ┌─ <internal>:23:17
        │
     23 │                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
        │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        -------------------------------- see also
        │                 │                                      
-       │                 Invalid type: array, pointer or bit 
+       │                 REFERENCE TO variables can not reference arrays, pointers or bits
 
-    error[E098]: Invalid assignment, types differ (got REF_TO DINT and DINT)
+    error[E098]: Invalid assignment, types REF_TO DINT and DINT differ
        ┌─ <internal>:30:13
        │
     30 │             refToFoo REF= foo;
-       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types differ (got REF_TO DINT and DINT)
+       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types REF_TO DINT and DINT differ
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:31:33

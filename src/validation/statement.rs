@@ -769,7 +769,6 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-// TODO: Improve error messages?
 /// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
 /// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 fn validate_ref_assignment<T: AnnotationMap>(
@@ -778,24 +777,6 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
-    // // Assert that the lhs is a variable declared with `REFERENCE TO`
-    // if !context.annotations.get(&assignment.left).is_some_and(StatementAnnotation::is_reference_to) {
-    //     validator.push_diagnostic(
-    //         Diagnostic::new("Invalid assignment, expected a variable declared with `REFERENCE TO`")
-    //             .with_location(&assignment.left.location)
-    //             .with_error_code("E098"),
-    //     );
-    // }
-
-    // // Assert that the rhs is NOT a variable declared with `REFERENCE TO`
-    // if context.annotations.get(&assignment.right).is_some_and(StatementAnnotation::is_reference_to) {
-    //     validator.push_diagnostic(
-    //         Diagnostic::new("Invalid assignment, variable must not be declared with `REFERENCE TO`")
-    //             .with_location(&assignment.right.location)
-    //             .with_error_code("E098"),
-    //     );
-    // }
-
     // Assert that the rhs is a variable that can be referenced
     if !assignment.right.is_reference() {
         validator.push_diagnostic(
@@ -812,7 +793,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     if type_lhs != type_rhs {
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Invalid assignment, types differ (got {} and {})",
+                "Invalid assignment, types {} and {} differ",
                 get_datatype_name_or_slice(validator.context, type_lhs),
                 get_datatype_name_or_slice(validator.context, type_rhs),
             ))

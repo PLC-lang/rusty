@@ -96,7 +96,7 @@ mod tests;
 #[derive(Debug, Clone)]
 pub struct DataType {
     pub name: String,
-    /// the initial value defined on the TYPE-declration
+    /// the initial value defined on the TYPE-declaration
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
     pub nature: TypeNature,

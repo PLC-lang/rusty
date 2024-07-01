@@ -200,7 +200,7 @@ fn validate_variable<T: AnnotationMap>(
         {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
+                    "Invalid constant {}, FUNCTION_BLOCK- and CLASS-instances cannot be declared constant",
                     v_entry.get_name()
                 ))
                 .with_error_code("E035")
@@ -228,7 +228,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
             if let Some(ref initializer) = variable.initializer {
                 if variable_type.get_type_information().is_reference_to() {
                     validator.push_diagnostic(
-                        Diagnostic::new("REFERENCE TO variables can not be initialized in their declaration")
+                        Diagnostic::new("Initializations of REFERENCE TO variables are disallowed")
                             .with_location(&initializer.location)
                             .with_error_code("E099"),
                     );
@@ -237,12 +237,12 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
 
             // Assert that the referenced type is no variable reference
             let qualifier = context.qualifier.unwrap_or_default();
-            let var_local = context.index.find_member(qualifier, inner_type_name).is_some();
-            let var_global = context.index.find_global_variable(inner_type_name).is_some();
+            let inner_ty_is_local_var = context.index.find_member(qualifier, inner_type_name).is_some();
+            let inner_ty_is_global_var = context.index.find_global_variable(inner_type_name).is_some();
 
-            if var_local || var_global {
+            if inner_ty_is_local_var || inner_ty_is_global_var {
                 validator.push_diagnostic(
-                    Diagnostic::new("Invalid type, reference")
+                    Diagnostic::new("REFERENCE TO variables can not reference other variables")
                         .with_location(&variable_type.location)
                         .with_error_code("E099"),
                 );
@@ -253,7 +253,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
             if let Some(ty) = inner_type {
                 if ty.is_array() || ty.is_pointer() || ty.is_bit() {
                     validator.push_diagnostic(
-                        Diagnostic::new("Invalid type: array, pointer or bit ")
+                        Diagnostic::new("REFERENCE TO variables can not reference arrays, pointers or bits")
                             .with_location(&variable.location)
                             .with_secondary_location(&ty.location)
                             .with_error_code("E099"),

@@ -217,33 +217,41 @@ fn ref_assignment() {
 
 #[test]
 fn reference_to_assignment() {
-    let result = codegen(
+    let auto_deref = codegen(
         r#"
         FUNCTION main
             VAR
                 a : REFERENCE TO DINT;
-                b : REF_TO DINT;
             END_VAR
             a := 5;
-            b^ := 5;
         END_FUNCTION
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    let manual_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REF_TO DINT;
+            END_VAR
+            a^ := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    // We want to assert that `a := 5` and `a^ := 5` yield identical IR
+    assert_eq!(auto_deref, manual_deref);
+    //
+    insta::assert_snapshot!(auto_deref, @r###"
     ; ModuleID = 'main'
     source_filename = "main"
 
     define void @main() section "fn-$RUSTY$main:v" {
     entry:
       %a = alloca i32*, align 8
-      %b = alloca i32*, align 8
       store i32* null, i32** %a, align 8
-      store i32* null, i32** %b, align 8
       %deref = load i32*, i32** %a, align 8
       store i32 5, i32* %deref, align 4
-      %deref1 = load i32*, i32** %b, align 8
-      store i32 5, i32* %deref1, align 4
       ret void
     }
     "###);

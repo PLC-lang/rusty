@@ -236,12 +236,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
     }
 
-    /// Generates IR for a `REF=` assignment, which is syntactic sugar for a `REF(...)` call on the
-    /// right side of an assignment. Specifically `foo REF= bar` and `foo := REF(bar)` are the same.
+    /// Generates IR for a `REF=` assignment, which is syntactic sugar for an assignment where the
+    /// right-hand side is wrapped in a `REF(...)` call. Specifically `foo REF= bar` and
+    /// `foo := REF(bar)` are the same.
     ///
-    /// Note: Though somewhat similar to the [`generate_assignment_statement`] function, we can't
-    /// directly call it here because the left side of a `REF=` assignment is flagged as auto-deref
-    /// but for `REF=` assignment we don't want (and can't) deref without generating incorrect IR.:w
+    /// Note: Although somewhat similar to the [`generate_assignment_statement`] function, we can't
+    /// apply the code here because the left side of a `REF=` assignment is flagged as auto-deref.
+    /// For `REF=` assignments we don't want (and can't) deref without generating incorrect IR.:w
     pub fn generate_ref_assignment(&self, left: &AstNode, right: &AstNode) -> Result<(), Diagnostic> {
         let exp = self.create_expr_generator();
         let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
