@@ -1246,11 +1246,12 @@ fn reference_to_variables_and_ref_assignments() {
                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
             END_VAR
 
-            referenceToFoo REF= foo;
+            refToFoo        REF= foo;
+            referenceToFoo  REF= foo;
 
             // Invalid
+            1 REF= foo;
             foo REF= foo;
-            refToFoo REF= foo;
             referenceToFoo REF= 0;
             referenceToFoo REF= referenceToFoo;
         END_FUNCTION
@@ -1293,16 +1294,16 @@ fn reference_to_variables_and_ref_assignments() {
        │                 │                                      
        │                 REFERENCE TO variables can not reference arrays, pointers or bits
 
-    error[E098]: Invalid assignment, types REF_TO DINT and DINT differ
+    error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:30:13
        │
-    30 │             refToFoo REF= foo;
-       │             ^^^^^^^^^^^^^^^^^ Invalid assignment, types REF_TO DINT and DINT differ
+    30 │             1 REF= foo;
+       │             ^ Invalid assignment, expected a reference
 
     error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:31:33
+       ┌─ <internal>:32:33
        │
-    31 │             referenceToFoo REF= 0;
+    32 │             referenceToFoo REF= 0;
        │                                 ^ Invalid assignment, expected a reference
 
     "###);

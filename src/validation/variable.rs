@@ -217,49 +217,52 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
     variable: &Variable,
     variable_entry: &VariableIndexEntry,
 ) {
-    if let Some(variable_type) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) {
-        if variable_type.get_type_information().is_reference_to() {
-            let DataTypeInformation::Pointer { inner_type_name, .. } = variable_type.get_type_information()
-            else {
-                unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
-            };
+    let Some(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) else {
+        return;
+    };
 
-            // Assert that no initializers are present in the `REFERENCE TO` declaration
-            if let Some(ref initializer) = variable.initializer {
-                if variable_type.get_type_information().is_reference_to() {
-                    validator.push_diagnostic(
-                        Diagnostic::new("Initializations of REFERENCE TO variables are disallowed")
-                            .with_location(&initializer.location)
-                            .with_error_code("E099"),
-                    );
-                }
-            }
+    if !variable_ty.get_type_information().is_reference_to() {
+        return;
+    }
 
-            // Assert that the referenced type is no variable reference
-            let qualifier = context.qualifier.unwrap_or_default();
-            let inner_ty_is_local_var = context.index.find_member(qualifier, inner_type_name).is_some();
-            let inner_ty_is_global_var = context.index.find_global_variable(inner_type_name).is_some();
+    let Some(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() else {
+        unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
+    };
 
-            if inner_ty_is_local_var || inner_ty_is_global_var {
-                validator.push_diagnostic(
-                    Diagnostic::new("REFERENCE TO variables can not reference other variables")
-                        .with_location(&variable_type.location)
-                        .with_error_code("E099"),
-                );
-            }
+    // Assert that no initializers are present in the `REFERENCE TO` declaration
+    if let Some(ref initializer) = variable.initializer {
+        if variable_ty.get_type_information().is_reference_to() {
+            validator.push_diagnostic(
+                Diagnostic::new("Initializations of REFERENCE TO variables are disallowed")
+                    .with_location(&initializer.location)
+                    .with_error_code("E099"),
+            );
+        }
+    }
 
-            // Lastly assert that the referenced type is no array, pointer or bit
-            let inner_type = context.index.find_effective_type_by_name(inner_type_name);
-            if let Some(ty) = inner_type {
-                if ty.is_array() || ty.is_pointer() || ty.is_bit() {
-                    validator.push_diagnostic(
-                        Diagnostic::new("REFERENCE TO variables can not reference arrays, pointers or bits")
-                            .with_location(&variable.location)
-                            .with_secondary_location(&ty.location)
-                            .with_error_code("E099"),
-                    );
-                }
-            }
+    // Assert that the referenced type is no variable reference
+    let qualifier = context.qualifier.unwrap_or_default();
+    let inner_ty_is_local_var = context.index.find_member(qualifier, inner_ty_name).is_some();
+    let inner_ty_is_global_var = context.index.find_global_variable(inner_ty_name).is_some();
+
+    if inner_ty_is_local_var || inner_ty_is_global_var {
+        validator.push_diagnostic(
+            Diagnostic::new("REFERENCE TO variables can not reference other variables")
+                .with_location(&variable_ty.location)
+                .with_error_code("E099"),
+        );
+    }
+
+    // Lastly assert that the referenced type is no array, pointer or bit
+    let inner_type = context.index.find_effective_type_by_name(inner_ty_name);
+    if let Some(ty) = inner_type {
+        if ty.is_array() || ty.is_pointer() || ty.is_bit() {
+            validator.push_diagnostic(
+                Diagnostic::new("REFERENCE TO variables can not reference arrays, pointers or bits")
+                    .with_location(&variable.location)
+                    .with_secondary_location(&ty.location)
+                    .with_error_code("E099"),
+            );
         }
     }
 }

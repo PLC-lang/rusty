@@ -777,20 +777,26 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
-    // Assert that the rhs is a variable that can be referenced
-    if !assignment.right.is_reference() {
-        validator.push_diagnostic(
-            Diagnostic::new("Invalid assignment, expected a reference")
-                .with_location(&assignment.right.location)
-                .with_error_code("E098"),
-        );
-    }
+    let mut assert_reference = |node: &AstNode| {
+        if !node.is_reference() {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid assignment, expected a reference")
+                    .with_location(&node.location)
+                    .with_error_code("E098"),
+            );
+        }
+    };
+
+    assert_reference(&assignment.left);
+    assert_reference(&assignment.right);
 
     // Lastly, assert the type the lhs references matches with the rhs
-    let type_lhs = context.annotations.get_type(&assignment.left, context.index).unwrap();
-    let type_rhs = context.annotations.get_type(&assignment.right, context.index).unwrap();
+    let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
+    let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
 
-    if type_lhs != type_rhs {
+    if type_info_lhs != type_info_rhs {
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Invalid assignment, types {} and {} differ",
