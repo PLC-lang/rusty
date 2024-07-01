@@ -1217,3 +1217,94 @@ fn void_assignment_validation() {
 
     "###)
 }
+
+#[test]
+fn reference_to_variables_and_ref_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE 
+            AliasedDINT : DINT;
+            AliasedArray : ARRAY[1..5] OF DINT;
+        END_TYPE
+
+        VAR_GLOBAL
+            fooGlobal : DINT;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                foo                         : DINT;
+                refToFoo                    : REF_TO DINT;
+                referenceToFoo              : REFERENCE TO DINT;
+
+                // Invalid
+                referenceToFooInitializedVariable   : REFERENCE TO foo;
+                referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
+                referenceToFooAliasedDINTType       : REFERENCE TO AliasedDINT;
+                referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
+                referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
+                referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
+            END_VAR
+
+            refToFoo        REF= foo;
+            referenceToFoo  REF= foo;
+
+            // Invalid
+            1 REF= foo;
+            foo REF= foo;
+            referenceToFoo REF= 0;
+            referenceToFoo REF= referenceToFoo;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E099]: REFERENCE TO variables can not reference other variables
+       ┌─ <internal>:18:55
+       │
+    18 │                 referenceToFooInitializedVariable   : REFERENCE TO foo;
+       │                                                       ^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+
+    error[E099]: REFERENCE TO variables can not reference other variables
+       ┌─ <internal>:19:55
+       │
+    19 │                 referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
+       │                                                       ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+
+    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
+       ┌─ <internal>:21:17
+       │
+     4 │             AliasedArray : ARRAY[1..5] OF DINT;
+       │             ------------ see also
+       ·
+    21 │                 referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
+       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference arrays, pointers or bits
+
+    error[E099]: Initializations of REFERENCE TO variables are disallowed
+       ┌─ <internal>:22:76
+       │
+    22 │                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
+       │                                                                            ^ Initializations of REFERENCE TO variables are disallowed
+
+    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
+       ┌─ <internal>:23:17
+       │
+    23 │                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
+       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        -------------------------------- see also
+       │                 │                                      
+       │                 REFERENCE TO variables can not reference arrays, pointers or bits
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:30:13
+       │
+    30 │             1 REF= foo;
+       │             ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:32:33
+       │
+    32 │             referenceToFoo REF= 0;
+       │                                 ^ Invalid assignment, expected a reference
+
+    "###);
+}

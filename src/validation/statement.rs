@@ -1,6 +1,7 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
+use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
@@ -85,14 +86,20 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+        }
+        AstStatement::RefAssignment(data) => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
+
+            validate_ref_assignment(context, validator, data, &statement.location);
         }
         AstStatement::CallStatement(data) => {
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
@@ -759,6 +766,46 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
             .with_error_code("E031")
             .with_location(arg.get_location()),
         ),
+    }
+}
+
+/// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
+/// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
+fn validate_ref_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    assignment: &Assignment,
+    assignment_location: &SourceLocation,
+) {
+    let mut assert_reference = |node: &AstNode| {
+        if !node.is_reference() {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid assignment, expected a reference")
+                    .with_location(&node.location)
+                    .with_error_code("E098"),
+            );
+        }
+    };
+
+    assert_reference(&assignment.left);
+    assert_reference(&assignment.right);
+
+    // Lastly, assert the type the lhs references matches with the rhs
+    let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
+    let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+
+    if type_info_lhs != type_info_rhs {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid assignment, types {} and {} differ",
+                get_datatype_name_or_slice(validator.context, type_lhs),
+                get_datatype_name_or_slice(validator.context, type_rhs),
+            ))
+            .with_location(assignment_location)
+            .with_error_code("E098"),
+        );
     }
 }
 

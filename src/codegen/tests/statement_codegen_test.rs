@@ -184,3 +184,75 @@ fn floating_point_type_casting() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn ref_assignment() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a REF= b;
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca i32*, align 8
+      %b = alloca i32, align 4
+      store i32* null, i32** %a, align 8
+      store i32 0, i32* %b, align 4
+      store i32* %b, i32** %a, align 8
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn reference_to_assignment() {
+    let auto_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REFERENCE TO DINT;
+            END_VAR
+            a := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    let manual_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REF_TO DINT;
+            END_VAR
+            a^ := 5;
+        END_FUNCTION
+        "#,
+    );
+
+    // We want to assert that `a := 5` and `a^ := 5` yield identical IR
+    assert_eq!(auto_deref, manual_deref);
+    //
+    insta::assert_snapshot!(auto_deref, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define void @main() section "fn-$RUSTY$main:v" {
+    entry:
+      %a = alloca i32*, align 8
+      store i32* null, i32** %a, align 8
+      %deref = load i32*, i32** %a, align 8
+      store i32 5, i32* %deref, align 4
+      ret void
+    }
+    "###);
+}

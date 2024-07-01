@@ -312,6 +312,15 @@ pub trait AstVisitor: Sized {
         stmt.walk(self)
     }
 
+    /// Visits an `RefAssignment` node.
+    /// Make sure to call `walk` on the `Assignment` node to visit its children.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Assignment` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_ref_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
     /// Visits a `CallStatement` node.
     /// Make sure to call `walk` on the `CallStatement` node to visit its children.
     /// # Arguments
@@ -556,6 +565,7 @@ impl Walker for AstNode {
             AstStatement::VlaRangeStatement => visitor.visit_vla_range_statement(node),
             AstStatement::Assignment(stmt) => visitor.visit_assignment(stmt, node),
             AstStatement::OutputAssignment(stmt) => visitor.visit_output_assignment(stmt, node),
+            AstStatement::RefAssignment(stmt) => visitor.visit_ref_assignment(stmt, node),
             AstStatement::CallStatement(stmt) => visitor.visit_call_statement(stmt, node),
             AstStatement::ControlStatement(stmt) => visitor.visit_control_statement(stmt, node),
             AstStatement::CaseCondition(stmt) => visitor.visit_case_condition(stmt, node),

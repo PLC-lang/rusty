@@ -2507,14 +2507,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the ReferenceAccess of the reference to generate
     /// - `base` the "previous" segment of an optional qualified reference-access
     /// - `original_expression` the original ast-statement used to report Diagnostics
-    fn generate_reference_expression(
+    pub(crate) fn generate_reference_expression(
         &self,
         access: &ReferenceAccess,
         base: Option<&AstNode>,
         original_expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
-
             // expressions like `base.member`, or just `member`
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
