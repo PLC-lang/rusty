@@ -638,3 +638,159 @@ fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn ref_adr_init_in_function() {
+    let res = codegen(
+        r#"     
+        FUNCTION main : DINT 
+        VAR
+            // i : DINT;
+            // pi: REF_TO INT := REF(i);
+            s: STRING;
+            ps: REF_TO STRING := ADR(s);
+            // ps: LWORD := ADR(s)
+            // pb: REF_TO BOOL := REF(b);
+            // pb2: LWORD := ADR(b2);
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+fn ref_adr_init_with_non_global_fb_instance() {
+    let res = codegen(
+        r#"
+        FUNCTION_BLCOK foo
+        VAR
+            s: STRING;
+            ps: REF_TO STRING := ADR(s);
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        FUNCTION main : DINT 
+        VAR
+            f: foo;
+            pf: REF_TO foo := ADR(f);
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+fn ref_adr_init_in_stateful_pou() {
+    let res = codegen(
+        r#"
+        VAR_GLOBAL CONSTANT
+            b: BOOL;
+        END_VAR
+        
+        VAR_GLOBAL
+            b2: BOOL;
+        END_VAR
+        
+        FUNCTION_BLOCK foo 
+        VAR
+            i : DINT;
+            pi: REF_TO INT := REF(i);
+    
+            s: STRING;
+            ps: REF_TO STRING := ADR(s); // TODO: target type must be an lword - validate
+            ps: LWORD := ADR(s);
+
+            // TODO: pointer_to string in the context of ADR
+            // no lword support in the first commit - only ref_to/pointer_to / treat the LWORD that ADR returns as pointer / alternatively, change the
+            // builtin return type to generic (either pointer or lword)
+            pb: REF_TO BOOL := REF(b);
+            pb2: LWORD := ADR(b2);
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb: foo;
+        END_VAR
+            fb();
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+fn shenanigans() {
+    let res = codegen(
+        r#"        
+        FUNCTION_BLOCK foo 
+        VAR_INPUT
+            s: STRING;
+        END_VAR
+        VAR
+            // pi: REF_TO INT := REF(s); // not an int-pointer
+            // ps: LWORD := ADR(s) // address of an input-variable
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb: foo;
+            s: STRING;
+        END_VAR
+            fb(s);
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %foo = type { [81 x i8] }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) section "fn-foo:v[s8u81]" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define i32 @main() section "fn-main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %s = alloca [81 x i8], align 1
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%foo, %foo* @__foo__init, i32 0, i32 0, i32 0), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %1 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %2 = getelementptr inbounds %foo, %foo* %fb, i32 0, i32 0
+      %3 = bitcast [81 x i8]* %2 to i8*
+      %4 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false)
+      call void @foo(%foo* %fb)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    "###);
+}

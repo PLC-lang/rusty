@@ -35,7 +35,7 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "FUNCTION ADR<U: ANY> : LWORD
+                decl: "FUNCTION ADR<U: ANY> : REF_TO U
                 VAR_INPUT
                     in : U;
                 END_VAR
@@ -48,7 +48,9 @@ lazy_static! {
                     if let [reference] = params {
                         generator
                             .generate_lvalue(reference)
-                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
+                            // .map(|it| ExpressionValue::LValue(it))
+                            // .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
+                            .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",

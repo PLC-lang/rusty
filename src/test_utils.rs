@@ -190,7 +190,9 @@ pub mod tests {
     }
 
     pub fn codegen(src: &str) -> String {
-        codegen_without_unwrap(src).unwrap()
+        codegen_without_unwrap(src).map_err(|it| {
+            panic!("{it}")
+        }).unwrap()
     }
 
     fn codegen_into_modules<T: Compilable>(
