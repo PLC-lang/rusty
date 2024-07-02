@@ -175,8 +175,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_expression(statement);
         }
 
-        let v = self
-            .generate_expression_value(expression)?
+        let v = dbg!(self
+                    .generate_expression_value(expression))?
             .as_r_value(self.llvm, self.get_load_name(expression))
             .as_basic_value_enum();
 
@@ -443,7 +443,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
+            return dbg!(builtin.codegen(self, parameters_list.as_slice(), operator.get_location()));
         }
 
         let mut arguments_list = self.generate_pou_call_arguments_list(
@@ -516,7 +516,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
 
-        value
+        dbg!(value)
     }
 
     /// copies the output values to the assigned output variables
@@ -1320,6 +1320,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `reference_statement` - the statement to get an lvalue from
     pub fn generate_lvalue(&self, reference_statement: &AstNode) -> Result<PointerValue<'ink>, Diagnostic> {
+        dbg!(reference_statement);
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
@@ -1377,7 +1378,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // no context ... so just something like 'x'
-        match self.annotations.get(context) {
+        dbg!(context);
+        match dbg!(self.annotations.get(context)) {
             Some(StatementAnnotation::Variable { qualified_name, .. })
             | Some(StatementAnnotation::Program { qualified_name, .. }) => self
                 .llvm_index

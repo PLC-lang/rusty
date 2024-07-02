@@ -147,7 +147,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables
+        //TODO: Not sure what we are currently doing with unresolvables //XXX: why are we resolving constants before the annotations?
         let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();

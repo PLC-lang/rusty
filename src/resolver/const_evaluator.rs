@@ -331,7 +331,6 @@ fn evaluate_with_target_hint(
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
-
     let (id, location) = (initial.get_id(), initial.get_location());
     let literal = match initial.get_stmt() {
         AstStatement::Literal(kind) => match kind {
@@ -556,6 +555,21 @@ fn evaluate_with_target_hint(
             Some(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) => evaluate_with_target_hint(expr, scope, index, target_type)?,
+        AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, parameters }) => {
+            let name = operator.get_flat_reference_name().expect("operator without name?");
+            if !matches!(name.to_lowercase().as_str(), "ref" | "adr") {
+                unimplemented!("handle function calls which do not return constants")
+            };
+            let Some(arg) = parameters else {
+                unimplemented!("handle adr/ref call without args")
+            };
+            return match evaluate_with_target_hint(arg, scope, index, target_type) {
+                // arg to ref/adr could not be found in the index => unresolvable
+                Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
+                // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
+                _ => Err(UnresolvableKind::InitializeWithMemoryAddress),                
+            }
+        },
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)

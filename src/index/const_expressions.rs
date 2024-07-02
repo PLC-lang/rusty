@@ -80,12 +80,16 @@ pub enum UnresolvableKind {
 
     /// Indicates that the const expression was not resolvable because it would yield an overflow.
     Overflow(String, SourceLocation),
+
+    /// Indicates that the const expression is not resolvable before initialization during codegen
+    InitializeWithMemoryAddress
 }
 
 impl UnresolvableKind {
     pub fn get_reason(&self) -> &str {
         match self {
             UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
+            UnresolvableKind::InitializeWithMemoryAddress => "",
         }
     }
 
