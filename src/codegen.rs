@@ -105,7 +105,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
-        _unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
+        unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -117,16 +117,19 @@ impl<'ink> CodeGen<'ink> {
             dependencies,
             global_index,
             annotations,
+            unresolved_init
         )?;
+        println!("done");
         index.merge(llvm_type_index);
 
         let mut variable_generator =
             VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
         //Generate global variables
-        println!("generating llvm_gv_index!");
+        println!("generating llvm_gv_index");
         let llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, &self.module_location)?;
+        println!("done");
         index.merge(llvm_gv_index);
 
         //Generate opaque functions for implementations and associate them with their types

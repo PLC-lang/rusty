@@ -1,5 +1,7 @@
+use crate::codegen::const_expressions::InitingIsHardInnit;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::codegen::debug::Debug;
+use crate::codegen::FxIndexMap;
 use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
@@ -54,6 +56,7 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
+    unresolved_init: &FxIndexMap<String, InitingIsHardInnit>
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut types = vec![];
     let mut pou_types = vec![];

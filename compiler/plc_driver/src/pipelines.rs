@@ -161,6 +161,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
                 }
             })
             .collect::<FxIndexMap<_, _>>();
+        // XXX: candidates with a scope are members of structs/pous - these also cannot be initialized due to having dependencies on
+        // the member-candidates.
         dbg!(&init_fn_candidates);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
