@@ -24,6 +24,7 @@ use crate::{
 
 use super::index::*;
 
+use const_expressions::InitingIsHardInnit;
 use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
@@ -35,7 +36,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
-use plc_ast::ast::{AstNode, CompilationUnit, LinkageType};
+use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -104,7 +105,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
-        _unresolvables: &[(Box<AstNode>, Option<String>)],
+        _unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();

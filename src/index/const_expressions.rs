@@ -7,6 +7,7 @@ use plc_ast::{
 };
 
 use plc_source::source_location::SourceLocation;
+
 pub type ConstId = generational_arena::Index;
 
 /// wrapper around ConstExpression stored in the arena
@@ -37,6 +38,7 @@ pub enum ConstExpression {
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         scope: Option<String>,
+ 
     },
     Resolved(AstNode),
     Unresolvable {
@@ -74,6 +76,23 @@ impl ConstExpression {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct InitingIsHardInnit {
+    pub initializer: Box<AstNode>,
+    pub target_type_name: String,
+    pub scope: Option<String>,
+}
+
+impl InitingIsHardInnit {
+    pub fn new(initializer: &Box<AstNode>, target_type: Option<impl Into<String>>, scope: Option<impl Into<String>>) -> Self {
+        InitingIsHardInnit {
+            initializer: initializer.clone(),
+            target_type_name: target_type.map(|it| it.into()).expect("No later init without a valid target type to init to."), // TODO: remove unwrap
+            scope: scope.map(|it| it.into()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnresolvableKind {
     /// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
     Misc(String),
@@ -82,7 +101,7 @@ pub enum UnresolvableKind {
     Overflow(String, SourceLocation),
 
     /// Indicates that the const expression is not resolvable before initialization during codegen
-    InitLater { initializer: Box<AstNode>, scope: Option<String>, /* XXX: target type name might be needed here */ },
+    InitLater(InitingIsHardInnit),
 }
 
 impl UnresolvableKind {

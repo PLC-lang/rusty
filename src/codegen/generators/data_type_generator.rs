@@ -162,7 +162,7 @@ pub fn generate_data_types<'ink>(
         //Report the operation failure
         return Err(Diagnostic::new("Some initial values were not generated")
             .with_error_code("E075")
-            .with_sub_diagnostics(diags));
+            .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
     }
     Ok(generator.types_index)
 }

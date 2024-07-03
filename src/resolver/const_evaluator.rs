@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
-        const_expressions::{ConstExpression, ConstId, UnresolvableKind},
+        const_expressions::{ConstExpression, ConstId, InitingIsHardInnit, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
@@ -571,10 +571,7 @@ fn evaluate_with_target_hint(
                 // arg to ref/adr could not be found in the index => unresolvable
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::InitLater {
-                    initializer: arg.clone(),
-                    scope: scope.map(|it| it.into()),
-                }),
+                _ => Err(UnresolvableKind::InitLater(InitingIsHardInnit::new(arg, target_type, scope))),
             };
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),

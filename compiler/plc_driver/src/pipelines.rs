@@ -7,13 +7,13 @@ use std::{
 
 use crate::{CompileOptions, LinkOptions};
 use ast::{
-    ast::{pre_process, AstNode, CompilationUnit, LinkageType},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::Index,
+    index::{const_expressions::InitingIsHardInnit, Index},
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -21,7 +21,7 @@ use plc::{
     ConfigFormat, Target,
 };
 use plc::{
-    index::{const_expressions::UnresolvableKind, FxIndexSet},
+    index::{const_expressions::UnresolvableKind, FxIndexSet, FxIndexMap},
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -154,13 +154,13 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         let init_fn_candidates = unresolvables
             .into_iter()
             .filter_map(|it| {
-                if let Some(UnresolvableKind::InitLater { initializer, scope }) = it.kind {
-                    Some((initializer, scope))
+                if let Some(UnresolvableKind::InitLater (init)) = it.kind {
+                    Some((init.target_type_name.clone(), init))
                 } else {
                     None
                 }
             })
-            .collect::<Vec<(Box<AstNode>, Option<String>)>>();
+            .collect::<FxIndexMap<_, _>>();
         dbg!(&init_fn_candidates);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -210,7 +210,7 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
-    pub unresolved_initializers: Vec<(Box<AstNode>, Option<String>)>,
+    pub unresolved_initializers: FxIndexMap<String, InitingIsHardInnit>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
